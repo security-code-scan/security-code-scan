@@ -7,7 +7,7 @@ namespace RoslynSecurityGuard.Test
 {
 
     [TestClass]
-    public class CommandInjectionTest : DiagnosticVerifier
+    public class CommandInjectionAnalyzerTest : DiagnosticVerifier
     {
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
@@ -25,13 +25,13 @@ using System.Diagnostics;
 
 namespace VulnerableApp
 {
-class ProcessExec
-{
-    static void TestCommandInject(string input)
+    class ProcessExec
     {
-            Process.Start(""dir"");
+        static void TestCommandInject(string input)
+        {
+                Process.Start(""dir"");
+        }
     }
-}
 }
 ";
             VerifyCSharpDiagnostic(test);
@@ -47,13 +47,13 @@ using System.Diagnostics;
 
 namespace VulnerableApp
 {
-class ProcessExec
-{
-    static void TestCommandInject(string input)
+    class ProcessExec
     {
-        Process.Start(input);
+        static void TestCommandInject(string input)
+        {
+            Process.Start(input);
+        }
     }
-}
 }
         ";
 

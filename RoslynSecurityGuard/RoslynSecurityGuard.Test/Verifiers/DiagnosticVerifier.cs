@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,16 +18,8 @@ namespace TestHelper
         /// <summary>
         /// Get the CSharp analyzer being tested - to be implemented in non-abstract class
         /// </summary>
-        protected virtual DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// Get the Visual Basic analyzer being tested (C#) - to be implemented in non-abstract class
-        /// </summary>
-        protected virtual DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
-        {
+        protected abstract DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer();
+        protected virtual IEnumerable<MetadataReference> GetAdditionnalReferences() {
             return null;
         }
         #endregion
@@ -66,7 +59,7 @@ namespace TestHelper
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
         private void VerifyDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer, params DiagnosticResult[] expected)
         {
-            var diagnostics = GetSortedDiagnostics(sources, language, analyzer);
+            var diagnostics = GetSortedDiagnostics(sources, language, analyzer, GetAdditionnalReferences());
             VerifyDiagnosticResults(diagnostics, analyzer, expected);
         }
 
@@ -93,9 +86,18 @@ namespace TestHelper
                     string.Format("Mismatch between number of diagnostics returned, expected \"{0}\" actual \"{1}\"\r\n\r\nDiagnostics:\r\n{2}\r\n", expectedCount, actualCount, diagnosticsOutput));
             }
 
+            //For debug purpose
+            foreach(var actual in actualResults)
+            {
+                Console.WriteLine(string.Format("Bug : {0} ({1}) {2}", actual.Id, actual.Severity, actual.Location.GetLineSpan().StartLinePosition));
+            }
+
+
             for (int i = 0; i < expectedResults.Length; i++)
             {
                 var actual = actualResults.ElementAt(i);
+
+
                 var expected = expectedResults[i];
 
                 if (expected.Line == -1 && expected.Column == -1)

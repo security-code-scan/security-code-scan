@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace RoslynSecurityGuard
@@ -29,13 +30,24 @@ namespace RoslynSecurityGuard
             
             InvocationExpressionSyntax node = ctx.Node as InvocationExpressionSyntax;
             if (node != null) {
+                var symbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
 
                 //DataContext.ExecuteQuery()
-                var invokedSymbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
+                if (AnalyzerUtil.InvokeMatch(symbol, className : "DataContext", method: "ExecuteQuery")) {
 
-                if (AnalyzerUtil.InvokeMatch(invokedSymbol, className : "DataContext", method: "ExecuteQuery")) {
-                    var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), new string[0]);
-                    ctx.ReportDiagnostic(diagnostic);
+                    var sig = symbol.ToDisplayString(); //Signature with the full class name and argument types
+                    var args = node.ArgumentList.Arguments;
+
+                    //Actual string in the test sample "System.Data.Linq.DataContext.ExecuteQuery<VulnerableApp.UserEntity>(string, params object[])"
+                    var sigExecQueryGeneric = new Regex(@"System\.Data\.Linq\.DataContext\.ExecuteQuery<[\w\.]+>\(string, params object\[\]\)");
+                    var sigExecQueryType = "System.Data.Linq.DataContext.ExecuteQuery(System.Type, string, params object[])";
+
+                    if ((sigExecQueryGeneric.IsMatch(sig) && !AnalyzerUtil.IsStaticString(args[0].Expression)) ||
+                        (sigExecQueryType == sig && !AnalyzerUtil.IsStaticString(args[1].Expression)))
+                    {
+                        var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), new string[0]);
+                        ctx.ReportDiagnostic(diagnostic);
+                    }
                 }
             }
 

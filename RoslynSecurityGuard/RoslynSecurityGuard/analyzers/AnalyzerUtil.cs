@@ -6,10 +6,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.CSharp;
+
 namespace RoslynSecurityGuard
 {
     public class AnalyzerUtil
     {
+        
+        
 
         public static DiagnosticDescriptor GetDescriptorFromResource(Type analyzer, DiagnosticSeverity severity) {
             return new DiagnosticDescriptor(GetLocalString(analyzer.Name + "_Id").ToString(),
@@ -18,8 +23,8 @@ namespace RoslynSecurityGuard
                 "Security", 
                 severity, 
                 isEnabledByDefault: true,
-                helpLinkUri : GetLocalString(analyzer.Name + "_Url").ToString(),
-                description : GetLocalString(analyzer.Name + "_Description"));
+                helpLinkUri : "https://github.com/fxcop-security-guard/#"+GetLocalString(analyzer.Name + "_Id").ToString(),
+                description : GetLocalString(analyzer.Name + "_Title"));
         }
 
         private static LocalizableString GetLocalString(string id) {
@@ -27,8 +32,9 @@ namespace RoslynSecurityGuard
         }
 
         public static bool InvokeMatch(ISymbol symbol, string className = null, string method = null) {
-            if (symbol == null) {
-                return false; //Code did not compile
+            if (symbol == null) { //Code did not compile
+                //FIXME: Log warning
+                return false;
             }
 
             if (className == null && method == null) {
@@ -56,6 +62,15 @@ namespace RoslynSecurityGuard
                 current = current.Parent;
             }
             return current;
+        }
+
+        public static Boolean IsStaticString(ExpressionSyntax expression) {
+            if (expression.Kind() == SyntaxKind.StringLiteralExpression && expression is LiteralExpressionSyntax) {
+                return true;
+            }
+            else {
+                return false; //FIXME: Improved the analysis
+            }
         }
     }
 }

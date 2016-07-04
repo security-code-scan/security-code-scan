@@ -62,15 +62,6 @@ namespace RoslynSecurityGuard {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Potential command injection.
-        /// </summary>
-        internal static string CommandInjectionAnalyzer_Description {
-            get {
-                return ResourceManager.GetString("CommandInjectionAnalyzer_Description", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SG0001.
         /// </summary>
         internal static string CommandInjectionAnalyzer_Id {
@@ -94,24 +85,6 @@ namespace RoslynSecurityGuard {
         internal static string CommandInjectionAnalyzer_Title {
             get {
                 return ResourceManager.GetString("CommandInjectionAnalyzer_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to https://github.com/fxcop-security-guard/.
-        /// </summary>
-        internal static string CommandInjectionAnalyzer_Url {
-            get {
-                return ResourceManager.GetString("CommandInjectionAnalyzer_Url", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Potential SQL injection.
-        /// </summary>
-        internal static string LinqSqlInjectionAnalyzer_Description {
-            get {
-                return ResourceManager.GetString("LinqSqlInjectionAnalyzer_Description", resourceCulture);
             }
         }
         
@@ -143,11 +116,56 @@ namespace RoslynSecurityGuard {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://github.com/fxcop-security-guard/.
+        ///   Looks up a localized string similar to SG0004.
         /// </summary>
-        internal static string LinqSqlInjectionAnalyzer_Url {
+        internal static string WeakCertificateValidationAnalyzer_Id {
             get {
-                return ResourceManager.GetString("LinqSqlInjectionAnalyzer_Url", resourceCulture);
+                return ResourceManager.GetString("WeakCertificateValidationAnalyzer_Id", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Certificate Validation has been disable. The communication could be intercepted..
+        /// </summary>
+        internal static string WeakCertificateValidationAnalyzer_Message {
+            get {
+                return ResourceManager.GetString("WeakCertificateValidationAnalyzer_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Certificate Validation has been disable.
+        /// </summary>
+        internal static string WeakCertificateValidationAnalyzer_Title {
+            get {
+                return ResourceManager.GetString("WeakCertificateValidationAnalyzer_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SG0003.
+        /// </summary>
+        internal static string XPathInjectionAnalyzer_Id {
+            get {
+                return ResourceManager.GetString("XPathInjectionAnalyzer_Id", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The dynamic value passed to the XPath query should be validate.
+        /// </summary>
+        internal static string XPathInjectionAnalyzer_Message {
+            get {
+                return ResourceManager.GetString("XPathInjectionAnalyzer_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Potential command injection with XmlDocument.
+        /// </summary>
+        internal static string XPathInjectionAnalyzer_Title {
+            get {
+                return ResourceManager.GetString("XPathInjectionAnalyzer_Title", resourceCulture);
             }
         }
     }

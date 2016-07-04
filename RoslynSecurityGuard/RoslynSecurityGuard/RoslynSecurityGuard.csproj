@@ -35,6 +35,7 @@
     <Compile Include="analyzers\AnalyzerUtil.cs" />
     <Compile Include="analyzers\LinqSqlInjectionAnalyzer.cs" />
     <Compile Include="analyzers\CommandInjectionAnalyzer.cs" />
+    <Compile Include="analyzers\XPathInjectionAnalyzer.cs" />
     <Compile Include="Messages.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

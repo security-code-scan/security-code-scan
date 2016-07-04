@@ -47,18 +47,6 @@ namespace TestHelper
         }
 
         /// <summary>
-        /// Called to test a VB codefix when applied on the inputted string as a source
-        /// </summary>
-        /// <param name="oldSource">A class in the form of a string before the CodeFix was applied to it</param>
-        /// <param name="newSource">A class in the form of a string after the CodeFix was applied to it</param>
-        /// <param name="codeFixIndex">Index determining which codefix to apply if there are multiple</param>
-        /// <param name="allowNewCompilerDiagnostics">A bool controlling whether or not the test will fail if the CodeFix introduces other warnings after being applied</param>
-        protected void VerifyBasicFix(string oldSource, string newSource, int? codeFixIndex = null, bool allowNewCompilerDiagnostics = false)
-        {
-            VerifyFix(LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), GetBasicCodeFixProvider(), oldSource, newSource, codeFixIndex, allowNewCompilerDiagnostics);
-        }
-
-        /// <summary>
         /// General verifier for codefixes.
         /// Creates a Document from the source string, then gets diagnostics on it and applies the relevant codefixes.
         /// Then gets the string after the codefix is applied and compares it with the expected result.

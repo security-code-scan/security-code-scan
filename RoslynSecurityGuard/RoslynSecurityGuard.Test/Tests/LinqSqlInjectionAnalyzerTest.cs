@@ -1,0 +1,154 @@
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using System.Data.Linq;
+using TestHelper;
+
+namespace RoslynSecurityGuard.Test
+{
+    [TestClass]
+    public class LinqSqlInjectionAnalyzerTest : DiagnosticVerifier
+    {
+
+        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        {
+            return new LinqSqlInjectionAnalyzer();
+        }
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
+        {
+            return new [] { MetadataReference.CreateFromFile(typeof(DataContext).Assembly.Location), MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location) };
+        }
+
+        [TestMethod]
+        public void LinqInjectionFalsePositiveWithGeneric()
+        {
+            var test = @"
+using System.Data.Linq;
+
+namespace VulnerableApp
+{
+
+    public class LyncInjectionFP
+    {
+        public static int Main(DataContext ctx,string city) {
+            var users = ctx.ExecuteQuery<UserEntity>(@""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
+                Address, City, Region, PostalCode, Country, Phone, Fax
+                FROM dbo.Users"");
+
+            return 0;
+        }
+    }
+
+    class UserEntity
+    {
+    }
+}
+";
+            VerifyCSharpDiagnostic(test);
+        }
+
+        [TestMethod]
+        public void LinqInjectionVulnerableWithGeneric()
+        {
+            var test = @"
+using System.Data.Linq;
+
+namespace VulnerableApp
+{
+
+    public class LyncInjectionTP
+    {
+        public static int Main(DataContext ctx,string city) {
+            var users = ctx.ExecuteQuery<UserEntity>(@""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
+                Address, City, Region, PostalCode, Country, Phone, Fax
+                FROM dbo.Users
+                WHERE  City = '"" + city+ ""'"");
+
+            return 0;
+        }
+    }
+
+    class UserEntity
+    {
+    }
+}
+        ";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "SG0002",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            VerifyCSharpDiagnostic(test, expected);
+        }
+
+        [TestMethod]
+        //[Ignore] //FIXME: Signature with type as first argument not support
+        public void LinqInjectionFalsePositiveWithoutGeneric()
+        {
+            var test = @"
+using System.Data.Linq;
+
+namespace VulnerableApp
+{
+
+    public class LyncInjectionTP
+    {
+        public static int Main(DataContext ctx,string city) {
+            var users = ctx.ExecuteQuery(typeof(UserEntity),@""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
+                Address, City, Region, PostalCode, Country, Phone, Fax
+                FROM dbo.Users
+                WHERE  City = 'Montreal'"");
+
+            return 0;
+        }
+    }
+}
+        ";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "SG0002",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            VerifyCSharpDiagnostic(test);
+        }
+
+
+        [TestMethod]
+        public void LinqInjectionVulnerableWithoutGeneric()
+        {
+            var test = @"
+using System.Data.Linq;
+
+namespace VulnerableApp
+{
+
+    public class LyncInjectionTP
+    {
+        public static int Main(DataContext ctx,string city) {
+            var users = ctx.ExecuteQuery(typeof(UserEntity),@""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
+                Address, City, Region, PostalCode, Country, Phone, Fax
+                FROM dbo.Users
+                WHERE  City = '"" + city+ ""'"");
+
+            return 0;
+        }
+    }
+}
+        ";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "SG0002",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            VerifyCSharpDiagnostic(test, expected);
+        }
+    }
+}

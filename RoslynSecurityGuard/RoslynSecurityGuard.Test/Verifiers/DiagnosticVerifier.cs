@@ -2,8 +2,10 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using RoslynSecurityGuard.Analyzers;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 
@@ -18,7 +20,7 @@ namespace TestHelper
         /// <summary>
         /// Get the CSharp analyzer being tested - to be implemented in non-abstract class
         /// </summary>
-        protected abstract DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer();
+        protected abstract DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers();
         protected virtual IEnumerable<MetadataReference> GetAdditionnalReferences() {
             return null;
         }
@@ -34,20 +36,8 @@ namespace TestHelper
         /// <param name="expected"> DiagnosticResults that should appear after the analyzer is run on the source</param>
         protected void VerifyCSharpDiagnostic(string source, params DiagnosticResult[] expected)
         {
-            VerifyDiagnostics(new[] { source }, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), expected);
+            VerifyDiagnostics(new[] { source }, LanguageNames.CSharp, ImmutableArray.Create(GetCSharpDiagnosticAnalyzers(),new DebugAnalyzer()), expected);
         }
-        
-        /// <summary>
-        /// Called to test a C# DiagnosticAnalyzer when applied on the inputted strings as a source
-        /// Note: input a DiagnosticResult for each Diagnostic expected
-        /// </summary>
-        /// <param name="sources">An array of strings to create source documents from to run the analyzers on</param>
-        /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
-        protected void VerifyCSharpDiagnostic(string[] sources, params DiagnosticResult[] expected)
-        {
-            VerifyDiagnostics(sources, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), expected);
-        }
-        
 
         /// <summary>
         /// General method that gets a collection of actual diagnostics found in the source after the analyzer is run, 
@@ -57,10 +47,10 @@ namespace TestHelper
         /// <param name="language">The language of the classes represented by the source strings</param>
         /// <param name="analyzer">The analyzer to be run on the source code</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
-        private void VerifyDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer, params DiagnosticResult[] expected)
+        private void VerifyDiagnostics(string[] sources, string language, ImmutableArray<DiagnosticAnalyzer> analyzers, params DiagnosticResult[] expected)
         {
-            var diagnostics = GetSortedDiagnostics(sources, language, analyzer, GetAdditionnalReferences());
-            VerifyDiagnosticResults(diagnostics, analyzer, expected);
+            var diagnostics = GetSortedDiagnostics(sources, language, analyzers, GetAdditionnalReferences());
+            VerifyDiagnosticResults(diagnostics, analyzers, expected);
         }
 
         #endregion
@@ -73,14 +63,14 @@ namespace TestHelper
         /// <param name="actualResults">The Diagnostics found by the compiler after running the analyzer on the source code</param>
         /// <param name="analyzer">The analyzer that was being run on the sources</param>
         /// <param name="expectedResults">Diagnostic Results that should have appeared in the code</param>
-        private static void VerifyDiagnosticResults(IEnumerable<Diagnostic> actualResults, DiagnosticAnalyzer analyzer, params DiagnosticResult[] expectedResults)
+        private static void VerifyDiagnosticResults(IEnumerable<Diagnostic> actualResults, ImmutableArray<DiagnosticAnalyzer> analyzers, params DiagnosticResult[] expectedResults)
         {
             int expectedCount = expectedResults.Count();
             int actualCount = actualResults.Count();
 
             if (expectedCount != actualCount)
             {
-                string diagnosticsOutput = actualResults.Any() ? FormatDiagnostics(analyzer, actualResults.ToArray()) : "    NONE.";
+                string diagnosticsOutput = actualResults.Any() ? FormatDiagnostics(analyzers[0], actualResults.ToArray()) : "    NONE.";
 
                 Assert.IsTrue(false,
                     string.Format("Mismatch between number of diagnostics returned, expected \"{0}\" actual \"{1}\"\r\n\r\nDiagnostics:\r\n{2}\r\n", expectedCount, actualCount, diagnosticsOutput));
@@ -111,7 +101,7 @@ namespace TestHelper
                 }
                 else
                 {
-                    VerifyDiagnosticLocation(analyzer, actual, actual.Location, expected.Locations.First());
+                    VerifyDiagnosticLocation(analyzers[0], actual, actual.Location, expected.Locations.First());
                     var additionalLocations = actual.AdditionalLocations.ToArray();
 
                     if (additionalLocations.Length != expected.Locations.Length - 1)
@@ -119,12 +109,12 @@ namespace TestHelper
                         Assert.IsTrue(false,
                             string.Format("Expected {0} additional locations but got {1} for Diagnostic:\r\n    {2}\r\n",
                                 expected.Locations.Length - 1, additionalLocations.Length,
-                                FormatDiagnostics(analyzer, actual)));
+                                FormatDiagnostics(analyzers[0], actual)));
                     }
 
                     for (int j = 0; j < additionalLocations.Length; ++j)
                     {
-                        VerifyDiagnosticLocation(analyzer, actual, additionalLocations[j], expected.Locations[j + 1]);
+                        VerifyDiagnosticLocation(analyzers[0], actual, additionalLocations[j], expected.Locations[j + 1]);
                     }
                 }
 
@@ -132,21 +122,21 @@ namespace TestHelper
                 {
                     Assert.IsTrue(false,
                         string.Format("Expected diagnostic id to be \"{0}\" was \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
-                            expected.Id, actual.Id, FormatDiagnostics(analyzer, actual)));
+                            expected.Id, actual.Id, FormatDiagnostics(analyzers[0], actual)));
                 }
 
                 if (actual.Severity != expected.Severity)
                 {
                     Assert.IsTrue(false,
                         string.Format("Expected diagnostic severity to be \"{0}\" was \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
-                            expected.Severity, actual.Severity, FormatDiagnostics(analyzer, actual)));
+                            expected.Severity, actual.Severity, FormatDiagnostics(analyzers[0], actual)));
                 }
 
                 if (expected.Message != null && actual.GetMessage() != expected.Message)
                 {
                     Assert.IsTrue(false,
                         string.Format("Expected diagnostic message to be \"{0}\" was \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
-                            expected.Message, actual.GetMessage(), FormatDiagnostics(analyzer, actual)));
+                            expected.Message, actual.GetMessage(), FormatDiagnostics(analyzers[0], actual)));
                 }
             }
         }
@@ -180,7 +170,7 @@ namespace TestHelper
             }
 
             // Only check column position if there is an actual column position in the real diagnostic
-            if (actualLinePosition.Character > 0)
+            if (expected.Column != -1 && actualLinePosition.Character > 0)
             {
                 if (actualLinePosition.Character + 1 != expected.Column)
                 {

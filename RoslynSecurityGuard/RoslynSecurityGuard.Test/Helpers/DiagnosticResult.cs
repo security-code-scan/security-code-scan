@@ -83,5 +83,18 @@ namespace TestHelper
                 return this.Locations.Length > 0 ? this.Locations[0].Column : -1;
             }
         }
+
+        public DiagnosticResult WithLocation(int line, int column = -1)
+        {
+            return this.WithLocation("Test0.cs", line, column);
+        }
+
+        public DiagnosticResult WithLocation(string path, int line, int column = -1)
+        {
+            DiagnosticResult result = this;
+            Array.Resize(ref result.locations, (result.locations?.Length ?? 0) + 1);
+            result.locations[result.locations.Length - 1] = new DiagnosticResultLocation(path, line, column);
+            return result;
+        }
     }
 }

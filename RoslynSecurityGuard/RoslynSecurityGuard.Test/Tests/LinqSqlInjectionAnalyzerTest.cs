@@ -1,17 +1,18 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using RoslynSecurityGuard.Analyzers;
 using System.Collections.Generic;
 using System.Data.Linq;
 using TestHelper;
 
-namespace RoslynSecurityGuard.Test
+namespace RoslynSecurityGuard.Tests
 {
     [TestClass]
     public class LinqSqlInjectionAnalyzerTest : DiagnosticVerifier
     {
 
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers()
         {
             return new LinqSqlInjectionAnalyzer();
         }

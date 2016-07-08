@@ -5,15 +5,16 @@ using System.Collections.Immutable;
 using TestHelper;
 using System.Collections.Generic;
 using System.Xml;
+using RoslynSecurityGuard.Analyzers;
 
-namespace RoslynSecurityGuard.Test
+namespace RoslynSecurityGuard.Tests
 {
     [TestClass]
     public class XPathInjectionAnalyzerTest : DiagnosticVerifier
     {
 
         
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers()
         {
             return new XPathInjectionAnalyzer();
         }

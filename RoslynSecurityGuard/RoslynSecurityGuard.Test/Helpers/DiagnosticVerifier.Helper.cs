@@ -37,9 +37,9 @@ namespace TestHelper
         /// <param name="language">The language the source classes are in</param>
         /// <param name="analyzer">The analyzer to be run on the sources</param>
         /// <returns>An IEnumerable of Diagnostics that surfaced in the source code, sorted by Location</returns>
-        private static Diagnostic[] GetSortedDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer, IEnumerable<MetadataReference> references = null)
+        private static Diagnostic[] GetSortedDiagnostics(string[] sources, string language, ImmutableArray<DiagnosticAnalyzer> analyzers, IEnumerable<MetadataReference> references = null)
         {
-            return GetSortedDiagnosticsFromDocuments(analyzer, GetDocuments(sources, language, references));
+            return GetSortedDiagnosticsFromDocuments(analyzers, GetDocuments(sources, language, references));
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace TestHelper
         /// <param name="analyzer">The analyzer to run on the documents</param>
         /// <param name="documents">The Documents that the analyzer will be run on</param>
         /// <returns>An IEnumerable of Diagnostics that surfaced in the source code, sorted by Location</returns>
-        protected static Diagnostic[] GetSortedDiagnosticsFromDocuments(DiagnosticAnalyzer analyzer, Document[] documents)
+        protected static Diagnostic[] GetSortedDiagnosticsFromDocuments(ImmutableArray<DiagnosticAnalyzer> analyzers, Document[] documents)
         {
             var projects = new HashSet<Project>();
             foreach (var document in documents)
@@ -60,7 +60,7 @@ namespace TestHelper
             var diagnostics = new List<Diagnostic>();
             foreach (var project in projects)
             {
-                var compilationWithAnalyzers = project.GetCompilationAsync().Result.WithAnalyzers(ImmutableArray.Create(analyzer));
+                var compilationWithAnalyzers = project.GetCompilationAsync().Result.WithAnalyzers(analyzers);
                 var diags = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
                 foreach (var diag in diags)
                 {

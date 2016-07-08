@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace RoslynSecurityGuard
+namespace RoslynSecurityGuard.Analyzers
 {
     public class AnalyzerUtil
     {

@@ -34,7 +34,6 @@
   <ItemGroup>
     <Compile Include="Analyzers\AnalyzerUtil.cs" />
     <Compile Include="Analyzers\DebugAnalyzer.cs" />
-    <Compile Include="Analyzers\Interface1.cs" />
     <Compile Include="Analyzers\LinqSqlInjectionAnalyzer.cs" />
     <Compile Include="Analyzers\CommandInjectionAnalyzer.cs" />
     <Compile Include="Analyzers\WeakCertificateValidationAnalyzer.cs" />

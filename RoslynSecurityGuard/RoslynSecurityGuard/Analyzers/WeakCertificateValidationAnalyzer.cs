@@ -17,7 +17,6 @@ namespace RoslynSecurityGuard.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
-            //SyntaxKind.InvocationExpression, SyntaxKind.AddAssignmentExpression, SyntaxKind.SimpleMemberAccessExpression, 
             context.RegisterSyntaxNodeAction(VisitSyntaxNode, SyntaxKind.AddAssignmentExpression, SyntaxKind.SimpleAssignmentExpression);
             
         }
@@ -28,28 +27,19 @@ namespace RoslynSecurityGuard.Analyzers
             var assignment = ctx.Node as AssignmentExpressionSyntax;
             if(assignment != null)
             {
-                //var symbol = ctx.SemanticModel.GetSymbolInfo(assignment).Symbol;
 
-                ////System.Net.Security.RemoteCertificateValidationCallback.op_Addition(...
-                //if (AnalyzerUtil.InvokeMatch(symbol, className: "RemoteCertificateValidationCallback", method: "op_Addition"))
-                //{
-                //    var diagnostic = Diagnostic.Create(Rule, assignment.GetLocation(), new string[0]);
-                //    ctx.ReportDiagnostic(diagnostic);
-                //}
-                //else
-                //{
-                    var memberAccess = assignment.Left as MemberAccessExpressionSyntax;
-                    if (memberAccess != null)
+                var memberAccess = assignment.Left as MemberAccessExpressionSyntax;
+                if (memberAccess != null)
+                {
+
+                    var symbolMemberAccess = ctx.SemanticModel.GetSymbolInfo(memberAccess).Symbol;
+                    if (AnalyzerUtil.InvokeMatch(symbolMemberAccess, className: "ServicePointManager", method: "ServerCertificateValidationCallback") ||
+                        AnalyzerUtil.InvokeMatch(symbolMemberAccess, className: "ServicePointManager", method: "CertificatePolicy"))
                     {
-
-                        var symbolMemberAccess = ctx.SemanticModel.GetSymbolInfo(memberAccess).Symbol;
-                        if (AnalyzerUtil.InvokeMatch(symbolMemberAccess, className: "ServicePointManager", method: "ServerCertificateValidationCallback") ||
-                            AnalyzerUtil.InvokeMatch(symbolMemberAccess, className: "ServicePointManager", method: "CertificatePolicy"))
-                        {
-                            var diagnostic = Diagnostic.Create(Rule, assignment.GetLocation(), new string[0]);
-                            ctx.ReportDiagnostic(diagnostic);
-                        }
+                        var diagnostic = Diagnostic.Create(Rule, assignment.GetLocation(), new string[0]);
+                        ctx.ReportDiagnostic(diagnostic);
                     }
+                }
                 //}
             }
         }

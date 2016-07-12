@@ -39,6 +39,12 @@ namespace TestHelper
             VerifyDiagnostics(new[] { source }, LanguageNames.CSharp, ImmutableArray.Create(GetCSharpDiagnosticAnalyzers(),new DebugAnalyzer()), expected);
         }
 
+        [TestInitialize]
+        public void initOutput()
+        {
+            DebugAnalyzer.handler = value => Console.WriteLine(value); ;
+        }
+
         /// <summary>
         /// General method that gets a collection of actual diagnostics found in the source after the analyzer is run, 
         /// then verifies each of them.

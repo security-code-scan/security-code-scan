@@ -144,6 +144,24 @@
   <data name="WeakCertificateValidationAnalyzer_Title" xml:space="preserve">
     <value>Certificate Validation has been disable</value>
   </data>
+  <data name="WeakHashingAnalyzer_Id" xml:space="preserve">
+    <value>SG0006</value>
+  </data>
+  <data name="WeakHashingAnalyzer_Message" xml:space="preserve">
+    <value>The hashing function "{0}" is no longer recommended for password storage and signature generation.</value>
+  </data>
+  <data name="WeakHashingAnalyzer_Title" xml:space="preserve">
+    <value>Weak hashing function</value>
+  </data>
+  <data name="WeakRandomAnalyzer_Id" xml:space="preserve">
+    <value>SG0005</value>
+  </data>
+  <data name="WeakRandomAnalyzer_Message" xml:space="preserve">
+    <value>The random numbers generated could be predicted.</value>
+  </data>
+  <data name="WeakRandomAnalyzer_Title" xml:space="preserve">
+    <value>Weak random generator</value>
+  </data>
   <data name="XPathInjectionAnalyzer_Id" xml:space="preserve">
     <value>SG0003</value>
   </data>

@@ -44,7 +44,7 @@ namespace RoslynSecurityGuard.Analyzers
             if (className != null && symbol.ContainingType?.Name != className) {
                 return false; //Class name does not match
             }
-            if (className != null && symbol.Name != method) {
+            if (method != null && symbol.Name != method) {
                 return false; //Method name does not match
             }
             return true;

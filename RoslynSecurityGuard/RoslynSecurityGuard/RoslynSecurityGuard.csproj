@@ -37,6 +37,8 @@
     <Compile Include="Analyzers\LinqSqlInjectionAnalyzer.cs" />
     <Compile Include="Analyzers\CommandInjectionAnalyzer.cs" />
     <Compile Include="Analyzers\WeakCertificateValidationAnalyzer.cs" />
+    <Compile Include="Analyzers\WeakHashingAnalyzer.cs" />
+    <Compile Include="Analyzers\WeakRandomAnalyzer.cs" />
     <Compile Include="Analyzers\XPathInjectionAnalyzer.cs" />
     <Compile Include="Messages.Designer.cs">
       <AutoGen>True</AutoGen>

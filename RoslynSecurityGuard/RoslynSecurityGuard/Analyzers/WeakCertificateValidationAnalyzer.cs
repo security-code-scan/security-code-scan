@@ -18,9 +18,7 @@ namespace RoslynSecurityGuard.Analyzers
         public override void Initialize(AnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(VisitSyntaxNode, SyntaxKind.AddAssignmentExpression, SyntaxKind.SimpleAssignmentExpression);
-            
         }
-
 
         private static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx)
         {

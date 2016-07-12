@@ -16,11 +16,6 @@ namespace RoslynSecurityGuard.Tests
             return new WeakCertificateValidationAnalyzer();
         }
 
-        [TestInitialize]
-        public void init(){
-            DebugAnalyzer.handler = value => Console.WriteLine(value);;
-        }
-
         [TestMethod]
         public void WeakCertFalsePositive()
         {

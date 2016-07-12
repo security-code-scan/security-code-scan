@@ -19,7 +19,8 @@ namespace RoslynSecurityGuard.Tests
 
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
         {
-            return new [] { MetadataReference.CreateFromFile(typeof(DataContext).Assembly.Location), MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location) };
+            return new [] { MetadataReference.CreateFromFile(typeof(DataContext).Assembly.Location), //Main assembly for Linq
+                MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location) }; //Seems to be needed so that invoke symbol gets build
         }
 
         [TestMethod]

@@ -29,26 +29,7 @@ namespace RoslynSecurityGuard.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
-            //var allSyntaxKind = Enum.GetValues(typeof(SyntaxKind)).Cast<SyntaxKind>().ToArray();
-            //context.RegisterSyntaxNodeAction(VisitAllNode, allSyntaxKind);
             context.RegisterSyntaxNodeAction(VisitMethods, SyntaxKind.MethodDeclaration);
-        }
-
-
-        private static void VisitAllNode(SyntaxNodeAnalysisContext ctx)
-        {
-            var node = ctx.Node;
-            var symbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
-
-            if (handler != null)
-            {
-                handler("Node : " + node.GetType() + "");
-
-                if (!(node is BlockSyntax || node is ClassDeclarationSyntax || node is CompilationUnitSyntax))
-                {
-                    handler("<<" + node.ToFullString() + ">>");
-                }
-            }
         }
 
         private static void VisitMethods(SyntaxNodeAnalysisContext ctx)
@@ -58,11 +39,11 @@ namespace RoslynSecurityGuard.Analyzers
 
             if (node != null)
             {
-                visitNodeRecursively(node,0);
+                visitNodeRecursively(node,0, ctx);
             }
         }
 
-        private static void visitNodeRecursively(SyntaxNode node,int indent) {
+        private static void visitNodeRecursively(SyntaxNode node,int indent, SyntaxNodeAnalysisContext ctx) {
 
             string code = node.GetText().Lines[0].Text.ToString().Trim() + (node.GetText().Lines.Count > 1 ? "[...]" : "");
 
@@ -71,10 +52,24 @@ namespace RoslynSecurityGuard.Analyzers
                 code = "";
             }
 
-            handler(new String(' ', indent * 4) + code + " (" +node.GetType().Name+")");
+            if (node is InvocationExpressionSyntax)
+            {
+                var symbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
+                if (symbol != null)
+                {
+                    string typeName = symbol.ContainingType?.Name; //Class name
+                    string name = symbol.Name; //Method
+                    if (typeName != null && name != null)
+                    {
+                        code = typeName + "." + name;
+                    }
+                }
+            }
+
+            handler(new string(' ', indent * 4) + code + " [" +node.GetType().Name+"]");
 
             foreach (var n in node.ChildNodes()) {
-                visitNodeRecursively(n, indent+1);
+                visitNodeRecursively(n, indent+1, ctx);
             }
         }
     }

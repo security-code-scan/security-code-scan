@@ -143,6 +143,60 @@ namespace RoslynSecurityGuard {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SG0006.
+        /// </summary>
+        internal static string WeakHashingAnalyzer_Id {
+            get {
+                return ResourceManager.GetString("WeakHashingAnalyzer_Id", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The hashing function &quot;{0}&quot; is no longer recommended for password storage and signature generation..
+        /// </summary>
+        internal static string WeakHashingAnalyzer_Message {
+            get {
+                return ResourceManager.GetString("WeakHashingAnalyzer_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weak hashing function.
+        /// </summary>
+        internal static string WeakHashingAnalyzer_Title {
+            get {
+                return ResourceManager.GetString("WeakHashingAnalyzer_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SG0005.
+        /// </summary>
+        internal static string WeakRandomAnalyzer_Id {
+            get {
+                return ResourceManager.GetString("WeakRandomAnalyzer_Id", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The random numbers generated could be predicted..
+        /// </summary>
+        internal static string WeakRandomAnalyzer_Message {
+            get {
+                return ResourceManager.GetString("WeakRandomAnalyzer_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weak random generator.
+        /// </summary>
+        internal static string WeakRandomAnalyzer_Title {
+            get {
+                return ResourceManager.GetString("WeakRandomAnalyzer_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SG0003.
         /// </summary>
         internal static string XPathInjectionAnalyzer_Id {

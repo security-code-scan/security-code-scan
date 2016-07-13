@@ -22,7 +22,7 @@ namespace RoslynSecurityGuard.Analyzers
         {
             get
             { //Dummy descriptor
-                DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource(typeof(CommandInjectionAnalyzer), DiagnosticSeverity.Warning);
+                DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("Debug",typeof(CommandInjectionAnalyzer).Name, DiagnosticSeverity.Warning);
                 return ImmutableArray.Create(Rule);
             }
         }
@@ -39,7 +39,9 @@ namespace RoslynSecurityGuard.Analyzers
 
             if (node != null)
             {
-                visitNodeRecursively(node,0, ctx);
+                if(handler != null) { 
+                    visitNodeRecursively(node,0, ctx);
+                }
             }
         }
 

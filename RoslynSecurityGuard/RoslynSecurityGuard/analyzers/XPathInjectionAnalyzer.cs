@@ -9,7 +9,7 @@ namespace RoslynSecurityGuard.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class XPathInjectionAnalyzer : DiagnosticAnalyzer
     {
-        private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource(typeof(XPathInjectionAnalyzer), DiagnosticSeverity.Warning);
+        private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("SG0003", typeof(XPathInjectionAnalyzer).Name, DiagnosticSeverity.Warning);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
 

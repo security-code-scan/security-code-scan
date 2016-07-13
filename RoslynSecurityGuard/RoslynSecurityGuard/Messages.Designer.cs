@@ -62,15 +62,6 @@ namespace RoslynSecurityGuard {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SG0001.
-        /// </summary>
-        internal static string CommandInjectionAnalyzer_Id {
-            get {
-                return ResourceManager.GetString("CommandInjectionAnalyzer_Id", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The dynamic value passed to the command execution should be validate..
         /// </summary>
         internal static string CommandInjectionAnalyzer_Message {
@@ -85,15 +76,6 @@ namespace RoslynSecurityGuard {
         internal static string CommandInjectionAnalyzer_Title {
             get {
                 return ResourceManager.GetString("CommandInjectionAnalyzer_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SG0002.
-        /// </summary>
-        internal static string LinqSqlInjectionAnalyzer_Id {
-            get {
-                return ResourceManager.GetString("LinqSqlInjectionAnalyzer_Id", resourceCulture);
             }
         }
         
@@ -116,15 +98,6 @@ namespace RoslynSecurityGuard {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SG0004.
-        /// </summary>
-        internal static string WeakCertificateValidationAnalyzer_Id {
-            get {
-                return ResourceManager.GetString("WeakCertificateValidationAnalyzer_Id", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Certificate Validation has been disable. The communication could be intercepted..
         /// </summary>
         internal static string WeakCertificateValidationAnalyzer_Message {
@@ -139,15 +112,6 @@ namespace RoslynSecurityGuard {
         internal static string WeakCertificateValidationAnalyzer_Title {
             get {
                 return ResourceManager.GetString("WeakCertificateValidationAnalyzer_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SG0006.
-        /// </summary>
-        internal static string WeakHashingAnalyzer_Id {
-            get {
-                return ResourceManager.GetString("WeakHashingAnalyzer_Id", resourceCulture);
             }
         }
         
@@ -170,15 +134,6 @@ namespace RoslynSecurityGuard {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SG0005.
-        /// </summary>
-        internal static string WeakRandomAnalyzer_Id {
-            get {
-                return ResourceManager.GetString("WeakRandomAnalyzer_Id", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The random numbers generated could be predicted..
         /// </summary>
         internal static string WeakRandomAnalyzer_Message {
@@ -193,15 +148,6 @@ namespace RoslynSecurityGuard {
         internal static string WeakRandomAnalyzer_Title {
             get {
                 return ResourceManager.GetString("WeakRandomAnalyzer_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SG0003.
-        /// </summary>
-        internal static string XPathInjectionAnalyzer_Id {
-            get {
-                return ResourceManager.GetString("XPathInjectionAnalyzer_Id", resourceCulture);
             }
         }
         

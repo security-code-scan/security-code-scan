@@ -16,15 +16,15 @@ namespace RoslynSecurityGuard.Analyzers
         
         
 
-        public static DiagnosticDescriptor GetDescriptorFromResource(Type analyzer, DiagnosticSeverity severity) {
-            return new DiagnosticDescriptor(GetLocalString(analyzer.Name + "_Id").ToString(),
-                GetLocalString(analyzer.Name + "_Title"),
-                GetLocalString(analyzer.Name + "_Message"),
+        public static DiagnosticDescriptor GetDescriptorFromResource(string id,string localeId, DiagnosticSeverity severity) {
+            return new DiagnosticDescriptor(id,
+                GetLocalString(localeId + "_Title"),
+                GetLocalString(localeId + "_Title"),
                 "Security", 
                 severity, 
                 isEnabledByDefault: true,
-                helpLinkUri : "https://github.com/fxcop-security-guard/#"+GetLocalString(analyzer.Name + "_Id").ToString(),
-                description : GetLocalString(analyzer.Name + "_Title"));
+                helpLinkUri : "https://github.com/fxcop-security-guard/#"+ id,
+                description : GetLocalString(localeId + "_Message"));
         }
 
         private static LocalizableString GetLocalString(string id) {

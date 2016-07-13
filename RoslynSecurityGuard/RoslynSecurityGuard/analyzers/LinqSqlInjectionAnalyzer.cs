@@ -15,8 +15,7 @@ namespace RoslynSecurityGuard.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class LinqSqlInjectionAnalyzer : DiagnosticAnalyzer
     {
-
-        private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource(typeof(LinqSqlInjectionAnalyzer), DiagnosticSeverity.Warning);
+        private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("SG0002", typeof(LinqSqlInjectionAnalyzer).Name, DiagnosticSeverity.Warning);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
 

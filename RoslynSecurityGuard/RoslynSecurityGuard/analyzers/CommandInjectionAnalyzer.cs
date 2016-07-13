@@ -15,7 +15,7 @@ namespace RoslynSecurityGuard.Analyzers
     public class CommandInjectionAnalyzer : DiagnosticAnalyzer
     {
 
-        private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource(typeof(CommandInjectionAnalyzer), DiagnosticSeverity.Warning);
+        private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("SG0001",typeof(CommandInjectionAnalyzer).Name, DiagnosticSeverity.Warning);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
 

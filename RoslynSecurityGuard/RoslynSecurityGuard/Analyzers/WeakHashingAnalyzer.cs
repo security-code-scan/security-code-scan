@@ -10,7 +10,7 @@ namespace RoslynSecurityGuard.Analyzers
     public class WeakHashingAnalyzer : DiagnosticAnalyzer
     {
 
-        private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource(typeof(WeakHashingAnalyzer), DiagnosticSeverity.Warning);
+        private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("SG0006", typeof(WeakHashingAnalyzer).Name, DiagnosticSeverity.Warning);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
 

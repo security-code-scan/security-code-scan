@@ -117,17 +117,11 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="CommandInjectionAnalyzer_Id" xml:space="preserve">
-    <value>SG0001</value>
-  </data>
   <data name="CommandInjectionAnalyzer_Message" xml:space="preserve">
     <value>The dynamic value passed to the command execution should be validate.</value>
   </data>
   <data name="CommandInjectionAnalyzer_Title" xml:space="preserve">
     <value>Potential command injection with Process.Start</value>
-  </data>
-  <data name="LinqSqlInjectionAnalyzer_Id" xml:space="preserve">
-    <value>SG0002</value>
   </data>
   <data name="LinqSqlInjectionAnalyzer_Message" xml:space="preserve">
     <value>The dynamic value passed in the SQL query should be validate.</value>
@@ -135,17 +129,11 @@
   <data name="LinqSqlInjectionAnalyzer_Title" xml:space="preserve">
     <value>Potential SQL injection with LINQ</value>
   </data>
-  <data name="WeakCertificateValidationAnalyzer_Id" xml:space="preserve">
-    <value>SG0004</value>
-  </data>
   <data name="WeakCertificateValidationAnalyzer_Message" xml:space="preserve">
     <value>Certificate Validation has been disable. The communication could be intercepted.</value>
   </data>
   <data name="WeakCertificateValidationAnalyzer_Title" xml:space="preserve">
     <value>Certificate Validation has been disable</value>
-  </data>
-  <data name="WeakHashingAnalyzer_Id" xml:space="preserve">
-    <value>SG0006</value>
   </data>
   <data name="WeakHashingAnalyzer_Message" xml:space="preserve">
     <value>The hashing function "{0}" is no longer recommended for password storage and signature generation.</value>
@@ -153,17 +141,11 @@
   <data name="WeakHashingAnalyzer_Title" xml:space="preserve">
     <value>Weak hashing function</value>
   </data>
-  <data name="WeakRandomAnalyzer_Id" xml:space="preserve">
-    <value>SG0005</value>
-  </data>
   <data name="WeakRandomAnalyzer_Message" xml:space="preserve">
     <value>The random numbers generated could be predicted.</value>
   </data>
   <data name="WeakRandomAnalyzer_Title" xml:space="preserve">
     <value>Weak random generator</value>
-  </data>
-  <data name="XPathInjectionAnalyzer_Id" xml:space="preserve">
-    <value>SG0003</value>
   </data>
   <data name="XPathInjectionAnalyzer_Message" xml:space="preserve">
     <value>The dynamic value passed to the XPath query should be validate</value>

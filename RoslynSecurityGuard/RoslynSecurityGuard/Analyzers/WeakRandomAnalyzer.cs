@@ -9,7 +9,7 @@ namespace RoslynSecurityGuard.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class WeakRandomAnalyzer : DiagnosticAnalyzer
     {
-        private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource(typeof(WeakRandomAnalyzer), DiagnosticSeverity.Warning);
+        private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("SG0005", typeof(WeakRandomAnalyzer).Name, DiagnosticSeverity.Warning);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
 

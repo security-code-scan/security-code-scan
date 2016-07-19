@@ -22,22 +22,21 @@ namespace RoslynSecurityGuard.Analyzers
         private static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx)
         {
 
-            InvocationExpressionSyntax node = ctx.Node as InvocationExpressionSyntax;
-            if (node != null)
+            var node = ctx.Node as InvocationExpressionSyntax;
+            if (node == null) return;
+
+            var symbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
+            //MD5.Create()
+            if (AnalyzerUtil.InvokeMatch(symbol, className: "MD5", method: "Create"))
             {
-                var symbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
-                //MD5.Create()
-                if (AnalyzerUtil.InvokeMatch(symbol, className: "MD5", method: "Create"))
-                {
-                    var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), new string[] { "MD5" });
-                    ctx.ReportDiagnostic(diagnostic);
-                }
-                //SHA1.Create()
-                else if (AnalyzerUtil.InvokeMatch(symbol, className: "SHA1", method: "Create"))
-                {
-                    var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), new string[] { "SHA1" });
-                    ctx.ReportDiagnostic(diagnostic);
-                }
+                var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), new string[] { "MD5" });
+                ctx.ReportDiagnostic(diagnostic);
+            }
+            //SHA1.Create()
+            else if (AnalyzerUtil.InvokeMatch(symbol, className: "SHA1", method: "Create"))
+            {
+                var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), new string[] { "SHA1" });
+                ctx.ReportDiagnostic(diagnostic);
             }
         }
     }

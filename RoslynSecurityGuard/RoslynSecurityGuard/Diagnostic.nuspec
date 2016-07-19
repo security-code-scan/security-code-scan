@@ -6,14 +6,14 @@
     <title>RoslynSecurityGuard</title>
     <authors>Philippe Arteau</authors>
     <owners>Philippe Arteau</owners>
-    <licenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</licenseUrl>
-    <projectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</projectUrl>
-    <iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>
+    <licenseUrl>https://opensource.org/licenses/Apache-2.0</licenseUrl>
+    <projectUrl>https://github.com/dotnet-security-guard/roslyn-security-guard</projectUrl>
+    <!-- <iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl> -->
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>RoslynSecurityGuard</description>
-    <releaseNotes>This is the first release of the project Roslyn Security Guard. X analyzers for security issues are provided.</releaseNotes>
+    <releaseNotes>This is the first release of the project Roslyn Security Guard. 6 analyzers for security issues are provided.</releaseNotes>
     <copyright>Copyright Philippe Arteau</copyright>
-    <tags>security,vulnerability,guard</tags>
+    <tags>vulnerability,roslyn,owasp,security,guard</tags>
     <frameworkAssemblies>
       <frameworkAssembly assemblyName="System" targetFramework="" />
     </frameworkAssemblies>

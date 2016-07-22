@@ -116,6 +116,42 @@ namespace RoslynSecurityGuard {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to DES is not considered strong ciphers for modern applications. Currently, NIST recommends the usage of AES block ciphers instead of DES..
+        /// </summary>
+        internal static string WeakCipherAnalyzer_Message {
+            get {
+                return ResourceManager.GetString("WeakCipherAnalyzer_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weak cipher algorithm.
+        /// </summary>
+        internal static string WeakCipherAnalyzer_Title {
+            get {
+                return ResourceManager.GetString("WeakCipherAnalyzer_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The ciphertext produced is susceptible to alteration by an adversary. This mean that the cipher provides no way to detect that the data has been tampered with. If the ciphertext can be controlled by an attacker, it could be altered without detection..
+        /// </summary>
+        internal static string WeakCipherModeAnalyzer_Message {
+            get {
+                return ResourceManager.GetString("WeakCipherModeAnalyzer_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weak cipher mode.
+        /// </summary>
+        internal static string WeakCipherModeAnalyzer_Title {
+            get {
+                return ResourceManager.GetString("WeakCipherModeAnalyzer_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The hashing function &quot;{0}&quot; is no longer recommended for password storage and signature generation..
         /// </summary>
         internal static string WeakHashingAnalyzer_Message {

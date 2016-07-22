@@ -3,10 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Text;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace RoslynSecurityGuard.Analyzers
@@ -35,7 +32,6 @@ namespace RoslynSecurityGuard.Analyzers
         private static void VisitMethods(SyntaxNodeAnalysisContext ctx)
         {
             var node = ctx.Node as MethodDeclarationSyntax;
-            var symbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
 
             if (node != null)
             {

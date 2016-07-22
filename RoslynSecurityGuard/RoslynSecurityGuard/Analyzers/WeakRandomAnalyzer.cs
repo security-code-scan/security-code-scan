@@ -31,7 +31,7 @@ namespace RoslynSecurityGuard.Analyzers
                     AnalyzerUtil.InvokeMatch(symbol, className: "Random", method: "NextBytes") ||
                     AnalyzerUtil.InvokeMatch(symbol, className: "Random", method: "NextDouble"))
                 {
-                    var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), new string[0]);
+                    var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation());
                     ctx.ReportDiagnostic(diagnostic);
                 }
             }

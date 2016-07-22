@@ -23,22 +23,15 @@ namespace RoslynSecurityGuard.Analyzers
         private static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx)
         {
             var assignment = ctx.Node as AssignmentExpressionSyntax;
-            if(assignment != null)
+            var memberAccess = assignment?.Left as MemberAccessExpressionSyntax;
+            if (memberAccess == null) return;
+
+            var symbolMemberAccess = ctx.SemanticModel.GetSymbolInfo(memberAccess).Symbol;
+            if (AnalyzerUtil.InvokeMatch(symbolMemberAccess, className: "ServicePointManager", method: "ServerCertificateValidationCallback") ||
+                AnalyzerUtil.InvokeMatch(symbolMemberAccess, className: "ServicePointManager", method: "CertificatePolicy"))
             {
-
-                var memberAccess = assignment.Left as MemberAccessExpressionSyntax;
-                if (memberAccess != null)
-                {
-
-                    var symbolMemberAccess = ctx.SemanticModel.GetSymbolInfo(memberAccess).Symbol;
-                    if (AnalyzerUtil.InvokeMatch(symbolMemberAccess, className: "ServicePointManager", method: "ServerCertificateValidationCallback") ||
-                        AnalyzerUtil.InvokeMatch(symbolMemberAccess, className: "ServicePointManager", method: "CertificatePolicy"))
-                    {
-                        var diagnostic = Diagnostic.Create(Rule, assignment.GetLocation(), new string[0]);
-                        ctx.ReportDiagnostic(diagnostic);
-                    }
-                }
-                //}
+                var diagnostic = Diagnostic.Create(Rule, assignment.GetLocation());
+                ctx.ReportDiagnostic(diagnostic);
             }
         }
     }

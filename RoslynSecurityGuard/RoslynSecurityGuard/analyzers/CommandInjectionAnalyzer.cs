@@ -28,26 +28,25 @@ namespace RoslynSecurityGuard.Analyzers
         private static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx)
         {
             
-            InvocationExpressionSyntax node = ctx.Node as InvocationExpressionSyntax;
-            if (node != null) {
-                var symbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
+            var node = ctx.Node as InvocationExpressionSyntax;
+            if (node == null) return;
 
-                //Process.Start()
-                //https://msdn.microsoft.com/en-us/library/system.diagnostics.process.start(v=vs.110).aspx
-                //FIXME: Cover all the signatures
-                if (AnalyzerUtil.InvokeMatch(symbol, className : "Process", method: "Start") && node.ArgumentList.Arguments.Count > 0) {
-                    //DataFlowAnalysis flow = ctx.SemanticModel.AnalyzeDataFlow(AnalyzerUtil.GetMethodFromNode(node));
+            var symbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
 
-                    //if(AnalyzerUtil.ValueIsExternal(flow, node.ArgumentList.Arguments[0]))
+            //Process.Start()
+            //https://msdn.microsoft.com/en-us/library/system.diagnostics.process.start(v=vs.110).aspx
+            //FIXME: Cover all the signatures
+            if (AnalyzerUtil.InvokeMatch(symbol, className : "Process", method: "Start") && node.ArgumentList.Arguments.Count > 0) {
+                //DataFlowAnalysis flow = ctx.SemanticModel.AnalyzeDataFlow(AnalyzerUtil.GetMethodFromNode(node));
+
+                //if(AnalyzerUtil.ValueIsExternal(flow, node.ArgumentList.Arguments[0]))
                     
-                    if (!(AnalyzerUtil.IsStaticString(node.ArgumentList.Arguments[0].Expression))) 
-                    {
-                        var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), new string[0]);
-                        ctx.ReportDiagnostic(diagnostic);
-                    }
+                if (!(AnalyzerUtil.IsStaticString(node.ArgumentList.Arguments[0].Expression))) 
+                {
+                    var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), new string[0]);
+                    ctx.ReportDiagnostic(diagnostic);
                 }
             }
-
         }
 
 

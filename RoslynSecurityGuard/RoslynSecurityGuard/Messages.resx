@@ -135,6 +135,18 @@
   <data name="WeakCertificateValidationAnalyzer_Title" xml:space="preserve">
     <value>Certificate Validation has been disable</value>
   </data>
+  <data name="WeakCipherAnalyzer_Message" xml:space="preserve">
+    <value>DES is not considered strong ciphers for modern applications. Currently, NIST recommends the usage of AES block ciphers instead of DES.</value>
+  </data>
+  <data name="WeakCipherAnalyzer_Title" xml:space="preserve">
+    <value>Weak cipher algorithm</value>
+  </data>
+  <data name="WeakCipherModeAnalyzer_Message" xml:space="preserve">
+    <value>The ciphertext produced is susceptible to alteration by an adversary. This mean that the cipher provides no way to detect that the data has been tampered with. If the ciphertext can be controlled by an attacker, it could be altered without detection.</value>
+  </data>
+  <data name="WeakCipherModeAnalyzer_Title" xml:space="preserve">
+    <value>Weak cipher mode</value>
+  </data>
   <data name="WeakHashingAnalyzer_Message" xml:space="preserve">
     <value>The hashing function "{0}" is no longer recommended for password storage and signature generation.</value>
   </data>

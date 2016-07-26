@@ -12,7 +12,7 @@ namespace RoslynSecurityGuard.Analyzers
     public class DebugAnalyzer : DiagnosticAnalyzer
     {
         //static StreamWriter outfile;
-        public static Action<String> handler { get; set; }
+        public static Action<String> LoggerHandler { get; set; }
 
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -35,7 +35,7 @@ namespace RoslynSecurityGuard.Analyzers
 
             if (node != null)
             {
-                if(handler != null) { 
+                if(LoggerHandler != null) { 
                     visitNodeRecursively(node,0, ctx);
                 }
             }
@@ -64,7 +64,7 @@ namespace RoslynSecurityGuard.Analyzers
                 }
             }
 
-            handler(new string(' ', indent * 4) + code + " [" +node.GetType().Name+"]");
+            LoggerHandler(new string(' ', indent * 4) + code + " [" +node.GetType().Name+"]");
 
             foreach (var n in node.ChildNodes()) {
                 visitNodeRecursively(n, indent+1, ctx);

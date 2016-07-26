@@ -17,7 +17,7 @@ namespace RoslynSecurityGuard.Analyzers
     {
         private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("SG0002", typeof(LinqSqlInjectionAnalyzer).Name, DiagnosticSeverity.Warning);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -44,7 +44,7 @@ namespace RoslynSecurityGuard.Analyzers
                     if ((sigExecQueryGeneric.IsMatch(sig) && !AnalyzerUtil.IsStaticString(args[0].Expression)) ||
                         (sigExecQueryType == sig && !AnalyzerUtil.IsStaticString(args[1].Expression)))
                     {
-                        var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), new string[0]);
+                        var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation());
                         ctx.ReportDiagnostic(diagnostic);
                     }
                 }

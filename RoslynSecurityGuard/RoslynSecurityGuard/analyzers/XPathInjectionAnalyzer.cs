@@ -11,7 +11,7 @@ namespace RoslynSecurityGuard.Analyzers
     {
         private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("SG0003", typeof(XPathInjectionAnalyzer).Name, DiagnosticSeverity.Warning);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -33,7 +33,7 @@ namespace RoslynSecurityGuard.Analyzers
                     var args = node.ArgumentList.Arguments;
                     if (!AnalyzerUtil.IsStaticString(args[0].Expression))
                     {
-                        var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), new string[0]);
+                        var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation());
                         ctx.ReportDiagnostic(diagnostic);
                     }
                 }

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 
 namespace RoslynSecurityGuard.Analyzers
 {
@@ -64,13 +65,17 @@ namespace RoslynSecurityGuard.Analyzers
             return current;
         }
 
-        public static Boolean IsStaticString(ExpressionSyntax expression) {
-            if (expression.Kind() == SyntaxKind.StringLiteralExpression && expression is LiteralExpressionSyntax) {
-                return true;
-            }
-            else {
-                return false; //FIXME: Improved the analysis
-            }
+        public static bool IsStaticString(ExpressionSyntax expression)
+        {
+            //FIXME: Improved the analysis
+            //Temporary implementation..
+            return expression.Kind() == SyntaxKind.StringLiteralExpression && expression is LiteralExpressionSyntax;
+        }
+
+
+        public static Location CreateLocation(string path, int lineStart, int linePosition = -1)
+        {
+            return Location.Create(path, TextSpan.FromBounds(1, 2), new LinePositionSpan(new LinePosition(lineStart, 0), new LinePosition(lineStart, 0)));
         }
     }
 }

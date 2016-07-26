@@ -39,6 +39,7 @@
     <Compile Include="Analyzers\WeakCertificateValidationAnalyzer.cs" />
     <Compile Include="Analyzers\WeakHashingAnalyzer.cs" />
     <Compile Include="Analyzers\WeakRandomAnalyzer.cs" />
+    <Compile Include="Analyzers\WebConfigAnalyzer.cs" />
     <Compile Include="Analyzers\XPathInjectionAnalyzer.cs" />
     <Compile Include="Messages.Designer.cs">
       <AutoGen>True</AutoGen>

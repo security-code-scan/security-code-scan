@@ -17,17 +17,15 @@ namespace RoslynSecurityGuard.Analyzers
 
         private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("SG0001",typeof(CommandInjectionAnalyzer).Name, DiagnosticSeverity.Warning);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(VisitSyntaxNode, SyntaxKind.InvocationExpression);
-            //context.RegisterSemanticModelAction(VisitSemanticModel);
         }
 
         private static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx)
         {
-            
             var node = ctx.Node as InvocationExpressionSyntax;
             if (node == null) return;
 
@@ -43,15 +41,10 @@ namespace RoslynSecurityGuard.Analyzers
                     
                 if (!(AnalyzerUtil.IsStaticString(node.ArgumentList.Arguments[0].Expression))) 
                 {
-                    var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), new string[0]);
+                    var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation());
                     ctx.ReportDiagnostic(diagnostic);
                 }
             }
-        }
-
-
-        private static void VisitSemanticModel(SemanticModelAnalysisContext ctx)
-        {
         }
     }
 }

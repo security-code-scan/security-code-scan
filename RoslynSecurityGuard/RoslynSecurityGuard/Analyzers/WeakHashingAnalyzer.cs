@@ -9,10 +9,9 @@ namespace RoslynSecurityGuard.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class WeakHashingAnalyzer : DiagnosticAnalyzer
     {
-
         private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("SG0006", typeof(WeakHashingAnalyzer).Name, DiagnosticSeverity.Warning);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -29,13 +28,13 @@ namespace RoslynSecurityGuard.Analyzers
             //MD5.Create()
             if (AnalyzerUtil.InvokeMatch(symbol, className: "MD5", method: "Create"))
             {
-                var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), new string[] { "MD5" });
+                var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), "MD5");
                 ctx.ReportDiagnostic(diagnostic);
             }
             //SHA1.Create()
             else if (AnalyzerUtil.InvokeMatch(symbol, className: "SHA1", method: "Create"))
             {
-                var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), new string[] { "SHA1" });
+                var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), "SHA1");
                 ctx.ReportDiagnostic(diagnostic);
             }
         }

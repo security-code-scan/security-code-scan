@@ -123,11 +123,35 @@
   <data name="CommandInjectionAnalyzer_Title" xml:space="preserve">
     <value>Potential command injection with Process.Start</value>
   </data>
+  <data name="EnableEventValidationFalse_Message" xml:space="preserve">
+    <value>Event validation is disabled. The integrity of client-side control will not be validate on postback.</value>
+  </data>
+  <data name="EnableEventValidationFalse_Title" xml:space="preserve">
+    <value>Event validation is disabled</value>
+  </data>
+  <data name="EnableViewStateMac_Message" xml:space="preserve">
+    <value>View state mac is disable. The view state could be altered by an attacker. (This feature cannot be disabled in the recent version of ASP.net)</value>
+  </data>
+  <data name="EnableViewStateMac_Title" xml:space="preserve">
+    <value>View state mac is disabled</value>
+  </data>
   <data name="LinqSqlInjectionAnalyzer_Message" xml:space="preserve">
     <value>The dynamic value passed in the SQL query should be validate.</value>
   </data>
   <data name="LinqSqlInjectionAnalyzer_Title" xml:space="preserve">
     <value>Potential SQL injection with LINQ</value>
+  </data>
+  <data name="ValidateRequestFalse_Message" xml:space="preserve">
+    <value>Request validation, which provided additionnal protection against Cross-Site Scripting (XSS), has been disabled. </value>
+  </data>
+  <data name="ValidateRequestFalse_Title" xml:space="preserve">
+    <value>Request validation has been disabled</value>
+  </data>
+  <data name="ViewStateEncryptionModeFalse_Message" xml:space="preserve">
+    <value>View state is not encrypted. Controls may leak sensitive data that could be read client-side.</value>
+  </data>
+  <data name="ViewStateEncryptionModeFalse_Title" xml:space="preserve">
+    <value>View state is not encrypted</value>
   </data>
   <data name="WeakCertificateValidationAnalyzer_Message" xml:space="preserve">
     <value>Certificate Validation has been disable. The communication could be intercepted.</value>
@@ -151,6 +175,6 @@
     <value>The dynamic value passed to the XPath query should be validate</value>
   </data>
   <data name="XPathInjectionAnalyzer_Title" xml:space="preserve">
-    <value>Potential command injection with XmlDocument</value>
+    <value>Potential XPath injection with XmlDocument</value>
   </data>
 </root>

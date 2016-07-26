@@ -80,6 +80,42 @@ namespace RoslynSecurityGuard {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Event validation is disabled. The integrity of client-side control will not be validate on postback..
+        /// </summary>
+        internal static string EnableEventValidationFalse_Message {
+            get {
+                return ResourceManager.GetString("EnableEventValidationFalse_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event validation is disabled.
+        /// </summary>
+        internal static string EnableEventValidationFalse_Title {
+            get {
+                return ResourceManager.GetString("EnableEventValidationFalse_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View state mac is disable. The view state could be altered by an attacker. (This feature cannot be disabled in the recent version of ASP.net).
+        /// </summary>
+        internal static string EnableViewStateMac_Message {
+            get {
+                return ResourceManager.GetString("EnableViewStateMac_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View state mac is disabled.
+        /// </summary>
+        internal static string EnableViewStateMac_Title {
+            get {
+                return ResourceManager.GetString("EnableViewStateMac_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The dynamic value passed in the SQL query should be validate..
         /// </summary>
         internal static string LinqSqlInjectionAnalyzer_Message {
@@ -94,6 +130,42 @@ namespace RoslynSecurityGuard {
         internal static string LinqSqlInjectionAnalyzer_Title {
             get {
                 return ResourceManager.GetString("LinqSqlInjectionAnalyzer_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Request validation, which provided additionnal protection against Cross-Site Scripting (XSS), has been disabled. .
+        /// </summary>
+        internal static string ValidateRequestFalse_Message {
+            get {
+                return ResourceManager.GetString("ValidateRequestFalse_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Request validation has been disabled.
+        /// </summary>
+        internal static string ValidateRequestFalse_Title {
+            get {
+                return ResourceManager.GetString("ValidateRequestFalse_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View state is not encrypted. Controls may leak sensitive data that could be read client-side..
+        /// </summary>
+        internal static string ViewStateEncryptionModeFalse_Message {
+            get {
+                return ResourceManager.GetString("ViewStateEncryptionModeFalse_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View state is not encrypted.
+        /// </summary>
+        internal static string ViewStateEncryptionModeFalse_Title {
+            get {
+                return ResourceManager.GetString("ViewStateEncryptionModeFalse_Title", resourceCulture);
             }
         }
         
@@ -161,7 +233,7 @@ namespace RoslynSecurityGuard {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Potential command injection with XmlDocument.
+        ///   Looks up a localized string similar to Potential XPath injection with XmlDocument.
         /// </summary>
         internal static string XPathInjectionAnalyzer_Title {
             get {

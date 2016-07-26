@@ -13,7 +13,7 @@ namespace RoslynSecurityGuard.Analyzers
     {
         private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("SG0004", typeof(WeakCertificateValidationAnalyzer).Name, DiagnosticSeverity.Warning);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext context)
         {

@@ -42,7 +42,7 @@ namespace TestHelper
         [TestInitialize]
         public void initOutput()
         {
-            DebugAnalyzer.handler = value => Console.WriteLine(value); ;
+            DebugAnalyzer.LoggerHandler = value => Console.WriteLine(value); ;
         }
 
         /// <summary>

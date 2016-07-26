@@ -113,6 +113,8 @@
   <ItemGroup>
     <Compile Include="Tests\LinqSqlInjectionAnalyzerTest.cs" />
     <Compile Include="Tests\WeakCertificateValidationAnalyzerTest.cs" />
+    <Compile Include="Tests\WeakCipherAnalyzerTest.cs" />
+    <Compile Include="Tests\WeakCipherModeAnalyzerTest.cs" />
     <Compile Include="Tests\WeakHashingAnalyzerTest.cs" />
     <Compile Include="Tests\WeakRandomAnalyzerTest.cs" />
     <Compile Include="Tests\WebConfigAnalyzerTest.cs" />

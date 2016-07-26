@@ -13,9 +13,12 @@ namespace RoslynSecurityGuard.Analyzers
 {
   public class WeakCipherModeAnalyzer : DiagnosticAnalyzer
     {
-        private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("SG0012", typeof(WeakCipherModeAnalyzer).Name, DiagnosticSeverity.Warning);
+        private static DiagnosticDescriptor RuleECB = AnalyzerUtil.GetDescriptorFromResource("SG0012", typeof(WeakCipherModeAnalyzer).Name + "_ECB", DiagnosticSeverity.Warning);
+        private static DiagnosticDescriptor RuleOFB = AnalyzerUtil.GetDescriptorFromResource("SG0013", typeof(WeakCipherModeAnalyzer).Name + "_OFB", DiagnosticSeverity.Warning);
+        private static DiagnosticDescriptor RuleCBC = AnalyzerUtil.GetDescriptorFromResource("SG0014", typeof(WeakCipherModeAnalyzer).Name + "_CBC", DiagnosticSeverity.Warning);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(RuleECB,RuleOFB,RuleCBC); } }
 
         public override void Initialize(AnalysisContext context)
         {
@@ -31,12 +34,17 @@ namespace RoslynSecurityGuard.Analyzers
                 //DES.Create()
                 if (AnalyzerUtil.InvokeMatch(symbol, className: "CipherMode", method: "ECB"))
                 {
-                    var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), new string[] { "ECB" });
+                    var diagnostic = Diagnostic.Create(RuleECB, node.Expression.GetLocation(), new string[] { "ECB" });
                     ctx.ReportDiagnostic(diagnostic);
                 }
                 if (AnalyzerUtil.InvokeMatch(symbol, className: "CipherMode", method: "OFB"))
                 {
-                    var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), new string[] { "OFB" });
+                    var diagnostic = Diagnostic.Create(RuleOFB, node.Expression.GetLocation(), new string[] { "OFB" });
+                    ctx.ReportDiagnostic(diagnostic);
+                }
+                if (AnalyzerUtil.InvokeMatch(symbol, className: "CipherMode", method: "CBC"))
+                {
+                    var diagnostic = Diagnostic.Create(RuleCBC, node.Expression.GetLocation(), new string[] { "CBC" });
                     ctx.ReportDiagnostic(diagnostic);
                 }
             }

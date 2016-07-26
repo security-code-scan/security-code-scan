@@ -36,9 +36,7 @@ namespace RoslynSecurityGuard.Analyzers
             //FIXME: Cover all the signatures
             if (AnalyzerUtil.InvokeMatch(symbol, className : "Process", method: "Start") && node.ArgumentList.Arguments.Count > 0) {
                 //DataFlowAnalysis flow = ctx.SemanticModel.AnalyzeDataFlow(AnalyzerUtil.GetMethodFromNode(node));
-
-                //if(AnalyzerUtil.ValueIsExternal(flow, node.ArgumentList.Arguments[0]))
-                    
+                 
                 if (!(AnalyzerUtil.IsStaticString(node.ArgumentList.Arguments[0].Expression))) 
                 {
                     var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation());

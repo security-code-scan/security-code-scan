@@ -34,17 +34,17 @@ namespace RoslynSecurityGuard.Analyzers
                 //DES.Create()
                 if (AnalyzerUtil.InvokeMatch(symbol, className: "CipherMode", method: "ECB"))
                 {
-                    var diagnostic = Diagnostic.Create(RuleECB, node.Expression.GetLocation(), new string[] { "ECB" });
+                    var diagnostic = Diagnostic.Create(RuleECB, node.Expression.GetLocation(), "ECB");
                     ctx.ReportDiagnostic(diagnostic);
                 }
                 if (AnalyzerUtil.InvokeMatch(symbol, className: "CipherMode", method: "OFB"))
                 {
-                    var diagnostic = Diagnostic.Create(RuleOFB, node.Expression.GetLocation(), new string[] { "OFB" });
+                    var diagnostic = Diagnostic.Create(RuleOFB, node.Expression.GetLocation(), "OFB");
                     ctx.ReportDiagnostic(diagnostic);
                 }
                 if (AnalyzerUtil.InvokeMatch(symbol, className: "CipherMode", method: "CBC"))
                 {
-                    var diagnostic = Diagnostic.Create(RuleCBC, node.Expression.GetLocation(), new string[] { "CBC" });
+                    var diagnostic = Diagnostic.Create(RuleCBC, node.Expression.GetLocation(), "CBC");
                     ctx.ReportDiagnostic(diagnostic);
                 }
             }

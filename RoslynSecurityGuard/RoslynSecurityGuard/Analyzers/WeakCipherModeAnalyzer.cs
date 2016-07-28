@@ -13,9 +13,9 @@ namespace RoslynSecurityGuard.Analyzers
 {
   public class WeakCipherModeAnalyzer : DiagnosticAnalyzer
     {
-        private static DiagnosticDescriptor RuleECB = AnalyzerUtil.GetDescriptorFromResource("SG0012", typeof(WeakCipherModeAnalyzer).Name + "_ECB", DiagnosticSeverity.Warning);
-        private static DiagnosticDescriptor RuleOFB = AnalyzerUtil.GetDescriptorFromResource("SG0013", typeof(WeakCipherModeAnalyzer).Name + "_OFB", DiagnosticSeverity.Warning);
-        private static DiagnosticDescriptor RuleCBC = AnalyzerUtil.GetDescriptorFromResource("SG0014", typeof(WeakCipherModeAnalyzer).Name + "_CBC", DiagnosticSeverity.Warning);
+        private static DiagnosticDescriptor RuleECB = AnalyzerUtil.GetDescriptorFromResource("SG0012", typeof(WeakCipherModeAnalyzer).Name + "Ecb", DiagnosticSeverity.Warning);
+        private static DiagnosticDescriptor RuleOFB = AnalyzerUtil.GetDescriptorFromResource("SG0013", typeof(WeakCipherModeAnalyzer).Name + "Ofb", DiagnosticSeverity.Warning);
+        private static DiagnosticDescriptor RuleCBC = AnalyzerUtil.GetDescriptorFromResource("SG0014", typeof(WeakCipherModeAnalyzer).Name + "Cbc", DiagnosticSeverity.Warning);
 
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(RuleECB,RuleOFB,RuleCBC); } }

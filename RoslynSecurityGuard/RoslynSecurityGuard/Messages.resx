@@ -165,22 +165,22 @@
   <data name="WeakCipherAnalyzer_Title" xml:space="preserve">
     <value>Weak cipher algorithm</value>
   </data>
-  <data name="WeakCipherModeAnalyzer_CBC_Message" xml:space="preserve">
+  <data name="WeakCipherModeAnalyzerCbc_Message" xml:space="preserve">
     <value>This specific mode of CBC with PKCS5Padding is susceptible to padding oracle attacks. An adversary could potentially decrypt the message if the system exposed the difference between plaintext with invalid padding or valid padding.</value>
   </data>
-  <data name="WeakCipherModeAnalyzer_CBC_Title" xml:space="preserve">
+  <data name="WeakCipherModeAnalyzerCbc_Title" xml:space="preserve">
     <value>CBC mode is insecure</value>
   </data>
-  <data name="WeakCipherModeAnalyzer_ECB_Message" xml:space="preserve">
+  <data name="WeakCipherModeAnalyzerEcb_Message" xml:space="preserve">
     <value>An authentication cipher mode which provides better confidentiality of the encrypted data should be used instead of Electronic Codebook (ECB) mode, which does not provide good confidentiality. Specifically, ECB mode produces the same output for the same input each time. So, for example, if a user is sending a password, the encrypted value is the same each time. This allows an attacker to intercept and replay the data.</value>
   </data>
-  <data name="WeakCipherModeAnalyzer_ECB_Title" xml:space="preserve">
+  <data name="WeakCipherModeAnalyzerEcb_Title" xml:space="preserve">
     <value>ECB mode is insecure</value>
   </data>
-  <data name="WeakCipherModeAnalyzer_OFB_Message" xml:space="preserve">
+  <data name="WeakCipherModeAnalyzerOfb_Message" xml:space="preserve">
     <value>The ciphertext produced is susceptible to alteration by an adversary. This mean that the cipher provides no way to detect that the data has been tampered with. If the ciphertext can be controlled by an attacker, it could be altered without detection.</value>
   </data>
-  <data name="WeakCipherModeAnalyzer_OFB_Title" xml:space="preserve">
+  <data name="WeakCipherModeAnalyzerOfb_Title" xml:space="preserve">
     <value>Weak cipher mode</value>
   </data>
   <data name="WeakHashingAnalyzer_Message" xml:space="preserve">

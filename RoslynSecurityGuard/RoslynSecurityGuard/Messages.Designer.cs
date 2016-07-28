@@ -208,54 +208,54 @@ namespace RoslynSecurityGuard {
         /// <summary>
         ///   Looks up a localized string similar to This specific mode of CBC with PKCS5Padding is susceptible to padding oracle attacks. An adversary could potentially decrypt the message if the system exposed the difference between plaintext with invalid padding or valid padding..
         /// </summary>
-        internal static string WeakCipherModeAnalyzer_CBC_Message {
+        internal static string WeakCipherModeAnalyzerCbc_Message {
             get {
-                return ResourceManager.GetString("WeakCipherModeAnalyzer_CBC_Message", resourceCulture);
+                return ResourceManager.GetString("WeakCipherModeAnalyzerCbc_Message", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to CBC mode is insecure.
         /// </summary>
-        internal static string WeakCipherModeAnalyzer_CBC_Title {
+        internal static string WeakCipherModeAnalyzerCbc_Title {
             get {
-                return ResourceManager.GetString("WeakCipherModeAnalyzer_CBC_Title", resourceCulture);
+                return ResourceManager.GetString("WeakCipherModeAnalyzerCbc_Title", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to An authentication cipher mode which provides better confidentiality of the encrypted data should be used instead of Electronic Codebook (ECB) mode, which does not provide good confidentiality. Specifically, ECB mode produces the same output for the same input each time. So, for example, if a user is sending a password, the encrypted value is the same each time. This allows an attacker to intercept and replay the data..
         /// </summary>
-        internal static string WeakCipherModeAnalyzer_ECB_Message {
+        internal static string WeakCipherModeAnalyzerEcb_Message {
             get {
-                return ResourceManager.GetString("WeakCipherModeAnalyzer_ECB_Message", resourceCulture);
+                return ResourceManager.GetString("WeakCipherModeAnalyzerEcb_Message", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to ECB mode is insecure.
         /// </summary>
-        internal static string WeakCipherModeAnalyzer_ECB_Title {
+        internal static string WeakCipherModeAnalyzerEcb_Title {
             get {
-                return ResourceManager.GetString("WeakCipherModeAnalyzer_ECB_Title", resourceCulture);
+                return ResourceManager.GetString("WeakCipherModeAnalyzerEcb_Title", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The ciphertext produced is susceptible to alteration by an adversary. This mean that the cipher provides no way to detect that the data has been tampered with. If the ciphertext can be controlled by an attacker, it could be altered without detection..
         /// </summary>
-        internal static string WeakCipherModeAnalyzer_OFB_Message {
+        internal static string WeakCipherModeAnalyzerOfb_Message {
             get {
-                return ResourceManager.GetString("WeakCipherModeAnalyzer_OFB_Message", resourceCulture);
+                return ResourceManager.GetString("WeakCipherModeAnalyzerOfb_Message", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Weak cipher mode.
         /// </summary>
-        internal static string WeakCipherModeAnalyzer_OFB_Title {
+        internal static string WeakCipherModeAnalyzerOfb_Title {
             get {
-                return ResourceManager.GetString("WeakCipherModeAnalyzer_OFB_Title", resourceCulture);
+                return ResourceManager.GetString("WeakCipherModeAnalyzerOfb_Title", resourceCulture);
             }
         }
         

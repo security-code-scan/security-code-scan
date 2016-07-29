@@ -1,0 +1,4 @@
+#The HTML page are temporaly generated here
+#Only the template should be commited
+*.html
+*.htm

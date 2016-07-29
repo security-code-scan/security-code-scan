@@ -1,0 +1,29 @@
+
+<div class="index-header jumbotron jumbotron-ad hidden-print">
+    <div class="container">
+        <h1><i class="fa fa-search"></i>&nbsp; Rules</h1>
+        <div class="header-text">The rules included in the extension.</div>
+    </div>
+</div>
+
+<section id="rules" class="rules-list">
+    <div class="container highlight highlight-left">
+
+{% for key in rules %}
+  <a name="{{ key }}"></a>
+  <h3>{{ rules[key].Title }}</h3>
+  <p>{{ rules[key].Message }}</p>
+{% endfor %}
+
+    </div>
+</section>
+
+<br/><br/><br/><br/>
+<section id="rules" class="rules-list">
+    <div class="container">
+    <p>
+    <a name="configuration-files"></a>
+    * The analysis of configuration files can be done, but Roslyn does not currently allow the <a href="https://github.com/dotnet-security-guard/roslyn-security-guard/issues/8">reporting of error in static files</a>.
+    </p>
+    </div>
+</section>

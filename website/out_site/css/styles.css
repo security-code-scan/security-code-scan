@@ -1,0 +1,136 @@
+.navbar {
+    background-color: #fff;
+    background-image: none;
+    transition: all .2s ease;
+    -webkit-transition: all .2s ease;
+    font-weight: 500;
+    font-size: 21.6px;
+
+    min-height: 75px;
+    margin-bottom: 0;
+    border: 1px solid transparent;
+}
+
+.navbar-nav>li {
+    margin-top: 12.5px;
+}
+
+.navbar .navbar-nav>li:not(:last-child) {
+    border-right: 2px solid #eee;
+    border-right-width: 2px;
+    border-right-style: solid;
+    border-right-color: rgb(238, 238, 238);
+}
+
+.navbar-brand {
+    font-size: 36px;
+}
+
+
+.index-header {
+    padding-top: 120px;
+    padding-bottom: 65px;
+}
+
+.index-header, .page-header {
+    background-color: #115086;
+    color: #fff;
+}
+
+/** Highlight block **/
+
+.highlight h2,.highlight h3 {
+    padding: 5px 10px;
+    margin-bottom: 15px;
+}
+
+.highlight-gray {
+    background: #C3C8CC;
+}
+
+.highlight-left h2, .highlight-left h3  {
+    border-left: 8px solid #115086;
+    border-left-width: 8px;
+    border-left-style: solid;
+}
+
+.highlight-right h2, .highlight-right h3 {
+    border-right: 8px solid #115086;
+    border-right-width: 8px;
+    border-right-style: solid;
+}
+
+
+/** Buttons **/
+
+.btn-lg {
+    padding: 10px 16px;
+    font-size: 23px;
+    line-height: 1.33;
+    border-radius: 6px;
+}
+.btn-default {
+    color: #333;
+    background-color: #fff;
+    border-color: #ccc;
+}
+.btn {
+    background-image: none;
+    display: inline-block;
+    margin-bottom: 0;
+    font-weight: 400;
+    text-align: center;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    cursor: pointer;
+    border: 1px solid transparent;
+    padding: 6px 12px;
+    font-size: 18px;
+    line-height: 1.42857143;
+    border-radius: 4px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+
+.btn-transparent:hover {
+    background-color: #fff;
+    color: #115086;
+}
+
+.btn-transparent {
+    color: #fff;
+    background-color: transparent;
+}
+.btn-download {
+    border: 1px solid #FFFFFF;
+    box-shadow:none;
+    text-shadow: none;
+}
+
+
+
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  position: relative;
+  min-height: 100%;
+}
+body {
+  /* Margin bottom by footer height */
+  margin-bottom: 60px;
+}
+.footer {
+  padding: 15px;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 60px;
+  background-color: #f5f5f5;
+}
+
+

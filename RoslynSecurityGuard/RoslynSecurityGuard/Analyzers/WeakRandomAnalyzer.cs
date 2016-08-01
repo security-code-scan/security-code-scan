@@ -27,9 +27,9 @@ namespace RoslynSecurityGuard.Analyzers
                 var symbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
 
                 //System.Random.Next()
-                if (AnalyzerUtil.InvokeMatch(symbol, className: "Random", method: "Next") ||
-                    AnalyzerUtil.InvokeMatch(symbol, className: "Random", method: "NextBytes") ||
-                    AnalyzerUtil.InvokeMatch(symbol, className: "Random", method: "NextDouble"))
+                if (AnalyzerUtil.SymbolMatch(symbol, type: "Random", name: "Next") ||
+                    AnalyzerUtil.SymbolMatch(symbol, type: "Random", name: "NextBytes") ||
+                    AnalyzerUtil.SymbolMatch(symbol, type: "Random", name: "NextDouble"))
                 {
                     var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation());
                     ctx.ReportDiagnostic(diagnostic);

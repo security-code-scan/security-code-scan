@@ -32,7 +32,7 @@ namespace RoslynSecurityGuard.Analyzers
             {
                 var symbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
                 //DES.Create()
-                if (AnalyzerUtil.InvokeMatch(symbol, className: "DES", method: "Create"))
+                if (AnalyzerUtil.SymbolMatch(symbol, type: "DES", name: "Create"))
                 {
                     var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), "DES");
                     ctx.ReportDiagnostic(diagnostic);
@@ -42,7 +42,7 @@ namespace RoslynSecurityGuard.Analyzers
             {
                 var symbol = ctx.SemanticModel.GetSymbolInfo(node2).Symbol;
                 //DES.Create()
-                if (AnalyzerUtil.InvokeMatch(symbol, className: "DESCryptoServiceProvider"))
+                if (AnalyzerUtil.SymbolMatch(symbol, type: "DESCryptoServiceProvider"))
                 {
                     var diagnostic = Diagnostic.Create(Rule, node2.GetLocation(), "DES");
                     ctx.ReportDiagnostic(diagnostic);

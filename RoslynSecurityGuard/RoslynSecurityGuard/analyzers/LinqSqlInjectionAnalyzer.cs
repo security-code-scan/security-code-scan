@@ -27,7 +27,7 @@ namespace RoslynSecurityGuard.Analyzers
                 var symbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
 
                 //DataContext.ExecuteQuery()
-                if (AnalyzerUtil.InvokeMatch(symbol, className : "DataContext", method: "ExecuteQuery")) {
+                if (AnalyzerUtil.SymbolMatch(symbol, type: "DataContext", name: "ExecuteQuery")) {
 
                     var sig = symbol.ToDisplayString(); //Signature with the full class name and argument types
                     var args = node.ArgumentList.Arguments;

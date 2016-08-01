@@ -35,7 +35,7 @@ for node in data_nodes:
     #print(node.attrib['name'])
     #print(node.find('value').text)
 
-print(rules)
+#print(rules)
 
 render_template('index.htm', title='Home' , latest_version='1.0.0', nb_rules=len(rules))
 render_template('rules.htm', title='Rules', rules=rules)

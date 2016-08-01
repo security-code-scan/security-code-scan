@@ -27,8 +27,8 @@ namespace RoslynSecurityGuard.Analyzers
 
                 //Both SelectNodes and SelectSingleNode have the same method signatures
                 //XmlNode will also match XmlDocument (implementation of XmlNode)
-                if (AnalyzerUtil.InvokeMatch(symbol, className: "XmlNode", method: "SelectNodes") ||
-                    AnalyzerUtil.InvokeMatch(symbol, className: "XmlNode", method: "SelectSingleNode"))
+                if (AnalyzerUtil.SymbolMatch(symbol, type: "XmlNode", name: "SelectNodes") ||
+                    AnalyzerUtil.SymbolMatch(symbol, type: "XmlNode", name: "SelectSingleNode"))
                 {
                     var args = node.ArgumentList.Arguments;
                     if (!AnalyzerUtil.IsStaticString(args[0].Expression))

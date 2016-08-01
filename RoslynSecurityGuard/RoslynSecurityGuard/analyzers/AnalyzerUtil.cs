@@ -25,29 +25,25 @@ namespace RoslynSecurityGuard.Analyzers
             return new LocalizableResourceString(id, Messages.ResourceManager, typeof(Messages));
         }
 
-        public static bool InvokeMatch(ISymbol symbol, string className = null, string method = null) {
+        public static bool SymbolMatch(ISymbol symbol, string type = null, string name = null) {
             if (symbol == null) { //Code did not compile
                 //FIXME: Log warning
                 return false;
             }
 
-            if (className == null && method == null) {
-                throw new InvalidOperationException("At least one parameter must be specified (className, methodName, ...)");
+            if (type == null && name == null) {
+                throw new InvalidOperationException("At least one parameter must be specified (type, methodName, ...)");
             }
 
-            if (className != null && symbol.ContainingType?.Name != className) {
+            if (type != null && symbol.ContainingType?.Name != type) {
                 return false; //Class name does not match
             }
-            if (method != null && symbol.Name != method) {
+            if (name != null && symbol.Name != name) {
                 return false; //Method name does not match
             }
             return true;
         }
 
-        internal static bool ValueIsExternal(DataFlowAnalysis flow, ArgumentSyntax arg) {
-            
-            return true;
-        }
 
         public static SyntaxNode GetMethodFromNode(SyntaxNode node) {
 

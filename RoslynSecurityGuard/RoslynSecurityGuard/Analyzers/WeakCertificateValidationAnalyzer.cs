@@ -27,8 +27,8 @@ namespace RoslynSecurityGuard.Analyzers
             if (memberAccess == null) return;
 
             var symbolMemberAccess = ctx.SemanticModel.GetSymbolInfo(memberAccess).Symbol;
-            if (AnalyzerUtil.InvokeMatch(symbolMemberAccess, className: "ServicePointManager", method: "ServerCertificateValidationCallback") ||
-                AnalyzerUtil.InvokeMatch(symbolMemberAccess, className: "ServicePointManager", method: "CertificatePolicy"))
+            if (AnalyzerUtil.SymbolMatch(symbolMemberAccess, type: "ServicePointManager", name: "ServerCertificateValidationCallback") ||
+                AnalyzerUtil.SymbolMatch(symbolMemberAccess, type: "ServicePointManager", name: "CertificatePolicy"))
             {
                 var diagnostic = Diagnostic.Create(Rule, assignment.GetLocation());
                 ctx.ReportDiagnostic(diagnostic);

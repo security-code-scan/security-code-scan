@@ -31,7 +31,7 @@ namespace RoslynSecurityGuard.Analyzers
             if (memberAccess == null) return;
 
             var symbolMemberAccess = ctx.SemanticModel.GetSymbolInfo(memberAccess).Symbol;
-            if (AnalyzerUtil.InvokeMatch(symbolMemberAccess, className: "XmlReaderSettings", method: "ProhibitDtd"))
+            if (AnalyzerUtil.SymbolMatch(symbolMemberAccess, type: "XmlReaderSettings", name: "ProhibitDtd"))
             {
                 var constant = ctx.SemanticModel.GetConstantValue(assignment.Right);
                 if (constant.HasValue && constant.Value.ToString() == "False")
@@ -40,7 +40,7 @@ namespace RoslynSecurityGuard.Analyzers
                     ctx.ReportDiagnostic(diagnostic);
                 }
             }
-            else if (AnalyzerUtil.InvokeMatch(symbolMemberAccess, className: "XmlReaderSettings", method: "DtdProcessing"))
+            else if (AnalyzerUtil.SymbolMatch(symbolMemberAccess, type: "XmlReaderSettings", name: "DtdProcessing"))
             {
                 var constant = ctx.SemanticModel.GetConstantValue(assignment.Right);
                 if (constant.HasValue && constant.Value.ToString() == "2")

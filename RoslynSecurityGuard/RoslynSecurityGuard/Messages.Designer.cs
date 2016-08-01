@@ -215,7 +215,7 @@ namespace RoslynSecurityGuard {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CBC mode is insecure.
+        ///   Looks up a localized string similar to CBC mode is weak.
         /// </summary>
         internal static string WeakCipherModeAnalyzerCbc_Title {
             get {
@@ -224,7 +224,7 @@ namespace RoslynSecurityGuard {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An authentication cipher mode which provides better confidentiality of the encrypted data should be used instead of Electronic Codebook (ECB) mode, which does not provide good confidentiality. Specifically, ECB mode produces the same output for the same input each time. So, for example, if a user is sending a password, the encrypted value is the same each time. This allows an attacker to intercept and replay the data..
+        ///   Looks up a localized string similar to The ECB mode produce the same result for identical blocks (ie: 16 bytes for AES). An attacker could be able to guess the encrypted message. The use of AES in CBC mode with a HMAC is recommended guaranteeing integrity and confidentiality..
         /// </summary>
         internal static string WeakCipherModeAnalyzerEcb_Message {
             get {
@@ -233,7 +233,7 @@ namespace RoslynSecurityGuard {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ECB mode is insecure.
+        ///   Looks up a localized string similar to ECB mode is weak.
         /// </summary>
         internal static string WeakCipherModeAnalyzerEcb_Title {
             get {
@@ -242,20 +242,20 @@ namespace RoslynSecurityGuard {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The ciphertext produced is susceptible to alteration by an adversary. This mean that the cipher provides no way to detect that the data has been tampered with. If the ciphertext can be controlled by an attacker, it could be altered without detection..
+        ///   Looks up a localized string similar to The ciphertext produced is susceptible to alteration by an adversary. This mean that the cipher provides no way to detect that the data has been tampered with. If the ciphertext can be controlled by an attacker, it could be altered without detection. The use of AES in CBC mode with a HMAC is recommended guaranteeing integrity and confidentiality..
         /// </summary>
-        internal static string WeakCipherModeAnalyzerOfb_Message {
+        internal static string WeakCipherModeAnalyzerGeneric_Message {
             get {
-                return ResourceManager.GetString("WeakCipherModeAnalyzerOfb_Message", resourceCulture);
+                return ResourceManager.GetString("WeakCipherModeAnalyzerGeneric_Message", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Weak cipher mode.
         /// </summary>
-        internal static string WeakCipherModeAnalyzerOfb_Title {
+        internal static string WeakCipherModeAnalyzerGeneric_Title {
             get {
-                return ResourceManager.GetString("WeakCipherModeAnalyzerOfb_Title", resourceCulture);
+                return ResourceManager.GetString("WeakCipherModeAnalyzerGeneric_Title", resourceCulture);
             }
         }
         

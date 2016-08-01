@@ -34,7 +34,7 @@ namespace RoslynSecurityGuard.Analyzers
             //Process.Start()
             //https://msdn.microsoft.com/en-us/library/system.diagnostics.process.start(v=vs.110).aspx
             //FIXME: Cover all the signatures
-            if (AnalyzerUtil.InvokeMatch(symbol, className : "Process", method: "Start") && node.ArgumentList.Arguments.Count > 0) {
+            if (AnalyzerUtil.SymbolMatch(symbol, type: "Process", name: "Start") && node.ArgumentList.Arguments.Count > 0) {
                 //DataFlowAnalysis flow = ctx.SemanticModel.AnalyzeDataFlow(AnalyzerUtil.GetMethodFromNode(node));
                  
                 if (!(AnalyzerUtil.IsStaticString(node.ArgumentList.Arguments[0].Expression))) 

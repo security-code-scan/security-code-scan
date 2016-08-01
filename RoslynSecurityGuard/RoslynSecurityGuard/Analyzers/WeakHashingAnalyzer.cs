@@ -26,13 +26,13 @@ namespace RoslynSecurityGuard.Analyzers
 
             var symbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
             //MD5.Create()
-            if (AnalyzerUtil.InvokeMatch(symbol, className: "MD5", method: "Create"))
+            if (AnalyzerUtil.SymbolMatch(symbol, type: "MD5", name: "Create"))
             {
                 var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), "MD5");
                 ctx.ReportDiagnostic(diagnostic);
             }
             //SHA1.Create()
-            else if (AnalyzerUtil.InvokeMatch(symbol, className: "SHA1", method: "Create"))
+            else if (AnalyzerUtil.SymbolMatch(symbol, type: "SHA1", name: "Create"))
             {
                 var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), "SHA1");
                 ctx.ReportDiagnostic(diagnostic);

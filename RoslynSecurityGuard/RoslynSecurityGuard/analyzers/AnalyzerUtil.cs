@@ -1,12 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
@@ -14,8 +9,6 @@ namespace RoslynSecurityGuard.Analyzers
 {
     public class AnalyzerUtil
     {
-        
-        
 
         public static DiagnosticDescriptor GetDescriptorFromResource(string id,string localeId, DiagnosticSeverity severity) {
             return new DiagnosticDescriptor(id,
@@ -24,7 +17,7 @@ namespace RoslynSecurityGuard.Analyzers
                 "Security", 
                 severity, 
                 isEnabledByDefault: true,
-                helpLinkUri : "https://github.com/fxcop-security-guard/#"+ id,
+                helpLinkUri : "https://dotnet-security-guard.github.io/rules.htm#" + localeId,
                 description : GetLocalString(localeId + "_Message"));
         }
 

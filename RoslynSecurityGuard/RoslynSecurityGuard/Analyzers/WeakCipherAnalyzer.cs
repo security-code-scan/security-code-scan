@@ -34,7 +34,7 @@ namespace RoslynSecurityGuard.Analyzers
                 //DES.Create()
                 if (AnalyzerUtil.InvokeMatch(symbol, className: "DES", method: "Create"))
                 {
-                    var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), new string[] { "DES" });
+                    var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), "DES");
                     ctx.ReportDiagnostic(diagnostic);
                 }
             }
@@ -44,7 +44,7 @@ namespace RoslynSecurityGuard.Analyzers
                 //DES.Create()
                 if (AnalyzerUtil.InvokeMatch(symbol, className: "DESCryptoServiceProvider"))
                 {
-                    var diagnostic = Diagnostic.Create(Rule, node2.GetLocation(), new string[] { "DES" });
+                    var diagnostic = Diagnostic.Create(Rule, node2.GetLocation(), "DES");
                     ctx.ReportDiagnostic(diagnostic);
                 }
             }

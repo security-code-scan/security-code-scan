@@ -133,7 +133,7 @@
     <value>View state mac is disable. The view state could be altered by an attacker. (This feature cannot be disabled in the recent version of ASP.net)</value>
   </data>
   <data name="EnableViewStateMac_Title" xml:space="preserve">
-    <value>View state mac is disabled</value>
+    <value>View state mac is disabled (Future)</value>
   </data>
   <data name="LinqSqlInjectionAnalyzer_Message" xml:space="preserve">
     <value>The dynamic value passed in the SQL query should be validate.</value>
@@ -145,13 +145,13 @@
     <value>Request validation, which provided additionnal protection against Cross-Site Scripting (XSS), has been disabled. </value>
   </data>
   <data name="ValidateRequestFalse_Title" xml:space="preserve">
-    <value>Request validation has been disabled</value>
+    <value>Request validation has been disabled (Future)</value>
   </data>
   <data name="ViewStateEncryptionModeFalse_Message" xml:space="preserve">
     <value>View state is not encrypted. Controls may leak sensitive data that could be read client-side.</value>
   </data>
   <data name="ViewStateEncryptionModeFalse_Title" xml:space="preserve">
-    <value>View state is not encrypted</value>
+    <value>View state is not encrypted (Future)</value>
   </data>
   <data name="WeakCertificateValidationAnalyzer_Message" xml:space="preserve">
     <value>Certificate Validation has been disable. The communication could be intercepted.</value>
@@ -200,5 +200,11 @@
   </data>
   <data name="XPathInjectionAnalyzer_Title" xml:space="preserve">
     <value>Potential XPath injection with XmlDocument</value>
+  </data>
+  <data name="XxeAnalyzer_Message" xml:space="preserve">
+    <value>The XML parser is configured incorrectly. The operation could be vulnerable to XXE.</value>
+  </data>
+  <data name="XxeAnalyzer_Title" xml:space="preserve">
+    <value>XML parsing vulnerable to XXE</value>
   </data>
 </root>

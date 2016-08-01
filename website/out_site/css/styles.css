@@ -60,6 +60,9 @@
     border-right-style: solid;
 }
 
+section {
+    padding-bottom: 30px;
+}
 
 /** Buttons **/
 

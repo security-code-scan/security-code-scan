@@ -11,14 +11,15 @@ using System.Collections.Immutable;
 
 namespace RoslynSecurityGuard.Analyzers
 {
-  public class WeakCipherModeAnalyzer : DiagnosticAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class WeakCipherModeAnalyzer : DiagnosticAnalyzer
     {
-        private static DiagnosticDescriptor RuleECB = AnalyzerUtil.GetDescriptorFromResource("SG0012", typeof(WeakCipherModeAnalyzer).Name + "Ecb", DiagnosticSeverity.Warning);
-        private static DiagnosticDescriptor RuleOFB = AnalyzerUtil.GetDescriptorFromResource("SG0013", typeof(WeakCipherModeAnalyzer).Name + "Ofb", DiagnosticSeverity.Warning);
-        private static DiagnosticDescriptor RuleCBC = AnalyzerUtil.GetDescriptorFromResource("SG0014", typeof(WeakCipherModeAnalyzer).Name + "Cbc", DiagnosticSeverity.Warning);
+        private static readonly DiagnosticDescriptor RuleECB = AnalyzerUtil.GetDescriptorFromResource("SG0012", typeof(WeakCipherModeAnalyzer).Name + "Ecb", DiagnosticSeverity.Warning);
+        private static readonly DiagnosticDescriptor RuleOFB = AnalyzerUtil.GetDescriptorFromResource("SG0013", typeof(WeakCipherModeAnalyzer).Name + "Ofb", DiagnosticSeverity.Warning);
+        private static readonly DiagnosticDescriptor RuleCBC = AnalyzerUtil.GetDescriptorFromResource("SG0014", typeof(WeakCipherModeAnalyzer).Name + "Cbc", DiagnosticSeverity.Warning);
 
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(RuleECB,RuleOFB,RuleCBC); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RuleECB,RuleOFB,RuleCBC);
 
         public override void Initialize(AnalysisContext context)
         {

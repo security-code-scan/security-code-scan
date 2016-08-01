@@ -107,7 +107,7 @@ namespace RoslynSecurityGuard {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to View state mac is disabled.
+        ///   Looks up a localized string similar to View state mac is disabled (Future).
         /// </summary>
         internal static string EnableViewStateMac_Title {
             get {
@@ -143,7 +143,7 @@ namespace RoslynSecurityGuard {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Request validation has been disabled.
+        ///   Looks up a localized string similar to Request validation has been disabled (Future).
         /// </summary>
         internal static string ValidateRequestFalse_Title {
             get {
@@ -161,7 +161,7 @@ namespace RoslynSecurityGuard {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to View state is not encrypted.
+        ///   Looks up a localized string similar to View state is not encrypted (Future).
         /// </summary>
         internal static string ViewStateEncryptionModeFalse_Title {
             get {
@@ -310,6 +310,24 @@ namespace RoslynSecurityGuard {
         internal static string XPathInjectionAnalyzer_Title {
             get {
                 return ResourceManager.GetString("XPathInjectionAnalyzer_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The XML parser is configured incorrectly. The operation could be vulnerable to XXE..
+        /// </summary>
+        internal static string XxeAnalyzer_Message {
+            get {
+                return ResourceManager.GetString("XxeAnalyzer_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to XML parsing vulnerable to XXE.
+        /// </summary>
+        internal static string XxeAnalyzer_Title {
+            get {
+                return ResourceManager.GetString("XxeAnalyzer_Title", resourceCulture);
             }
         }
     }

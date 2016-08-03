@@ -20,8 +20,8 @@ data_nodes = tree.findall('data')
 
 print(len(data_nodes))
 
+#Loading rule descriptions
 rules = {}
-
 for node in data_nodes:
     key_parts = node.attrib['name'].split("_")
     if(key_parts[1] == 'Title' or key_parts[1] == 'Message'):
@@ -32,10 +32,9 @@ for node in data_nodes:
             nodeValue = nodeValue.replace('(Future)','(Future<a href="#configuration-files">*</a>)') #Link to the bottom of the page
         rules[key_parts[0]][key_parts[1]] = nodeValue.replace("{0}","X")
 
-    #print(node.attrib['name'])
-    #print(node.find('value').text)
-
 #print(rules)
 
-render_template('index.htm', title='Home' , latest_version='1.0.0', nb_rules=len(rules))
+download_link = "https://dotnet-security-guard.github.io/releases/RoslynSecurityGuard-1.0.0.vsix"
+
+render_template('index.htm', title='Home' , latest_version='1.0.0', nb_rules=len(rules), download_link = download_link)
 render_template('rules.htm', title='Rules', rules=rules)

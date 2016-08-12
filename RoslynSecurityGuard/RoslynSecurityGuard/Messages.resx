@@ -118,25 +118,25 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="CommandInjectionAnalyzer_Message" xml:space="preserve">
-    <value>The dynamic value passed to the command execution should be validate.</value>
+    <value>The dynamic value passed to the command execution should be validated.</value>
   </data>
   <data name="CommandInjectionAnalyzer_Title" xml:space="preserve">
     <value>Potential command injection with Process.Start</value>
   </data>
   <data name="EnableEventValidationFalse_Message" xml:space="preserve">
-    <value>Event validation is disabled. The integrity of client-side control will not be validate on postback.</value>
+    <value>Event validation is disabled. The integrity of client-side control will not be validated on postback.</value>
   </data>
   <data name="EnableEventValidationFalse_Title" xml:space="preserve">
     <value>Event validation is disabled</value>
   </data>
   <data name="EnableViewStateMac_Message" xml:space="preserve">
-    <value>View state mac is disable. The view state could be altered by an attacker. (This feature cannot be disabled in the recent version of ASP.net)</value>
+    <value>View state mac is disabled. The view state could be altered by an attacker. (This feature cannot be disabled in the recent version of ASP.net)</value>
   </data>
   <data name="EnableViewStateMac_Title" xml:space="preserve">
     <value>View state mac is disabled (Future)</value>
   </data>
   <data name="LinqSqlInjectionAnalyzer_Message" xml:space="preserve">
-    <value>The dynamic value passed in the SQL query should be validate.</value>
+    <value>The dynamic value passed in the SQL query should be validated.</value>
   </data>
   <data name="LinqSqlInjectionAnalyzer_Title" xml:space="preserve">
     <value>Potential SQL injection with LINQ</value>
@@ -154,13 +154,13 @@
     <value>View state is not encrypted (Future)</value>
   </data>
   <data name="WeakCertificateValidationAnalyzer_Message" xml:space="preserve">
-    <value>Certificate Validation has been disable. The communication could be intercepted.</value>
+    <value>Certificate Validation has been disabled. The communication could be intercepted.</value>
   </data>
   <data name="WeakCertificateValidationAnalyzer_Title" xml:space="preserve">
-    <value>Certificate Validation has been disable</value>
+    <value>Certificate Validation has been disabled</value>
   </data>
   <data name="WeakCipherAnalyzer_Message" xml:space="preserve">
-    <value>DES is not considered strong ciphers for modern applications. Currently, NIST recommends the usage of AES block ciphers instead of DES.</value>
+    <value>DES is not considered a strong cipher for modern applications. Currently, NIST recommends the usage of AES block ciphers instead of DES.</value>
   </data>
   <data name="WeakCipherAnalyzer_Title" xml:space="preserve">
     <value>Weak cipher algorithm</value>
@@ -172,7 +172,7 @@
     <value>CBC mode is weak</value>
   </data>
   <data name="WeakCipherModeAnalyzerEcb_Message" xml:space="preserve">
-    <value>The ECB mode produce the same result for identical blocks (ie: 16 bytes for AES). An attacker could be able to guess the encrypted message. The use of AES in CBC mode with a HMAC is recommended guaranteeing integrity and confidentiality.</value>
+    <value>ECB mode will produce the same result for identical blocks (ie: 16 bytes for AES). An attacker could be able to guess the encrypted message. The use of AES in CBC mode with a HMAC is recommended guaranteeing integrity and confidentiality.</value>
   </data>
   <data name="WeakCipherModeAnalyzerEcb_Title" xml:space="preserve">
     <value>ECB mode is weak</value>
@@ -196,13 +196,13 @@
     <value>Weak random generator</value>
   </data>
   <data name="XPathInjectionAnalyzer_Message" xml:space="preserve">
-    <value>The dynamic value passed to the XPath query should be validate</value>
+    <value>The dynamic value passed to the XPath query should be validated</value>
   </data>
   <data name="XPathInjectionAnalyzer_Title" xml:space="preserve">
     <value>Potential XPath injection with XmlDocument</value>
   </data>
   <data name="XxeAnalyzer_Message" xml:space="preserve">
-    <value>The XML parser is configured incorrectly. The operation could be vulnerable to XXE.</value>
+    <value>The XML parser is configured incorrectly. The operation could be vulnerable to XML eXternal Entity (XXE) processing.</value>
   </data>
   <data name="XxeAnalyzer_Title" xml:space="preserve">
     <value>XML parsing vulnerable to XXE</value>

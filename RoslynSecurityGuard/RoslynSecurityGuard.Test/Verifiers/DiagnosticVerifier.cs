@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
+using RoslynSecurityGuard.Analyzers.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -42,7 +43,7 @@ namespace TestHelper
         [TestInitialize]
         public void initOutput()
         {
-            DebugAnalyzer.LoggerHandler = value => Console.WriteLine(value); ;
+            SGLogging.LoggerHandler = value => Console.WriteLine(value);
         }
 
         /// <summary>

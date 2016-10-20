@@ -1,0 +1,103 @@
+﻿# System.Data
+
+sqlcommand_constructor:
+  namespace: System.Data.SqlClient
+  className: SqlCommand
+  member: method
+  name: .ctor
+  injectableArguments: 0
+  locale: SqlInjection
+
+sqlcommand_field:
+  namespace: System.Data.SqlClient
+  className: SqlCommand
+  member: field
+  name: CommandText
+  injectableArguments: 0
+  locale: SqlInjection
+
+dbcommand_field:
+  namespace: System.Data.Common
+  className: DbCommand
+  member: field
+  name: CommandText
+  injectableArguments: 0
+  locale: SqlInjection
+
+oledbcommand_constructor:
+  namespace: System.Data.OleDb
+  className: OleDbCommand
+  member: method
+  name: .ctor
+  injectableArguments: 0
+  locale: SqlInjection
+ 
+odbccommand_constructor:
+  namespace: System.Data.Odbc
+  className: OdbcCommand
+  member: method
+  name: .ctor
+  injectableArguments: 0
+  locale: SqlInjection
+
+oledbdataadapter_constructor:
+  namespace: System.Data.OleDb
+  className: OleDbDataAdapter
+  member: method
+  name: .ctor
+  injectableArguments: 0
+  locale: SqlInjection
+
+odbcdataadapter_constructor:
+  namespace: System.Data.Odbc
+  className: OdbcDataAdapter
+  member: method
+  name: .ctor
+  injectableArguments: 0
+  locale: SqlInjection
+
+# System.Data.Linq
+
+linq_data_context_method:
+  namespace: System.Data.Linq
+  className: DataContext
+  member: method
+  name: ExecuteQuery
+  injectableArguments: 1
+  locale: SqlInjection
+
+# System.Web.UI.WebControls
+
+sqldatasource_constructor:
+  namespace: System.Web.UI.WebControls
+  className: SqlDataSource
+  member: method
+  name: .ctor
+  injectableArguments: 0
+  locale: SqlInjection
+
+sqldatasource_field:
+  namespace: System.Web.UI.WebControls
+  className: SqlDataSource
+  member: field
+  name: SelectCommand
+  injectableArguments: 0
+  locale: SqlInjection
+
+sqldatasourceview_field:
+  namespace: System.Web.UI.WebControls
+  className: SqlDataSourceView
+  member: field
+  name: SelectCommand
+  injectableArguments: 0
+  locale: SqlInjection
+
+# Microsoft.Whos.Framework.Data
+
+sqlutility_method:
+  namespace: Microsoft.Whos.Framework.Data
+  className: SqlUtility
+  member: method
+  name: ExecuteDataset
+  injectableArguments: 0
+  locale: SqlInjection

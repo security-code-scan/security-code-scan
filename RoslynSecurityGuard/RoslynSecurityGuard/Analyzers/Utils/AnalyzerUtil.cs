@@ -1,7 +1,7 @@
-﻿using Microsoft.CodeAnalysis;
-using System;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using System;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
@@ -54,14 +54,18 @@ namespace RoslynSecurityGuard.Analyzers
             return current;
         }
 
+
+        /// <summary>
+        /// Verify is the expression passed is a constant string.
+        /// </summary>
+        /// <param name="expression"></param>
+        /// <returns></returns>
+        [Obsolete]
         public static bool IsStaticString(ExpressionSyntax expression)
         {
-            //FIXME: Improved the analysis
-            //Temporary implementation..
             return expression.Kind() == SyntaxKind.StringLiteralExpression && expression is LiteralExpressionSyntax;
         }
-
-
+        
         public static Location CreateLocation(string path, int lineStart, int linePosition = -1)
         {
             return Location.Create(path, TextSpan.FromBounds(1, 2), new LinePositionSpan(new LinePosition(lineStart, 0), new LinePosition(lineStart, 0)));

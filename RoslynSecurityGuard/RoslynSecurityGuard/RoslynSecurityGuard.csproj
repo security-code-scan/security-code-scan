@@ -32,10 +32,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Analyzers\AnalyzerUtil.cs" />
+    <Compile Include="Analyzers\Utils\AnalyzerUtil.cs" />
     <Compile Include="Analyzers\DebugAnalyzer.cs" />
     <Compile Include="Analyzers\LinqSqlInjectionAnalyzer.cs" />
     <Compile Include="Analyzers\CommandInjectionAnalyzer.cs" />
+    <Compile Include="Analyzers\Taint\ExecutionState.cs" />
+    <Compile Include="Analyzers\Taint\MethodBehavior.cs" />
+    <Compile Include="Analyzers\Taint\MethodBehaviorRepository.cs" />
+    <Compile Include="Analyzers\Taint\TaintAnalyzer.cs" />
+    <Compile Include="Analyzers\Taint\VariableState.cs" />
+    <Compile Include="Analyzers\Taint\VariableTaint.cs" />
+    <Compile Include="Analyzers\Utils\SGLogging.cs" />
     <Compile Include="Analyzers\WeakCertificateValidationAnalyzer.cs" />
     <Compile Include="Analyzers\WeakCipherAnalyzer.cs" />
     <Compile Include="Analyzers\WeakCipherModeAnalyzer.cs" />
@@ -65,6 +72,7 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+    <EmbeddedResource Include="Sinks.yml" />
     <None Include="tools\install.ps1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -120,6 +128,10 @@
     <Reference Include="System.Reflection.Metadata, Version=1.0.21.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Reflection.Metadata.1.0.21\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
       <Private>False</Private>
+    </Reference>
+    <Reference Include="YamlDotNet, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\YamlDotNet.4.0.0\lib\portable-net45+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\YamlDotNet.dll</HintPath>
+      <Private>True</Private>
     </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\v4.6\Microsoft.Portable.CSharp.targets" />

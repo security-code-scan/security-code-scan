@@ -5,16 +5,13 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using RoslynSecurityGuard.Analyzers.Utils;
 
 namespace RoslynSecurityGuard.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class DebugAnalyzer : DiagnosticAnalyzer
     {
-        //static StreamWriter outfile;
-        public static Action<String> LoggerHandler { get; set; }
-
-
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
@@ -35,13 +32,14 @@ namespace RoslynSecurityGuard.Analyzers
 
             if (node != null)
             {
-                if(LoggerHandler != null) { 
+                //This analyzer will trace the node only if it is in debug mode.
+                if(SGLogging.IsConfigured()) { 
                     visitNodeRecursively(node,0, ctx);
                 }
             }
         }
 
-        private static void visitNodeRecursively(SyntaxNode node,int indent, SyntaxNodeAnalysisContext ctx) {
+        private static void visitNodeRecursively(SyntaxNode node, int indent, SyntaxNodeAnalysisContext ctx) {
 
             string code = node.GetText().Lines[0].Text.ToString().Trim() + (node.GetText().Lines.Count > 1 ? "[...]" : "");
 
@@ -64,7 +62,7 @@ namespace RoslynSecurityGuard.Analyzers
                 }
             }
 
-            LoggerHandler(new string(' ', indent * 4) + code + " [" +node.GetType().Name+"]");
+            SGLogging.Log(new string(' ', indent * 4) + code + " <" +node.GetType().Name+">", false);
 
             foreach (var n in node.ChildNodes()) {
                 visitNodeRecursively(n, indent+1, ctx);

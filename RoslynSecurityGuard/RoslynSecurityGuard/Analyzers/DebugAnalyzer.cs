@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using RoslynSecurityGuard.Analyzers.Utils;
+using RoslynSecurityGuard.Analyzers.Locale;
 
 namespace RoslynSecurityGuard.Analyzers
 {
@@ -16,7 +17,7 @@ namespace RoslynSecurityGuard.Analyzers
         {
             get
             { //Dummy descriptor
-                DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("Debug",typeof(CommandInjectionAnalyzer).Name, DiagnosticSeverity.Warning);
+                DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("Debug");
                 return ImmutableArray.Create(Rule);
             }
         }

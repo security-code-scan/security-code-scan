@@ -61,8 +61,7 @@ namespace VulnerableApp
             var expected = new DiagnosticResult
             {
                 Id = "SG0001",
-                Severity = DiagnosticSeverity.Warning,
-                
+                Severity = DiagnosticSeverity.Warning
             };
 
             VerifyCSharpDiagnostic(test, expected);

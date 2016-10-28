@@ -8,15 +8,17 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
+using RoslynSecurityGuard.Analyzers.Locale;
+using RoslynSecurityGuard.Analyzers.Utils;
 
 namespace RoslynSecurityGuard.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class WeakCipherModeAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly DiagnosticDescriptor RuleECB = AnalyzerUtil.GetDescriptorFromResource("SG0012", typeof(WeakCipherModeAnalyzer).Name + "Ecb", DiagnosticSeverity.Warning);
-        private static readonly DiagnosticDescriptor RuleGeneric = AnalyzerUtil.GetDescriptorFromResource("SG0013", typeof(WeakCipherModeAnalyzer).Name + "Generic", DiagnosticSeverity.Warning);
-        private static readonly DiagnosticDescriptor RuleCBC = AnalyzerUtil.GetDescriptorFromResource("SG0014", typeof(WeakCipherModeAnalyzer).Name + "Cbc", DiagnosticSeverity.Warning);
+        private static readonly DiagnosticDescriptor RuleCBC = LocaleUtil.GetDescriptor("SG0011");
+        private static readonly DiagnosticDescriptor RuleECB = LocaleUtil.GetDescriptor("SG0012");
+        private static readonly DiagnosticDescriptor RuleGeneric = LocaleUtil.GetDescriptor("SG0013");
 
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RuleECB,RuleCBC,RuleGeneric);

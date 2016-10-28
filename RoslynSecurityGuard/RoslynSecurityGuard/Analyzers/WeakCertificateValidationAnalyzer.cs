@@ -5,13 +5,15 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using RoslynSecurityGuard.Analyzers.Utils;
+using RoslynSecurityGuard.Analyzers.Locale;
 
 namespace RoslynSecurityGuard.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class WeakCertificateValidationAnalyzer : DiagnosticAnalyzer
     {
-        private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("SG0004", typeof(WeakCertificateValidationAnalyzer).Name, DiagnosticSeverity.Warning);
+        private static DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SG0004");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

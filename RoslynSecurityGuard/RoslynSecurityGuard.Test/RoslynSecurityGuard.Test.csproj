@@ -97,10 +97,12 @@
     </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Net" />
     <Reference Include="System.Reflection.Metadata, Version=1.0.21.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Reflection.Metadata.1.0.21\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -111,7 +113,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Tests\InsecureCookieAnalyzerTest.cs" />
     <Compile Include="Tests\LinqSqlInjectionAnalyzerTest.cs" />
+    <Compile Include="Tests\Locale\LocaleTest.cs" />
     <Compile Include="Tests\TaintAnalyzerTest.cs" />
     <Compile Include="Tests\WeakCertificateValidationAnalyzerTest.cs" />
     <Compile Include="Tests\WeakCipherAnalyzerTest.cs" />

@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="RoslynSecurityGuard..45fa56c2-16f1-4395-8c10-a5a460084018" Version="1.0.0.0" Language="en-US" Publisher="Philippe Arteau"/>
+    <Identity Id="RoslynSecurityGuard..45fa56c2-16f1-4395-8c10-a5a460084018" Version="2.0.0" Language="en-US" Publisher="Philippe Arteau"/>
     <DisplayName>Roslyn Security Guard</DisplayName>
     <Description xml:space="preserve">Roslyn analyzers that aim to help security audit on .NET applications.</Description>
     <MoreInfo>https://github.com/dotnet-security-guard/roslyn-security-guard</MoreInfo>
     <License>LICENSE-APACHE-2.0.txt</License>
-    <Icon>icon.png</Icon>
+    <Icon>preview.png</Icon>
     <PreviewImage>preview.png</PreviewImage>
     <Tags>security,vulnerability,guard</Tags>
   </Metadata>

@@ -9,16 +9,18 @@ using System.Text;
 using System.Xml;
 using Microsoft.CodeAnalysis.Text;
 using System.Xml.Linq;
+using RoslynSecurityGuard.Analyzers.Utils;
+using RoslynSecurityGuard.Analyzers.Locale;
 
 namespace RoslynSecurityGuard.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class WebConfigAnalyzer : DiagnosticAnalyzer
     {
-        private static DiagnosticDescriptor RuleValidateRequest = AnalyzerUtil.GetDescriptorFromResource("SG0021", "ValidateRequestFalse", DiagnosticSeverity.Warning);
-        private static DiagnosticDescriptor RuleEnableEventValidation = AnalyzerUtil.GetDescriptorFromResource("SG0022", "EnableEventValidationFalse", DiagnosticSeverity.Warning);
-        private static DiagnosticDescriptor RuleViewStateEncryptionMode = AnalyzerUtil.GetDescriptorFromResource("SG0023", "ViewStateEncryptionModeFalse", DiagnosticSeverity.Warning);
-        private static DiagnosticDescriptor RuleEnableViewStateMac = AnalyzerUtil.GetDescriptorFromResource("SG0024", "EnableViewStateMacFalse", DiagnosticSeverity.Warning);
+        private static DiagnosticDescriptor RuleValidateRequest = LocaleUtil.GetDescriptor("SG0021");
+        private static DiagnosticDescriptor RuleEnableEventValidation = LocaleUtil.GetDescriptor("SG0022");
+        private static DiagnosticDescriptor RuleViewStateEncryptionMode = LocaleUtil.GetDescriptor("SG0023");
+        private static DiagnosticDescriptor RuleEnableViewStateMac = LocaleUtil.GetDescriptor("SG0024");
 
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(

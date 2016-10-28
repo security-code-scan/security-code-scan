@@ -3,13 +3,15 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
+using RoslynSecurityGuard.Analyzers.Utils;
+using RoslynSecurityGuard.Analyzers.Locale;
 
 namespace RoslynSecurityGuard.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class XPathInjectionAnalyzer : DiagnosticAnalyzer
     {
-        private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("SG0003", typeof(XPathInjectionAnalyzer).Name, DiagnosticSeverity.Warning);
+        private static DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SG0003");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

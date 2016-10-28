@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using RoslynSecurityGuard.Analyzers.Locale;
 using RoslynSecurityGuard.Analyzers.Utils;
 using System;
 using System.Collections.Immutable;
@@ -11,16 +12,26 @@ namespace RoslynSecurityGuard.Analyzers.Taint
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class TaintAnalyzer : DiagnosticAnalyzer
     {
-        private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("SG0002", typeof(LinqSqlInjectionAnalyzer).Name, DiagnosticSeverity.Warning);
+        //FIXME: Remove this specific rules
+        //private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("SG0014", typeof(TaintAnalyzer).Name, DiagnosticSeverity.Warning);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        private readonly DiagnosticDescriptor[] Descriptors;
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptors);
 
         MethodBehaviorRepository behaviorRepo = new MethodBehaviorRepository();
 
-        public override void Initialize(AnalysisContext context)
+
+        public TaintAnalyzer()
         {
             //Load methods configurations
             behaviorRepo.LoadConfiguration("Sinks.yml");
+
+            Descriptors = behaviorRepo.GetDescriptors();
+        }
+
+        public override void Initialize(AnalysisContext context)
+        {
 
             context.RegisterSyntaxNodeAction(VisitMethods, SyntaxKind.MethodDeclaration);
         }
@@ -231,8 +242,10 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                     Array.Exists(behavior.injectablesArguments, element => element == i) //If the current parameter can be injected.
                     )
                 {
-                    var diagnostic = Diagnostic.Create(Rule, node.GetLocation());
-                    state.analysisContext.ReportDiagnostic(diagnostic);
+
+                    var newRule = LocaleUtil.GetDescriptor(behavior.vulnerabilityLocale);
+                    var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
+                    state.AnalysisContext.ReportDiagnostic(diagnostic);
                 }
 
                 //TODO: tainted all object passed in argument

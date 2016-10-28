@@ -1,20 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
+using RoslynSecurityGuard.Analyzers.Utils;
+using RoslynSecurityGuard.Analyzers.Locale;
 
 namespace RoslynSecurityGuard.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class WeakCipherAnalyzer : DiagnosticAnalyzer
     {
-                private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("SG0010", typeof(WeakCipherAnalyzer).Name, DiagnosticSeverity.Warning);
+        private static DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SG0010");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
 

@@ -5,26 +5,10 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
-namespace RoslynSecurityGuard.Analyzers
+namespace RoslynSecurityGuard.Analyzers.Utils
 {
     public class AnalyzerUtil
     {
-
-        public static DiagnosticDescriptor GetDescriptorFromResource(string id,string localeId, DiagnosticSeverity severity) {
-            return new DiagnosticDescriptor(id,
-                GetLocalString(localeId + "_Title"),
-                GetLocalString(localeId + "_Title"),
-                "Security", 
-                severity, 
-                isEnabledByDefault: true,
-                helpLinkUri : "https://dotnet-security-guard.github.io/rules.htm#" + localeId,
-                description : GetLocalString(localeId + "_Message"));
-        }
-
-        private static LocalizableString GetLocalString(string id) {
-            return new LocalizableResourceString(id, Messages.ResourceManager, typeof(Messages));
-        }
-
         public static bool SymbolMatch(ISymbol symbol, string type = null, string name = null) {
             if (symbol == null) { //Code did not compile
                 //FIXME: Log warning

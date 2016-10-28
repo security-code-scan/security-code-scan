@@ -1,4 +1,6 @@
-﻿using static RoslynSecurityGuard.Analyzers.Taint.VariableTaint;
+﻿using Microsoft.CodeAnalysis;
+using System.Collections.Generic;
+using static RoslynSecurityGuard.Analyzers.Taint.VariableTaint;
 
 namespace RoslynSecurityGuard.Analyzers.Taint
 {
@@ -14,12 +16,18 @@ namespace RoslynSecurityGuard.Analyzers.Taint
     {
         public VariableTaint taint { get; }
 
+        public List<VariableTag> tags { get; private set; }
+
+        public SyntaxNode node { get; private set; }
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="taint">Initial state</param>
         public VariableState(VariableTaint taint = UNKNOWN) {
             this.taint = taint;
+            this.tags = new List<VariableTag>();
+            node = null;
         }
 
         /// <summary>
@@ -36,10 +44,10 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                     newTaint = TAINTED;
                     break;
                 case (UNKNOWN):
-                    if(taint != TAINTED) newTaint = UNKNOWN;
+                    if (taint != TAINTED) newTaint = UNKNOWN;
                     break;
                 case (SAFE):
-                    if(taint != TAINTED && taint != UNKNOWN) newTaint = SAFE;
+                    if (taint != TAINTED && taint != UNKNOWN) newTaint = SAFE;
                     break;
                 case (CONSTANT):
                     if (taint == SAFE) newTaint = SAFE;
@@ -50,9 +58,18 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             return new VariableState(newTaint);
         }
 
-        
         public override string ToString() {
             return taint.ToString();
+        }
+
+        public VariableState AddTag(VariableTag tag) {
+            tags.Add(tag);
+            return this;
+        }
+
+        public VariableState AddSyntaxNode(SyntaxNode node) {
+            this.node = node;
+            return this;
         }
     }
 

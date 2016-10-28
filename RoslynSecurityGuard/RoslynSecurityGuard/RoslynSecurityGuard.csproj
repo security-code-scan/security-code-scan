@@ -32,6 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Analyzers\InsecureCookieAnalyzer.cs" />
+    <Compile Include="Analyzers\Locale\LocaleDiagnostic.cs" />
+    <Compile Include="Analyzers\Taint\VariableTag.cs" />
     <Compile Include="Analyzers\Utils\AnalyzerUtil.cs" />
     <Compile Include="Analyzers\DebugAnalyzer.cs" />
     <Compile Include="Analyzers\LinqSqlInjectionAnalyzer.cs" />
@@ -42,7 +45,9 @@
     <Compile Include="Analyzers\Taint\TaintAnalyzer.cs" />
     <Compile Include="Analyzers\Taint\VariableState.cs" />
     <Compile Include="Analyzers\Taint\VariableTaint.cs" />
+    <Compile Include="Analyzers\Locale\LocaleUtil.cs" />
     <Compile Include="Analyzers\Utils\SGLogging.cs" />
+    <Compile Include="Analyzers\Locale\YamlResourceManager.cs" />
     <Compile Include="Analyzers\WeakCertificateValidationAnalyzer.cs" />
     <Compile Include="Analyzers\WeakCipherAnalyzer.cs" />
     <Compile Include="Analyzers\WeakCipherModeAnalyzer.cs" />
@@ -51,6 +56,12 @@
     <Compile Include="Analyzers\WebConfigAnalyzer.cs" />
     <Compile Include="Analyzers\XPathInjectionAnalyzer.cs" />
     <Compile Include="Analyzers\XxeAnalyzer.cs" />
+    <Compile Include="CodeFixes\InsecureCookieCodeFixProvider.cs" />
+    <Compile Include="Empty.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Empty.resx</DependentUpon>
+    </Compile>
     <Compile Include="Messages.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -59,6 +70,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Empty.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Empty.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="Messages.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Messages.Designer.cs</LastGenOutput>
@@ -69,6 +84,7 @@
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <EmbeddedResource Include="Messages.yml" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
@@ -134,6 +150,7 @@
       <Private>True</Private>
     </Reference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\v4.6\Microsoft.Portable.CSharp.targets" />
   <Target Name="AfterBuild">
     <GetAssemblyIdentity AssemblyFiles="$(OutDir)\$(AssemblyName).dll">

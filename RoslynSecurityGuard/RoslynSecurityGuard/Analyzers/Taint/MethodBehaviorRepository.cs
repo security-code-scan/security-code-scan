@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using RoslynSecurityGuard.Analyzers.Locale;
 using RoslynSecurityGuard.Analyzers.Utils;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         private Dictionary<string, MethodBehavior> methodInjectableArguments = new Dictionary<string, MethodBehavior>();
         private Dictionary<string, MethodBehavior> methodPasswordArguments = new Dictionary<string, MethodBehavior>();
 
+        private Dictionary<string, DiagnosticDescriptor> descriptors = new Dictionary<string, DiagnosticDescriptor>();
 
         public void LoadConfiguration(string configurationFile)
         {
@@ -40,6 +42,13 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
                     int[] argumentsIndexes = convertToIntArray(beInjectableArguments.Split(','));
 
+                    
+
+                    if (!descriptors.ContainsKey(beLocale)) {
+                        var newDescriptor = LocaleUtil.GetDescriptor(beLocale);
+                        descriptors.Add(beLocale, newDescriptor);
+                    }
+
                     methodInjectableArguments.Add(beNamespace + "." + beClassName + "|" + beName, new MethodBehavior(argumentsIndexes, beLocale));
 
                     //SGLogging.Log(beNamespace);
@@ -47,6 +56,12 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
                 //SGLogging.Log(methodInjectableArguments.Count + " signatures loaded.");
             }
+        }
+
+        public DiagnosticDescriptor[] GetDescriptors() {
+            DiagnosticDescriptor[] foos = new DiagnosticDescriptor[descriptors.Count];
+            descriptors.Values.CopyTo(foos, 0);
+            return foos;
         }
 
         /// <summary>

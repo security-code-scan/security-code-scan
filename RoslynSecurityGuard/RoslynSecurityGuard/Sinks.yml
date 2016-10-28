@@ -6,7 +6,7 @@ sqlcommand_constructor:
   member: method
   name: .ctor
   injectableArguments: 0
-  locale: SqlInjection
+  locale: SG0014
 
 sqlcommand_field:
   namespace: System.Data.SqlClient
@@ -14,7 +14,7 @@ sqlcommand_field:
   member: field
   name: CommandText
   injectableArguments: 0
-  locale: SqlInjection
+  locale: SG0014
 
 dbcommand_field:
   namespace: System.Data.Common
@@ -22,7 +22,7 @@ dbcommand_field:
   member: field
   name: CommandText
   injectableArguments: 0
-  locale: SqlInjection
+  locale: SG0014
 
 oledbcommand_constructor:
   namespace: System.Data.OleDb
@@ -30,7 +30,7 @@ oledbcommand_constructor:
   member: method
   name: .ctor
   injectableArguments: 0
-  locale: SqlInjection
+  locale: SG0014
  
 odbccommand_constructor:
   namespace: System.Data.Odbc
@@ -38,7 +38,7 @@ odbccommand_constructor:
   member: method
   name: .ctor
   injectableArguments: 0
-  locale: SqlInjection
+  locale: SG0014
 
 oledbdataadapter_constructor:
   namespace: System.Data.OleDb
@@ -46,7 +46,7 @@ oledbdataadapter_constructor:
   member: method
   name: .ctor
   injectableArguments: 0
-  locale: SqlInjection
+  locale: SG0014
 
 odbcdataadapter_constructor:
   namespace: System.Data.Odbc
@@ -54,7 +54,7 @@ odbcdataadapter_constructor:
   member: method
   name: .ctor
   injectableArguments: 0
-  locale: SqlInjection
+  locale: SG0014
 
 # System.Data.Linq
 
@@ -63,8 +63,8 @@ linq_data_context_method:
   className: DataContext
   member: method
   name: ExecuteQuery
-  injectableArguments: 1
-  locale: SqlInjection
+  injectableArguments: 0
+  locale: SG0002
 
 # System.Web.UI.WebControls
 
@@ -74,7 +74,7 @@ sqldatasource_constructor:
   member: method
   name: .ctor
   injectableArguments: 0
-  locale: SqlInjection
+  locale: SG0014
 
 sqldatasource_field:
   namespace: System.Web.UI.WebControls
@@ -82,7 +82,7 @@ sqldatasource_field:
   member: field
   name: SelectCommand
   injectableArguments: 0
-  locale: SqlInjection
+  locale: SG0014
 
 sqldatasourceview_field:
   namespace: System.Web.UI.WebControls
@@ -90,7 +90,7 @@ sqldatasourceview_field:
   member: field
   name: SelectCommand
   injectableArguments: 0
-  locale: SqlInjection
+  locale: SG0014
 
 # Microsoft.Whos.Framework.Data
 
@@ -100,4 +100,27 @@ sqlutility_method:
   member: method
   name: ExecuteDataset
   injectableArguments: 0
-  locale: SqlInjection
+  locale: SG0014
+
+# Process
+
+systemdiagnostic_process:
+  namespace: System.Diagnostics
+  className: Process
+  member: method
+  name: Start
+  locale: SG0001
+
+systemdiagnostic_process_filename:
+  namespace: System.Diagnostics
+  className: ProcessStartInfo
+  member: field
+  name: FileName
+  locale: SG0001
+
+systemdiagnostic_process_arguments:
+  namespace: System.Diagnostics
+  className: ProcessStartInfo
+  member: field
+  name: Arguments
+  locale: SG0001

@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
+using RoslynSecurityGuard.Analyzers.Taint;
 using System.Collections.Generic;
 using System.Data.Linq;
 using TestHelper;
@@ -14,7 +15,8 @@ namespace RoslynSecurityGuard.Tests
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers()
         {
-            return new LinqSqlInjectionAnalyzer();
+            //return new LinqSqlInjectionAnalyzer();
+            return new TaintAnalyzer();
         }
 
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()

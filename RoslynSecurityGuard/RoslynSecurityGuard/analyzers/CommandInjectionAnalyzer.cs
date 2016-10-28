@@ -2,7 +2,8 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-
+using RoslynSecurityGuard.Analyzers.Locale;
+using RoslynSecurityGuard.Analyzers.Utils;
 using System.Collections.Immutable;
 
 namespace RoslynSecurityGuard.Analyzers
@@ -11,7 +12,7 @@ namespace RoslynSecurityGuard.Analyzers
     public class CommandInjectionAnalyzer : DiagnosticAnalyzer
     {
 
-        private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("SG0001",typeof(CommandInjectionAnalyzer).Name, DiagnosticSeverity.Warning);
+        private static DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SG0001");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

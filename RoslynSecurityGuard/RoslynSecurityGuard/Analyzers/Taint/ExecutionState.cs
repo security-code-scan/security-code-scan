@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis;
+using System;
 
 namespace RoslynSecurityGuard.Analyzers.Taint
 {
@@ -11,21 +12,22 @@ namespace RoslynSecurityGuard.Analyzers.Taint
     /// </summary>
     public class ExecutionState
     {
-        public SyntaxNodeAnalysisContext analysisContext { get; }
-        private Dictionary<string, VariableState> variables = new Dictionary<string, VariableState>();
+        public SyntaxNodeAnalysisContext AnalysisContext { get; }
+        public IDictionary<string, VariableState> Variables { get; private set; }
 
         public ExecutionState(SyntaxNodeAnalysisContext ctx)
         {
-            this.analysisContext = ctx;
+            AnalysisContext = ctx;
+            Variables = new Dictionary<string, VariableState>();
         }
 
         public void AddNewValue(string identifier, VariableState value) {
-            variables.Add(identifier, value);
+            Variables.Add(identifier, value);
         }
 
         public VariableState GetValueByIdentifier(string identifier) {
             VariableState value = new VariableState(VariableTaint.UNKNOWN);
-            variables.TryGetValue(identifier, out value);
+            Variables.TryGetValue(identifier, out value);
             return value;
         }
 
@@ -35,8 +37,17 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         /// <param name="node">Expression to evaluate</param>
         /// <returns>The resolved symbol with the complete class name and method name.</returns>
         public ISymbol GetSymbol(ExpressionSyntax node) {
-            return analysisContext.SemanticModel.GetSymbolInfo(node).Symbol;
+            return AnalysisContext.SemanticModel.GetSymbolInfo(node).Symbol;
         }
 
+        public void AddTag(string variableAccess, VariableTag httpCookieSecure)
+        {
+            try
+            {
+                Variables[variableAccess].AddTag(httpCookieSecure);
+            }
+            catch (KeyNotFoundException e) {
+            }
+        }
     }
 }

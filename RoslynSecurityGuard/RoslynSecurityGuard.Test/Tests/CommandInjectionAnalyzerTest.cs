@@ -70,9 +70,7 @@ namespace VulnerableApp
 
             VerifyCSharpDiagnostic(test);
         }
-
-
-        //Diagnostic and CodeFix both triggered and checked for
+        
         [TestMethod]
         public void CommandInjectionVulnerable1()
         {

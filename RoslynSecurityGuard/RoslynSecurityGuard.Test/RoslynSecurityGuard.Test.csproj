@@ -116,6 +116,7 @@
     <Compile Include="Tests\InsecureCookieAnalyzerTest.cs" />
     <Compile Include="Tests\LinqSqlInjectionAnalyzerTest.cs" />
     <Compile Include="Tests\Locale\LocaleTest.cs" />
+    <Compile Include="Tests\TaintAnalyzerControlFlowTest.cs" />
     <Compile Include="Tests\TaintAnalyzerTest.cs" />
     <Compile Include="Tests\WeakCertificateValidationAnalyzerTest.cs" />
     <Compile Include="Tests\WeakCipherAnalyzerTest.cs" />

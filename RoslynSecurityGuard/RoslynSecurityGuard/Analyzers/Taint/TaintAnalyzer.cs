@@ -12,9 +12,6 @@ namespace RoslynSecurityGuard.Analyzers.Taint
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class TaintAnalyzer : DiagnosticAnalyzer
     {
-        //FIXME: Remove this specific rules
-        //private static DiagnosticDescriptor Rule = AnalyzerUtil.GetDescriptorFromResource("SG0014", typeof(TaintAnalyzer).Name, DiagnosticSeverity.Warning);
-
         private readonly DiagnosticDescriptor[] Descriptors;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptors);
@@ -27,6 +24,8 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             //Load methods configurations
             behaviorRepo.LoadConfiguration("Sinks.yml");
 
+            //Build the descriptor based on the locale fields of the Sinks.yml
+            //This must be done in the constructor because, the array need be available before SupportedDiagnostics is first invoked.
             Descriptors = behaviorRepo.GetDescriptors();
         }
 
@@ -58,10 +57,12 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                 state.AddNewValue(ResolveIdentifier(statement.Identifier), new VariableState(VariableTaint.TAINTED));
             }
 
-            foreach (StatementSyntax statement in node.Body.Statements)
-            {
-                VisitStatement(statement, state);
+            if (node.Body != null) {
+                foreach (StatementSyntax statement in node.Body.Statements) {
+                    VisitStatement(statement, state);
+                }
             }
+            
             //The state return is irrelevant because it is not use.
             return new VariableState(VariableTaint.UNKNOWN);
         }
@@ -74,7 +75,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         /// <param name="state"></param>
         private VariableState VisitStatement(SyntaxNode node, ExecutionState state)
         {
-            SGLogging.Log(node.GetType().ToString());
+            //SGLogging.Log(node.GetType().ToString());
 
             //Variable allocation
             if (node is LocalDeclarationStatementSyntax)
@@ -105,7 +106,20 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                 return VisitMethodDeclaration(methodDeclaration, state);
             }
 
-            SGLogging.Log("Unsupported statement " + node.GetType() + " (" + node.ToString() + ")");
+            else {
+                
+                foreach (var n in node.ChildNodes()) {
+                    VisitStatement(n, state);
+                }
+
+            }
+
+            var isBlockStatement = node is BlockSyntax || node is IfStatementSyntax || node is ForEachStatementSyntax || node is ForStatementSyntax;
+
+            if(!isBlockStatement)
+            {
+                SGLogging.Log("Unsupported statement " + node.GetType() + " (" + node.ToString() + ")");
+            }
 
             return new VariableState(VariableTaint.UNKNOWN);
         }

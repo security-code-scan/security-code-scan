@@ -16,7 +16,7 @@ namespace RoslynSecurityGuard.Analyzers
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
-            { //Dummy descriptor
+            { //Dummy descriptor, it will never be reported
                 DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("Debug");
                 return ImmutableArray.Create(Rule);
             }
@@ -34,8 +34,10 @@ namespace RoslynSecurityGuard.Analyzers
             if (node != null)
             {
                 //This analyzer will trace the node only if it is in debug mode.
-                if(SGLogging.IsConfigured()) { 
+                if(SGLogging.IsConfigured()) {
+                    SGLogging.Log("== Method : "+ node.Identifier.Text +" (BEGIN) ==", false);
                     visitNodeRecursively(node,0, ctx);
+                    SGLogging.Log("== Method : " + node.Identifier.Text + " (END) ==", false);
                 }
             }
         }

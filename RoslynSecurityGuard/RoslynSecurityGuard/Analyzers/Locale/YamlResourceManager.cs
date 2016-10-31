@@ -41,10 +41,10 @@ namespace RoslynSecurityGuard.Analyzers.Locale
 
                     LocaleString[key.Value + "_Title"] = messTitle;
                     LocaleString[key.Value + "_Description"] = messDescription;
-                    SGLogging.Log(key.Value);
+                    //SGLogging.Log(key.Value);
                 }
 
-                SGLogging.Log(LocaleString.Count + " locales loaded.");
+                //SGLogging.Log(LocaleString.Count + " locales loaded.");
             }
         }
 

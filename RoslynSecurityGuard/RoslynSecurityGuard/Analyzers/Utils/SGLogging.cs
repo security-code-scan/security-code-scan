@@ -31,7 +31,7 @@ namespace RoslynSecurityGuard.Analyzers.Utils
                 int indexBackSlash = sourceFilePath.LastIndexOf("\\");
                 int indexForwardSlash = sourceFilePath.LastIndexOf("//");
 
-                int lastSlash = Math.Max(Math.Max(indexBackSlash,indexForwardSlash),0);
+                int lastSlash = Math.Max(Math.Max(indexBackSlash,indexForwardSlash)+1,0);
 
                 LoggerHandler("[" + sourceFilePath.Substring(lastSlash) + ":" + sourceLineNumber + " " + memberName + "]");
             }

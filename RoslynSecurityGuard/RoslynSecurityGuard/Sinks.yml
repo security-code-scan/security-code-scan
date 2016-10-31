@@ -1,4 +1,18 @@
-﻿# System.Data
+﻿# This is the list of sinks
+# The api are suspetible to attack if value passed are not properly sanitize.
+#
+# File format:
+# <<<
+# [Unique ID of the sink]:
+#   namespace: [Namespace where the class is present]
+#   className: [Class of the API]
+#   member: ["method" => method call or "field" for assignment]
+#   name: [Field name (assignment) or Method name (method call)]
+#   injectableArguments: [Index of the argument starting from the left]
+#   locale: [Id of a localization in Messages.yml, This value can be reused for multiple sinks]
+# <<<
+
+# System.Data
 
 sqlcommand_constructor:
   namespace: System.Data.SqlClient

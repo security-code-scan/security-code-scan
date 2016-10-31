@@ -1,13 +1,23 @@
-﻿
+﻿#
+# This file contains the localization of the diagnostics
+#
+# File format:
+# <<<
+# [Locale ID that is use to load the diagnostic reference (LocaleUtil.GetDescriptor())]:
+#   class: [(Informationnal) Class of the analyzer provider this diagnostic]
+#   title: [Title of the diagnostic]
+#   description: [Description of the diagnostic]
+# <<<
+
 #Injections
 
 SG0001:
-  class: CommandInjectionAnalyzer
+  class: TaintAnalyzer
   title:   Potential command injection with Process.Start
   description: The dynamic value passed to the command execution should be validated.
 
 SG0002:
-  class: LinqSqlInjectionAnalyzer
+  class: TaintAnalyzer
   title: Potential SQL injection with LINQ
   description: The dynamic value passed in the SQL query should be validated.
 
@@ -17,7 +27,7 @@ SG0014:
   description: The dynamic value passed in the SQL query should be validated.
 
 SG0003:
-  class: XPathInjectionAnalyzer
+  class: TaintAnalyzer
   title: Potential XPath injection with XmlDocument
   description: The dynamic value passed to the XPath query should be validated
 

@@ -46,14 +46,15 @@ namespace RoslynSecurityGuard.Analyzers
             //Assert that HttpCookie were configured
             foreach (var variableState in state.Variables) {
                 var st = variableState.Value;
-                if (st.tags.Contains(VariableTag.HttpCookie)) {
-                    if (!st.tags.Contains(VariableTag.HttpCookieHttpOnly))
-                    {
-                        ctx.ReportDiagnostic(Diagnostic.Create(RuleHttpOnly, st.node.GetLocation()));
-                    }
+                if (st.tags.Contains(VariableTag.HttpCookie))
+                {
                     if (!st.tags.Contains(VariableTag.HttpCookieSecure))
                     {
                         ctx.ReportDiagnostic(Diagnostic.Create(RuleSecure, st.node.GetLocation()));
+                    }
+                    if (!st.tags.Contains(VariableTag.HttpCookieHttpOnly))
+                    {
+                        ctx.ReportDiagnostic(Diagnostic.Create(RuleHttpOnly, st.node.GetLocation()));
                     }
                 }
             }

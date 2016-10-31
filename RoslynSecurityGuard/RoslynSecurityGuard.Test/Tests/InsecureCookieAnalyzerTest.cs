@@ -44,11 +44,16 @@ namespace VulnerableApp
 }
 ";
 
-            var expected = new DiagnosticResult {
+            var expected08 = new DiagnosticResult {
                 Id = "SG0008",
                 Severity = DiagnosticSeverity.Warning
             };
-            VerifyCSharpDiagnostic(test, expected);
+            var expected09 = new DiagnosticResult
+            {
+                Id = "SG0009",
+                Severity = DiagnosticSeverity.Warning
+            };
+            VerifyCSharpDiagnostic(test, new DiagnosticResult[] { expected08, expected09 });
         }
 
         [TestMethod]

@@ -109,6 +109,7 @@ systemdiagnostic_process:
   className: Process
   member: method
   name: Start
+  injectableArguments: 0
   locale: SG0001
 
 systemdiagnostic_process_filename:
@@ -116,6 +117,7 @@ systemdiagnostic_process_filename:
   className: ProcessStartInfo
   member: field
   name: FileName
+  injectableArguments: 0
   locale: SG0001
 
 systemdiagnostic_process_arguments:
@@ -123,4 +125,5 @@ systemdiagnostic_process_arguments:
   className: ProcessStartInfo
   member: field
   name: Arguments
+  injectableArguments: 0
   locale: SG0001

@@ -37,7 +37,6 @@
     <Compile Include="Analyzers\Taint\VariableTag.cs" />
     <Compile Include="Analyzers\Utils\AnalyzerUtil.cs" />
     <Compile Include="Analyzers\DebugAnalyzer.cs" />
-    <Compile Include="Analyzers\LinqSqlInjectionAnalyzer.cs" />
     <Compile Include="Analyzers\CommandInjectionAnalyzer.cs" />
     <Compile Include="Analyzers\Taint\ExecutionState.cs" />
     <Compile Include="Analyzers\Taint\MethodBehavior.cs" />
@@ -62,21 +61,12 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Empty.resx</DependentUpon>
     </Compile>
-    <Compile Include="Messages.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Messages.resx</DependentUpon>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Empty.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Empty.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Messages.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Messages.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

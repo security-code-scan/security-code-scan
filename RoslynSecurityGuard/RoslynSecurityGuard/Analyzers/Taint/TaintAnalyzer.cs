@@ -193,6 +193,12 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                 return VisitBinaryExpression(binaryExpression, state);
             }
 
+            else if (expression is AssignmentExpressionSyntax)
+            {
+                var assignment = (AssignmentExpressionSyntax)expression;
+                return VisitAssignment(assignment, state);
+            }
+
             SGLogging.Log("Unsupported expression " + expression.GetType() + " (" + expression.ToString() + ")");
 
             //Unsupported expression
@@ -225,7 +231,6 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         /// <returns></returns>
         private VariableState VisitInvocationAndCreation(ExpressionSyntax node, ArgumentListSyntax argList, ExecutionState state) {
             
-            
             var symbol = state.GetSymbol(node);
             MethodBehavior behavior = behaviorRepo.GetInjectableMethodBehavior(symbol);
 
@@ -253,6 +258,27 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                 i++;
             }
             return new VariableState(VariableTaint.UNKNOWN);
+        }
+
+        private VariableState VisitAssignment(AssignmentExpressionSyntax node, ExecutionState state)
+        {
+            
+            var symbol = state.GetSymbol(node.Left);
+            MethodBehavior behavior = behaviorRepo.GetInjectableMethodBehavior(symbol);
+
+            var variableState = VisitExpression(node.Right, state);
+
+            if (behavior != null && //If the API is at risk
+                    variableState.taint != VariableTaint.CONSTANT && //Skip safe values
+                    variableState.taint != VariableTaint.SAFE)
+            {
+
+                var newRule = LocaleUtil.GetDescriptor(behavior.vulnerabilityLocale);
+                var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
+                state.AnalysisContext.ReportDiagnostic(diagnostic);
+            }
+
+            return variableState;
         }
 
         /// <summary>

@@ -5,6 +5,7 @@ using TestHelper;
 using System.Collections.Generic;
 using System.Xml;
 using RoslynSecurityGuard.Analyzers;
+using RoslynSecurityGuard.Analyzers.Taint;
 
 namespace RoslynSecurityGuard.Tests
 {
@@ -15,7 +16,7 @@ namespace RoslynSecurityGuard.Tests
         
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers()
         {
-            return new XPathInjectionAnalyzer();
+            return new TaintAnalyzer();
         }
 
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()

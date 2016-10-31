@@ -127,3 +127,21 @@ systemdiagnostic_process_arguments:
   name: Arguments
   injectableArguments: 0
   locale: SG0001
+
+ #XPath
+
+xmlnode_SelectNodes:
+  namespace: System.Xml
+  className: XmlNode
+  member: method
+  name: SelectNodes
+  injectableArguments: 0
+  locale: SG0003
+
+xmlnode_SelectSingleNode:
+  namespace: System.Xml
+  className: XmlNode
+  member: method
+  name: SelectSingleNode
+  injectableArguments: 0
+  locale: SG0003

@@ -1,6 +1,6 @@
 from jinja2 import Environment, FileSystemLoader
 import os
-import xml.etree.ElementTree as etree
+import yaml
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -15,26 +15,34 @@ def render_template(filename,**args):
         fh.write(main_html)
         fh.write(footer_html)
 
-tree = etree.parse(THIS_DIR+'/../RoslynSecurityGuard/RoslynSecurityGuard/Messages.resx')
-data_nodes = tree.findall('data')
-
-print(len(data_nodes))
-
 #Loading rule descriptions
 rules = {}
-for node in data_nodes:
-    key_parts = node.attrib['name'].split("_")
-    if(key_parts[1] == 'Title' or key_parts[1] == 'Message'):
-        if(not rules.has_key(key_parts[0])):
-            rules[key_parts[0]] = {}
-        nodeValue = node.find('value').text
-        if(key_parts[1] == 'Title'):
-            nodeValue = nodeValue.replace('(Future)','(Future<a href="#configuration-files">*</a>)') #Link to the bottom of the page
-        rules[key_parts[0]][key_parts[1]] = nodeValue.replace("{0}","X")
+with open("../RoslynSecurityGuard/RoslynSecurityGuard/Messages.yml", 'r') as stream:
+    try:
+        data = yaml.load(stream)
 
-#print(rules)
+        for msg_key in data:
+            print "Loading "+msg_key
+            #print data[msg_key]
+            rules[msg_key] = {}
+            rules[msg_key]['Title'] = data[msg_key]['title']
+            rules[msg_key]['Message'] = data[msg_key]['description']
+    except yaml.YAMLError as exc:
+        print(exc)
 
-download_link = "https://dotnet-security-guard.github.io/releases/RoslynSecurityGuard-1.0.0.vsix"
+nb_sinks = 0
+with open("../RoslynSecurityGuard/RoslynSecurityGuard/Sinks.yml", 'r') as stream:
+    try:
+        data = yaml.load(stream)
+        nb_sinks = len(data)
+        print nb_sinks
+    except yaml.YAMLError as exc:
+        print(exc)
 
-render_template('index.htm', title='Home' , latest_version='1.0.0', nb_rules=len(rules), download_link = download_link)
+#Building the complete website
+
+download_link = "https://dotnet-security-guard.github.io/releases/RoslynSecurityGuard-2.0.0.vsix"
+version = '2.0.0'
+
+render_template('index.htm', title='Home' , latest_version=version, nb_rules=len(rules), nb_signatures=(len(rules)+nb_sinks), download_link = download_link)
 render_template('rules.htm', title='Rules', rules=rules)

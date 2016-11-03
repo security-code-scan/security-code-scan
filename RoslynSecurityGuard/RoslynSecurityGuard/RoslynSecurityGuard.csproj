@@ -77,6 +77,7 @@
       <SubType>Designer</SubType>
     </None>
     <EmbeddedResource Include="Sinks.yml" />
+    <EmbeddedResource Include="Passwords.yml" />
     <None Include="tools\install.ps1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

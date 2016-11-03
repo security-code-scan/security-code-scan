@@ -85,6 +85,11 @@ SG0013:
   title: Weak cipher mode
   description: The ciphertext produced is susceptible to alteration by an adversary. This mean that the cipher provides no way to detect that the data has been tampered with. If the ciphertext can be controlled by an attacker, it could be altered without detection. The use of AES in CBC mode with a HMAC is recommended guaranteeing integrity and confidentiality.
 
+SG0015:
+  class: TaintAnalyzer
+  title: Hardcoded password
+  description: The password configuration to this API appears to be hardcoded. It is suggest to externalized configuration such as password to avoid leakage of secret information.
+
 #Configuration issues
 
 SG0021:

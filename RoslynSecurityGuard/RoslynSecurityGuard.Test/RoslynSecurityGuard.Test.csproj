@@ -113,6 +113,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Tests\HardcodedPasswordTest.cs" />
     <Compile Include="Tests\InsecureCookieAnalyzerTest.cs" />
     <Compile Include="Tests\LinqSqlInjectionAnalyzerTest.cs" />
     <Compile Include="Tests\Locale\LocaleTest.cs" />

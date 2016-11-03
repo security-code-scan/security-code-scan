@@ -21,8 +21,10 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
         public TaintAnalyzer()
         {
-            //Load methods configurations
+            //Load injectable APIs
             behaviorRepo.LoadConfiguration("Sinks.yml");
+            //Load password APIs
+            behaviorRepo.LoadConfiguration("Passwords.yml");
 
             //Build the descriptor based on the locale fields of the Sinks.yml
             //This must be done in the constructor because, the array need be available before SupportedDiagnostics is first invoked.
@@ -253,14 +255,25 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             {
                 var argumentState = VisitExpression(argument.Expression, state);
 
-                SGLogging.Log(symbol.ContainingType + "." + symbol.Name + " -> " + argumentState);
+                if(symbol != null)
+                {
+                    SGLogging.Log(symbol.ContainingType + "." + symbol.Name + " -> " + argumentState);
+                }
 
                 if (behavior != null && //If the API is at risk
-                    argumentState.taint != VariableTaint.CONSTANT && //Skip safe values
-                    argumentState.taint != VariableTaint.SAFE &&
+                    (argumentState.taint == VariableTaint.TAINTED || //Tainted values
+                    argumentState.taint == VariableTaint.UNKNOWN) &&
                     Array.Exists(behavior.injectablesArguments, element => element == i) //If the current parameter can be injected.
                     )
                 {
+                    var newRule = LocaleUtil.GetDescriptor(behavior.vulnerabilityLocale);
+                    var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
+                    state.AnalysisContext.ReportDiagnostic(diagnostic);
+                }
+                else if ((behavior != null || AnalyzerUtil.SymbolMatch(symbol, name:"Password")) &&
+                    argumentState.taint == VariableTaint.CONSTANT && //Hard coded value
+                    Array.Exists(behavior.passwordArguments, element => element == i) //If the current parameter is a password
+                    ) {
 
                     var newRule = LocaleUtil.GetDescriptor(behavior.vulnerabilityLocale);
                     var diagnostic = Diagnostic.Create(newRule, node.GetLocation());

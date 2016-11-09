@@ -295,6 +295,12 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
             var variableState = VisitExpression(node.Right, state);
 
+            if(node.Left is IdentifierNameSyntax)
+            {
+                var assignmentIdentifier = node.Left as IdentifierNameSyntax;
+                state.UpdateValue(ResolveIdentifier(assignmentIdentifier.Identifier), new VariableState(VariableTaint.TAINTED));
+            }
+
             if (behavior != null && //If the API is at risk
                     variableState.taint != VariableTaint.CONSTANT && //Skip safe values
                     variableState.taint != VariableTaint.SAFE)
@@ -317,7 +323,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         private VariableState VisitIdentifierName(IdentifierNameSyntax expression, ExecutionState state)
         {
             //SGLogging.Log("Visiting identifier " + expression);
-            var value = expression.Identifier.Text;
+            var value = ResolveIdentifier(expression.Identifier);
             return state.GetValueByIdentifier(value);
         }
 

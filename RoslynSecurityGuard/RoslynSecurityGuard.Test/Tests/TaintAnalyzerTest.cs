@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers.Taint;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Tests
@@ -183,5 +184,46 @@ namespace sample
         }
 
 
+
+        [TestMethod]
+        public void VariableReuse()
+        {
+            var test = @"
+using System.Data.SqlClient;
+
+namespace sample
+{
+    class SqlConstant
+    {
+        public static void Run(string input)
+        {
+            string query = ""SELECT * FROM [User] WHERE user_id = 1"";
+            SqlCommand cmd1 = new SqlCommand(query);
+
+            query = input;
+            SqlCommand cmd2 = new SqlCommand(query);
+        }
+    }
+}
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "SG0014",
+                Severity = DiagnosticSeverity.Warning,
+            };
+            VerifyCSharpDiagnostic(test, expected);
+        }
+
+/*
+        public static void Run(string input)
+        {
+            string query = "SELECT* FROM[User] WHERE user_id = 1";
+            new SqlCommand(query);
+
+            query = input;
+            new SqlCommand(query);
+        }
+*/
     }
 }

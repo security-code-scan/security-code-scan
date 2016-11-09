@@ -5,15 +5,21 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
 using RoslynSecurityGuard.Analyzers.Utils;
 using RoslynSecurityGuard.Analyzers.Locale;
+using System.Collections.Generic;
 
 namespace RoslynSecurityGuard.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class WeakHashingAnalyzer : DiagnosticAnalyzer
     {
-        private static DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SG0006");
+        private static DiagnosticDescriptor Md5Rule = LocaleUtil.GetDescriptor("SG0006",new string[] { "MD5" });
+        private static DiagnosticDescriptor Sha1Rule = LocaleUtil.GetDescriptor("SG0006", new string[] { "SHA1" });
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        private static readonly ImmutableDictionary<string, DiagnosticDescriptor> HashFunctions = new Dictionary<string, DiagnosticDescriptor> {
+            { "MD5", Md5Rule }, { "SHA1", Sha1Rule }
+        }.ToImmutableDictionary();
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Md5Rule, Sha1Rule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -27,17 +33,14 @@ namespace RoslynSecurityGuard.Analyzers
             if (node == null) return;
 
             var symbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
-            //MD5.Create()
-            if (AnalyzerUtil.SymbolMatch(symbol, type: "MD5", name: "Create"))
-            {
-                var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), "MD5");
-                ctx.ReportDiagnostic(diagnostic);
-            }
-            //SHA1.Create()
-            else if (AnalyzerUtil.SymbolMatch(symbol, type: "SHA1", name: "Create"))
-            {
-                var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), "SHA1");
-                ctx.ReportDiagnostic(diagnostic);
+
+            foreach (KeyValuePair<string, DiagnosticDescriptor> entry in HashFunctions) {
+                //XXX.Create()
+                if (AnalyzerUtil.SymbolMatch(symbol, type: entry.Key, name: "Create"))
+                {
+                    var diagnostic = Diagnostic.Create(entry.Value, node.Expression.GetLocation(), "MD5");
+                    ctx.ReportDiagnostic(diagnostic);
+                }
             }
         }
     }

@@ -12,9 +12,10 @@ namespace RoslynSecurityGuard.Analyzers.Locale
     {
         private static YamlResourceManager ResourceManager = null;
 
-        public static DiagnosticDescriptor GetDescriptor(string id)
+        public static DiagnosticDescriptor GetDescriptor(string id, string[] args = null)
         {
             var localTitle = GetLocalString(id + "_Title");
+            var localDesc = GetLocalString(id + "_Description");
             return new DiagnosticDescriptor(id,
                 localTitle,
                 localTitle,
@@ -22,7 +23,8 @@ namespace RoslynSecurityGuard.Analyzers.Locale
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
                 helpLinkUri: "https://dotnet-security-guard.github.io/rules.htm#" + id,
-                description: GetLocalString(id + "_Description"));
+                description: (args == null ? localDesc : string.Format(localDesc.ToString(), args))
+                );
         }
 
         private static LocalizableString GetLocalString(string id)

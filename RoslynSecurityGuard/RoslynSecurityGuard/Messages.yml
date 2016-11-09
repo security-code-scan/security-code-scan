@@ -63,12 +63,12 @@ SG0005:
 SG0006:
   class: WeakHashingAnalyzer
   title: Weak hashing function
-  description: The hashing function "{0}" is no longer recommended for password storage and signature generation.
+  description: "{0} is no longer considered a strong hashing algorithim for password storage and signature generation."
 
 SG0010:
   class: WeakCipherAnalyzer
   title: Weak cipher algorithm
-  description: DES is not considered a strong cipher for modern applications. Currently, NIST recommends the usage of AES block ciphers instead of DES.
+  description: "{0} is not considered a strong cipher for modern applications. Currently, NIST recommends the usage of AES block ciphers instead of {0}."
 
 SG0011:
   class: WeakCipherModeAnalyzerCbc

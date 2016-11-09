@@ -22,6 +22,10 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         }
 
         public void AddNewValue(string identifier, VariableState value) {
+            if (Variables.ContainsKey(identifier)) //Override existing value
+            {
+                Variables.Remove(identifier);
+            }
             Variables.Add(identifier, value);
         }
 

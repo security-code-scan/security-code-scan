@@ -148,5 +148,40 @@ namespace sample
             };
             VerifyCSharpDiagnostic(test, expected);
         }
+
+
+
+        [TestMethod]
+        public void VariableOverride() {
+            var test = @"
+using System.Data.SqlClient;
+
+namespace sample
+{
+    class SqlConstant
+    {
+        public static void Run(string input)
+        {
+            {
+                string username = ""ignore_me"";
+            }
+            {
+                string username = input;
+                new SqlCommand(""SELECT* FROM users WHERE username = '"" + username + ""' LIMIT 1"");
+            }
+        }
+    }
+}
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "SG0014",
+                Severity = DiagnosticSeverity.Warning,
+            };
+            VerifyCSharpDiagnostic(test, expected);
+        }
+
+
     }
 }

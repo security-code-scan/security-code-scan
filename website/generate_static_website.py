@@ -39,10 +39,20 @@ with open("../RoslynSecurityGuard/RoslynSecurityGuard/Sinks.yml", 'r') as stream
     except yaml.YAMLError as exc:
         print(exc)
 
+
+nb_passwords = 0
+with open("../RoslynSecurityGuard/RoslynSecurityGuard/Passwords.yml", 'r') as stream:
+    try:
+        data = yaml.load(stream)
+        nb_passwords = len(data)
+        print nb_sinks
+    except yaml.YAMLError as exc:
+        print(exc)
+
 #Building the complete website
 
-download_link = "https://dotnet-security-guard.github.io/releases/RoslynSecurityGuard-2.0.0.vsix"
+download_link = "https://visualstudiogallery.msdn.microsoft.com/28033821-c053-4652-b529-0bad9c0feba4/referral/232680"
 version = '2.0.0'
 
-render_template('index.htm', title='Home' , latest_version=version, nb_rules=len(rules), nb_signatures=(len(rules)+nb_sinks), download_link = download_link)
+render_template('index.htm', title='Home' , latest_version=version, nb_rules=len(rules), nb_signatures=(len(rules)+nb_sinks+nb_passwords), download_link = download_link)
 render_template('rules.htm', title='Rules', rules=rules)

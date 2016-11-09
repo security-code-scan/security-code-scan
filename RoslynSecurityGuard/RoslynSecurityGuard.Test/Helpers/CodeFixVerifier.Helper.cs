@@ -2,7 +2,9 @@
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
@@ -23,7 +25,14 @@ namespace TestHelper
         /// <returns>A Document with the changes from the CodeAction</returns>
         private static Document ApplyFix(Document document, CodeAction codeAction)
         {
-            var operations = codeAction.GetOperationsAsync(CancellationToken.None).Result;
+            var task = codeAction.GetOperationsAsync(CancellationToken.None);
+            if (task.Exception != null && task.Exception.InnerExceptions.Count > 0) {
+                foreach(var ex in task.Exception.InnerExceptions) {
+                    Console.WriteLine("Exception thrown during code fix: "+ex.Message);
+                    Console.WriteLine(ex.StackTrace.ToString());
+                }
+            }
+            var operations = task.Result;
             var solution = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution;
             return solution.GetDocument(document.Id);
         }

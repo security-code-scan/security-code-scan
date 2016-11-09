@@ -78,5 +78,13 @@ namespace VulnerableApp
 ";
             VerifyCSharpDiagnostic(test);
         }
+/*
+        static void TestCookie()
+        {
+            var cookie = new HttpCookie("test");
+            cookie.Secure = true;
+            cookie.HttpOnly = true;
+        }
+*/
     }
 }

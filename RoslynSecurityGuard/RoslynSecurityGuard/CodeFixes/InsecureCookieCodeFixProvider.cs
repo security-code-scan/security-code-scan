@@ -19,14 +19,14 @@ namespace RoslynSecurityGuard
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(InsecureCookieCodeFixProvider)), Shared]
     public class InsecureCookieCodeFixProvider : CodeFixProvider
     {
-        private const string title = "Add cookie flags Secure and HttpOnly";
+        private const string SecureTitle = "Add cookie flag Secure";
+        private const string HttpOnlyTitle = "Add cookie flag HttpOnly";
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
             get
             {
-                return ImmutableArray.Create(InsecureCookieAnalyzer.DiagnosticIdHttpOnly,
-              InsecureCookieAnalyzer.DiagnosticIdSecure);
+                return ImmutableArray.Create(InsecureCookieAnalyzer.DiagnosticIdSecure, InsecureCookieAnalyzer.DiagnosticIdHttpOnly);
             }
         }
 
@@ -41,69 +41,67 @@ namespace RoslynSecurityGuard
 
             // TODO: Replace the following code with your own analysis, generating a CodeAction for each fix to suggest
             var diagnostic = context.Diagnostics.First();
+            
+            switch(diagnostic.Id) {
+                //Secure
+                case InsecureCookieAnalyzer.DiagnosticIdSecure:
+                    context.RegisterCodeFix(
+                        CodeAction.Create(
+                            title: SecureTitle,
+                            createChangedDocument: c => AddSecureFlags(context.Document, diagnostic, c, new string[] { "Secure" }),
+                            equivalenceKey: SecureTitle),
+                        diagnostic);
 
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    title: title,
-                    createChangedDocument: c => AddSecureFlags(context.Document, diagnostic, c),
-                    equivalenceKey: title),
-                diagnostic);
+                    break;
+                //HttpOnly
+                case InsecureCookieAnalyzer.DiagnosticIdHttpOnly:
+                    context.RegisterCodeFix(
+                        CodeAction.Create(
+                            title: HttpOnlyTitle,
+                            createChangedDocument: c => AddSecureFlags(context.Document, diagnostic, c, new string[] { "HttpOnly" }),
+                            equivalenceKey: HttpOnlyTitle),
+                        diagnostic);
+                    break;
+            }
+            
         }
 
-        private async Task<Document> AddSecureFlags(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        private async Task<Document> AddSecureFlags(Document document, Diagnostic diagnostic, CancellationToken cancellationToken, string[] propertyNames)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var objectCreation = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent.AncestorsAndSelf().OfType<ObjectCreationExpressionSyntax>().First();
+            var variableDeclarator = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent as VariableDeclaratorSyntax;
 
-            LocalDeclarationStatementSyntax parentDeclaration = null;
-            VariableDeclarationSyntax parentVariable = null;
-            SyntaxNode parent = null;
-            while((parent = objectCreation.Parent) != null)
-            {
-                if (parent is LocalDeclarationStatementSyntax) {
-                    parentDeclaration = (LocalDeclarationStatementSyntax)parent;
-                }
-                if (parent is VariableDeclarationSyntax)
-                {
-                    parentVariable = (VariableDeclarationSyntax)parent;
-                }
-            }
+            if (variableDeclarator == null) return document; //Abort!
 
+            VariableDeclarationSyntax variableDeclaration = variableDeclarator.Parent as VariableDeclarationSyntax;
+            LocalDeclarationStatementSyntax parentDeclaration = variableDeclaration.Parent as LocalDeclarationStatementSyntax;
 
-            var identifierCookie = parentVariable.Variables[0];
+            if (variableDeclaration == null || parentDeclaration == null) return document; //Abort!
+            
+            var identifierCookie = variableDeclaration.Variables[0];
 
+            //Building the nodes model
 
-            if (parentDeclaration != null) {
-
-                var newInvocation = SF.InvocationExpression(
-                SF.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SF.IdentifierName(identifierCookie.Identifier),
-                    SF.IdentifierName("Secure")),
-                SF.ArgumentList(
-                    SF.SingletonSeparatedList(
-                        SF.Argument(SF.LiteralExpression(SyntaxKind.TrueLiteralExpression))
-                        )
-                    )
-                );
-
-                var newAssignment = SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
+            var nodes = new List<SyntaxNode>();
+            foreach (var property in propertyNames) {
+                var newAssignment = SF.ExpressionStatement(
+                    SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
                     SF.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         SF.IdentifierName(identifierCookie.Identifier),
-                        SF.IdentifierName("Secure")
-                    )
+                        SF.IdentifierName(property))
                     ,
                     SF.LiteralExpression(SyntaxKind.TrueLiteralExpression)
+                    ))
+                    .WithLeadingTrivia(parentDeclaration.GetLeadingTrivia()
+                        .Insert(0, SF.ElasticEndOfLine(Environment.NewLine))
                     );
-
-                root.InsertNodesAfter(parentDeclaration, new List<SyntaxNode> { newAssignment });
-
-                return document.WithSyntaxRoot(root);
+                nodes.Add(newAssignment);
             }
-            else {
-                return document;
-            }
+            
+            //Inserting the nodes
+            var newRoot = root.InsertNodesAfter(parentDeclaration, nodes);
+            return document.WithSyntaxRoot(newRoot);
         }
     }
 }

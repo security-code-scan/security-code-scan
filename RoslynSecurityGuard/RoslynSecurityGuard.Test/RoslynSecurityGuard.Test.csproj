@@ -115,6 +115,7 @@
   <ItemGroup>
     <Compile Include="Tests\HardcodedPasswordTest.cs" />
     <Compile Include="Tests\InsecureCookieAnalyzerTest.cs" />
+    <Compile Include="Tests\InsecureCookieCodeFixProviderTest.cs" />
     <Compile Include="Tests\LinqSqlInjectionAnalyzerTest.cs" />
     <Compile Include="Tests\Locale\LocaleTest.cs" />
     <Compile Include="Tests\TaintAnalyzerControlFlowTest.cs" />

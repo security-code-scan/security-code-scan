@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -63,9 +64,14 @@ namespace TestHelper
         /// <param name="allowNewCompilerDiagnostics">A bool controlling whether or not the test will fail if the CodeFix introduces other warnings after being applied</param>
         private void VerifyFix(string language, ImmutableArray<DiagnosticAnalyzer> analyzers, CodeFixProvider codeFixProvider, string oldSource, string newSource, int? codeFixIndex, bool allowNewCompilerDiagnostics)
         {
-            var document = CreateDocument(oldSource, language);
+            var document = CreateDocument(oldSource, language, GetAdditionnalReferences());
             var analyzerDiagnostics = GetSortedDiagnosticsFromDocuments(analyzers, new[] { document });
             var compilerDiagnostics = GetCompilerDiagnostics(document);
+            foreach (Diagnostic diag in compilerDiagnostics) {
+                Console.WriteLine("/!\\: " + diag.ToString());
+            }
+            //Some compiler diagnostic are simply warnings, we can not fail once a warning is present..
+            //Assert.AreEqual(compilerDiagnostics.Count(),0);
             var attempts = analyzerDiagnostics.Length;
 
             for (int i = 0; i < attempts; ++i)

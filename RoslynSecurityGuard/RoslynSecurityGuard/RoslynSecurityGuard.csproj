@@ -32,6 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Analyzers\CsrfTokenAnalyzer.cs" />
     <Compile Include="Analyzers\InsecureCookieAnalyzer.cs" />
     <Compile Include="Analyzers\Locale\LocaleDiagnostic.cs" />
     <Compile Include="Analyzers\Taint\VariableTag.cs" />

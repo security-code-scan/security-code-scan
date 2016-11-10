@@ -90,6 +90,11 @@ SG0015:
   title: Hardcoded password
   description: The password configuration to this API appears to be hardcoded. It is suggest to externalized configuration such as password to avoid leakage of secret information.
 
+SG0016:
+  class: CsrfTokenAnalyzer
+  title: Controller method is vulnerable to CSRF
+  description: The annotation [ValidateAntiForgeryToken] is missing.
+
 #Configuration issues
 
 SG0021:

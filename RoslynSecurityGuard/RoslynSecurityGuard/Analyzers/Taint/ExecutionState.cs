@@ -9,12 +9,20 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 {
     /// <summary>
     /// Execution state at a given statement. It will be alter after each statement are evaluated.
+    /// 
+    /// Objectives of this class:
+    ///  * Keep the state of each variable
+    ///  * Keep reference to utilities that are require along the taint analysis. (Such as resolving symbol)
     /// </summary>
     public class ExecutionState
     {
         public SyntaxNodeAnalysisContext AnalysisContext { get; }
         public IDictionary<string, VariableState> Variables { get; private set; }
 
+        /// <summary>
+        /// Initialize the state with no variable recorded yet.
+        /// </summary>
+        /// <param name="ctx">Context used to resolve symbol.</param>
         public ExecutionState(SyntaxNodeAnalysisContext ctx)
         {
             AnalysisContext = ctx;
@@ -22,6 +30,15 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         }
 
         public void AddNewValue(string identifier, VariableState value) {
+            if (Variables.ContainsKey(identifier)) //New variable in a different scope
+            {
+                Variables.Remove(identifier);
+            }
+            Variables.Add(identifier, value);
+        }
+
+        public void UpdateValue(string identifier, VariableState value)
+        {
             if (Variables.ContainsKey(identifier)) //Override existing value
             {
                 Variables.Remove(identifier);

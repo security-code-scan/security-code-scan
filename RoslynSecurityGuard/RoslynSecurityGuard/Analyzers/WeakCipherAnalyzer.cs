@@ -15,7 +15,7 @@ namespace RoslynSecurityGuard.Analyzers
         
         private static ImmutableArray<string> BadCiphers = ImmutableArray.Create("DES", "RC2");
         
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext context)
         {

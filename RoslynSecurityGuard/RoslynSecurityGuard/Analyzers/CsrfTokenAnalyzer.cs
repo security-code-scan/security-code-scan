@@ -15,7 +15,8 @@ namespace RoslynSecurityGuard.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CsrfTokenAnalyzer : DiagnosticAnalyzer
     {
-        private static DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SG0016");
+        public const string DiagnosticId = "SG0016";
+        private static DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor(DiagnosticId);
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         //99% of the occurences will be HttpPost.. but here are some additionnal HTTP methods

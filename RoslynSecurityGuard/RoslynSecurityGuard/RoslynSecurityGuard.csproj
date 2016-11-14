@@ -55,6 +55,7 @@
     <Compile Include="Analyzers\WeakRandomAnalyzer.cs" />
     <Compile Include="Analyzers\WebConfigAnalyzer.cs" />
     <Compile Include="Analyzers\XxeAnalyzer.cs" />
+    <Compile Include="CodeFixes\CsrfTokenCodeFixProvider.cs" />
     <Compile Include="CodeFixes\InsecureCookieCodeFixProvider.cs" />
     <Compile Include="Empty.Designer.cs">
       <AutoGen>True</AutoGen>

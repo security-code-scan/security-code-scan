@@ -22,13 +22,8 @@ namespace RoslynSecurityGuard
         private const string SecureTitle = "Add cookie flag Secure";
         private const string HttpOnlyTitle = "Add cookie flag HttpOnly";
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get
-            {
-                return ImmutableArray.Create(InsecureCookieAnalyzer.DiagnosticIdSecure, InsecureCookieAnalyzer.DiagnosticIdHttpOnly);
-            }
-        }
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => 
+            ImmutableArray.Create(InsecureCookieAnalyzer.DiagnosticIdSecure, InsecureCookieAnalyzer.DiagnosticIdHttpOnly);
 
         public sealed override FixAllProvider GetFixAllProvider()
         {

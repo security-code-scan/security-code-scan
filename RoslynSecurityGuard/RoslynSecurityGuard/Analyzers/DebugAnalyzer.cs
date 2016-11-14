@@ -13,14 +13,9 @@ namespace RoslynSecurityGuard.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class DebugAnalyzer : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            { //Dummy descriptor, it will never be reported
-                DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("Debug");
-                return ImmutableArray.Create(Rule);
-            }
-        }
+        //Dummy descriptor, it will never be reported
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => 
+            ImmutableArray.Create(LocaleUtil.GetDescriptor("Debug"));
 
         public override void Initialize(AnalysisContext context)
         {

@@ -78,13 +78,13 @@ namespace VulnerableApp
             VerifyCSharpDiagnostic(test);
         }
 
-        /*
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult ControllerMethod(string input) {
 
             return null;
         }
-        */
+        
     }
 }

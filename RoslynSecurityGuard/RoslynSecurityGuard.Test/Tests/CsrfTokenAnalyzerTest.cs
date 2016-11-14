@@ -28,6 +28,7 @@ namespace RoslynSecurityGuard.Test.Tests
             var test = @"
 using System;
 using System.Diagnostics;
+using System.Web.Mvc;
 
 namespace VulnerableApp
 {
@@ -58,6 +59,7 @@ namespace VulnerableApp
             var test = @"
 using System;
 using System.Diagnostics;
+using System.Web.Mvc;
 
 namespace VulnerableApp
 {
@@ -76,11 +78,13 @@ namespace VulnerableApp
             VerifyCSharpDiagnostic(test);
         }
 
+        /*
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult ControllerMethod(string input) {
 
             return null;
         }
+        */
     }
 }

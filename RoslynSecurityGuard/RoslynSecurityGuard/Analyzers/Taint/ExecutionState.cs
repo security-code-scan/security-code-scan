@@ -41,9 +41,15 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         {
             if (Variables.ContainsKey(identifier)) //Override existing value
             {
+                var state = Variables[identifier];
+                var newState = state.merge(value);
                 Variables.Remove(identifier);
+                Variables.Add(identifier, newState);
             }
-            Variables.Add(identifier, value);
+            else
+            { //Unexpected state
+                Variables.Add(identifier, value);
+            }
         }
 
         public VariableState GetValueByIdentifier(string identifier) {

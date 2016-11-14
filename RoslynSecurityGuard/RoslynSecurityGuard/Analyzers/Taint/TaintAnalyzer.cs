@@ -295,10 +295,10 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
             var variableState = VisitExpression(node.Right, state);
 
-            if(node.Left is IdentifierNameSyntax)
+           if(node.Left is IdentifierNameSyntax)
             {
                 var assignmentIdentifier = node.Left as IdentifierNameSyntax;
-                state.UpdateValue(ResolveIdentifier(assignmentIdentifier.Identifier), new VariableState(VariableTaint.TAINTED));
+                state.UpdateValue(ResolveIdentifier(assignmentIdentifier.Identifier), variableState);
             }
 
             if (behavior != null && //If the API is at risk

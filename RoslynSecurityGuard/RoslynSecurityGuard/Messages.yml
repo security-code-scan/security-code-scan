@@ -95,6 +95,11 @@ SG0016:
   title: Controller method is vulnerable to CSRF
   description: The annotation [ValidateAntiForgeryToken] is missing.
 
+SG0017:
+  class: RequestValidationDisableAnalyzer
+  title: Request validation is disable
+  description: Request validation is disable. Request validation allow the filtering of some XSS patterns submitted to the application.
+
 #Configuration issues
 
 SG0021:

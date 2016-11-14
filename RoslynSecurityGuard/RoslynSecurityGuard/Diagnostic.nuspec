@@ -2,13 +2,13 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>RoslynSecurityGuard</id>
-    <version>2.0.0</version>
+    <version>2.1.0</version>
     <title>Roslyn Security Guard</title>
     <authors>Security Guard Team</authors>
     <owners>Philippe Arteau</owners>
-    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
-    <projectUrl>https://github.com/dotnet-security-guard</projectUrl>
-    <!--<iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>-->
+    <licenseUrl>https://opensource.org/licenses/lgpl-3.0.html</licenseUrl>
+    <projectUrl>https://dotnet-security-guard.github.io/</projectUrl>
+    <iconUrl>https://dotnet-security-guard.github.io/images/logo-small.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>RoslynSecurityGuard</description>
     <releaseNotes>This is the first release of the project Roslyn Security Guard. 14 analyzers for security issues are provided.</releaseNotes>

@@ -144,7 +144,7 @@ systemdiagnostic_process_arguments:
 
  #XPath
 
-xmlnode_SelectNodes:
+XmlNode_SelectNodes:
   namespace: System.Xml
   className: XmlNode
   member: method
@@ -152,10 +152,102 @@ xmlnode_SelectNodes:
   injectableArguments: 0
   locale: SG0003
 
-xmlnode_SelectSingleNode:
+XmlNode_SelectSingleNode:
   namespace: System.Xml
   className: XmlNode
   member: method
   name: SelectSingleNode
   injectableArguments: 0
   locale: SG0003
+
+#Path traversal (Read)
+
+File_ReadAllText:
+  namespace: System.IO
+  className: File
+  member: method
+  name: ReadAllText
+  injectableArguments: 0
+  locale: SG0018
+  
+File_ReadAllBytes:
+  namespace: System.IO
+  className: File
+  member: method
+  name: ReadAllBytes
+  injectableArguments: 0
+  locale: SG0018
+  
+File_ReadAllLines:
+  namespace: System.IO
+  className: File
+  member: method
+  name: ReadAllLines
+  injectableArguments: 0
+  locale: SG0018
+
+File_ReadLines:
+  namespace: System.IO
+  className: File
+  member: method
+  name: ReadLines
+  injectableArguments: 0
+  locale: SG0018
+
+File_OpenWrite:
+  namespace: System.IO
+  className: File
+  member: method
+  name: OpenWrite
+  injectableArguments: 0
+  locale: SG0018
+
+file_OpenText:
+  namespace: System.IO
+  className: File
+  member: method
+  name: OpenText
+  injectableArguments: 0
+  locale: SG0018
+
+File_OpenRead:
+  namespace: System.IO
+  className: File
+  member: method
+  name: OpenRead
+  injectableArguments: 0
+  locale: SG0018
+
+XmlReader_Create:
+  namespace: System.Xml
+  className: XmlReader
+  member: method
+  name: Create
+  injectableArguments: 0
+  locale: SG0018
+
+#Path traversal (Write)
+
+File_WriteAllLines:
+  namespace: System.IO
+  className: File
+  member: method
+  name: WriteAllLines
+  injectableArguments: 0
+  locale: SG0018
+
+File_WriteAllText:
+  namespace: System.IO
+  className: File
+  member: method
+  name: WriteAllText
+  injectableArguments: 0
+  locale: SG0018
+
+File_WriteAllBytes:
+  namespace: System.IO
+  className: File
+  member: method
+  name: WriteAllBytes
+  injectableArguments: 0
+  locale: SG0018

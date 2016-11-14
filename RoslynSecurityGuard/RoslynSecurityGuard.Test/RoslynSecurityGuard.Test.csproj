@@ -149,6 +149,7 @@
     <Compile Include="Tests\RequestValidationAnalyzerTest.cs" />
     <Compile Include="Tests\Taint\LinqSqlInjectionAnalyzerTest.cs" />
     <Compile Include="Tests\Locale\LocaleTest.cs" />
+    <Compile Include="Tests\Taint\PathTraversalAnalyzerTest.cs" />
     <Compile Include="Tests\Taint\TaintAnalyzerControlFlowTest.cs" />
     <Compile Include="Tests\Taint\TaintAnalyzerTest.cs" />
     <Compile Include="Tests\WeakCertificateValidationAnalyzerTest.cs" />

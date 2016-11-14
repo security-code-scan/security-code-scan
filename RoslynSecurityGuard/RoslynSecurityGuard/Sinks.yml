@@ -160,8 +160,93 @@ XmlNode_SelectSingleNode:
   injectableArguments: 0
   locale: SG0003
 
-#Path traversal (Read)
+#Path traversal
 
+#File API
+
+#Append
+File_AppendAllLines:
+  namespace: System.IO
+  className: File
+  member: method
+  name: AppendAllLines
+  injectableArguments: 0
+  locale: SG0018
+
+File_AppendAllText:
+  namespace: System.IO
+  className: File
+  member: method
+  name: AppendAllText
+  injectableArguments: 0
+  locale: SG0018
+
+File_AppendText:
+  namespace: System.IO
+  className: File
+  member: method
+  name: AppendText
+  injectableArguments: 0
+  locale: SG0018
+
+File_Copy:
+  namespace: System.IO
+  className: File
+  member: method
+  name: Copy
+  injectableArguments: 0,1
+  locale: SG0018
+
+File_Create:
+  namespace: System.IO
+  className: File
+  member: method
+  name: Create
+  injectableArguments: 0
+  locale: SG0018
+
+File_Delete:
+  namespace: System.IO
+  className: File
+  member: method
+  name: Delete
+  injectableArguments: 0
+  locale: SG0018
+
+#Open
+File_Open:
+  namespace: System.IO
+  className: File
+  member: method
+  name: Open
+  injectableArguments: 0
+  locale: SG0018
+
+File_OpenRead:
+  namespace: System.IO
+  className: File
+  member: method
+  name: OpenRead
+  injectableArguments: 0
+  locale: SG0018
+
+File_OpenText:
+  namespace: System.IO
+  className: File
+  member: method
+  name: OpenText
+  injectableArguments: 0
+  locale: SG0018
+
+File_OpenWrite:
+  namespace: System.IO
+  className: File
+  member: method
+  name: OpenWrite
+  injectableArguments: 0
+  locale: SG0018
+
+#Read
 File_ReadAllText:
   namespace: System.IO
   className: File
@@ -194,39 +279,22 @@ File_ReadLines:
   injectableArguments: 0
   locale: SG0018
 
-File_OpenWrite:
+File_Replace:
   namespace: System.IO
   className: File
   member: method
-  name: OpenWrite
-  injectableArguments: 0
+  name: Replace
+  injectableArguments: 0,1
   locale: SG0018
 
-file_OpenText:
+#Write
+File_WriteAllBytes:
   namespace: System.IO
   className: File
   member: method
-  name: OpenText
+  name: WriteAllBytes
   injectableArguments: 0
   locale: SG0018
-
-File_OpenRead:
-  namespace: System.IO
-  className: File
-  member: method
-  name: OpenRead
-  injectableArguments: 0
-  locale: SG0018
-
-XmlReader_Create:
-  namespace: System.Xml
-  className: XmlReader
-  member: method
-  name: Create
-  injectableArguments: 0
-  locale: SG0018
-
-#Path traversal (Write)
 
 File_WriteAllLines:
   namespace: System.IO
@@ -244,10 +312,10 @@ File_WriteAllText:
   injectableArguments: 0
   locale: SG0018
 
-File_WriteAllBytes:
-  namespace: System.IO
-  className: File
+XmlReader_Create:
+  namespace: System.Xml
+  className: XmlReader
   member: method
-  name: WriteAllBytes
+  name: Create
   injectableArguments: 0
   locale: SG0018

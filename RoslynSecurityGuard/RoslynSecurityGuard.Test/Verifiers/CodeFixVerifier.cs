@@ -46,7 +46,14 @@ namespace TestHelper
         /// <param name="allowNewCompilerDiagnostics">A bool controlling whether or not the test will fail if the CodeFix introduces other warnings after being applied</param>
         protected void VerifyCSharpFix(string oldSource, string newSource, int? codeFixIndex = null, bool allowNewCompilerDiagnostics = false)
         {
-            VerifyFix(LanguageNames.CSharp, ImmutableArray.Create(GetCSharpDiagnosticAnalyzers(), new DebugAnalyzer()), GetCSharpCodeFixProvider(), oldSource, newSource, codeFixIndex, allowNewCompilerDiagnostics);
+            //This fix avoid new line problems when comparing the generated source code with the one hard coded in the test.
+            //
+            var normalizeOld = oldSource.Replace("\r\n", "\n").Replace("\r", "\n").Replace("\n", "\r\n");
+            var normalizeNew = newSource.Replace("\r\n", "\n").Replace("\r", "\n").Replace("\n", "\r\n");
+            //Console.WriteLine("== New source (START) ==");
+            //Console.WriteLine(normalizeNew);
+            //Console.WriteLine("== New source (END) ==");
+            VerifyFix(LanguageNames.CSharp, ImmutableArray.Create(GetCSharpDiagnosticAnalyzers(), new DebugAnalyzer()), GetCSharpCodeFixProvider(), normalizeOld, normalizeNew, codeFixIndex, allowNewCompilerDiagnostics);
         }
 
         /// <summary>

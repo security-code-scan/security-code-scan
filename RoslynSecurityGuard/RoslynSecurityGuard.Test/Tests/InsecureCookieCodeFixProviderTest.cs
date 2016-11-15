@@ -13,8 +13,7 @@ using System.Web;
 
 namespace RoslynSecurityGuard.Test.Tests
 {
-    //FIXME: The test is working locally but not on AppVeyor..
-    //[TestClass]
+    [TestClass]
     public class InsecureCookieCodeFixProviderTest : CodeFixVerifier
     {
 

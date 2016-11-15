@@ -29,6 +29,20 @@ namespace RoslynSecurityGuard.Analyzers.Utils
         }
 
 
+        public static void ForEachAnnotation(SyntaxList<AttributeListSyntax> attributes, Action<string,AttributeSyntax> callback)
+        {
+            foreach (var attribute in attributes)
+            {
+                if (attribute.Attributes.Count == 0) continue; //Bound check .. Unlikely to happens
+
+                //Extract the annotation identifier
+                var identifier = attribute.Attributes[0].Name as IdentifierNameSyntax;
+
+                callback(identifier.Identifier.Text, attribute.Attributes[0]);
+            }
+        }
+
+
         public static SyntaxNode GetMethodFromNode(SyntaxNode node) {
 
             SyntaxNode current = node;

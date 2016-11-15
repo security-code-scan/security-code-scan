@@ -1,8 +1,10 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using RoslynSecurityGuard.Analyzers;
+using RoslynSecurityGuard.Analyzers.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -42,8 +44,7 @@ namespace RoslynSecurityGuard.CodeFixes
                 diagnostic);
 
         }
-
-
+        
         private async Task<Document> AddAnnotation(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -52,9 +53,7 @@ namespace RoslynSecurityGuard.CodeFixes
 
             var annotationValidate = SF.AttributeList()
                     .AddAttributes(SF.Attribute(SF.IdentifierName("ValidateAntiForgeryToken")))
-                    .WithLeadingTrivia(annotationsHttp.GetLeadingTrivia()
-                        .Insert(0, SF.ElasticEndOfLine(Environment.NewLine))
-                    );
+                    .WithLeadingTrivia(CodeFixUtil.KeepLastLine(annotationsHttp.GetLeadingTrivia()));
 
             var nodes = new List<SyntaxNode>();
             nodes.Add(annotationValidate);

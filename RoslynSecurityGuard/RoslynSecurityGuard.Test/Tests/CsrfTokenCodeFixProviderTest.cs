@@ -33,7 +33,7 @@ namespace RoslynSecurityGuard.Test.Tests
         }
 
         [TestMethod]
-        public void VerifyCsrfTokenAdded()
+        public void CsrfVerifyTokenAdded()
         {
             var before = @"
 using System;
@@ -42,6 +42,8 @@ using System.Web.Mvc;
 
 public class TestController
 {
+
+    //Test comment
     [HttpPost]
     public ActionResult ControllerMethod(string input) {
         return null;
@@ -55,6 +57,8 @@ using System.Web.Mvc;
 
 public class TestController
 {
+
+    //Test comment
     [HttpPost]
     [ValidateAntiForgeryToken]
     public ActionResult ControllerMethod(string input) {

@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using RoslynSecurityGuard.Analyzers.Utils;
 
 namespace RoslynSecurityGuard
 {
@@ -88,9 +89,11 @@ namespace RoslynSecurityGuard
                     ,
                     SF.LiteralExpression(SyntaxKind.TrueLiteralExpression)
                     ))
+                    .WithLeadingTrivia(CodeFixUtil.KeepLastLine(parentDeclaration.GetLeadingTrivia()));
+                    /*
                     .WithLeadingTrivia(parentDeclaration.GetLeadingTrivia()
                         .Insert(0, SF.ElasticEndOfLine(Environment.NewLine))
-                    );
+                    );*/
                 nodes.Add(newAssignment);
             }
             

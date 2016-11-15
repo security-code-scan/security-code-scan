@@ -251,6 +251,9 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             MethodBehavior behavior = behaviorRepo.GetInjectableMethodBehavior(symbol);
 
             int i = 0;
+            if (argList == null) {
+                return new VariableState(VariableTaint.UNKNOWN);
+            }
             foreach (var argument in argList.Arguments)
             {
                 var argumentState = VisitExpression(argument.Expression, state);

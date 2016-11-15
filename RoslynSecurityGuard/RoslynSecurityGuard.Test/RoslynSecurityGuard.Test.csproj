@@ -146,6 +146,7 @@
     <Compile Include="Tests\HardcodedPasswordTest.cs" />
     <Compile Include="Tests\InsecureCookieAnalyzerTest.cs" />
     <Compile Include="Tests\InsecureCookieCodeFixProviderTest.cs" />
+    <Compile Include="Tests\OutputCacheAnnotationAnalyzerTest.cs" />
     <Compile Include="Tests\RequestValidationAnalyzerTest.cs" />
     <Compile Include="Tests\Taint\LinqSqlInjectionAnalyzerTest.cs" />
     <Compile Include="Tests\Locale\LocaleTest.cs" />

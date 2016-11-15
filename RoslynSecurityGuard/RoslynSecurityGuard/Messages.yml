@@ -105,6 +105,11 @@ SG0018:
   title: Path traversal
   description: The file path passed to this API is susceptible to Path traversal attacks. With a malicious relative path, an attacker could reach a secret file.
 
+SG0019:
+  class: OutputCacheAnnotationAnalyzer
+  title: OutputCache annotation is disabling authorization checks
+  description: Having the annotation [OutputCache] will disable the annotation [Authorize] for the requests following the first one.
+
 #Configuration issues
 
 SG0021:

@@ -53,6 +53,12 @@ SG0009:
   title: The cookie is missing security flag HttpOnly
   description: It is recommended to specify the HttpOnly flag to new cookie.
 
+# XSS
+SG1111:
+  class: XssAnalyzer
+  title: Endpoint method shows an XSS vulnerability
+  description: The endpoint uses a variables from client input and the value isn't encoded.
+
 #Crypto
 
 SG0005:

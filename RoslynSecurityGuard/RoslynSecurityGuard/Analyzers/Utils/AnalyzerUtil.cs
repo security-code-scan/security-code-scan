@@ -33,10 +33,12 @@ namespace RoslynSecurityGuard.Analyzers.Utils
         {
             foreach (var attribute in attributes)
             {
-                if (attribute.Attributes.Count == 0) continue; //Bound check .. Unlikely to happens
+                if (attribute.Attributes == null || attribute.Attributes.Count == 0) continue; //Bound check .. Unlikely to happens
 
                 //Extract the annotation identifier
                 var identifier = attribute.Attributes[0].Name as IdentifierNameSyntax;
+
+                if (identifier == null) continue;
 
                 callback(identifier.Identifier.Text, attribute.Attributes[0]);
             }

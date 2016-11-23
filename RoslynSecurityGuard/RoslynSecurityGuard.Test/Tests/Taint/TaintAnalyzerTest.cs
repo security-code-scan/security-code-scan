@@ -117,7 +117,7 @@ namespace sample
 ";
             var expected = new DiagnosticResult
             {
-                Id = "SG0014",
+                Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
             VerifyCSharpDiagnostic(test, expected);
@@ -144,7 +144,7 @@ namespace sample
 
             var expected = new DiagnosticResult
             {
-                Id = "SG0014",
+                Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
             VerifyCSharpDiagnostic(test, expected);
@@ -177,7 +177,7 @@ namespace sample
 
             var expected = new DiagnosticResult
             {
-                Id = "SG0014",
+                Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
             VerifyCSharpDiagnostic(test, expected);
@@ -209,7 +209,7 @@ namespace sample
 
             var expected = new DiagnosticResult
             {
-                Id = "SG0014",
+                Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
             VerifyCSharpDiagnostic(test, expected);

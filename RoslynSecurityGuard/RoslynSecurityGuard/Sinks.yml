@@ -8,7 +8,9 @@
 #   className: [Class of the API]
 #   member: ["method" => method call or "field" for assignment]
 #   name: [Field name (assignment) or Method name (method call)]
-#   injectableArguments: [Index of the argument starting from the left]
+#   argTypes: (Optional field) [Parameter types signature]
+#   injectableArguments : (Optional field) [Index of the argument for injectable query, starting from the left]
+#   passwordArguments : (Optional field) [Index of the argument for password parameter, starting from the left]
 #   locale: [Id of a localization in Messages.yml, This value can be reused for multiple sinks]
 # <<<
 
@@ -20,7 +22,7 @@ sqlcommand_constructor:
   member: method
   name: .ctor
   injectableArguments: 0
-  locale: SG0014
+  locale: SG0026
 
 sqlcommand_field:
   namespace: System.Data.SqlClient
@@ -28,7 +30,7 @@ sqlcommand_field:
   member: field
   name: CommandText
   injectableArguments: 0
-  locale: SG0014
+  locale: SG0026
 
 dbcommand_field:
   namespace: System.Data.Common
@@ -36,7 +38,7 @@ dbcommand_field:
   member: field
   name: CommandText
   injectableArguments: 0
-  locale: SG0014
+  locale: SG0026
 
 oledbcommand_constructor:
   namespace: System.Data.OleDb
@@ -44,15 +46,7 @@ oledbcommand_constructor:
   member: method
   name: .ctor
   injectableArguments: 0
-  locale: SG0014
- 
-odbccommand_constructor:
-  namespace: System.Data.Odbc
-  className: OdbcCommand
-  member: method
-  name: .ctor
-  injectableArguments: 0
-  locale: SG0014
+  locale: SG0020
 
 oledbdataadapter_constructor:
   namespace: System.Data.OleDb
@@ -60,7 +54,15 @@ oledbdataadapter_constructor:
   member: method
   name: .ctor
   injectableArguments: 0
-  locale: SG0014
+  locale: SG0020
+
+odbccommand_constructor:
+  namespace: System.Data.Odbc
+  className: OdbcCommand
+  member: method
+  name: .ctor
+  injectableArguments: 0
+  locale: SG0025
 
 odbcdataadapter_constructor:
   namespace: System.Data.Odbc
@@ -68,16 +70,26 @@ odbcdataadapter_constructor:
   member: method
   name: .ctor
   injectableArguments: 0
-  locale: SG0014
+  locale: SG0025
 
 # System.Data.Linq
 
-linq_data_context_method:
+DataContext_ExecuteQuery_0:
   namespace: System.Data.Linq
   className: DataContext
   member: method
   name: ExecuteQuery
+  argTypes: (string, params object[])
   injectableArguments: 0
+  locale: SG0002
+
+DataContext_ExecuteQuery_1:
+  namespace: System.Data.Linq
+  className: DataContext
+  member: method
+  name: ExecuteQuery
+  argTypes: (System.Type, string, params object[])
+  injectableArguments: 1
   locale: SG0002
 
 # System.Web.UI.WebControls

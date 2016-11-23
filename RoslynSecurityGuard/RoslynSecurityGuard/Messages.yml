@@ -18,12 +18,37 @@ SG0001:
 
 SG0002:
   class: TaintAnalyzer
-  title: Potential SQL injection with LINQ
+  title: Potential SQL injection with LINQ API
   description: The dynamic value passed in the SQL query should be validated.
 
 SG0014:
   class: TaintAnalyzer
   title: Potential SQL injection
+  description: The dynamic value passed in the SQL query should be validated.
+
+SG0020:
+  class: TaintAnalyzer
+  title: Potential SQL injection with OleDb API
+  description: The dynamic value passed in the SQL query should be validated.
+
+SG0025:
+  class: TaintAnalyzer
+  title: Potential SQL injection with Odbc API
+  description: The dynamic value passed in the SQL query should be validated.
+
+SG0026:
+  class: TaintAnalyzer
+  title: Potential SQL injection with MsSQL Data Provider
+  description: The dynamic value passed in the SQL query should be validated.
+
+SG0027:
+  class: TaintAnalyzer
+  title: Potential SQL injection with WebControls
+  description: The dynamic value passed in the SQL query should be validated.
+
+SG0028:
+  class: TaintAnalyzer
+  title: Potential SQL injection with SqlUtility
   description: The dynamic value passed in the SQL query should be validated.
 
 SG0003:

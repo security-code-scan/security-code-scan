@@ -248,7 +248,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         private VariableState VisitInvocationAndCreation(ExpressionSyntax node, ArgumentListSyntax argList, ExecutionState state) {
             
             var symbol = state.GetSymbol(node);
-            MethodBehavior behavior = behaviorRepo.GetInjectableMethodBehavior(symbol);
+            MethodBehavior behavior = behaviorRepo.GetMethodBehavior(symbol);
 
             int i = 0;
             if (argList == null) {
@@ -294,7 +294,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         {
             
             var symbol = state.GetSymbol(node.Left);
-            MethodBehavior behavior = behaviorRepo.GetInjectableMethodBehavior(symbol);
+            MethodBehavior behavior = behaviorRepo.GetMethodBehavior(symbol);
 
             var variableState = VisitExpression(node.Right, state);
 

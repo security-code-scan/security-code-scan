@@ -88,8 +88,7 @@ namespace VulnerableApp
             VerifyCSharpDiagnostic(test, expected);
         }
 
-        //FIXME: Support different signatures type for the same method name
-        //[TestMethod]
+        [TestMethod]
         public void LinqInjectionFalsePositiveWithoutGeneric()
         {
             var test = @"

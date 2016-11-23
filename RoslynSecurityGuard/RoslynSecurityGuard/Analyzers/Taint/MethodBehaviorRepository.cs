@@ -49,6 +49,12 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                         bePasswordArguments = ((YamlScalarNode)value.Children[new YamlScalarNode("passwordArguments")]).Value;
                     }
                     catch (KeyNotFoundException) { }
+                    string beArgTypes = null;
+                    try
+                    {
+                        beArgTypes = ((YamlScalarNode)value.Children[new YamlScalarNode("argTypes")]).Value.Trim();
+                    }
+                    catch (KeyNotFoundException) { }
                     string beLocale = ((YamlScalarNode)value.Children[new YamlScalarNode("locale")]).Value;
 
                     //Converting the list of index to array
@@ -65,7 +71,15 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                     }
 
                     //Injection based vulnerability
-                    methodInjectableArguments.Add(beNamespace + "." + beClassName + "|" + beName, new MethodBehavior(argumentsIndexes, passwordIndexes, beLocale));
+                    if (beArgTypes != null)
+                    {
+                        methodInjectableArguments.Add(beNamespace + "." + beClassName + "|" + beName + "|" + beArgTypes, new MethodBehavior(argumentsIndexes, passwordIndexes, beLocale));
+                    }
+                    else
+                    {
+                        methodInjectableArguments.Add(beNamespace + "." + beClassName + "|" + beName, new MethodBehavior(argumentsIndexes, passwordIndexes, beLocale));
+                    }
+                    
 
                     //SGLogging.Log(beNamespace);
                 }
@@ -98,11 +112,11 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         }
 
         /// <summary>
-        /// 
+        /// Get the method behavior for a given symbol
         /// </summary>
         /// <param name="symbol"></param>
         /// <returns></returns>
-        public MethodBehavior GetInjectableMethodBehavior(ISymbol symbol) {
+        public MethodBehavior GetMethodBehavior(ISymbol symbol) {
             if (symbol == null)
             { //The symbol was not properly resolved
                 return null;
@@ -112,7 +126,18 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
             MethodBehavior behavior = null;
             methodInjectableArguments.TryGetValue(key, out behavior);
+
+            if (behavior == null && symbol.ToString().Contains("(")) { //Find a signature with parameter type discrimator
+                string keyExtended = symbol.ContainingType + "|" + symbol.Name + "|" + ExtractParameterSignature(symbol);
+                methodInjectableArguments.TryGetValue(keyExtended, out behavior);
+            }
+
             return behavior;
+        }
+
+        private string ExtractParameterSignature(ISymbol symbol) {
+            var firstParenthese = symbol.ToString().IndexOf("(");
+            return symbol.ToString().Substring(firstParenthese);
         }
 
     }

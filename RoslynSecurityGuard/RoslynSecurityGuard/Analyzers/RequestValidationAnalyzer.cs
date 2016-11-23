@@ -38,6 +38,8 @@ namespace RoslynSecurityGuard.Analyzers
                 //Extract the annotation identifier
                 var identifier = att.Name as IdentifierNameSyntax;
 
+                if(identifier == null) continue;
+
                 if (identifier.Identifier.Text == "ValidateInput")
                 {
                     var hasArgumentFalse = false;

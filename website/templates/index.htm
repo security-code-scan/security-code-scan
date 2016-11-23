@@ -30,12 +30,20 @@
         </div>
         <div class="row">
             <div class="col-md-4 col-sm-6">
-                <h4><i class="fa fa-crosshairs"></i> {{nb_rules}} bug patterns</h4>
+                <h4><i class="fa fa-bug"></i> {{nb_rules}} bug patterns</h4>
                 It can detect <a href="rules.htm">{{nb_rules}} vulnerability patterns</a> with {{nb_signatures}} different signatures.
             </div>
             <div class="col-md-4 col-sm-6">
+                <h4><i class="fa fa-medkit"></i> Code fixes</h4>
+                Code fixes are automated refactoring to fix vulnerabilities at the source.
+            </div>
+            <div class="col-md-4 col-sm-6">
                 <h4><i class="fa fa-plug"></i> Integration</h4>
-                The Roslyn analyzers can be run from <a href="#">Visual Studio</a>.
+                The Roslyn analyzers can be run from <a href="#">Visual Studio</a> 2015 and higher.
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <h4><i class="fa fa-search"></i> Taint analysis</h4>
+                Taint analysis is the capability to track variables in the code flow and trace variable coming from user input. This helps reducing false positives.
             </div>
             <div class="col-md-4 col-sm-6">
                 <h4><i class="fa fa-cogs"></i> Continuous integration</h4>
@@ -54,7 +62,7 @@
   <div class="highlight-gray">
     <div class="container highlight highlight-left">
       <div class="row">
-        <div class="col-md-4 col-sm-6">
+        <div class="col-md-5 col-sm-6">
           <h2>Visual Studio integration</h2>
           <p>
           Scan your application for potential vulnerabilities directly from your IDE.
@@ -62,28 +70,27 @@
         </div>
 
         <div class="col-sm-offset-1 col-sm-6 text-right">
-          <img src="images/visual-studio.png" width="500px">
+          <img src="images/visual-studio-small.png">
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 
+
 
 <section id="sonarqube">
   <div class="container highlight highlight-right">
     <div class="row">
-      <div class="col-sm-6 code-samples">
-          <img src="images/visual-studio.png" height="100%">
+      <div class="col-sm-8 code-samples">
+          <img src="images/cookie_fix_animation.gif" height="100%">
       </div>
-      <div class="col-sm-6">
-        <h2>SonarQube integration</h2>
+      <div class="col-sm-4">
+        <h2>Code fixes</h2>
         <p>
-        Continously scan your code base to monitor for new vulnerabilities.
+        For some vulnerabilities, automatic code refactoring are provided. Patch vulnerabilities in few clicks.
         </p>
       </div>
     </div>
   </div>
 </section>
--->

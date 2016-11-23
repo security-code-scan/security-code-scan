@@ -42,7 +42,7 @@ namespace RoslynSecurityGuard.Test.Tests
             ";
             var expected = new DiagnosticResult
             {
-                Id = "SG1111",
+                Id = "SG0025",
                 Severity = DiagnosticSeverity.Warning
             };
 

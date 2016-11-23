@@ -141,6 +141,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Tests\XssPreventionAnalyzerTest.cs" />
     <Compile Include="Tests\CsrfTokenAnalyzerTest.cs" />
     <Compile Include="Tests\CsrfTokenCodeFixProviderTest.cs" />
     <Compile Include="Tests\HardcodedPasswordTest.cs" />

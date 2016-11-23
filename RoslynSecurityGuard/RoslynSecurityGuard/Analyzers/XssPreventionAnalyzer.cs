@@ -16,7 +16,7 @@ namespace RoslynSecurityGuard.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class XssPreventionAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "SG0025";
+        public const string DiagnosticId = "SG0029";
 
         private List<string> encodingMethods = new List<string>() { "HtmlEncoder.Default.Encode", "HttpContext.Server.HtmlEncode" };
 

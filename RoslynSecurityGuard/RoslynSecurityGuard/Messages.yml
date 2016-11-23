@@ -158,7 +158,7 @@ SG0024:
   description: View state mac is disabled. The view state could be altered by an attacker. (This feature cannot be disabled in the recent version of ASP.net)
 
 # XSS
-SG0025:
-  class: XssAnalyzer
+SG0029:
+  class: XssPreventionAnalyzer
   title: Endpoint method shows an XSS vulnerability
   description: The endpoint returns a variable from the client input that has not been encoded.

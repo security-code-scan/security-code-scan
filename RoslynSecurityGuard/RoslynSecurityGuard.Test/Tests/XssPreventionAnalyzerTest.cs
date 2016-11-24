@@ -2,8 +2,6 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
-using System.Collections.Generic;
-using System.Web.Mvc;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Test.Tests
@@ -15,12 +13,9 @@ namespace RoslynSecurityGuard.Test.Tests
         {
             return new XssPreventionAnalyzer();
         }
-        
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
-        {
-            return new[] { MetadataReference.CreateFromFile(typeof(ValidateAntiForgeryTokenAttribute).Assembly.Location) };
-        }
-        
+
+        #region Tests that are producing diagnostics
+
         [TestMethod]
         public void unencodedSensibleData()
         {
@@ -48,6 +43,10 @@ namespace RoslynSecurityGuard.Test.Tests
 
             VerifyCSharpDiagnostic(test, expected);
         }
+
+        #endregion
+
+        #region Tests that are not producing diagnostics
 
         [TestMethod]
         public void encodedSensibleDataWithTemporaryVariable()
@@ -142,5 +141,54 @@ namespace RoslynSecurityGuard.Test.Tests
 
             VerifyCSharpDiagnostic(test);
         }
+
+        [TestMethod]
+        public void methodWithOtherReturningTypeThanString()
+        {
+            var test = @"
+            using Microsoft.AspNetCore.Mvc;
+            using System.Text.Encodings.Web;
+
+            namespace VulnerableApp
+            {
+                public class TestController : Controller
+                {
+                    [AllowAnonymous]
+                    public ActionResult Login(string returnUrl)
+                    {
+                        ViewBag.ReturnUrl = returnUrl;
+                        return View();
+                    }
+                }
+            }
+            ";
+
+            VerifyCSharpDiagnostic(test);
+        }
+
+        [TestMethod]
+        public void privateMethod()
+        {
+            var test = @"
+            using Microsoft.AspNetCore.Mvc;
+            using System.Text.Encodings.Web;
+
+            namespace VulnerableApp
+            {
+                public class TestController : Controller
+                {
+                    [HttpGet(""{sensibleData}"")]
+                    private string Get(int sensibleData)
+                    {
+                        return ""value "" + sensibleData;
+                    }
+                }
+            }
+            ";
+
+            VerifyCSharpDiagnostic(test);
+        }
+
+        #endregion
     }
 }

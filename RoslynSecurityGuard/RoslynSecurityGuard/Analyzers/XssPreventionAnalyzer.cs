@@ -45,7 +45,9 @@ namespace RoslynSecurityGuard.Analyzers
 
             IEnumerable<MethodDeclarationSyntax> methodsWithParameters = node.DescendantNodesAndSelf()
                 .OfType<MethodDeclarationSyntax>()
-                .Where(method => !method.ParameterList.Parameters.Count().Equals(0));
+                .Where(method => !method.ParameterList.Parameters.Count().Equals(0))
+                .Where(method => method.Modifiers.ToString().Equals("public"))
+                .Where(method => method.ReturnType.ToString().Equals("string"));
 
             foreach (MethodDeclarationSyntax method in methodsWithParameters)
             {
@@ -62,7 +64,6 @@ namespace RoslynSecurityGuard.Analyzers
                                                                 .Union(flow.WrittenInside)
                                                                 .Intersect(flow.WrittenOutside);
                                           
-                    // Ensures that the sensible data does not have any encoding
                     if (!sensibleVariables.Count().Equals(0))
                     {
                         foreach (ISymbol sensibleVariable in sensibleVariables)

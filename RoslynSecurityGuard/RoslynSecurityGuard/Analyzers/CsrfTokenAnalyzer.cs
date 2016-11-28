@@ -41,17 +41,23 @@ namespace RoslynSecurityGuard.Analyzers
             bool hasValidateAntiForgeryToken = false;
 
             //Iterating over the list of annotation for a given method
-            foreach (var attribute in node.AttributeLists) {
-                if (attribute.Attributes.Count == 0) continue; //Bound check .. Unlikely to happens
+            foreach (var attributesInlined in node.AttributeLists) {
+                if (attributesInlined.Attributes.Count == 0) continue; //Bound check .. Unlikely to happens
+
+                List<string> attributesList = getAttributesForMethod(node);
 
                 //Extract the annotation identifier
-                var identifier = attribute.Attributes[0].Name as IdentifierNameSyntax;
-
-                if (MethodsHttp.Contains(identifier.Identifier.Text)) {
-                    hasActionMethod = true;
-                }
-                else if (identifier.Identifier.Text == "ValidateAntiForgeryToken") {
-                    hasValidateAntiForgeryToken = true;
+                //var identifier = attributesInlined.Attributes[0].Name as IdentifierNameSyntax;
+                foreach (var attribute in attributesList)
+                {
+                    if (MethodsHttp.Contains(attribute))
+                    {
+                        hasActionMethod = true;
+                    }
+                    else if (attribute.Equals("ValidateAntiForgeryToken"))
+                    {
+                        hasValidateAntiForgeryToken = true;
+                    }
                 }
             }
 
@@ -59,7 +65,27 @@ namespace RoslynSecurityGuard.Analyzers
             {
                 ctx.ReportDiagnostic(Diagnostic.Create(Rule, node.GetLocation()));
             }
-
+        }
+        private List<string> getAttributesForMethod(MethodDeclarationSyntax node)
+        {
+            List<string> attributesList = new List<string>();
+            if (node.AttributeLists.Count() > 1)
+            {
+                foreach(AttributeListSyntax attribute in node.AttributeLists)
+                {
+                    attributesList.Add(attribute.Attributes.ToString());
+                }
+            } else
+            {
+                foreach (AttributeListSyntax attributeList in node.AttributeLists)
+                {
+                    foreach (AttributeSyntax attribute in attributeList.Attributes)
+                    {
+                        attributesList.Add(attribute.ToString());
+                    }
+                }
+            }
+            return attributesList;
         }
     }
 }

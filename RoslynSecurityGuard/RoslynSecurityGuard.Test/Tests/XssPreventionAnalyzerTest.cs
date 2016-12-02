@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
+using System.Collections.Generic;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Test.Tests

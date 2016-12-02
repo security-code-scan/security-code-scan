@@ -37,7 +37,9 @@
     <Compile Include="Analyzers\Locale\LocaleDiagnostic.cs" />
     <Compile Include="Analyzers\RequestValidationAnalyzer.cs" />
     <Compile Include="Analyzers\OutputCacheAnnotationAnalyzer.cs" />
+    <Compile Include="Analyzers\Taint\TaintAnalyzerExtension.cs" />
     <Compile Include="Analyzers\Taint\VariableTag.cs" />
+    <Compile Include="Analyzers\UnknownPasswordApiAnalyzer.cs" />
     <Compile Include="Analyzers\Utils\AnalyzerUtil.cs" />
     <Compile Include="Analyzers\DebugAnalyzer.cs" />
     <Compile Include="Analyzers\Taint\ExecutionState.cs" />
@@ -74,6 +76,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Behavior.yml" />
     <None Include="Diagnostic.nuspec">
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

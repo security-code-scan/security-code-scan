@@ -13,7 +13,7 @@ using System.Collections;
 
 namespace RoslynSecurityGuard.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    //[DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class XssPreventionAnalyzer : DiagnosticAnalyzer
     {
         public const string DiagnosticId = "SG0029";

@@ -14,9 +14,9 @@ namespace RoslynSecurityGuard.Test.Tests
     [TestClass]
     public class WeakCipherAnalyzerTest : DiagnosticVerifier
     {
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
         {
-            return new WeakCipherAnalyzer();
+            return new[] { new WeakCipherAnalyzer() };
         }
 
         [TestMethod]

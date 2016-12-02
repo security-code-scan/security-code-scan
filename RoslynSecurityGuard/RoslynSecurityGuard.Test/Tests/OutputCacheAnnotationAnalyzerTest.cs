@@ -13,9 +13,9 @@ namespace RoslynSecurityGuard.Test.Tests
     [TestClass]
     public class OutputCacheAnnotationAnalyzerTest : DiagnosticVerifier
     {
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
         {
-            return new OutputCacheAnnotationAnalyzer();
+            return new[] { new OutputCacheAnnotationAnalyzer() };
         }
         
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()

@@ -21,9 +21,9 @@ namespace RoslynSecurityGuard.Test.Tests
             return new[] { MetadataReference.CreateFromFile(typeof(ValidateAntiForgeryTokenAttribute).Assembly.Location) };
         }
 
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
         {
-            return new CsrfTokenAnalyzer();
+            return new[] { new CsrfTokenAnalyzer() };
         }
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()

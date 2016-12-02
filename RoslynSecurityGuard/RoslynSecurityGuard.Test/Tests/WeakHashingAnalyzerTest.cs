@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
+using System.Collections.Generic;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Tests
@@ -10,9 +11,9 @@ namespace RoslynSecurityGuard.Tests
     public class WeakHashingAnalyzerTest : DiagnosticVerifier
     {
 
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
         {
-            return new WeakHashingAnalyzer();
+            return new[] { new WeakHashingAnalyzer() };
         }
 
         [TestMethod]

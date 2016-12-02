@@ -32,54 +32,53 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                     var key = (YamlScalarNode) entry.Key;
                     var value = (YamlMappingNode) entry.Value;
 
+                    //The behavior structure allows the configuration of injectable arguments and password field
+                    //This is the reason. The format merges the two concepts.
+
                     //Loading the properties for each entry
-                    string beNamespace = ((YamlScalarNode)value.Children[new YamlScalarNode("namespace")]).Value;
-                    string beClassName = ((YamlScalarNode)value.Children[new YamlScalarNode("className")]).Value;
-                    string beMember = ((YamlScalarNode)value.Children[new YamlScalarNode("member")]).Value;
-                    string beName = ((YamlScalarNode)value.Children[new YamlScalarNode("name")]).Value;
-                    string beInjectableArguments = "";
-                    try
-                    {
-                        beInjectableArguments = ((YamlScalarNode)value.Children[new YamlScalarNode("injectableArguments")]).Value;
-                    }
-                    catch (KeyNotFoundException) { }
-                    string bePasswordArguments = "";
-                    try
-                    {
-                        bePasswordArguments = ((YamlScalarNode)value.Children[new YamlScalarNode("passwordArguments")]).Value;
-                    }
-                    catch (KeyNotFoundException) { }
-                    string beArgTypes = null;
-                    try
-                    {
-                        beArgTypes = ((YamlScalarNode)value.Children[new YamlScalarNode("argTypes")]).Value.Trim();
-                    }
-                    catch (KeyNotFoundException) { }
-                    string beLocale = ((YamlScalarNode)value.Children[new YamlScalarNode("locale")]).Value;
+                    string beNamespace = GetField(entry, "namespace", true);
+                    string beClassName = GetField(entry, "className", true);
+                    string beMember = GetField(entry, "member",true);
+                    string beName = GetField(entry,"name",true);
+                    //--Method behavior
+                    string beInjectableArguments = GetField(entry, "injectableArguments",defaultValue:"");
+                    string bePasswordArguments = GetField(entry, "passwordArguments", defaultValue: "");
+                    string beArgTypes = GetField(entry, "argTypes");
+                    //--Field behavior
+                    bool beInjectableField = bool.Parse(GetField(entry, "injectableField", defaultValue: "false"));
+                    bool bePasswordField = bool.Parse(GetField(entry, "passwordField", defaultValue: "false"));
+                    //--Localisation
+                    string beLocale = GetField(entry, "locale");
+                    string beLocalePass = GetField(entry, "localePass");
 
                     //Converting the list of index to array
                     int[] argumentsIndexes = convertToIntArray(beInjectableArguments.Split(','));
                     int[] passwordIndexes = convertToIntArray(bePasswordArguments.Split(','));
 
-                    if (!descriptors.ContainsKey(beLocale)) {
-                        var newDescriptor = LocaleUtil.GetDescriptor(beLocale);
-                        descriptors.Add(beLocale, newDescriptor);
+                    foreach (var locale in new string[] { beLocale, beLocalePass })
+                    {
+                        if (locale != null && !descriptors.ContainsKey(locale))
+                        {
+                            descriptors.Add(locale, LocaleUtil.GetDescriptor(locale));
+                        }
                     }
-
-                    if (argumentsIndexes.Length == 0 && passwordIndexes.Length == 0) {
-                        throw new Exception("The method behavior "+ key+ " is not missing injectableArguments or passwordArguments property");
+                    
+                    
+                    //Validate that 'argumentsIndexes' field 
+                    if ((!beInjectableField && !bePasswordField) //Not a field signatures, arguments indexes is expected.
+                        && argumentsIndexes.Length == 0 && passwordIndexes.Length == 0)
+                    {
+                        throw new Exception("The method behavior " + key + " is not missing injectableArguments or passwordArguments property");
                     }
 
                     //Injection based vulnerability
-                    if (beArgTypes != null)
-                    {
-                        methodInjectableArguments.Add(beNamespace + "." + beClassName + "|" + beName + "|" + beArgTypes, new MethodBehavior(argumentsIndexes, passwordIndexes, beLocale));
-                    }
-                    else
-                    {
-                        methodInjectableArguments.Add(beNamespace + "." + beClassName + "|" + beName, new MethodBehavior(argumentsIndexes, passwordIndexes, beLocale));
-                    }
+                    string globalKey = beArgTypes != null ? //
+                        (beNamespace + "." + beClassName + "|" + beName + "|" + beArgTypes) : //With arguments types discriminator
+                        (beNamespace + "." + beClassName + "|" + beName); //Minimalist configuration
                     
+
+                    methodInjectableArguments.Add(globalKey, new MethodBehavior(argumentsIndexes, passwordIndexes, beLocale, beLocalePass, beInjectableField, bePasswordField));
+
 
                     //SGLogging.Log(beNamespace);
                 }
@@ -88,10 +87,21 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             }
         }
 
+        private string GetField(KeyValuePair<YamlNode, YamlNode> node, string field, bool mandatory = false, string defaultValue = null) {
+            try { 
+                return ((YamlScalarNode)((YamlMappingNode)node.Value).Children[new YamlScalarNode(field)]).Value;
+            }
+            catch (KeyNotFoundException) {
+                if(mandatory)
+                    throw new Exception(string.Format("Unable to load the property {} in node {}",field,node.Key));
+                return defaultValue;
+            }
+        }
+
         public DiagnosticDescriptor[] GetDescriptors() {
-            DiagnosticDescriptor[] foos = new DiagnosticDescriptor[descriptors.Count];
-            descriptors.Values.CopyTo(foos, 0);
-            return foos;
+            DiagnosticDescriptor[] descArray = new DiagnosticDescriptor[descriptors.Count];
+            descriptors.Values.CopyTo(descArray, 0);
+            return descArray;
         }
 
         /// <summary>

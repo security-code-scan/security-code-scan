@@ -2,7 +2,6 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
-using RoslynSecurityGuard.Analyzers.Taint;
 using System.Collections.Generic;
 using System.Web.Mvc;
 using TestHelper;
@@ -12,9 +11,9 @@ namespace RoslynSecurityGuard.Test.Tests
     [TestClass]
     public class CsrfTokenAnalyzerTest : DiagnosticVerifier
     {
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
         {
-            return new CsrfTokenAnalyzer();
+            return new [] { new CsrfTokenAnalyzer() };
         }
         
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()

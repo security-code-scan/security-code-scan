@@ -11,9 +11,9 @@ namespace RoslynSecurityGuard.Tests
     [TestClass]
     public class XxeAnalyzerTest : DiagnosticVerifier
     {
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
         {
-            return new XxeAnalyzer();
+            return new [] { new XxeAnalyzer() };
         }
 
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()

@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis;
 using System;
+using RoslynSecurityGuard.Analyzers.Utils;
 
 namespace RoslynSecurityGuard.Analyzers.Taint
 {
@@ -16,6 +17,8 @@ namespace RoslynSecurityGuard.Analyzers.Taint
     /// </summary>
     public class ExecutionState
     {
+        private bool DebugMode = true;
+
         public SyntaxNodeAnalysisContext AnalysisContext { get; }
         public IDictionary<string, VariableState> Variables { get; private set; }
 
@@ -30,24 +33,30 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         }
 
         public void AddNewValue(string identifier, VariableState value) {
+
             if (Variables.ContainsKey(identifier)) //New variable in a different scope
             {
+                if (DebugMode) SGLogging.Log("Removing existing state for " + identifier);
                 Variables.Remove(identifier);
             }
+            if (DebugMode) SGLogging.Log(string.Format("Adding state for {0} ({1})", identifier, value));
             Variables.Add(identifier, value);
         }
 
-        public void UpdateValue(string identifier, VariableState value)
+        public void MergeValue(string identifier, VariableState value)
         {
             if (Variables.ContainsKey(identifier)) //Override existing value
             {
+
                 var state = Variables[identifier];
                 var newState = state.merge(value);
                 Variables.Remove(identifier);
                 Variables.Add(identifier, newState);
+                if (DebugMode) SGLogging.Log(string.Format("Merging state for {0} ({1})", identifier, newState));
             }
             else
             { //Unexpected state
+                if (DebugMode) SGLogging.Log(string.Format("Merging state for {0} ({1}) .. /!\\ unexpected state", identifier, value));
                 Variables.Add(identifier, value);
             }
         }
@@ -71,6 +80,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         {
             try
             {
+                if (DebugMode) SGLogging.Log(string.Format("Adding tag '{1}' to  {0}", variableAccess, httpCookieSecure));
                 Variables[variableAccess].AddTag(httpCookieSecure);
             }
             catch (KeyNotFoundException e) {

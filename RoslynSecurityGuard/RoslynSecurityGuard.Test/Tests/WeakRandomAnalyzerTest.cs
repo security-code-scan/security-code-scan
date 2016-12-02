@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
 using System;
+using System.Collections.Generic;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Tests
@@ -10,9 +11,9 @@ namespace RoslynSecurityGuard.Tests
     [TestClass]
     public class WeakRandomAnalyzerTest : DiagnosticVerifier
     {
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
         {
-            return new WeakRandomAnalyzer();
+            return new[] { new WeakRandomAnalyzer() };
         }
 
         [TestMethod]

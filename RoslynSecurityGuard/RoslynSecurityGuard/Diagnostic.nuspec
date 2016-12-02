@@ -2,18 +2,18 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>RoslynSecurityGuard</id>
-    <version>2.1.0</version>
+    <version>2.2.0</version>
     <title>Roslyn Security Guard</title>
     <authors>Security Guard Team</authors>
     <owners>Philippe Arteau</owners>
     <licenseUrl>https://opensource.org/licenses/lgpl-3.0.html</licenseUrl>
     <projectUrl>https://dotnet-security-guard.github.io/</projectUrl>
-    <iconUrl>https://dotnet-security-guard.github.io/images/logo-small.png</iconUrl>
+    <iconUrl>https://avatars3.githubusercontent.com/u/12215494?v=3&amp;s=200</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>RoslynSecurityGuard</description>
-    <releaseNotes>This is the first release of the project Roslyn Security Guard. 14 analyzers for security issues are provided.</releaseNotes>
+    <description>Roslyn analyzers that aim to help security audits on .NET applications.</description>
+    <releaseNotes>This release introduce improved taint analysis. It also brings new code fixes.</releaseNotes>
     <copyright>Copyright Philippe Arteau</copyright>
-    <tags>security,vulnerability,guard</tags>
+    <tags>security,vulnerability,guard,owasp,injection,xss,csrf</tags>
     <frameworkAssemblies>
       <frameworkAssembly assemblyName="System" targetFramework="" />
     </frameworkAssemblies>

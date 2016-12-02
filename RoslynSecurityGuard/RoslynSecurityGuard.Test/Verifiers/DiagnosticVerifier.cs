@@ -21,7 +21,8 @@ namespace TestHelper
         /// <summary>
         /// Get the CSharp analyzer being tested - to be implemented in non-abstract class
         /// </summary>
-        protected abstract DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers();
+        protected abstract IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers();
+
         protected virtual IEnumerable<MetadataReference> GetAdditionnalReferences() {
             return null;
         }
@@ -37,7 +38,10 @@ namespace TestHelper
         /// <param name="expected"> DiagnosticResults that should appear after the analyzer is run on the source</param>
         protected void VerifyCSharpDiagnostic(string source, params DiagnosticResult[] expected)
         {
-            VerifyDiagnostics(new[] { source }, LanguageNames.CSharp, ImmutableArray.Create(GetCSharpDiagnosticAnalyzers(),new DebugAnalyzer()), expected);
+
+            var a = GetCSharpDiagnosticAnalyzers().ToList();
+            a.Add(new DebugAnalyzer());
+            VerifyDiagnostics(new[] { source }, LanguageNames.CSharp, a, expected);
         }
 
         [TestInitialize]
@@ -54,7 +58,7 @@ namespace TestHelper
         /// <param name="language">The language of the classes represented by the source strings</param>
         /// <param name="analyzer">The analyzer to be run on the source code</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
-        private void VerifyDiagnostics(string[] sources, string language, ImmutableArray<DiagnosticAnalyzer> analyzers, params DiagnosticResult[] expected)
+        private void VerifyDiagnostics(string[] sources, string language, List<DiagnosticAnalyzer> analyzers, params DiagnosticResult[] expected)
         {
             var diagnostics = GetSortedDiagnostics(sources, language, analyzers, GetAdditionnalReferences());
             VerifyDiagnosticResults(diagnostics, analyzers, expected);
@@ -68,9 +72,9 @@ namespace TestHelper
         /// Diagnostics are considered equal only if the DiagnosticResultLocation, Id, Severity, and Message of the DiagnosticResult match the actual diagnostic.
         /// </summary>
         /// <param name="actualResults">The Diagnostics found by the compiler after running the analyzer on the source code</param>
-        /// <param name="analyzer">The analyzer that was being run on the sources</param>
+        /// <param name="analyzers">The analyzers that was being run on the sources</param>
         /// <param name="expectedResults">Diagnostic Results that should have appeared in the code</param>
-        private static void VerifyDiagnosticResults(IEnumerable<Diagnostic> actualResults, ImmutableArray<DiagnosticAnalyzer> analyzers, params DiagnosticResult[] expectedResults)
+        private static void VerifyDiagnosticResults(IEnumerable<Diagnostic> actualResults, List<DiagnosticAnalyzer> analyzers, params DiagnosticResult[] expectedResults)
         {
             int expectedCount = expectedResults.Count();
             int actualCount = actualResults.Count();

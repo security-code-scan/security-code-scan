@@ -25,23 +25,23 @@ namespace RoslynSecurityGuard.Test.Tests
         public void CsrfDetectMissingToken()
         {
             var test = @"
-using System;
-using System.Diagnostics;
-using System.Web.Mvc;
+                using System;
+                using System.Diagnostics;
+                using System.Web.Mvc;
 
-namespace VulnerableApp
-{
-    public class TestController
-    {
-        [HttpPost]
-        //[ValidateAntiForgeryToken]
-        public ActionResult ControllerMethod(string input) {
+                namespace VulnerableApp
+                {
+                    public class TestController
+                    {
+                        [HttpPost]
+                        //[ValidateAntiForgeryToken]
+                        public ActionResult ControllerMethod(string input) {
 
-            return null;
-        }
-    }
-}
-";
+                            return null;
+                        }
+                    }
+                }
+                ";
             var expected = new DiagnosticResult
             {
                 Id = "SG0016",
@@ -56,34 +56,48 @@ namespace VulnerableApp
         public void CsrfValidateAntiForgeryTokenPresent()
         {
             var test = @"
-using System;
-using System.Diagnostics;
-using System.Web.Mvc;
+                using System;
+                using System.Diagnostics;
+                using System.Web.Mvc;
 
-namespace VulnerableApp
-{
-    public class TestController
-    {
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult ControllerMethod(string input) {
+                namespace VulnerableApp
+                {
+                    public class TestController
+                    {
+                        [HttpPost]
+                        [ValidateAntiForgeryToken]
+                        public ActionResult ControllerMethod(string input) {
 
-            return null;
-        }
-    }
-}
-";
+                            return null;
+                        }
+                    }
+                }
+                ";
 
             VerifyCSharpDiagnostic(test);
         }
 
-        
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult ControllerMethod(string input) {
+        [TestMethod]
+        public void CsrfValidateAntiForgeryTokenPresentWithInlinedAttributes()
+        {
+            var test = @"
+                using System;
+                using System.Diagnostics;
+                using System.Web.Mvc;
 
-            return null;
+                namespace VulnerableApp
+                {
+                    public class TestController
+                    {
+                        [HttpPost, ValidateAntiForgeryToken]
+                        public ActionResult ControllerMethod(string input) {
+                            return null;
+                        }
+                    }
+                }
+                ";
+
+            VerifyCSharpDiagnostic(test);
         }
-        
     }
 }

@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
-
+using System.Collections.Generic;
 using System.Web.Mvc;
 using TestHelper;
 
@@ -11,9 +11,9 @@ namespace RoslynSecurityGuard.Test.Tests
     [TestClass]
     public class RequestValidationAnalyzerTest : DiagnosticVerifier
     {
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
         {
-            return new RequestValidationAnalyzer();
+            return new[] { new RequestValidationAnalyzer() };
         }
         
         [TestMethod]

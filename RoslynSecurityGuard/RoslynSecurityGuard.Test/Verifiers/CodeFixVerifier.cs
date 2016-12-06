@@ -53,7 +53,12 @@ namespace TestHelper
             //Console.WriteLine("== New source (START) ==");
             //Console.WriteLine(normalizeNew);
             //Console.WriteLine("== New source (END) ==");
-            VerifyFix(LanguageNames.CSharp, ImmutableArray.Create(GetCSharpDiagnosticAnalyzers(), new DebugAnalyzer()), GetCSharpCodeFixProvider(), normalizeOld, normalizeNew, codeFixIndex, allowNewCompilerDiagnostics);
+
+
+            var a = GetCSharpDiagnosticAnalyzers().ToList();
+            a.Add(new DebugAnalyzer());
+
+            VerifyFix(LanguageNames.CSharp, a, GetCSharpCodeFixProvider(), normalizeOld, normalizeNew, codeFixIndex, allowNewCompilerDiagnostics);
         }
 
         /// <summary>
@@ -69,7 +74,7 @@ namespace TestHelper
         /// <param name="newSource">A class in the form of a string after the CodeFix was applied to it</param>
         /// <param name="codeFixIndex">Index determining which codefix to apply if there are multiple</param>
         /// <param name="allowNewCompilerDiagnostics">A bool controlling whether or not the test will fail if the CodeFix introduces other warnings after being applied</param>
-        private void VerifyFix(string language, ImmutableArray<DiagnosticAnalyzer> analyzers, CodeFixProvider codeFixProvider, string oldSource, string newSource, int? codeFixIndex, bool allowNewCompilerDiagnostics)
+        private void VerifyFix(string language, List<DiagnosticAnalyzer> analyzers, CodeFixProvider codeFixProvider, string oldSource, string newSource, int? codeFixIndex, bool allowNewCompilerDiagnostics)
         {
             var document = CreateDocument(oldSource, language, GetAdditionnalReferences());
             var analyzerDiagnostics = GetSortedDiagnosticsFromDocuments(analyzers, new[] { document });

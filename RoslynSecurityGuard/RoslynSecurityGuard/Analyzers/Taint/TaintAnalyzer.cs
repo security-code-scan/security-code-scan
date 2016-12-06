@@ -5,19 +5,39 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using RoslynSecurityGuard.Analyzers.Locale;
 using RoslynSecurityGuard.Analyzers.Utils;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 
 namespace RoslynSecurityGuard.Analyzers.Taint
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class TaintAnalyzer : DiagnosticAnalyzer
     {
-        private readonly DiagnosticDescriptor[] Descriptors;
+        private readonly List<DiagnosticDescriptor> Descriptors = new List<DiagnosticDescriptor>();
+        
+        private MethodBehaviorRepository behaviorRepo = new MethodBehaviorRepository();
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptors);
+        private static List<TaintAnalyzerExtension> extensions = new List<TaintAnalyzerExtension>();
 
-        MethodBehaviorRepository behaviorRepo = new MethodBehaviorRepository();
-
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get
+            {
+                //Feed the diagnostic descriptor from the configured sinks
+                HashSet<DiagnosticDescriptor> all = new HashSet<DiagnosticDescriptor>(Descriptors);
+                //Add the diagnostic that can be reported by taint analysis extension
+                foreach (var extension in extensions)
+                {
+                    var analyzer = extension as DiagnosticAnalyzer;
+                    foreach (DiagnosticDescriptor desc in analyzer.SupportedDiagnostics)
+                    {
+                        all.Add(desc);
+                    }
+                }
+                return ImmutableArray.Create(all.ToArray());
+            }
+        }
 
         public TaintAnalyzer()
         {
@@ -28,22 +48,52 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
             //Build the descriptor based on the locale fields of the Sinks.yml
             //This must be done in the constructor because, the array need be available before SupportedDiagnostics is first invoked.
-            Descriptors = behaviorRepo.GetDescriptors();
+            foreach (var desc in behaviorRepo.GetDescriptors())
+            {
+                Descriptors.Add(desc);
+            }
         }
-
+        
         public override void Initialize(AnalysisContext context)
         {
-
             context.RegisterSyntaxNodeAction(VisitMethods, SyntaxKind.MethodDeclaration);
         }
+
+        public static void RegisterExtension(TaintAnalyzerExtension extension) {
+            extensions.Add(extension);
+        }
+
+
+        #region Symbolic execution of the code (Visit Method)
 
         private void VisitMethods(SyntaxNodeAnalysisContext ctx)
         {
             var node = ctx.Node as MethodDeclarationSyntax;
-
-            if (node != null)
+            try
             {
-                VisitMethodDeclaration(node, new ExecutionState(ctx));
+
+                if (node != null)
+                {
+                    var state = new ExecutionState(ctx);
+
+                    foreach (var ext in extensions)
+                    {
+                        ext.VisitBeginMethodDeclaration(node, state);
+                    }
+
+                    VisitMethodDeclaration(node, state);
+
+                    foreach (var ext in extensions)
+                    {
+                        ext.VisitEndMethodDeclaration(node, state);
+                    }
+                }
+            }
+            catch (Exception e) {
+                //Intercept the exception for logging. Otherwise, the analyzer will failed silently.
+                string methodName = node.Identifier.Text;
+                SGLogging.Log(string.Format("Unhandle exception while visiting method {0} : {1}", methodName, e.Message));
+                throw e;
             }
         }
 
@@ -61,7 +111,12 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
             if (node.Body != null) {
                 foreach (StatementSyntax statement in node.Body.Statements) {
-                    VisitStatement(statement, state);
+                    VisitNode(statement, state);
+
+                    foreach (var ext in extensions)
+                    {
+                        ext.VisitStatement(statement, state);
+                    }
                 }
             }
             
@@ -75,10 +130,10 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         /// <param name="node"></param>
         /// <param name="ctx"></param>
         /// <param name="state"></param>
-        private VariableState VisitStatement(SyntaxNode node, ExecutionState state)
+        private VariableState VisitNode(SyntaxNode node, ExecutionState state)
         {
             //SGLogging.Log(node.GetType().ToString());
-
+            
             //Variable allocation
             if (node is LocalDeclarationStatementSyntax)
             {
@@ -108,12 +163,12 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                 return VisitMethodDeclaration(methodDeclaration, state);
             }
 
-            else {
-                
-                foreach (var n in node.ChildNodes()) {
-                    VisitStatement(n, state);
+            else
+            {
+                foreach (var n in node.ChildNodes())
+                {
+                    VisitNode(n, state);
                 }
-
             }
 
             var isBlockStatement = node is BlockSyntax || node is IfStatementSyntax || node is ForEachStatementSyntax || node is ForStatementSyntax;
@@ -269,16 +324,16 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                     Array.Exists(behavior.injectablesArguments, element => element == i) //If the current parameter can be injected.
                     )
                 {
-                    var newRule = LocaleUtil.GetDescriptor(behavior.vulnerabilityLocale);
+                    var newRule = LocaleUtil.GetDescriptor(behavior.localeInjection);
                     var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
                     state.AnalysisContext.ReportDiagnostic(diagnostic);
                 }
-                else if ((behavior != null || AnalyzerUtil.SymbolMatch(symbol, name:"Password")) &&
+                else if (behavior != null &&
                     argumentState.taint == VariableTaint.CONSTANT && //Hard coded value
                     Array.Exists(behavior.passwordArguments, element => element == i) //If the current parameter is a password
                     ) {
 
-                    var newRule = LocaleUtil.GetDescriptor(behavior.vulnerabilityLocale);
+                    var newRule = LocaleUtil.GetDescriptor(behavior.localePassword);
                     var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
                     state.AnalysisContext.ReportDiagnostic(diagnostic);
                 }
@@ -287,6 +342,13 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
                 i++;
             }
+
+            //Additionnal analysis by extension
+            foreach (var ext in extensions)
+            {
+                ext.VisitInvocationAndCreation(node, argList, state);
+            }
+
             return new VariableState(VariableTaint.UNKNOWN);
         }
 
@@ -301,21 +363,40 @@ namespace RoslynSecurityGuard.Analyzers.Taint
            if(node.Left is IdentifierNameSyntax)
             {
                 var assignmentIdentifier = node.Left as IdentifierNameSyntax;
-                state.UpdateValue(ResolveIdentifier(assignmentIdentifier.Identifier), variableState);
+                state.MergeValue(ResolveIdentifier(assignmentIdentifier.Identifier), variableState);
             }
 
-            if (behavior != null && //If the API is at risk
+            if (behavior != null && //Injection
+                    behavior.isInjectableField &&
                     variableState.taint != VariableTaint.CONSTANT && //Skip safe values
                     variableState.taint != VariableTaint.SAFE)
             {
-
-                var newRule = LocaleUtil.GetDescriptor(behavior.vulnerabilityLocale);
+                var newRule = LocaleUtil.GetDescriptor(behavior.localeInjection);
                 var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
                 state.AnalysisContext.ReportDiagnostic(diagnostic);
+            }
+            if (behavior != null && //Known Password API
+                    behavior.isPasswordField &&
+                    variableState.taint == VariableTaint.CONSTANT //Only constant
+                    )
+            {
+                var newRule = LocaleUtil.GetDescriptor(behavior.localePassword);
+                var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
+                state.AnalysisContext.ReportDiagnostic(diagnostic);
+            }
+            
+
+            //TODO: tainted the variable being assign.
+
+            //Additionnal analysis by extension
+            foreach (var ext in extensions)
+            {
+                ext.VisitAssignment(node, state, behavior, symbol, variableState);
             }
 
             return variableState;
         }
+
 
         /// <summary>
         /// Identifier name include variable name.
@@ -325,7 +406,6 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         /// <returns></returns>
         private VariableState VisitIdentifierName(IdentifierNameSyntax expression, ExecutionState state)
         {
-            //SGLogging.Log("Visiting identifier " + expression);
             var value = ResolveIdentifier(expression.Identifier);
             return state.GetValueByIdentifier(value);
         }
@@ -343,5 +423,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             return left.merge(right);
         }
 
+
+        #endregion
     }
 }

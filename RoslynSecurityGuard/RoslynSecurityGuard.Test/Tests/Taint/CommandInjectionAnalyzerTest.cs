@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
 using RoslynSecurityGuard.Analyzers.Taint;
+using System.Collections.Generic;
 using System.Diagnostics;
 using TestHelper;
 
@@ -13,9 +14,9 @@ namespace RoslynSecurityGuard.Tests
     public class CommandInjectionAnalyzerTest : DiagnosticVerifier
     {
 
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
         {
-            return new TaintAnalyzer();
+            return new[] { new TaintAnalyzer() };
         }
 
         //No diagnostics expected to show up

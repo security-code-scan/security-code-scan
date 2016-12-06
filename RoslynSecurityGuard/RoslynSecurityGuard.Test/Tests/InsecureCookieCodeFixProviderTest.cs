@@ -10,6 +10,7 @@ using RoslynSecurityGuard.Analyzers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.CodeAnalysis;
 using System.Web;
+using RoslynSecurityGuard.Analyzers.Taint;
 
 namespace RoslynSecurityGuard.Test.Tests
 {
@@ -22,9 +23,9 @@ namespace RoslynSecurityGuard.Test.Tests
             return new[] { MetadataReference.CreateFromFile(typeof(HttpCookie).Assembly.Location) };
         }
 
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
         {
-            return new InsecureCookieAnalyzer();
+            return new DiagnosticAnalyzer[] { new TaintAnalyzer(), new InsecureCookieAnalyzer() };
         }
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()

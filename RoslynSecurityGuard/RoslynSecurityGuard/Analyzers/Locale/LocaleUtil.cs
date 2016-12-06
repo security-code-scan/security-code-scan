@@ -14,6 +14,8 @@ namespace RoslynSecurityGuard.Analyzers.Locale
 
         public static DiagnosticDescriptor GetDescriptor(string id, string[] args = null)
         {
+
+
             var localTitle = GetLocalString(id + "_Title");
             var localDesc = GetLocalString(id + "_Description");
             return new DiagnosticDescriptor(id,

@@ -11,6 +11,7 @@
 #   argTypes: (Optional field) [Parameter types signature]
 #   injectableArguments : (Optional field) [Index of the argument for injectable query, starting from the left]
 #   passwordArguments : (Optional field) [Index of the argument for password parameter, starting from the left]
+#   
 #   locale: [Id of a localization in Messages.yml, This value can be reused for multiple sinks]
 # <<<
 
@@ -29,7 +30,7 @@ sqlcommand_field:
   className: SqlCommand
   member: field
   name: CommandText
-  injectableArguments: 0
+  injectableField: true
   locale: SG0026
 
 dbcommand_field:
@@ -37,7 +38,7 @@ dbcommand_field:
   className: DbCommand
   member: field
   name: CommandText
-  injectableArguments: 0
+  injectableField: true
   locale: SG0026
 
 oledbcommand_constructor:
@@ -107,7 +108,7 @@ sqldatasource_field:
   className: SqlDataSource
   member: field
   name: SelectCommand
-  injectableArguments: 0
+  injectableField: true
   locale: SG0014
 
 sqldatasourceview_field:
@@ -115,7 +116,7 @@ sqldatasourceview_field:
   className: SqlDataSourceView
   member: field
   name: SelectCommand
-  injectableArguments: 0
+  injectableField: true
   locale: SG0014
 
 # Microsoft.Whos.Framework.Data
@@ -143,7 +144,7 @@ systemdiagnostic_process_filename:
   className: ProcessStartInfo
   member: field
   name: FileName
-  injectableArguments: 0
+  injectableField: true
   locale: SG0001
 
 systemdiagnostic_process_arguments:
@@ -151,7 +152,7 @@ systemdiagnostic_process_arguments:
   className: ProcessStartInfo
   member: field
   name: Arguments
-  injectableArguments: 0
+  injectableField: true
   locale: SG0001
 
  #XPath

@@ -7,6 +7,7 @@ using TestHelper;
 using Microsoft.CodeAnalysis.Diagnostics;
 using RoslynSecurityGuard.Analyzers;
 using Microsoft.CodeAnalysis;
+using RoslynSecurityGuard.Analyzers.Taint;
 
 namespace RoslynSecurityGuard.Test.Tests
 {
@@ -14,14 +15,14 @@ namespace RoslynSecurityGuard.Test.Tests
     public class InsecureCookieAnalyzerTest : DiagnosticVerifier
     {
 
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
         {
-            return new InsecureCookieAnalyzer();
+            return new DiagnosticAnalyzer[] { new TaintAnalyzer(), new InsecureCookieAnalyzer() };
         }
 
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
         {
-            return new[] { MetadataReference.CreateFromFile(typeof(HttpCookie).Assembly.Location)};
+            return new[] { MetadataReference.CreateFromFile(typeof(HttpCookie).Assembly.Location) };
         }
 
         [TestMethod]
@@ -44,7 +45,8 @@ namespace VulnerableApp
 }
 ";
 
-            var expected08 = new DiagnosticResult {
+            var expected08 = new DiagnosticResult
+            {
                 Id = "SG0008",
                 Severity = DiagnosticSeverity.Warning
             };
@@ -78,6 +80,7 @@ namespace VulnerableApp
 ";
             VerifyCSharpDiagnostic(test);
         }
+
 /*
         static void TestCookie()
         {

@@ -12,9 +12,9 @@ namespace RoslynSecurityGuard.Tests
     public class TaintAnalyzerTest : DiagnosticVerifier
     {
 
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
         {
-            return new TaintAnalyzer();
+            return new List<DiagnosticAnalyzer> { new TaintAnalyzer() };
         }
 
 

@@ -141,10 +141,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Tests\Password\HardcodedPasswordFieldTest.cs" />
+    <Compile Include="Tests\Password\SqlCredentialTest.cs" />
     <Compile Include="Tests\XssPreventionAnalyzerTest.cs" />
     <Compile Include="Tests\CsrfTokenAnalyzerTest.cs" />
     <Compile Include="Tests\CsrfTokenCodeFixProviderTest.cs" />
-    <Compile Include="Tests\HardcodedPasswordTest.cs" />
+    <Compile Include="Tests\Password\HardcodedPasswordTest.cs" />
     <Compile Include="Tests\InsecureCookieAnalyzerTest.cs" />
     <Compile Include="Tests\InsecureCookieCodeFixProviderTest.cs" />
     <Compile Include="Tests\OutputCacheAnnotationAnalyzerTest.cs" />

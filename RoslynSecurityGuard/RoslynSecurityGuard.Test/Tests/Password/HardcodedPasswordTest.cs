@@ -13,9 +13,9 @@ namespace RoslynSecurityGuard.Tests
     public class HardcodedPasswordTest : DiagnosticVerifier
     {
 
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
         {
-            return new TaintAnalyzer();
+            return new[] { new TaintAnalyzer() };
         }
 
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
@@ -36,7 +36,7 @@ namespace VulnerableApp
 {
     class HardCodedPassword
     {
-        static void TestCookie()
+        static void TestHardcodedValue()
         {
             var test = new PasswordDeriveBytes(""hardcode"", new byte[] { 0, 1, 2, 3 });
         }
@@ -65,7 +65,7 @@ namespace VulnerableApp
 {
     class HardCodedPassword
     {
-        static void TestCookie(string input)
+        static void TestHardcodedValue(string input)
         {
             var test = new PasswordDeriveBytes(input, new byte[] { 0, 1, 2, 3 });
         }

@@ -13,9 +13,9 @@ namespace RoslynSecurityGuard.Tests
     public class LinqSqlInjectionAnalyzerTest : DiagnosticVerifier
     {
 
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
         {
-            return new TaintAnalyzer();
+            return new[] { new TaintAnalyzer() };
         }
 
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()

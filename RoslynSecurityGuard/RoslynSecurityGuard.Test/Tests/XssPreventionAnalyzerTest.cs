@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
+using System.Collections.Generic;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Test.Tests
@@ -9,9 +10,9 @@ namespace RoslynSecurityGuard.Test.Tests
     [TestClass]
     public class XssPreventionAnalyzerTest : DiagnosticVerifier
     {
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
         {
-            return new XssPreventionAnalyzer();
+            return new[] { new XssPreventionAnalyzer() };
         }
 
         #region Tests that are producing diagnostics

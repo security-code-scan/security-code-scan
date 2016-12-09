@@ -325,10 +325,20 @@ File_WriteAllText:
   injectableArguments: 0
   locale: SG0018
 
+#XmlReader
+
 XmlReader_Create:
   namespace: System.Xml
   className: XmlReader
   member: method
   name: Create
+  injectableArguments: 0
+  locale: SG0018
+
+StreamReader_Create:
+  namespace: System.IO
+  className: StreamReader
+  member: method
+  name: .ctor
   injectableArguments: 0
   locale: SG0018

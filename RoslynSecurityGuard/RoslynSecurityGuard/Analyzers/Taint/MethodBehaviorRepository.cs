@@ -19,7 +19,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         {
             var assembly = typeof(MethodBehaviorRepository).GetTypeInfo().Assembly;
 
-            using (Stream stream = assembly.GetManifestResourceStream("RoslynSecurityGuard."+configurationFile))
+            using (Stream stream = assembly.GetManifestResourceStream("RoslynSecurityGuard.Config." + configurationFile))
             using (StreamReader reader = new StreamReader(stream))
             {
                 var yaml = new YamlStream();

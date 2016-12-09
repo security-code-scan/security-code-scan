@@ -23,7 +23,7 @@ namespace RoslynSecurityGuard.Analyzers.Locale
         public void Load() {
             var assembly = typeof(YamlResourceManager).GetTypeInfo().Assembly;
 
-            using (Stream stream = assembly.GetManifestResourceStream("RoslynSecurityGuard." + RESOURCE_FILE))
+            using (Stream stream = assembly.GetManifestResourceStream("RoslynSecurityGuard.Config." + RESOURCE_FILE))
             using (StreamReader reader = new StreamReader(stream))
             {
                 var yaml = new YamlStream();

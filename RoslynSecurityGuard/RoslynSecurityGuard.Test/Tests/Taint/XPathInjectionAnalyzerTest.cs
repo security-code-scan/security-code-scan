@@ -44,8 +44,7 @@ class XPathInjectionTP
 }";
             VerifyCSharpDiagnostic(test);
         }
-
-        //Diagnostic and CodeFix both triggered and checked for
+        
         [TestMethod]
         public void XPathInjectionVulnerable1()
         {
@@ -70,6 +69,31 @@ class XPathInjectionTP
 
             VerifyCSharpDiagnostic(test, expected);
         }
-    }
 
+        //Make sure MemberAccessExpressionSyntax are covered
+        [TestMethod]
+        public void XPathInjectionVulnerable2()
+        {
+            var test = @"
+using System.Xml;
+
+class XPathInjectionTP
+{
+
+    public void vulnerableCases(string input) {
+        XmlDocument doc = new XmlDocument();
+        doc.Load(""/secret_config.xml"");
+
+        doc.SelectNodes(""/Config/Devices/Device[id='"" + input + ""']"").Count;
+        doc.SelectSingleNode(""/Config/Devices/Device[type='"" + input + ""']"").Value;
+    }
+}";
+            //Two occurrences
+            var expected = new[] {
+                new DiagnosticResult {Id = "SG0003",Severity = DiagnosticSeverity.Warning},
+                new DiagnosticResult { Id = "SG0003", Severity = DiagnosticSeverity.Warning} };
+
+            VerifyCSharpDiagnostic(test, expected);
+        }
+    }
 }

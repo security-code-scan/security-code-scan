@@ -76,17 +76,17 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Behavior.yml" />
+    <None Include="Config\Behavior.yml" />
     <None Include="Diagnostic.nuspec">
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <EmbeddedResource Include="Messages.yml" />
+    <EmbeddedResource Include="Config\Messages.yml" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
-    <EmbeddedResource Include="Sinks.yml" />
-    <EmbeddedResource Include="Passwords.yml" />
+    <EmbeddedResource Include="Config\Sinks.yml" />
+    <EmbeddedResource Include="Config\Passwords.yml" />
     <None Include="tools\install.ps1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

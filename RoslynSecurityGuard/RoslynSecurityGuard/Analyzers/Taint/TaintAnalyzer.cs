@@ -269,10 +269,65 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                 var assignment = (AssignmentExpressionSyntax)expression;
                 return VisitAssignment(assignment, state);
             }
+            else if (expression is MemberAccessExpressionSyntax)
+            {
+                var memberAccess = (MemberAccessExpressionSyntax)expression;
+                var leftExpression = memberAccess.Expression;
+                var name = memberAccess.Name;
+                return VisitExpression(leftExpression, state);
+            }
+            else if (expression is ElementAccessExpressionSyntax)
+            {
+                var elementAccess = (ElementAccessExpressionSyntax)expression;
+                return VisitElementAccess(elementAccess, elementAccess.ArgumentList, state);
+            }
+            else if (expression is ArrayCreationExpressionSyntax)
+            {
+                var arrayCreation = (ArrayCreationExpressionSyntax)expression;
+                return VisitArrayCreation(arrayCreation, state);
+            }
+            else if (expression is TypeOfExpressionSyntax)
+            {
+                var typeofEx = (TypeOfExpressionSyntax)expression;
+                return new VariableState(VariableTaint.SAFE);
+            }
+            else if (expression is ConditionalExpressionSyntax)
+            {
+                var conditional = (ConditionalExpressionSyntax)expression;
+                VisitExpression(conditional.Condition, state);
+                var finalState = new VariableState(VariableTaint.SAFE);
+
+                var whenTrueState = VisitExpression(conditional.WhenTrue, state);
+                finalState.merge(whenTrueState);
+                var whenFalseState = VisitExpression(conditional.WhenFalse, state);
+                finalState.merge(whenFalseState);
+
+                return finalState;
+            }
+            else if (expression is CheckedExpressionSyntax)
+            {
+                var checkedEx = (CheckedExpressionSyntax)expression;
+                return VisitExpression(checkedEx.Expression, state);
+            }
+            else if (expression is QueryExpressionSyntax)
+            {
+                var query = (QueryExpressionSyntax)expression;
+                var body = query.Body;
+                new VariableState(VariableTaint.UNKNOWN);
+            }
 
             SGLogging.Log("Unsupported expression " + expression.GetType() + " (" + expression.ToString() + ")");
 
             //Unsupported expression
+            return new VariableState(VariableTaint.UNKNOWN);
+        }
+
+        private VariableState VisitElementAccess(ElementAccessExpressionSyntax elementAccess, BracketedArgumentListSyntax argumentList, ExecutionState state)
+        {
+            foreach (var argument in argumentList.Arguments)
+            {
+                VisitExpression(argument.Expression, state);
+            }
             return new VariableState(VariableTaint.UNKNOWN);
         }
 
@@ -289,6 +344,18 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         private VariableState VisitObjectCreation(ObjectCreationExpressionSyntax node, ExecutionState state)
         {
             return VisitInvocationAndCreation(node, node.ArgumentList, state);
+        }
+
+        private VariableState VisitArrayCreation(ArrayCreationExpressionSyntax node, ExecutionState state) {
+            var arrayInit = node.Initializer;
+
+            var finalState = new VariableState(VariableTaint.SAFE);
+            foreach (var ex in arrayInit.Expressions)
+            {
+                var exprState = VisitExpression(ex, state);
+                finalState = finalState.merge(exprState);
+            }
+            return finalState;
         }
 
         /// <summary>

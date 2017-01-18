@@ -160,5 +160,5 @@ SG0024:
 # XSS
 SG0029:
   class: XssPreventionAnalyzer
-  title: Endpoint method shows an XSS vulnerability
+  title: Potential XSS vulnerability
   description: The endpoint returns a variable from the client input that has not been encoded.

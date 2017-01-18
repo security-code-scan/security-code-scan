@@ -1,0 +1,38 @@
+﻿
+<p>
+    The dynamic value passed in the SQL query should be validated.
+    Bind variables in prepared statements can be used to easily mitigate the risk of SQL injection.
+</p>
+
+<h3>Risk</h3>
+
+<p>
+    If the user input is not properly escaped, a malicious user could insert additionnal SQL statement.
+    The statement could change the sementic of the original query. This could be use to circouncent the application
+    logic. It can also be used maliciously to access data from other tables or escalate to the operating system.
+</p>
+
+<h3>Vulnerable Code</h3>
+
+<pre>
+db.ExecuteQuery(@"SELECT * FROM dbo.Users
+WHERE UserId = " + inputId + " AND group = 5");</pre>
+
+<h3>Solution</h3>
+
+<pre>
+var query = from user in db.Users
+where user.UserId == inputId
+select user;
+</pre>
+
+<pre>
+db.ExecuteQuery(@"SELECT * FROM dbo.Users
+WHERE UserId = {0} AND group = 5", inputId);
+</pre>
+
+<h3>References</h3>
+
+<p>
+<a href="https://msdn.microsoft.com/en-us/library/bb546192(v=vs.110).aspx">LINQ: How to Query for Information</a><br/>
+</p>

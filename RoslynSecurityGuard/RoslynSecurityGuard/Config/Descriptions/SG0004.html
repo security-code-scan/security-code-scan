@@ -1,0 +1,35 @@
+﻿
+<p>
+    Certificate Validation has been disabled. The communication could be intercepted.
+</p>
+
+<h3>Risk</h3>
+
+<p>
+    Disabling certificate validation is often used to connect easily to a host that is not signed by a root
+    <a href="http://en.wikipedia.org/wiki/Certificate_authority">certificate authority</a>. As a consequence, this is vulnerable to
+    <a href="http://en.wikipedia.org/wiki/Man-in-the-middle_attack">Man-in-the-middle attacks</a>
+    since the client will trust any certificate.
+</p>
+
+<h3>Vulnerable Code</h3>
+
+<pre>
+    ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
+</pre>
+
+<h3>Solution</h3>
+
+Using sign certificate.
+
+<!--
+    TODO
+    https://forums.asp.net/p/1957866/5588946.aspx#5593221 
+    -->
+
+<h3>References</h3>
+
+<p>
+    <a href="http://projects.webappsec.org/w/page/13246945/Insufficient%20Transport%20Layer%20Protection">WASC-04: Insufficient Transport Layer Protection</a><br/>
+    <a href="http://cwe.mitre.org/data/definitions/295.html">CWE-295: Improper Certificate Validation</a>
+</p>

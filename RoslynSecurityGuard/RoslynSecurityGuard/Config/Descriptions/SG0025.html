@@ -1,0 +1,42 @@
+﻿
+<p>
+    The dynamic value passed in the SQL query should be validated.
+    Bind variables in prepared statements can be used to easily mitigate the risk of SQL injection.
+</p>
+
+<h3>Risk</h3>
+
+<p>
+    If the user input is not properly escaped, a malicious user could insert additionnal SQL statement.
+    The statement could change the sementic of the original query. This could be use to circouncent the application
+    logic. It can also be used maliciously to access data from other tables or escalate to the operating system.
+</p>
+
+<h3>Vulnerable Code</h3>
+
+<pre>
+using (OdbcConnection connection = new OdbcConnection(connectionString))
+{
+    OdbcCommand command = new OdbcCommand("INSERT INTO Order VALUES(" +orderId+ ",'" +orderName+ "')", connection);
+
+    try
+    {
+        connection.Open();
+        command.ExecuteNonQuery();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(ex.Message);
+    }
+}
+</pre>
+
+<!--<h3>Solution</h3>
+
+ TODO -->
+
+<h3>References</h3>
+
+<p>
+<a href="https://msdn.microsoft.com/en-us/library/system.data.odbc.odbccommand(v=vs.110).aspx">OdbcCommand Documentation</a><br/>
+</p>

@@ -1,0 +1,162 @@
+﻿
+<p>
+    The CBC mode alone is susceptible to padding oracle attack.
+</p>
+
+<h3>Risk</h3>
+
+<p>
+    If an attacker is able to submit encrypted payload and the server is decrypting
+    its content. The attacker is likely to decrypt its content.
+</p>
+
+<h3>Vulnerable Code</h3>
+
+<pre>
+using (var aes = new AesManaged {
+    KeySize = KeyBitSize,
+    BlockSize = BlockBitSize,
+    Mode = CipherMode.CBC,
+    Padding = PaddingMode.PKCS7
+})
+{
+    //Use random IV
+    aes.GenerateIV();
+    iv = aes.IV;
+    using (var encrypter = aes.CreateEncryptor(cryptKey, iv))
+    using (var cipherStream = new MemoryStream())
+    {
+        using (var cryptoStream = new CryptoStream(cipherStream, encrypter, CryptoStreamMode.Write))
+        using (var binaryWriter = new BinaryWriter(cryptoStream))
+        {
+            //Encrypt Data
+            binaryWriter.Write(secretMessage);
+        }
+        cipherText = cipherStream.ToArray();
+    }
+}
+//Missing HMAC suffix to assure integrity
+</pre>
+
+<h3>Solution</h3>
+
+Using bouncy castle:
+
+<pre> 
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto.Modes;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
+public static readonly int BlockBitSize = 128;
+public static readonly int KeyBitSize = 256;
+public static byte[] SimpleEncrypt(byte[] secretMessage, byte[] key)
+{
+    //User Error Checks
+    if (key == null || key.Length != KeyBitSize / 8)
+        throw new ArgumentException(String.Format("Key needs to be {0} bit!", KeyBitSize), "key");
+
+    if (secretMessage == null || secretMessage.Length == 0)
+        throw new ArgumentException("Secret Message Required!", "secretMessage");
+
+    //Using random nonce large enough not to repeat
+    var nonce = new byte[NonceBitSize / 8];
+    Random.NextBytes(nonce, 0, nonce.Length);
+
+    var cipher = new GcmBlockCipher(new AesFastEngine());
+    var parameters = new AeadParameters(new KeyParameter(key), MacBitSize, nonce, new byte[0]);
+    cipher.Init(true, parameters);
+
+    //Generate Cipher Text With Auth Tag
+    var cipherText = new byte[cipher.GetOutputSize(secretMessage.Length)];
+    var len = cipher.ProcessBytes(secretMessage, 0, secretMessage.Length, cipherText, 0);
+    cipher.DoFinal(cipherText, len);
+
+    //Assemble Message
+    using (var combinedStream = new MemoryStream())
+    {
+        using (var binaryWriter = new BinaryWriter(combinedStream))
+        {
+            //Prepend Nonce
+            binaryWriter.Write(nonce);
+            //Write Cipher Text
+            binaryWriter.Write(cipherText);
+        }
+        return combinedStream.ToArray();
+    }
+}
+</pre>
+
+Custom implementation of Encrypt and HMAC
+
+<pre>    
+using System.IO;
+using System.Security.Cryptography;
+public static byte[] SimpleEncrypt(byte[] secretMessage, byte[] cryptKey, byte[] authKey, byte[] nonSecretPayload = null)
+{
+    //User Error Checks
+    if (cryptKey == null || cryptKey.Length != KeyBitSize / 8)
+        throw new ArgumentException(String.Format("Key needs to be {0} bit!", KeyBitSize), "cryptKey");
+
+    if (authKey == null || authKey.Length != KeyBitSize / 8)
+        throw new ArgumentException(String.Format("Key needs to be {0} bit!", KeyBitSize), "authKey");
+
+    if (secretMessage == null || secretMessage.Length < 1)
+        throw new ArgumentException("Secret Message Required!", "secretMessage");
+
+    byte[] cipherText;
+    byte[] iv;
+    using (var aes = new AesManaged {
+        KeySize = KeyBitSize,
+        BlockSize = BlockBitSize,
+        Mode = CipherMode.CBC,
+        Padding = PaddingMode.PKCS7
+    })
+    {
+        //Use random IV
+        aes.GenerateIV();
+        iv = aes.IV;
+        using (var encrypter = aes.CreateEncryptor(cryptKey, iv))
+        using (var cipherStream = new MemoryStream())
+        {
+            using (var cryptoStream = new CryptoStream(cipherStream, encrypter, CryptoStreamMode.Write))
+            using (var binaryWriter = new BinaryWriter(cryptoStream))
+            {
+            //Encrypt Data
+            binaryWriter.Write(secretMessage);
+            }
+            cipherText = cipherStream.ToArray();
+        }
+    }
+    //Assemble encrypted message and add authentication
+    using (var hmac = new HMACSHA256(authKey))
+    using (var encryptedStream = new MemoryStream())
+    {
+        using (var binaryWriter = new BinaryWriter(encryptedStream))
+        {
+            //Prepend IV
+            binaryWriter.Write(iv);
+            //Write Ciphertext
+            binaryWriter.Write(cipherText);
+            binaryWriter.Flush();
+            //Authenticate all data
+            var tag = hmac.ComputeHash(encryptedStream.ToArray());
+            //Postpend tag
+            binaryWriter.Write(tag);
+        }
+        return encryptedStream.ToArray();
+    }
+}
+</pre>
+
+<h3>References</h3>
+
+<p>
+
+    <a href="http://www.infobytesec.com/down/paddingoracle_openjam.pdf">Padding Oracles for the masses (by Matias Soler)</a><br />
+    <a href="http://en.wikipedia.org/wiki/Authenticated_encryption">Wikipedia: Authenticated encryption</a><br />
+    <a href="http://csrc.nist.gov/groups/ST/toolkit/BCM/modes_development.html#01">NIST: Authenticated Encryption Modes</a><br />
+    <a href="http://capec.mitre.org/data/definitions/463.html">CAPEC: Padding Oracle Crypto Attack</a><br />
+    <a href="http://cwe.mitre.org/data/definitions/696.html">CWE-696: Incorrect Behavior Order</a>
+</p>

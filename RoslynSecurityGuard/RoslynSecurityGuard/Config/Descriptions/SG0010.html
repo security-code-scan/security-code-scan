@@ -1,0 +1,162 @@
+﻿
+<p>
+    DES/3DES are not considered a strong cipher for modern applications. Currently, NIST recommends the usage of AES block ciphers instead.
+</p>
+
+<h3>Risk</h3>
+
+<p>
+    Broken or deprecated ciphers have typically known weekness. A attacker might be able
+    to brute force the secret key use for the encryption. The confidentiality and integrity
+    of the information encrypted is at risk.
+</p>
+
+<h3>Vulnerable Code</h3>
+
+<pre>
+DES DESalg = DES.Create();
+
+// Create a string to encrypt. 
+byte[] encrypted;
+ICryptoTransform encryptor = DESalg.CreateEncryptor(key, zeroIV);
+
+// Create the streams used for encryption. 
+using (MemoryStream msEncrypt = new MemoryStream())
+{
+    using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+    {
+        using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
+        {
+            //Write all data to the stream.
+            swEncrypt.Write(Data);
+        }
+        encrypted = msEncrypt.ToArray();
+        return encrypted;
+    }
+}
+</pre>
+
+<h3>Solution</h3>
+
+Using bouncy castle:
+
+<pre>    
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto.Modes;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
+
+public static readonly int BlockBitSize = 128;
+public static readonly int KeyBitSize = 256;
+
+public static byte[] SimpleEncrypt(byte[] secretMessage, byte[] key)
+{
+    //User Error Checks
+    if (key == null || key.Length != KeyBitSize / 8)
+    throw new ArgumentException(String.Format("Key needs to be {0} bit!", KeyBitSize), "key");
+
+    if (secretMessage == null || secretMessage.Length == 0)
+    throw new ArgumentException("Secret Message Required!", "secretMessage");
+
+    //Using random nonce large enough not to repeat
+    var nonce = new byte[NonceBitSize / 8];
+    Random.NextBytes(nonce, 0, nonce.Length);
+
+    var cipher = new GcmBlockCipher(new AesFastEngine());
+    var parameters = new AeadParameters(new KeyParameter(key), MacBitSize, nonce, new byte[0]);
+    cipher.Init(true, parameters);
+
+    //Generate Cipher Text With Auth Tag
+    var cipherText = new byte[cipher.GetOutputSize(secretMessage.Length)];
+    var len = cipher.ProcessBytes(secretMessage, 0, secretMessage.Length, cipherText, 0);
+    cipher.DoFinal(cipherText, len);
+
+    //Assemble Message
+    using (var combinedStream = new MemoryStream())
+    {
+        using (var binaryWriter = new BinaryWriter(combinedStream))
+        {
+            //Prepend Nonce
+            binaryWriter.Write(nonce);
+            //Write Cipher Text
+            binaryWriter.Write(cipherText);
+        }
+        return combinedStream.ToArray();
+    }
+}
+</pre>
+
+Custom implementation of Encrypt and HMAC
+
+<pre>    
+using System.IO;
+using System.Security.Cryptography;
+
+public static byte[] SimpleEncrypt(byte[] secretMessage, byte[] cryptKey, byte[] authKey, byte[] nonSecretPayload = null)
+{
+    //User Error Checks
+    if (cryptKey == null || cryptKey.Length != KeyBitSize / 8)
+        throw new ArgumentException(String.Format("Key needs to be {0} bit!", KeyBitSize), "cryptKey");
+
+    if (authKey == null || authKey.Length != KeyBitSize / 8)
+        throw new ArgumentException(String.Format("Key needs to be {0} bit!", KeyBitSize), "authKey");
+
+    if (secretMessage == null || secretMessage.Length < 1)
+        throw new ArgumentException("Secret Message Required!", "secretMessage");
+
+    byte[] cipherText;
+    byte[] iv;
+
+    using (var aes = new AesManaged {
+        KeySize = KeyBitSize,
+        BlockSize = BlockBitSize,
+        Mode = CipherMode.CBC,
+        Padding = PaddingMode.PKCS7
+    })
+    {
+        //Use random IV
+        aes.GenerateIV();
+        iv = aes.IV;
+        using (var encrypter = aes.CreateEncryptor(cryptKey, iv))
+        using (var cipherStream = new MemoryStream())
+        {
+            using (var cryptoStream = new CryptoStream(cipherStream, encrypter, CryptoStreamMode.Write))
+            using (var binaryWriter = new BinaryWriter(cryptoStream))
+            {
+            //Encrypt Data
+            binaryWriter.Write(secretMessage);
+            }
+            cipherText = cipherStream.ToArray();
+        }
+    }
+
+    //Assemble encrypted message and add authentication
+    using (var hmac = new HMACSHA256(authKey))
+    using (var encryptedStream = new MemoryStream())
+    {
+        using (var binaryWriter = new BinaryWriter(encryptedStream))
+        {
+            //Prepend IV
+            binaryWriter.Write(iv);
+            //Write Ciphertext
+            binaryWriter.Write(cipherText);
+            binaryWriter.Flush();
+            //Authenticate all data
+            var tag = hmac.ComputeHash(encryptedStream.ToArray());
+            //Postpend tag
+            binaryWriter.Write(tag);
+        }
+        return encryptedStream.ToArray();
+    }
+}
+</pre>
+
+<h3>References</h3>
+
+<p>
+    <a href="http://www.nist.gov/itl/fips/060205_des.cfm">NIST Withdraws Outdated Data Encryption Standard</a><br />
+    <a href="http://cwe.mitre.org/data/definitions/326.html">CWE-326: Inadequate Encryption Strength</a>
+    <a href="http://stackoverflow.com/questions/202011/encrypt-and-decrypt-a-string/10366194#10366194">StackOverflow: Authenticated encryption example</a>
+</p>

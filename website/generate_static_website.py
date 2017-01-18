@@ -18,7 +18,7 @@ def render_template(filename,**args):
 
 #Loading rule descriptions
 rules = OrderedDict()
-with open("../RoslynSecurityGuard/RoslynSecurityGuard/Messages.yml", 'r') as stream:
+with open("../RoslynSecurityGuard/RoslynSecurityGuard/Config/Messages.yml", 'r') as stream:
     try:
         data = yaml.load(stream)
 
@@ -32,7 +32,7 @@ with open("../RoslynSecurityGuard/RoslynSecurityGuard/Messages.yml", 'r') as str
         print(exc)
 
 nb_sinks = 0
-with open("../RoslynSecurityGuard/RoslynSecurityGuard/Sinks.yml", 'r') as stream:
+with open("../RoslynSecurityGuard/RoslynSecurityGuard/Config/Sinks.yml", 'r') as stream:
     try:
         data = yaml.load(stream)
         nb_sinks = len(data)
@@ -42,7 +42,7 @@ with open("../RoslynSecurityGuard/RoslynSecurityGuard/Sinks.yml", 'r') as stream
 
 
 nb_passwords = 0
-with open("../RoslynSecurityGuard/RoslynSecurityGuard/Passwords.yml", 'r') as stream:
+with open("../RoslynSecurityGuard/RoslynSecurityGuard/Config/Passwords.yml", 'r') as stream:
     try:
         data = yaml.load(stream)
         nb_passwords = len(data)

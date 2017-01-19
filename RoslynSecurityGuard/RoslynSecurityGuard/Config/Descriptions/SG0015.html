@@ -1,0 +1,42 @@
+﻿
+<p>
+    The password configuration to this API appears to be hardcoded. It is suggest to externalized configuration such as password to avoid leakage of secret information.
+</p>
+
+<h3>Risk</h3>
+
+<p>
+    The source code or its binary form is more likely to be accessable by an attacker 
+    than a production configuration.<br/>
+    To be managed safely, passwords and secret keys should be stored in separate configuration files.
+</p>
+
+<h3>Vulnerable Code</h3>
+
+<pre>
+config.setPassword("NotSoSecr3tP@ssword");
+</pre>
+
+<h3>Solution</h3>
+
+Configuration file :
+<pre>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+&lt;configuration&gt;
+    &lt;appSettings&gt;
+    &lt;add key=&quot;api_password&quot; value=&quot;b3e521073ca276dc2b7caf6247b6ddc72d5e2d2d&quot; /&gt;
+  &lt;/appSettings&gt;
+&lt;/configuration&gt;
+</pre>
+
+<pre>
+string apiPassword = ConfigurationManager.AppSettings["api_password"];
+
+config.setPassword(apiPassword);
+</pre>
+
+<h3>References</h3>
+
+<p>
+    <a href="http://cwe.mitre.org/data/definitions/259.html">CWE-259: Use of Hard-coded Password</a>
+</p>

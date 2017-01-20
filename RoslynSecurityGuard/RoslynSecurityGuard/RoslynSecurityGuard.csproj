@@ -76,7 +76,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Config\Behavior.yml" />
+    <EmbeddedResource Include="Config\Behavior.yml" />
     <None Include="Config\Descriptions\README.md" />
     <None Include="Diagnostic.nuspec">
       <SubType>Designer</SubType>

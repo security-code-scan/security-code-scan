@@ -45,6 +45,8 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             behaviorRepo.LoadConfiguration("Sinks.yml");
             //Load password APIs
             behaviorRepo.LoadConfiguration("Passwords.yml");
+            //
+            behaviorRepo.LoadConfiguration("Behavior.yml");
 
             //Build the descriptor based on the locale fields of the Sinks.yml
             //This must be done in the constructor because, the array need be available before SupportedDiagnostics is first invoked.
@@ -313,13 +315,40 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             {
                 var query = (QueryExpressionSyntax)expression;
                 var body = query.Body;
-                new VariableState(VariableTaint.UNKNOWN);
+                return new VariableState(VariableTaint.UNKNOWN);
+            }
+            else if (expression is InterpolatedStringExpressionSyntax)
+            {
+                var interpolatedString = (InterpolatedStringExpressionSyntax)expression;
+
+                return VisitInterpolatedString(interpolatedString, state);
             }
 
             SGLogging.Log("Unsupported expression " + expression.GetType() + " (" + expression.ToString() + ")");
 
             //Unsupported expression
             return new VariableState(VariableTaint.UNKNOWN);
+        }
+
+        private VariableState VisitInterpolatedString(InterpolatedStringExpressionSyntax interpolatedString, ExecutionState state) {
+
+            var varState = new VariableState(VariableTaint.CONSTANT);
+
+            foreach (var content in interpolatedString.Contents)
+            {
+                var textString = content as InterpolatedStringTextSyntax;
+                if (textString != null)
+                {
+                    varState = varState.merge(new VariableState(VariableTaint.CONSTANT));
+                }
+                var interpolation = content as InterpolationSyntax;
+                if (interpolation != null)
+                {
+                    var expressionState = VisitExpression(interpolation.Expression, state);
+                    varState = varState.merge(expressionState);
+                }
+            }
+            return varState;
         }
 
         private VariableState VisitElementAccess(ElementAccessExpressionSyntax elementAccess, BracketedArgumentListSyntax argumentList, ExecutionState state)
@@ -376,8 +405,11 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             if (argList == null) {
                 return new VariableState(VariableTaint.UNKNOWN);
             }
-            foreach (var argument in argList.Arguments)
-            {
+
+            var returnState = new VariableState(VariableTaint.SAFE);
+
+            foreach (var argument in argList.Arguments) {
+
                 var argumentState = VisitExpression(argument.Expression, state);
 
                 if(symbol != null)
@@ -385,24 +417,31 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                     SGLogging.Log(symbol.ContainingType + "." + symbol.Name + " -> " + argumentState);
                 }
 
-                if (behavior != null && //If the API is at risk
-                    (argumentState.taint == VariableTaint.TAINTED || //Tainted values
-                    argumentState.taint == VariableTaint.UNKNOWN) &&
-                    Array.Exists(behavior.injectablesArguments, element => element == i) //If the current parameter can be injected.
-                    )
-                {
-                    var newRule = LocaleUtil.GetDescriptor(behavior.localeInjection);
-                    var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
-                    state.AnalysisContext.ReportDiagnostic(diagnostic);
-                }
-                else if (behavior != null &&
-                    argumentState.taint == VariableTaint.CONSTANT && //Hard coded value
-                    Array.Exists(behavior.passwordArguments, element => element == i) //If the current parameter is a password
-                    ) {
+                if (behavior != null) { //If the API is at risk
+                    if ((argumentState.taint == VariableTaint.TAINTED || //Tainted values
+                        argumentState.taint == VariableTaint.UNKNOWN) &&
+                        Array.Exists(behavior.injectablesArguments, element => element == i) //If the current parameter can be injected.
+                        )
+                    {
+                        var newRule = LocaleUtil.GetDescriptor(behavior.localeInjection);
+                        var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
+                        state.AnalysisContext.ReportDiagnostic(diagnostic);
+                    }
+                    else if (argumentState.taint == VariableTaint.CONSTANT && //Hard coded value
+                        Array.Exists(behavior.passwordArguments, element => element == i) //If the current parameter is a password
+                        )
+                    {
 
-                    var newRule = LocaleUtil.GetDescriptor(behavior.localePassword);
-                    var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
-                    state.AnalysisContext.ReportDiagnostic(diagnostic);
+                        var newRule = LocaleUtil.GetDescriptor(behavior.localePassword);
+                        var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
+                        state.AnalysisContext.ReportDiagnostic(diagnostic);
+                    }
+
+                    else if ( //
+                        Array.Exists(behavior.taintFromArguments, element => element == i))
+                    {
+                        returnState = returnState.merge(argumentState);
+                    }
                 }
 
                 //TODO: tainted all object passed in argument
@@ -416,7 +455,15 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                 ext.VisitInvocationAndCreation(node, argList, state);
             }
 
-            return new VariableState(VariableTaint.UNKNOWN);
+            var hasTaintFromArguments = behavior?.taintFromArguments?.Length > 0;
+            if (hasTaintFromArguments)
+            {
+                return returnState;
+            }
+            else {
+                return new VariableState(VariableTaint.UNKNOWN);
+            }
+            
         }
 
         private VariableState VisitAssignment(AssignmentExpressionSyntax node, ExecutionState state)

@@ -1,0 +1,34 @@
+﻿
+<p>
+    It is recommended to specify the Secure flag to new cookie.
+</p>
+
+<h3>Risk</h3>
+
+<p>
+
+</p>
+
+<h3>Vulnerable Code</h3>
+
+<pre>
+var cookie = new HttpCookie("test");
+</pre>
+
+<h3>Solution</h3>
+
+<pre>
+var cookie = new HttpCookie("test");
+cookie.Secure = true; //Add this flag
+cookie.HttpOnly = true;
+</pre>
+
+<h3>References</h3>
+
+<p>
+    <a href="https://cwe.mitre.org/data/definitions/614.html">CWE-614: Sensitive Cookie in HTTPS Session Without 'Secure' Attribute</a><br />
+    <a href="https://cwe.mitre.org/data/definitions/315.html">CWE-315: Cleartext Storage of Sensitive Information in a Cookie</a><br />
+    <a href="https://cwe.mitre.org/data/definitions/311.html">CWE-311: Missing Encryption of Sensitive Data</a><br />
+    <a href="https://www.owasp.org/index.php/SecureFlag">OWASP: Secure Flag</a><br />
+    <a href="https://www.rapid7.com/db/vulnerabilities/http-cookie-secure-flag">Rapid7: Missing Secure Flag From SSL Cookie</a>
+</p>

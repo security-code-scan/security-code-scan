@@ -12,8 +12,12 @@
 {% for key in rules %}
   <a name="{{ key }}"></a>
   <h3>{{ rules[key].Title }}</h3>
-  <p>{{ rules[key].Message }}</p>
+
+  <p>{{ rules[key].Message }}</p> <a href="{{ key }}.htm" class="btn-info btn-sm" role="button">More Details</a>
+  
+    <hr/>
 {% endfor %}
+
 
     </div>
 </section>

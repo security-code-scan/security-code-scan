@@ -1,0 +1,44 @@
+﻿
+<p>
+    The annotation <code>[ValidateAntiForgeryToken]</code> is missing.
+</p>
+
+<h3>Risk</h3>
+
+<p>
+    A malicious user could send a link to the victim. By visiting the malicious link, a web page would trigger a POST request 
+    to the website. The victim would not be able to acknowledge that an action is made in
+    the background. This attack does not require special interaction other than visiting a website.
+</p>
+
+<h3>Vulnerable Code</h3>
+
+<pre>
+public class TestController
+{
+    [HttpPost]
+    public ActionResult ControllerMethod(string input) {
+        //Do a action in the context of the logged in user
+    }
+}
+</pre>
+
+<h3>Solution</h3>
+
+<pre>
+public class TestController
+{
+    [HttpPost]
+    [ValidateAntiForgeryToken] //Annotation added
+    public ActionResult ControllerMethod(string input) {
+        //Do something..
+    }
+}
+</pre>
+
+<h3>References</h3>
+
+<p>
+    <a href="https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)">OWASP: Cross-Site Request Forgery</a><br />
+    <a href="https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet">OWASP: CSRF Prevention Cheat Sheet</a>
+</p>

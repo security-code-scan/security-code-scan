@@ -77,6 +77,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Config\Behavior.yml" />
+    <None Include="Config\Descriptions\README.md" />
     <None Include="Diagnostic.nuspec">
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -148,7 +149,42 @@
       <Private>True</Private>
     </Reference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="Config\Descriptions\SG0002.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Config\Descriptions\SG0001.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Config\Descriptions\SG0026.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Config\Descriptions\SG0020.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Config\Descriptions\SG0025.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Config\Descriptions\SG0003.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Config\Descriptions\SG0029.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Config\Descriptions\SG0004.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Config\Descriptions\SG0005.html" />
+    <Content Include="Config\Descriptions\SG0007.html" />
+    <Content Include="Config\Descriptions\SG0010.html" />
+    <Content Include="Config\Descriptions\SG0009.html" />
+    <Content Include="Config\Descriptions\SG0008.html" />
+    <Content Include="Config\Descriptions\SG0015.html" />
+    <Content Include="Config\Descriptions\SG0013.html" />
+    <Content Include="Config\Descriptions\SG0012.html" />
+    <Content Include="Config\Descriptions\SG0011.html" />
+    <Content Include="Config\Descriptions\SG0016.html" />
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\v4.6\Microsoft.Portable.CSharp.targets" />
   <Target Name="AfterBuild">
     <GetAssemblyIdentity AssemblyFiles="$(OutDir)\$(AssemblyName).dll">

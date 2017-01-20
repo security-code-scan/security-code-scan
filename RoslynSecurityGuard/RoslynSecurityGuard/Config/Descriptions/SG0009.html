@@ -1,0 +1,32 @@
+﻿
+<p>
+    It is recommended to specify the HttpOnly flag to new cookie.
+</p>
+
+<h3>Risk</h3>
+
+<p>
+
+</p>
+
+<h3>Vulnerable Code</h3>
+
+<pre>
+var cookie = new HttpCookie("test");
+</pre>
+
+<h3>Solution</h3>
+
+<pre>
+var cookie = new HttpCookie("test");
+cookie.Secure = true;
+cookie.HttpOnly = true; //Add this flag
+</pre>
+
+<h3>References</h3>
+
+<p>
+    <a href="http://blog.codinghorror.com/protecting-your-cookies-httponly/">Coding Horror blog: Protecting Your Cookies: HttpOnly</a><br />
+    <a href="https://www.owasp.org/index.php/HttpOnly">OWASP: HttpOnly</a><br />
+    <a href="https://www.rapid7.com/db/vulnerabilities/http-cookie-http-only-flag">Rapid7: Missing HttpOnly Flag From Cookie</a>
+</p>

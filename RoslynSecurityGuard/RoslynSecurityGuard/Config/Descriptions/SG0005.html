@@ -1,0 +1,33 @@
+﻿
+<p>
+    The random numbers generated could be predicted.
+    The use of a predictable random value can lead to vulnerabilities when used in certain security critical contexts.
+</p>
+
+<h3>Risk</h3>
+
+<p>
+
+</p>
+
+<h3>Vulnerable Code</h3>
+
+<pre>
+    ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
+</pre>
+
+<h3>Solution</h3>
+
+Using sign certificate.
+
+<!--
+    TODO
+    https://forums.asp.net/p/1957866/5588946.aspx#5593221 
+    -->
+
+<h3>References</h3>
+
+<p>
+    <a href="http://projects.webappsec.org/w/page/13246945/Insufficient%20Transport%20Layer%20Protection">WASC-04: Insufficient Transport Layer Protection</a><br/>
+    <a href="http://cwe.mitre.org/data/definitions/295.html">CWE-295: Improper Certificate Validation</a>
+</p>

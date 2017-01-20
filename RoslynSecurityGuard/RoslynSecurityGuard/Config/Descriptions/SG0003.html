@@ -1,0 +1,40 @@
+﻿
+<p>
+    The dynamic value passed to the XPath query should be validated.
+</p>
+
+<h3>Risk</h3>
+
+<p>
+    If the user input is not properly filtered, a malicious user could extend the XPath query.
+</p>
+
+<h3>Vulnerable Code</h3>
+
+<pre>
+XmlDocument doc = new XmlDocument();
+doc.Load("/config.xml");
+var results = doc.SelectNodes("/Config/Devices/Device[id='" + input + "']");
+</pre>
+
+<h3>Solution</h3>
+
+<pre>
+Regex rgx = new Regex(@"^[a-zA-Z0-9]+$");
+if(rgx.IsMatch(input)) { //Additionnal validation
+    XmlDocument doc = new XmlDocument();
+    doc.Load("/config.xml");
+    var results = doc.SelectNodes("/Config/Devices/Device[id='" + input + "']");
+}
+</pre>
+
+<h3>References</h3>
+
+<p>
+<a href="http://cwe.mitre.org/data/definitions/643.html">CWE-643: Improper Neutralization of Data within XPath Expressions ('XPath Injection')</a><br />
+<a href="https://www.securecoding.cert.org/confluence/pages/viewpage.action?pageId=61407250">CERT: IDS09-J. Prevent XPath Injection (archive)</a><br />
+<a href="http://media.blackhat.com/bh-eu-12/Siddharth/bh-eu-12-Siddharth-Xpath-WP.pdf">Black Hat Europe 2012: Hacking XPath 2.0</a><br />
+<a href="http://www.balisage.net/Proceedings/vol7/html/Vlist02/BalisageVol7-Vlist02.html">Balisage: XQuery Injection</a><br />
+<a href="http://projects.webappsec.org/w/page/13246963/SQL%20Injection">WASC-39: XPath Injection</a><br />
+<a href="https://www.owasp.org/index.php/Top_10_2013-A1-Injection">OWASP: Top 10 2013-A1-Injection</a>
+</p>

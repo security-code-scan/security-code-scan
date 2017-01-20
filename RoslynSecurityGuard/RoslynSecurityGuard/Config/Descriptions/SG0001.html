@@ -1,0 +1,41 @@
+﻿
+<p>
+    The dynamic value passed to the command execution should be validated.
+</p>
+
+<h3>Risk</h3>
+
+<p>
+    If a malicious user is able to controlled either the command FileName or Arguments, he might be able 
+    to execute unwanted commands or add unwanted argument.
+    This behavior would not be possible if input parameter are validate against a whitelist of characters.
+</p>
+
+<h3>Vulnerable Code</h3>
+
+<pre>
+Process p = new Process();
+p.StartInfo.FileName = "exportLegacy.exe";
+p.StartInfo.Arguments = " -user " + input + " -role user";
+p.Start();
+</pre>
+
+<h3>Solution</h3>
+
+<pre>
+Regex rgx = new Regex(@"^[a-zA-Z0-9]+$");
+if(rgx.IsMatch(input)) {
+    Process p = new Process();
+    p.StartInfo.FileName = "exportLegacy.exe";
+    p.StartInfo.Arguments = " -user " + input + " -role user";
+    p.Start();
+}
+</pre>
+
+<h3>References</h3>
+
+<p>
+<a href="https://www.owasp.org/index.php/Command_Injection">OWASP: Command Injection</a><br/>
+<a href="https://www.owasp.org/index.php/Top_10_2013-A1-Injection">OWASP: Top 10 2013-A1-Injection</a><br/>
+<a href="http://cwe.mitre.org/data/definitions/78.html">CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')</a>
+</p>

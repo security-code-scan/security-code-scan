@@ -51,9 +51,13 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                     string beLocale = GetField(entry, "locale");
                     string beLocalePass = GetField(entry, "localePass");
 
+                    string beTaintFromArguments = GetField(entry, "taintFromArguments", defaultValue: "");
+
+
                     //Converting the list of index to array
                     int[] argumentsIndexes = convertToIntArray(beInjectableArguments.Split(','));
                     int[] passwordIndexes = convertToIntArray(bePasswordArguments.Split(','));
+                    int[] taintFromArgumentsIndexes = convertToIntArray(beTaintFromArguments.Split(','));
 
                     foreach (var locale in new string[] { beLocale, beLocalePass })
                     {
@@ -66,7 +70,9 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                     
                     //Validate that 'argumentsIndexes' field 
                     if ((!beInjectableField && !bePasswordField) //Not a field signatures, arguments indexes is expected.
-                        && argumentsIndexes.Length == 0 && passwordIndexes.Length == 0)
+                        && argumentsIndexes.Length == 0 
+                        && passwordIndexes.Length == 0 
+                        && taintFromArgumentsIndexes.Length == 0)
                     {
                         throw new Exception("The method behavior " + key + " is not missing injectableArguments or passwordArguments property");
                     }
@@ -77,7 +83,9 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                         (beNamespace + "." + beClassName + "|" + beName); //Minimalist configuration
                     
 
-                    methodInjectableArguments.Add(globalKey, new MethodBehavior(argumentsIndexes, passwordIndexes, beLocale, beLocalePass, beInjectableField, bePasswordField));
+                    methodInjectableArguments.Add(globalKey, 
+                        new MethodBehavior(argumentsIndexes, passwordIndexes, taintFromArgumentsIndexes, 
+                            beLocale, beLocalePass, beInjectableField, bePasswordField));
 
 
                     //SGLogging.Log(beNamespace);
@@ -138,7 +146,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             methodInjectableArguments.TryGetValue(key, out behavior);
 
             if (behavior == null && symbol.ToString().Contains("(")) { //Find a signature with parameter type discrimator
-                string keyExtended = symbol.ContainingType + "|" + symbol.Name + "|" + ExtractParameterSignature(symbol);
+                string keyExtended = symbol.ContainingType.ContainingNamespace + "." + symbol.ContainingType.Name + "|" + symbol.Name + "|" + ExtractParameterSignature(symbol);
                 methodInjectableArguments.TryGetValue(keyExtended, out behavior);
             }
 

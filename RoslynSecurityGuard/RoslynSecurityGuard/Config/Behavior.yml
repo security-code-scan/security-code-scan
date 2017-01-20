@@ -1,0 +1,82 @@
+﻿# This is the definition of API that conserve the state of variable received.
+# By considering those API, the flow analysis will be much more accurate.
+# All undocumented API will be returning UNKNOWN state (consider unsafe).
+#
+# File format:
+# <<<
+# [Unique ID]:
+#   namespace: [Namespace where the class is present]
+#   className: [Class of the API]
+#   member: ["method" => method call or "field" for assignment]
+#   name: [Field name (assignment) or Method name (method call)]
+#   argTypes: (Optional field) [Parameter types signature]
+#   taintFromArguments: [Index of the argument that will influence the state of the return value.]
+# <<<
+
+#string.Format
+#https://msdn.microsoft.com/en-us/library/system.string.format(v=vs.110).aspx
+
+StringFormat_1:
+  namespace: System
+  className: String
+  member: method
+  name: Format
+  argTypes: (IFormatProvider, string, params object[])
+  taintFromArguments: 1,2
+
+StringFormat_2:
+  namespace: System
+  className: String
+  member: method
+  name: Format
+  argTypes: (IFormatProvider, string, object)
+  taintFromArguments: 1,2
+
+StringFormat_3:
+  namespace: System
+  className: String
+  member: method
+  name: Format
+  argTypes: (IFormatProvider, string, object, object)
+  taintFromArguments: 1,2,3
+
+StringFormat_4:
+  namespace: System
+  className: String
+  member: method
+  name: Format
+  argTypes: (IFormatProvider, string, object, object, object)
+  taintFromArguments: 1,2,3,4
+
+StringFormat_5:
+  namespace: System
+  className: String
+  member: method
+  name: Format
+  argTypes: (string, params object[])
+  taintFromArguments: 0,1
+
+StringFormat_6:
+  namespace: System
+  className: String
+  member: method
+  name: Format
+  argTypes: (string, object)
+  taintFromArguments: 0,1
+
+StringFormat_7:
+  namespace: System
+  className: String
+  member: method
+  name: Format
+  argTypes: (string, object, object)
+  taintFromArguments: 0,1,2
+
+StringFormat_8:
+  namespace: System
+  className: String
+  member: method
+  name: Format
+  argTypes: (string, object, object, object)
+  taintFromArguments: 0,1,2,3
+

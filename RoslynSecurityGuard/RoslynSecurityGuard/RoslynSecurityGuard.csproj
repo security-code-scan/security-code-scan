@@ -31,13 +31,18 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="Analyzers\CsrfTokenAnalyzer.cs" />
     <Compile Include="Analyzers\InsecureCookieAnalyzer.cs" />
     <Compile Include="Analyzers\Locale\LocaleDiagnostic.cs" />
     <Compile Include="Analyzers\RequestValidationAnalyzer.cs" />
     <Compile Include="Analyzers\OutputCacheAnnotationAnalyzer.cs" />
-    <Compile Include="Analyzers\Taint\TaintAnalyzerExtension.cs" />
+    <Compile Include="Analyzers\Taint\CodeEvaluation\BaseCodeEvaluation.cs" />
+    <Compile Include="Analyzers\Taint\CodeEvaluation\CSharpCodeEvaluation.cs" />
+    <Compile Include="Analyzers\Taint\CodeEvaluation\CSharpTaintAnalyzerExtension.cs" />
     <Compile Include="Analyzers\Taint\VariableTag.cs" />
     <Compile Include="Analyzers\UnknownPasswordApiAnalyzer.cs" />
     <Compile Include="Analyzers\Utils\AnalyzerUtil.cs" />
@@ -52,6 +57,7 @@
     <Compile Include="Analyzers\Utils\CodeFixUtil.cs" />
     <Compile Include="Analyzers\Utils\SGLogging.cs" />
     <Compile Include="Analyzers\Locale\YamlResourceManager.cs" />
+    <Compile Include="Analyzers\Taint\CodeEvaluation\VbCodeEvaluation.cs" />
     <Compile Include="Analyzers\WeakCertificateValidationAnalyzer.cs" />
     <Compile Include="Analyzers\WeakCipherAnalyzer.cs" />
     <Compile Include="Analyzers\WeakCipherModeAnalyzer.cs" />
@@ -111,6 +117,14 @@
     <Reference Include="Microsoft.CodeAnalysis.CSharp.Workspaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.CodeAnalysis.CSharp.Workspaces.1.0.0\lib\portable-net45+win8\Microsoft.CodeAnalysis.CSharp.Workspaces.dll</HintPath>
       <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.VisualBasic, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.CodeAnalysis.VisualBasic.1.0.0\lib\portable-net45+win8\Microsoft.CodeAnalysis.VisualBasic.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.CodeAnalysis.VisualBasic.Workspaces.1.0.0\lib\portable-net45+win8\Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis.Workspaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.CodeAnalysis.Workspaces.Common.1.0.0\lib\portable-net45+win8\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>

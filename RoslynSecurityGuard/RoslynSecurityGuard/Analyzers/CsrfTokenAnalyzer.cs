@@ -69,19 +69,18 @@ namespace RoslynSecurityGuard.Analyzers
         private List<string> getAttributesForMethod(MethodDeclarationSyntax node)
         {
             List<string> attributesList = new List<string>();
-            if (node.AttributeLists.Count() > 1)
-            {
-                foreach(AttributeListSyntax attribute in node.AttributeLists)
-                {
-                    attributesList.Add(attribute.Attributes.ToString());
-                }
-            } else
+
+            if(node.AttributeLists != null)
             {
                 foreach (AttributeListSyntax attributeList in node.AttributeLists)
-                {
-                    foreach (AttributeSyntax attribute in attributeList.Attributes)
+                { 
+
+                    if (attributeList.Attributes != null)
                     {
-                        attributesList.Add(attribute.ToString());
+                        foreach (AttributeSyntax attribute in attributeList.Attributes)
+                        {
+                            attributesList.Add(attribute.Name.GetText().ToString());
+                        }
                     }
                 }
             }

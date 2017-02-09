@@ -15,7 +15,7 @@ using RoslynSecurityGuard.Analyzers.Locale;
 namespace RoslynSecurityGuard.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class InsecureCookieAnalyzer : DiagnosticAnalyzer, TaintAnalyzerExtension
+    public class InsecureCookieAnalyzer : DiagnosticAnalyzer, CSharpTaintAnalyzerExtension
     {
         public const string DiagnosticIdSecure = "SG0008";
         private static DiagnosticDescriptor RuleSecure = LocaleUtil.GetDescriptor(DiagnosticIdSecure);

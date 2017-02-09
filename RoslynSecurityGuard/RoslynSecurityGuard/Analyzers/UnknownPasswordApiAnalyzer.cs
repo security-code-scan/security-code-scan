@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace RoslynSecurityGuard.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class UnknownPasswordApiAnalyzer : DiagnosticAnalyzer, TaintAnalyzerExtension
+    public class UnknownPasswordApiAnalyzer : DiagnosticAnalyzer, CSharpTaintAnalyzerExtension
     {
 
         private static DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SG0015");

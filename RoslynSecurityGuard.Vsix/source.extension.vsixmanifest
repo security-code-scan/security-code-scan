@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="RoslynSecurityGuard..45fa56c2-16f1-4395-8c10-a5a460084018" Version="2.2.1" Language="en-US" Publisher="Philippe Arteau"/>
+    <Identity Id="RoslynSecurityGuard..45fa56c2-16f1-4395-8c10-a5a460084018" Version="2.3.0" Language="en-US" Publisher="Philippe Arteau"/>
     <DisplayName>Roslyn Security Guard</DisplayName>
     <Description xml:space="preserve">Roslyn analyzers that aim to help security audit on .NET applications.</Description>
     <MoreInfo>https://github.com/dotnet-security-guard/roslyn-security-guard</MoreInfo>
@@ -22,4 +22,7 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="RoslynSecurityGuard" Path="|RoslynSecurityGuard|"/>
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="RoslynSecurityGuard" Path="|RoslynSecurityGuard|"/>
   </Assets>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[14.0,16.0)" DisplayName="Visual Studio core editor" />
+  </Prerequisites>
 </PackageManifest>

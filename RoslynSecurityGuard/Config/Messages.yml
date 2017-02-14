@@ -7,6 +7,7 @@
 #   class: [(Informationnal) Class of the analyzer provider this diagnostic]
 #   title: [Title of the diagnostic]
 #   description: [Description of the diagnostic]
+#   descriptionFormatValues: [(Optional) Values to used to replace String format placeholder used in the description. This is only use for the documentation website.]
 # <<<
 
 #Injections
@@ -89,11 +90,13 @@ SG0006:
   class: WeakHashingAnalyzer
   title: Weak hashing function
   description: "{0} is no longer considered a strong hashing algorithim for password storage and signature generation."
+  descriptionFormatValues: MD5/SHA1
 
 SG0010:
   class: WeakCipherAnalyzer
   title: Weak cipher algorithm
   description: "{0} is not considered a strong cipher for modern applications. Currently, NIST recommends the usage of AES block ciphers instead of {0}."
+  descriptionFormatValues: DES/3DES
 
 SG0011:
   class: WeakCipherModeAnalyzerCbc

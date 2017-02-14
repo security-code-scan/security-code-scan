@@ -26,14 +26,14 @@ def render_template(templateFile,outFile,**args):
 #Loading rule descriptions
 #rules = OrderedDict()
 rules = {}
-with open("../RoslynSecurityGuard/RoslynSecurityGuard/Config/Messages.yml", 'r') as stream:
+with open("../RoslynSecurityGuard/Config/Messages.yml", 'r') as stream:
     try:
         data = yaml.load(stream)
 
         for msg_key in data:
             print "Loading "+msg_key
             
-            descFile = "../RoslynSecurityGuard/RoslynSecurityGuard/Config/Descriptions/" + msg_key + ".html"
+            descFile = "../RoslynSecurityGuard/Config/Descriptions/" + msg_key + ".html"
             if os.path.isfile(descFile):
                 with codecs.open(descFile, 'r', encoding='utf-8') as descStream:
                     render_template('rule.htm',msg_key+".htm", title=data[msg_key]['title'], description=descStream.read())
@@ -47,7 +47,7 @@ with open("../RoslynSecurityGuard/RoslynSecurityGuard/Config/Messages.yml", 'r')
         print(exc)
 
 nb_sinks = 0
-with open("../RoslynSecurityGuard/RoslynSecurityGuard/Config/Sinks.yml", 'r') as stream:
+with open("../RoslynSecurityGuard/Config/Sinks.yml", 'r') as stream:
     try:
         data = yaml.load(stream)
         nb_sinks = len(data)
@@ -57,7 +57,7 @@ with open("../RoslynSecurityGuard/RoslynSecurityGuard/Config/Sinks.yml", 'r') as
 
 
 nb_passwords = 0
-with open("../RoslynSecurityGuard/RoslynSecurityGuard/Config/Passwords.yml", 'r') as stream:
+with open("../RoslynSecurityGuard/Config/Passwords.yml", 'r') as stream:
     try:
         data = yaml.load(stream)
         nb_passwords = len(data)
@@ -68,7 +68,7 @@ with open("../RoslynSecurityGuard/RoslynSecurityGuard/Config/Passwords.yml", 'r'
 #Building the complete website
 
 download_link = "https://marketplace.visualstudio.com/items?itemName=PhilippeArteau.RoslynSecurityGuard"
-version = '2.1.0'
+version = '2.3.0'
 
 render_template('index.htm', 'index.htm', title='Home' , latest_version=version, nb_rules=len(rules), nb_signatures=(len(rules)+nb_sinks+nb_passwords), download_link = download_link)
 render_template('rules.htm', 'rules.htm', title='Rules', rules=rules )

@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.26127.3
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynSecurityGuard", "RoslynSecurityGuard\RoslynSecurityGuard\RoslynSecurityGuard.csproj", "{D7034F4A-4741-4493-8E1E-0A6D3BE9734E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynSecurityGuard", "RoslynSecurityGuard\RoslynSecurityGuard.csproj", "{D7034F4A-4741-4493-8E1E-0A6D3BE9734E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynSecurityGuard.Test", "RoslynSecurityGuard\RoslynSecurityGuard.Test\RoslynSecurityGuard.Test.csproj", "{5F79D0FA-AC61-4D61-A12E-010A026A0D27}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynSecurityGuard.Test", "RoslynSecurityGuard.Test\RoslynSecurityGuard.Test.csproj", "{5F79D0FA-AC61-4D61-A12E-010A026A0D27}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynSecurityGuard.Vsix", "RoslynSecurityGuard\RoslynSecurityGuard.Vsix\RoslynSecurityGuard.Vsix.csproj", "{449FA31F-A571-4091-97A7-FDD37F0AE7AC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynSecurityGuard.Vsix", "RoslynSecurityGuard.Vsix\RoslynSecurityGuard.Vsix.csproj", "{449FA31F-A571-4091-97A7-FDD37F0AE7AC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

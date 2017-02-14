@@ -42,7 +42,19 @@ with open("../RoslynSecurityGuard/Config/Messages.yml", 'r') as stream:
 
             rules[msg_key] = {}
             rules[msg_key]['Title'] = data[msg_key]['title']
-            rules[msg_key]['Message'] = data[msg_key]['description']
+
+            description = data[msg_key]['description']
+            if("{0}" in data[msg_key]['description']):
+                
+                fv = data[msg_key]['descriptionFormatValues']
+                
+
+                indexValue = 0
+                for formatValue in [fv] if isinstance(fv, basestring) else fv:
+                    description = description.replace("{"+str(indexValue)+"}", formatValue)
+                    indexValue+=1
+            rules[msg_key]['Message'] = description
+            
     except yaml.YAMLError as exc:
         print(exc)
 

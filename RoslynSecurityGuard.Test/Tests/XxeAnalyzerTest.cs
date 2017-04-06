@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
+using RoslynSecurityGuard.Analyzers.Taint;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Tests
@@ -150,6 +151,42 @@ class Xxe
                 new DiagnosticResult {Id = "SG0007",Severity = DiagnosticSeverity.Warning}};
 
             VerifyCSharpDiagnostic(code, expected);
+        }
+    }
+
+    [TestClass]
+    public class XxeAnalyzerTest2 : DiagnosticVerifier
+    {
+        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
+        {
+            return new DiagnosticAnalyzer[] { new XxeAnalyzer(), new TaintAnalyzer() };
+        }
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
+        {
+            return new[] { MetadataReference.CreateFromFile(typeof(XmlNode).Assembly.Location) };
+        }
+
+        [TestMethod]
+        public void FalsePositive1()
+        {
+            var test = @"
+using System.IO;
+using System;
+using System.Xml;
+
+class PathTraversal
+{
+    public static void Run(string strText)
+    {
+        using (var reader = XmlReader.Create(new StringReader(strText)))
+        {
+            reader.Read();
+        }
+    }
+}
+";
+            VerifyCSharpDiagnostic(test);
         }
     }
 }

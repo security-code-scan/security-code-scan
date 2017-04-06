@@ -327,18 +327,74 @@ File_WriteAllText:
 
 #XmlReader
 
-XmlReader_Create:
+XmlReader_Create_uri:
   namespace: System.Xml
   className: XmlReader
   member: method
   name: Create
+  argTypes: (string)
   injectableArguments: 0
   locale: SG0018
 
-StreamReader_Create:
+XmlReader_Create_uri_settings:
+  namespace: System.Xml
+  className: XmlReader
+  member: method
+  name: Create
+  argTypes: (string, XmlReaderSettings)
+  injectableArguments: 0
+  locale: SG0018
+
+XmlReader_Create_uri_settings_context:
+  namespace: System.Xml
+  className: XmlReader
+  member: method
+  name: Create
+  argTypes: (string, XmlReaderSettings, XmlParserContext)
+  injectableArguments: 0
+  locale: SG0018
+
+StreamReader_Create_path:
   namespace: System.IO
   className: StreamReader
   member: method
   name: .ctor
+  argTypes: (string)
+  injectableArguments: 0
+  locale: SG0018
+
+StreamReader_Create_path_bool:
+  namespace: System.IO
+  className: StreamReader
+  member: method
+  name: .ctor
+  argTypes: (string, bool)
+  injectableArguments: 0
+  locale: SG0018
+
+StreamReader_Create_path_encoding:
+  namespace: System.IO
+  className: StreamReader
+  member: method
+  name: .ctor
+  argTypes: (string, Encoding)
+  injectableArguments: 0
+  locale: SG0018
+
+StreamReader_Create_path_encoding_bool:
+  namespace: System.IO
+  className: StreamReader
+  member: method
+  name: .ctor
+  argTypes: (string, Encoding, bool)
+  injectableArguments: 0
+  locale: SG0018
+
+StreamReader_Create_path_encoding_bool_int:
+  namespace: System.IO
+  className: StreamReader
+  member: method
+  name: .ctor
+  argTypes: (string, Encoding, bool, int)
   injectableArguments: 0
   locale: SG0018

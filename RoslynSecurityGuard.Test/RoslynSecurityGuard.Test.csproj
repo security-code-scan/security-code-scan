@@ -143,6 +143,7 @@
   <ItemGroup>
     <Compile Include="Tests\Password\HardcodedPasswordFieldTest.cs" />
     <Compile Include="Tests\Password\SqlCredentialTest.cs" />
+    <Compile Include="Tests\Taint\ExecutionStateTest.cs" />
     <Compile Include="Tests\Taint\TaintTransferTest.cs" />
     <Compile Include="Tests\XssPreventionAnalyzerTest.cs" />
     <Compile Include="Tests\CsrfTokenAnalyzerTest.cs" />

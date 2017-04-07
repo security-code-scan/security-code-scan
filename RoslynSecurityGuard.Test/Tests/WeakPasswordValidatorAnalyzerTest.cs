@@ -13,14 +13,25 @@ using Microsoft.AspNet.Identity;
 
 namespace RoslynSecurityGuard.Test.Tests
 {
+	/// <summary>
+	/// Class used to test the validations on the PasswordValidator.
+	/// </summary>
 	[TestClass]
 	public class WeakPasswordValidatorAnalyzerTest : DiagnosticVerifier
 	{
+		/// <summary>
+		/// Sets which analyzers are needed for the tests.
+		/// </summary>
+		/// <returns>Array containing the different analyzers required for the tests.</returns>
 		protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
 		{
 			return new[] { new WeakPasswordValidatorAnalyzer() };
 		}
 
+		/// <summary>
+		/// Indicates which references are needed to compile the code.
+		/// </summary>
+		/// <returns>Array containing the different references needed for the code to compile.</returns>
 		protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
 		{
 			return new[] { MetadataReference.CreateFromFile(typeof(Controller).Assembly.Location),
@@ -28,8 +39,11 @@ namespace RoslynSecurityGuard.Test.Tests
 				MetadataReference.CreateFromFile(typeof(PasswordValidator).Assembly.Location) };
 		}
 
+		/// <summary>
+		/// Test case where the RequiredLength field is too small inside the declaration.
+		/// </summary>
 		[TestMethod]
-		public void PasswordValidatorDeclarationTooShort()
+		public void PasswordValidatorDeclarationTooSmall()
 		{
 			var test = @"
 				using Microsoft.AspNet.Identity;
@@ -43,7 +57,7 @@ namespace RoslynSecurityGuard.Test.Tests
 						{
 							PasswordValidator pwdv = new PasswordValidator
 							{
-								RequiredLength = 7,
+								RequiredLength = " + (Constants.PasswordValidatorRequiredLength - 1) + @",
 								RequireNonLetterOrDigit = true,
 								RequireDigit = true,
 								RequireLowercase = true,
@@ -64,6 +78,9 @@ namespace RoslynSecurityGuard.Test.Tests
 			VerifyCSharpDiagnostic(test, expected);
 		}
 
+		/// <summary>
+		/// Test case where the RequiredLength field is too small but the value is affected outside of the declaration.
+		/// </summary>
 		[TestMethod]
 		public void PasswordValidatorTooShort()
 		{
@@ -82,7 +99,7 @@ namespace RoslynSecurityGuard.Test.Tests
 				
 							};
 
-							pwdv.RequiredLength = 6;
+							pwdv.RequiredLength = " + (Constants.PasswordValidatorRequiredLength - 1) + @";
 
 							return View();
 						}
@@ -98,6 +115,9 @@ namespace RoslynSecurityGuard.Test.Tests
 			VerifyCSharpDiagnostic(test, expected);
 		}
 
+		/// <summary>
+		/// Test case where the RequiredLength field has an accepted value.
+		/// </summary>
 		[TestMethod]
 		public void PasswordValidatorDeclarationOK()
 		{
@@ -113,7 +133,7 @@ namespace RoslynSecurityGuard.Test.Tests
 						{
 							PasswordValidator pwdv = new PasswordValidator
 							{
-								RequiredLength = 10,
+								RequiredLength = " + (Constants.PasswordValidatorRequiredLength + 1) + @",
 								RequireNonLetterOrDigit = true,
 								RequireDigit = true,
 								RequireLowercase = true,
@@ -134,6 +154,10 @@ namespace RoslynSecurityGuard.Test.Tests
 			VerifyCSharpDiagnostic(test);
 		}
 
+		/// <summary>
+		/// Test case where the RequiredLength field's value is set by a variable.
+		/// However the value of the variable is not tested.
+		/// </summary>
 		[TestMethod]
 		public void PasswordValidatorDeclarationWithVariable()
 		{
@@ -147,7 +171,7 @@ namespace RoslynSecurityGuard.Test.Tests
 					{
 						public ActionResult Index()
 						{
-							int reqLen = 10;
+							int reqLen = " + Constants.PasswordValidatorRequiredLength + @";
 
 							PasswordValidator pwdv = new PasswordValidator
 							{

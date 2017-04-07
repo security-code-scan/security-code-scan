@@ -38,7 +38,7 @@ namespace RoslynSecurityGuard.Analyzers
 			if (AnalyzerUtil.SymbolMatch(symbol, type: "PasswordValidator", name: "RequiredLength") && content != String.Empty)
 			{
 				int numericValue;
-				if (int.TryParse(node.Right.GetText().ToString(), out numericValue) && numericValue < 8)
+				if (int.TryParse(node.Right.GetText().ToString(), out numericValue) && numericValue < Constants.PasswordValidatorRequiredLength)
 				{
 					var diagnostic = Diagnostic.Create(RulePasswordLength, node.GetLocation());
 					ctx.ReportDiagnostic(diagnostic);

@@ -68,6 +68,7 @@
     <Compile Include="Analyzers\XxeAnalyzer.cs" />
     <Compile Include="CodeFixes\CsrfTokenCodeFixProvider.cs" />
     <Compile Include="CodeFixes\InsecureCookieCodeFixProvider.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="Empty.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

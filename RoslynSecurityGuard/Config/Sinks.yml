@@ -341,7 +341,7 @@ XmlReader_Create_uri_settings:
   className: XmlReader
   member: method
   name: Create
-  argTypes: (string, XmlReaderSettings)
+  argTypes: (string, System.Xml.XmlReaderSettings)
   injectableArguments: 0
   locale: SG0018
 
@@ -350,7 +350,7 @@ XmlReader_Create_uri_settings_context:
   className: XmlReader
   member: method
   name: Create
-  argTypes: (string, XmlReaderSettings, XmlParserContext)
+  argTypes: (string, System.Xml.XmlReaderSettings, System.Xml.XmlParserContext)
   injectableArguments: 0
   locale: SG0018
 
@@ -377,7 +377,7 @@ StreamReader_Create_path_encoding:
   className: StreamReader
   member: method
   name: .ctor
-  argTypes: (string, Encoding)
+  argTypes: (string, System.Text.Encoding)
   injectableArguments: 0
   locale: SG0018
 
@@ -386,7 +386,7 @@ StreamReader_Create_path_encoding_bool:
   className: StreamReader
   member: method
   name: .ctor
-  argTypes: (string, Encoding, bool)
+  argTypes: (string, System.Text.Encoding, bool)
   injectableArguments: 0
   locale: SG0018
 
@@ -395,6 +395,6 @@ StreamReader_Create_path_encoding_bool_int:
   className: StreamReader
   member: method
   name: .ctor
-  argTypes: (string, Encoding, bool, int)
+  argTypes: (string, System.Text.Encoding, bool, int)
   injectableArguments: 0
   locale: SG0018

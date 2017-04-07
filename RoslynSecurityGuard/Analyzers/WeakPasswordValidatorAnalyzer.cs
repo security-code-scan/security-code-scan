@@ -24,7 +24,7 @@ namespace RoslynSecurityGuard.Analyzers
 
 		public override void Initialize(AnalysisContext context)
 		{
-			context.RegisterSyntaxNodeAction(VisitAssignment, SyntaxKind.SimpleAssignmentExpression, SyntaxKind.VariableDeclaration);
+			context.RegisterSyntaxNodeAction(VisitAssignment, SyntaxKind.SimpleAssignmentExpression);
 		}
 		
 		private static void VisitAssignment(SyntaxNodeAnalysisContext ctx)
@@ -35,10 +35,10 @@ namespace RoslynSecurityGuard.Analyzers
 
 			var content = node.Right.GetText().ToString();
 
-			if (AnalyzerUtil.SymbolMatch(symbol, name: "RequiredLength") && content != String.Empty && Convert.ToInt32(content) < 8)
+			if (AnalyzerUtil.SymbolMatch(symbol, type: "PasswordValidator", name: "RequiredLength") && content != String.Empty)
 			{
 				int numericValue;
-				if (!(int.TryParse(node.Right.GetText().ToString(), out numericValue) && numericValue > 8))
+				if (int.TryParse(node.Right.GetText().ToString(), out numericValue) && numericValue < 8)
 				{
 					var diagnostic = Diagnostic.Create(RulePasswordLength, node.GetLocation());
 					ctx.ReportDiagnostic(diagnostic);

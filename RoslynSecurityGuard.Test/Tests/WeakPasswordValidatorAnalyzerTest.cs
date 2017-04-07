@@ -97,6 +97,80 @@ namespace RoslynSecurityGuard.Test.Tests
 
 			VerifyCSharpDiagnostic(test, expected);
 		}
+
+		[TestMethod]
+		public void PasswordValidatorDeclarationOK()
+		{
+			var test = @"
+				using Microsoft.AspNet.Identity;
+				using System.Web.Mvc;
+
+				namespace WebApplicationSandbox.Controllers
+				{
+					public class HomeController : Controller
+					{
+						public ActionResult Index()
+						{
+							PasswordValidator pwdv = new PasswordValidator
+							{
+								RequiredLength = 10,
+								RequireNonLetterOrDigit = true,
+								RequireDigit = true,
+								RequireLowercase = true,
+								RequireUppercase = true,
+							};
+
+							return View();
+						}
+					}
+				}";
+
+			var expected = new DiagnosticResult
+			{
+				Id = "SG0032",
+				Severity = DiagnosticSeverity.Warning
+			};
+
+			VerifyCSharpDiagnostic(test);
+		}
+
+		[TestMethod]
+		public void PasswordValidatorDeclarationWithVariable()
+		{
+			var test = @"
+				using Microsoft.AspNet.Identity;
+				using System.Web.Mvc;
+
+				namespace WebApplicationSandbox.Controllers
+				{
+					public class HomeController : Controller
+					{
+						public ActionResult Index()
+						{
+							int reqLen = 10;
+
+							PasswordValidator pwdv = new PasswordValidator
+							{
+								RequiredLength = reqLen,
+								RequireNonLetterOrDigit = true,
+								RequireDigit = true,
+								RequireLowercase = true,
+								RequireUppercase = true,
+							};
+
+							return View();
+						}
+					}
+				}";
+
+			var expected = new DiagnosticResult
+			{
+				Id = "SG0032",
+				Severity = DiagnosticSeverity.Warning
+			};
+
+			VerifyCSharpDiagnostic(test);
+		}
 	}
 }
 

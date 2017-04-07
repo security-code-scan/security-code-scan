@@ -145,12 +145,6 @@ namespace RoslynSecurityGuard.Test.Tests
 					}
 				}";
 
-			var expected = new DiagnosticResult
-			{
-				Id = "SG0032",
-				Severity = DiagnosticSeverity.Warning
-			};
-
 			VerifyCSharpDiagnostic(test);
 		}
 
@@ -186,12 +180,6 @@ namespace RoslynSecurityGuard.Test.Tests
 						}
 					}
 				}";
-
-			var expected = new DiagnosticResult
-			{
-				Id = "SG0032",
-				Severity = DiagnosticSeverity.Warning
-			};
 
 			VerifyCSharpDiagnostic(test);
 		}

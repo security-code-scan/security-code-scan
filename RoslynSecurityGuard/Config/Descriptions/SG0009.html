@@ -6,7 +6,8 @@
 <h3>Risk</h3>
 
 <p>
-
+    Cookies that doesn't have the flag set are available to JavaScript running on the same domain.
+    When a user is the target of a "Cross-Site Scripting", the attacker would benefit greatly from getting the session id.
 </p>
 
 <h3>Vulnerable Code</h3>
@@ -16,6 +17,11 @@ var cookie = new HttpCookie("test");
 </pre>
 
 <h3>Solution</h3>
+
+<b>Web.Config</b>
+<pre>
+&lt;httpCookies httpOnlyCookies="true" [..] /&gt;
+</pre>
 
 <pre>
 var cookie = new HttpCookie("test");

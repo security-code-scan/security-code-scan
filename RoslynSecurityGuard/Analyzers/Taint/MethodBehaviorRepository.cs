@@ -142,15 +142,17 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
             string key = symbol.ContainingType + "|" + symbol.Name;
 
-            MethodBehavior behavior = null;
-            methodInjectableArguments.TryGetValue(key, out behavior);
+            MethodBehavior behavior;
+            if (methodInjectableArguments.TryGetValue(key, out behavior))
+                return behavior;
 
-            if (behavior == null && symbol.ToString().Contains("(")) { //Find a signature with parameter type discrimator
+            if (symbol.ToString().Contains("(")) { //Find a signature with parameter type discrimator
                 string keyExtended = symbol.ContainingType.ContainingNamespace + "." + symbol.ContainingType.Name + "|" + symbol.Name + "|" + ExtractParameterSignature(symbol);
-                methodInjectableArguments.TryGetValue(keyExtended, out behavior);
+                if (methodInjectableArguments.TryGetValue(keyExtended, out behavior))
+                    return behavior;
             }
 
-            return behavior;
+            return null;
         }
 
         private string ExtractParameterSignature(ISymbol symbol) {

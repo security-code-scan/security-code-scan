@@ -174,5 +174,5 @@ SG0032:
 
 SG0033:
     class: WeakPasswordValidatorAnalyzer
-    title: Not enough properties set in PasswordValidator
+    title: Not enough properties set in PasswordValidator declaration
     description: "PasswordValidator should have at least two requirements for better security (RequiredLength, RequireDigit, RequireLowercase, RequireUppercase and/or RequireNonLetterOrDigit)."

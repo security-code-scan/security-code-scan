@@ -326,7 +326,18 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
         private VariableState VisitObjectCreation(ObjectCreationExpressionSyntax node, ExecutionState state)
         {
-            return VisitInvocationAndCreation(node, node.ArgumentList, state);
+			VariableState finalState = VisitInvocationAndCreation(node, node.ArgumentList, state);
+
+			foreach (SyntaxNode child in node.DescendantNodes())
+			{
+				if (child is AssignmentExpressionSyntax)
+				{
+					finalState = finalState.merge(VisitAssignment((AssignmentExpressionSyntax)child, state));
+					//state.AddNewValue(child, finalState);
+				}
+			}
+			
+            return finalState;
         }
 
         private VariableState VisitArrayCreation(ArrayCreationExpressionSyntax node, ExecutionState state)

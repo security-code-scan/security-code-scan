@@ -18,15 +18,17 @@ namespace RoslynSecurityGuard.Analyzers
 	public class WeakPasswordValidatorAnalyzer : DiagnosticAnalyzer
 	{
 		private static DiagnosticDescriptor RulePasswordLength = LocaleUtil.GetDescriptor("SG0032");
-		private static DiagnosticDescriptor RulePasswordValidators = LocaleUtil.GetDescriptor("SG0033");
+		
 
-		public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RulePasswordLength, RulePasswordValidators);
+		public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RulePasswordLength);
 
 		public override void Initialize(AnalysisContext context)
 		{
 			context.RegisterSyntaxNodeAction(VisitAssignment, SyntaxKind.SimpleAssignmentExpression);
+			//context.RegisterSyntaxNodeAction(VisitExpression, SyntaxKind.ExpressionStatement);
 		}
-		
+
+
 		private static void VisitAssignment(SyntaxNodeAnalysisContext ctx)
 		{
 			AssignmentExpressionSyntax node = ctx.Node as AssignmentExpressionSyntax;
@@ -45,6 +47,23 @@ namespace RoslynSecurityGuard.Analyzers
 				}
 			}
 		}
-	// //
+
+		
+
+
+		//private static void VisitExpression(SyntaxNodeAnalysisContext ctx)
+		//{
+		//	ExpressionStatementSyntax node = ctx.Node as ExpressionStatementSyntax;
+
+		//	var expressionStatement = node.Expression as AssignmentExpressionSyntax;
+		//	var symbol = ctx.SemanticModel.GetSymbolInfo(expressionStatement.Left).Symbol;
+
+		//	if (AnalyzerUtil.SymbolMatch(symbol, name: "RequireDigit"))
+		//	{
+		//		var diagnostic = Diagnostic.Create(RulePasswordValidators, node.GetLocation());
+		//		ctx.ReportDiagnostic(diagnostic);
+		//	}
+		//}
+		// //
 	}
 }

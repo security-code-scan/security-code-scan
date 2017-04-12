@@ -13,5 +13,6 @@ namespace RoslynSecurityGuard
 	{
 		// PasswordValidator
 		public const int PasswordValidatorRequiredLength = 8;
+		public const int MinimumPasswordValidatorProperties = 2;
 	}
 }

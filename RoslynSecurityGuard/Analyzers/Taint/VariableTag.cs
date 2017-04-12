@@ -12,5 +12,12 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         HttpCookieSecure,
         HttpCookieHttpOnly,
 
-    }
+
+		RequiredLengthIsSet,
+		RequireDigitIsSet,
+		RequireLowercaseIsSet,
+		RequireNonLetterOrDigitIsSet,
+		RequireUppercaseIsSet,
+
+	}
 }

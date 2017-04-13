@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -23,10 +24,9 @@ namespace RoslynSecurityGuard.Tests
         }
 
         [TestMethod]
-        public void XxeFalsePositive1()
+        public async Task XxeFalsePositive1()
         {
             var code = @"
-using System;
 using System.Xml;
 
 class Xxe
@@ -39,14 +39,13 @@ class Xxe
     }
 }";
 
-            VerifyCSharpDiagnostic(code);
+            await VerifyCSharpDiagnostic(code);
         }
 
         [TestMethod]
-        public void XxeFalsePositive2()
+        public async Task XxeFalsePositive2()
         {
             var code = @"
-using System;
 using System.Xml;
 
 class Xxe
@@ -54,21 +53,22 @@ class Xxe
     public static void parseUpload(string inputXml)
     {
         XmlReaderSettings settings = new XmlReaderSettings();
+#pragma warning disable 618
         settings.ProhibitDtd = true;
+#pragma warning restore 618
         XmlReader reader = XmlReader.Create(inputXml, settings);
 
     }
 }";
 
-            VerifyCSharpDiagnostic(code);
+            await VerifyCSharpDiagnostic(code);
         }
 
 
         [TestMethod]
-        public void XxeFalsePositive3()
+        public async Task XxeFalsePositive3()
         {
             var code = @"
-using System;
 using System.Xml;
 
 class Xxe
@@ -82,14 +82,13 @@ class Xxe
     }
 }";
 
-            VerifyCSharpDiagnostic(code);
+            await VerifyCSharpDiagnostic(code);
         }
 
         [TestMethod]
-        public void XxeFalsePositive4()
+        public async Task XxeFalsePositive4()
         {
             var code = @"
-using System;
 using System.Xml;
 
 class Xxe
@@ -103,14 +102,13 @@ class Xxe
     }
 }";
 
-            VerifyCSharpDiagnostic(code);
+            await VerifyCSharpDiagnostic(code);
         }
 
         [TestMethod]
-        public void XxeVulnerable1()
+        public async Task XxeVulnerable1()
         {
             var code = @"
-using System;
 using System.Xml;
 
 class Xxe
@@ -118,7 +116,9 @@ class Xxe
     public static void parseUpload(string inputXml)
     {
         XmlReaderSettings settings = new XmlReaderSettings();
+#pragma warning disable 618
         settings.ProhibitDtd = false;
+#pragma warning restore 618
         XmlReader reader = XmlReader.Create(inputXml, settings);
 
     }
@@ -127,14 +127,13 @@ class Xxe
             var expected = new[] {
                 new DiagnosticResult {Id = "SG0007",Severity = DiagnosticSeverity.Warning}};
 
-            VerifyCSharpDiagnostic(code, expected);
+            await VerifyCSharpDiagnostic(code, expected);
         }
 
         [TestMethod]
-        public void XxeVulnerable2()
+        public async Task XxeVulnerable2()
         {
             var code = @"
-using System;
 using System.Xml;
 
 class Xxe
@@ -150,7 +149,7 @@ class Xxe
             var expected = new[] {
                 new DiagnosticResult {Id = "SG0007",Severity = DiagnosticSeverity.Warning}};
 
-            VerifyCSharpDiagnostic(code, expected);
+            await VerifyCSharpDiagnostic(code, expected);
         }
     }
 
@@ -168,11 +167,10 @@ class Xxe
         }
 
         [TestMethod]
-        public void FalsePositive1()
+        public async Task FalsePositive1()
         {
             var test = @"
 using System.IO;
-using System;
 using System.Xml;
 
 class PathTraversal
@@ -186,7 +184,7 @@ class PathTraversal
     }
 }
 ";
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(test);
         }
     }
 }

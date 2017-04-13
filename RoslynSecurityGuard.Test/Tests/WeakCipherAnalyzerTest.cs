@@ -1,10 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.CodeAnalysis.Diagnostics;
 using RoslynSecurityGuard.Analyzers;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using TestHelper;
 using Microsoft.CodeAnalysis;
@@ -20,20 +17,15 @@ namespace RoslynSecurityGuard.Test.Tests
         }
 
         [TestMethod]
-        public void WeakCipherFalsePositive()
+        public async Task WeakCipherFalsePositive()
         {
             var test = @"
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 class WeakCipherAlgorithm
     {
-    static void EncryptTextToFileTripleDES(String Data, String FileName, byte[] Key, byte[] IV)
+    static void EncryptTextToFileTripleDES(string Data, string FileName, byte[] Key, byte[] IV)
         {
                 // Create or open the specified file.
                 FileStream fStream = File.Open(FileName, FileMode.OpenOrCreate);
@@ -61,25 +53,20 @@ class WeakCipherAlgorithm
                 fStream.Close();
         }
     }";
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(test);
         }
 
         [TestMethod]
-        public void WeakCipherVulnerableDES()
+        public async Task WeakCipherVulnerableDES()
         {
             var test = @"
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 class WeakCipherAlgorithm
 {
 
-        private static byte[] EncryptDataDES(String inName, String outName, byte[] desKey, byte[] desIV,String Data)
+        private static byte[] EncryptDataDES(string inName, string outName, byte[] desKey, byte[] desIV, string Data)
         {
             byte[] zeroIV = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             byte[] key = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -115,25 +102,20 @@ class WeakCipherAlgorithm
                 Severity = DiagnosticSeverity.Warning
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
         [TestMethod]
-        public void WeakCipherVulnerableRC2()
+        public async Task WeakCipherVulnerableRC2()
         {
             var test = @"
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 class WeakCipherAlgorithm
 {
 
-        private static byte[] EncryptDataRC2(String inName, String outName, byte[] desKey, byte[] desIV,String Data)
+        private static byte[] EncryptDataRC2(string inName, string outName, byte[] desKey, byte[] desIV, string Data)
         {
             byte[] zeroIV = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             byte[] key = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -169,52 +151,46 @@ class WeakCipherAlgorithm
                 Severity = DiagnosticSeverity.Warning
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
         [TestMethod]
-        public void WeakCipherVulnerableDES2()
+        public async Task WeakCipherVulnerableDES2()
         {
             var test = @"
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 class WeakCipherAlgorithm
 {
-private static void EncryptData(String inName, String outName, byte[] desKey, byte[] desIV)
+    private static void EncryptData(string inName, string outName, byte[] desKey, byte[] desIV)
+    {
+        //Create the file streams to handle the input and output files.
+        FileStream fin = new FileStream(inName, FileMode.Open, FileAccess.Read);
+        FileStream fout = new FileStream(outName, FileMode.OpenOrCreate, FileAccess.Write);
+        fout.SetLength(0);
+
+        //Create variables to help with read and write. 
+        byte[] bin = new byte[100]; //This is intermediate storage for the encryption. 
+        long rdlen = 0;              //This is the total number of bytes written. 
+        long totlen = fin.Length;    //This is the total length of the input file. 
+        int len;                     //This is the number of bytes to be written at a time.
+
+        DES des = new DESCryptoServiceProvider();
+        CryptoStream encStream = new CryptoStream(fout, des.CreateEncryptor(desKey, desIV), CryptoStreamMode.Write);
+
+
+        //Read from the input file, then encrypt and write to the output file. 
+        while (rdlen < totlen)
         {
-            //Create the file streams to handle the input and output files.
-            FileStream fin = new FileStream(inName, FileMode.Open, FileAccess.Read);
-            FileStream fout = new FileStream(outName, FileMode.OpenOrCreate, FileAccess.Write);
-            fout.SetLength(0);
-
-            //Create variables to help with read and write. 
-            byte[] bin = new byte[100]; //This is intermediate storage for the encryption. 
-            long rdlen = 0;              //This is the total number of bytes written. 
-            long totlen = fin.Length;    //This is the total length of the input file. 
-            int len;                     //This is the number of bytes to be written at a time.
-
-            DES des = new DESCryptoServiceProvider();
-            CryptoStream encStream = new CryptoStream(fout, des.CreateEncryptor(desKey, desIV), CryptoStreamMode.Write);
-
-
-            //Read from the input file, then encrypt and write to the output file. 
-            while (rdlen < totlen)
-            {
-                len = fin.Read(bin, 0, 100);
-                encStream.Write(bin, 0, len);
-                rdlen = rdlen + len;
-            }
-
-            encStream.Close();
-            fout.Close();
-            fin.Close();
+            len = fin.Read(bin, 0, 100);
+            encStream.Write(bin, 0, len);
+            rdlen = rdlen + len;
         }
+
+        encStream.Close();
+        fout.Close();
+        fin.Close();
     }
 }";
             var expected = new DiagnosticResult
@@ -223,52 +199,46 @@ private static void EncryptData(String inName, String outName, byte[] desKey, by
                 Severity = DiagnosticSeverity.Warning
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
         [TestMethod]
-        public void WeakCipherVulnerableRC2_2()
+        public async Task WeakCipherVulnerableRC2_2()
         {
             var test = @"
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 class WeakCipherAlgorithm
 {
-private static void EncryptData(String inName, String outName, byte[] rc2Key, byte[] rc2IV)
+    private static void EncryptData(string inName, string outName, byte[] rc2Key, byte[] rc2IV)
+    {
+        //Create the file streams to handle the input and output files.
+        FileStream fin = new FileStream(inName, FileMode.Open, FileAccess.Read);
+        FileStream fout = new FileStream(outName, FileMode.OpenOrCreate, FileAccess.Write);
+        fout.SetLength(0);
+
+        //Create variables to help with read and write. 
+        byte[] bin = new byte[100]; //This is intermediate storage for the encryption. 
+        long rdlen = 0;              //This is the total number of bytes written. 
+        long totlen = fin.Length;    //This is the total length of the input file. 
+        int len;                     //This is the number of bytes to be written at a time.
+
+        RC2 rc2 = new RC2CryptoServiceProvider();
+        CryptoStream encStream = new CryptoStream(fout, rc2.CreateEncryptor(rc2Key, rc2IV), CryptoStreamMode.Write);
+
+
+        //Read from the input file, then encrypt and write to the output file. 
+        while (rdlen < totlen)
         {
-            //Create the file streams to handle the input and output files.
-            FileStream fin = new FileStream(inName, FileMode.Open, FileAccess.Read);
-            FileStream fout = new FileStream(outName, FileMode.OpenOrCreate, FileAccess.Write);
-            fout.SetLength(0);
-
-            //Create variables to help with read and write. 
-            byte[] bin = new byte[100]; //This is intermediate storage for the encryption. 
-            long rdlen = 0;              //This is the total number of bytes written. 
-            long totlen = fin.Length;    //This is the total length of the input file. 
-            int len;                     //This is the number of bytes to be written at a time.
-
-            RC2 rc2 = new RC2CryptoServiceProvider();
-            CryptoStream encStream = new CryptoStream(fout, des.CreateEncryptor(rc2Key, rc2IV), CryptoStreamMode.Write);
-
-
-            //Read from the input file, then encrypt and write to the output file. 
-            while (rdlen < totlen)
-            {
-                len = fin.Read(bin, 0, 100);
-                encStream.Write(bin, 0, len);
-                rdlen = rdlen + len;
-            }
-
-            encStream.Close();
-            fout.Close();
-            fin.Close();
+            len = fin.Read(bin, 0, 100);
+            encStream.Write(bin, 0, len);
+            rdlen = rdlen + len;
         }
+
+        encStream.Close();
+        fout.Close();
+        fin.Close();
     }
 }";
             var expected = new DiagnosticResult
@@ -277,7 +247,7 @@ private static void EncryptData(String inName, String outName, byte[] rc2Key, by
                 Severity = DiagnosticSeverity.Warning
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
     }
 }

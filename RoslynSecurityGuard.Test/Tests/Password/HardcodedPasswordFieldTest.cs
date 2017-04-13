@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Security;
+using System.Threading.Tasks;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Test.Tests
@@ -22,7 +23,7 @@ namespace RoslynSecurityGuard.Test.Tests
         }
 
         [TestMethod]
-        public void HardCodePasswordDerivedBytes()
+        public async Task HardCodePasswordDerivedBytes()
         {
 
             var test = @"
@@ -46,7 +47,7 @@ namespace VulnerableApp
                 Id = "SG0015",
                 Severity = DiagnosticSeverity.Warning
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
         public void sandbox()

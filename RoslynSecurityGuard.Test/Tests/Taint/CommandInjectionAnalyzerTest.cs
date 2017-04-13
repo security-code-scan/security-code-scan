@@ -5,6 +5,7 @@ using RoslynSecurityGuard.Analyzers;
 using RoslynSecurityGuard.Analyzers.Taint;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Tests
@@ -21,10 +22,9 @@ namespace RoslynSecurityGuard.Tests
 
         //No diagnostics expected to show up
         [TestMethod]
-        public void CommandInjectionFalsePositive()
+        public async Task CommandInjectionFalsePositive()
         {
             var test = @"
-using System;
 using System.Diagnostics;
 
 namespace VulnerableApp
@@ -33,21 +33,20 @@ namespace VulnerableApp
     {
         static void TestCommandInject(string input)
         {
-                Process.Start(""dir"");
+            Process.Start(""dir"");
         }
     }
 }
 ";
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(test);
         }
 
 
 
         [TestMethod]
-        public void CommandInjectionFalsePositive_Filename()
+        public async Task CommandInjectionFalsePositive_Filename()
         {
             var test = @"
-using System;
 using System.Diagnostics;
 
 namespace VulnerableApp
@@ -69,14 +68,13 @@ namespace VulnerableApp
                 Severity = DiagnosticSeverity.Warning
             };
 
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(test);
         }
         
         [TestMethod]
-        public void CommandInjectionVulnerable1()
+        public async Task CommandInjectionVulnerable1()
         {
             var test = @"
-using System;
 using System.Diagnostics;
 
 namespace VulnerableApp
@@ -97,15 +95,14 @@ namespace VulnerableApp
                 Severity = DiagnosticSeverity.Warning
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
 
         [TestMethod]
-        public void CommandInjectionVulnerable2()
+        public async Task CommandInjectionVulnerable2()
         {
             var test = @"
-using System;
 using System.Diagnostics;
 
 namespace VulnerableApp
@@ -128,7 +125,7 @@ namespace VulnerableApp
                 Severity = DiagnosticSeverity.Warning
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
 

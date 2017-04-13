@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Tests
@@ -17,7 +18,7 @@ namespace RoslynSecurityGuard.Tests
         }
 
         [TestMethod]
-        public void RandomFalsePositive()
+        public async Task RandomFalsePositive()
         {
             var code = @"using System;
 using System.Security.Cryptography;
@@ -35,19 +36,18 @@ class WeakRandom
     }
 }
 ";
-            VerifyCSharpDiagnostic(code);
+            await VerifyCSharpDiagnostic(code);
         }
 
         [TestMethod]
-        public void RandomVulnerable1()
+        public async Task RandomVulnerable1()
         {
             var code = @"
 using System;
-using System.Security.Cryptography;
 
 class WeakRandom
 {
-    static String generateWeakToken()
+    static string generateWeakToken()
     {
         Random rnd = new Random();
         return rnd.Next().ToString(); //Vulnerable
@@ -59,9 +59,9 @@ class WeakRandom
             {
                 Id = "SG0005",
                 Severity = DiagnosticSeverity.Warning,
-            }.WithLocation(10, -1);
+            }.WithLocation(9, -1);
 
-            VerifyCSharpDiagnostic(code, expected);
+            await VerifyCSharpDiagnostic(code, expected);
         }
     }
 }

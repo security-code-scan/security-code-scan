@@ -6,7 +6,7 @@ using RoslynSecurityGuard.Analyzers;
 using RoslynSecurityGuard.CodeFixes;
 
 using System.Collections.Generic;
-
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using TestHelper;
 
@@ -32,7 +32,7 @@ namespace RoslynSecurityGuard.Test.Tests
         }
 
         [TestMethod]
-        public void CsrfVerifyTokenAdded()
+        public async Task CsrfVerifyTokenAdded()
         {
             var before = @"
 using System;
@@ -65,7 +65,7 @@ public class TestController
     }
 }
 ";
-            VerifyCSharpFix(before, after);
+            await VerifyCSharpFix(before, after);
         }
     }
 }

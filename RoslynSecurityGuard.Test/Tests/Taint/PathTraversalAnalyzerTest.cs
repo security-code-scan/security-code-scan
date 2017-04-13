@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers.Taint;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using System.Xml;
 using TestHelper;
 
@@ -25,7 +26,7 @@ namespace RoslynSecurityGuard.Test.Tests.Taint
 
 
         [TestMethod]
-        public void PathTraversalFound1()
+        public async Task PathTraversalFound1()
         {
             var test = @"
 using System.IO;
@@ -34,7 +35,7 @@ class PathTraversal
 {
     public static void Run(string input)
     {
-        return File.ReadAllText(input);
+        File.ReadAllText(input);
     }
 }
 ";
@@ -43,11 +44,11 @@ class PathTraversal
                 Id = "SG0018",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
         [TestMethod]
-        public void PathTraversalFound2()
+        public async Task PathTraversalFound2()
         {
             var test = @"
 using System.IO;
@@ -56,7 +57,7 @@ class PathTraversal
 {
     public static void Run(string input)
     {
-        return File.OpenRead(input);
+        File.OpenRead(input);
     }
 }
 ";
@@ -65,12 +66,12 @@ class PathTraversal
                 Id = "SG0018",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
 
         [TestMethod]
-        public void PathTraversalFound3()
+        public async Task PathTraversalFound3()
         {
             var test = @"
 using System.IO;
@@ -79,7 +80,7 @@ class PathTraversal
 {
     public static void Run(string input)
     {
-        return File.WriteAllText(input,""ouput.."");
+        File.WriteAllText(input,""ouput.."");
     }
 }
 ";
@@ -88,11 +89,11 @@ class PathTraversal
                 Id = "SG0018",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
         [TestMethod]
-        public void PathTraversalFound4()
+        public async Task PathTraversalFound4()
         {
             var test = @"
 using System.IO;
@@ -110,11 +111,11 @@ class PathTraversal
                 Id = "SG0018",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
         [TestMethod]
-        public void PathTraversalFound5()
+        public async Task PathTraversalFound5()
         {
             var test = @"
 using System.IO;
@@ -132,11 +133,11 @@ class PathTraversal
                 Id = "SG0018",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
         [TestMethod]
-        public void PathTraversalFound6()
+        public async Task PathTraversalFound6()
         {
             var test = @"
 using System.Xml;
@@ -155,11 +156,11 @@ class PathTraversal
                 Id = "SG0018",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
         [TestMethod]
-        public void FalsePositive1()
+        public async Task FalsePositive1()
         {
             var test = @"
 using System.IO;
@@ -168,11 +169,11 @@ class PathTraversal
 {
     public static void Run(string input)
     {
-        return File.OpenRead(""C:/static/fsociety.dat"");
+        File.OpenRead(""C:/static/fsociety.dat"");
     }
 }
 ";
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(test);
         }
     }
 }

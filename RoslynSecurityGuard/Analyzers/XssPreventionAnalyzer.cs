@@ -36,16 +36,16 @@ namespace RoslynSecurityGuard.Analyzers
             if (node == null) return;
 
             // Ensures that the analyzed class has a dependency to Controller
-            if (node.DescendantNodesAndSelf()
+            if (node
+                .DescendantNodesAndSelf()
                 .OfType<BaseListSyntax>()
-                .Where(childrenNode => childrenNode.ToString().Contains("Controller"))
-                .Count()
+                .Count(childrenNode => childrenNode.ToString().Contains("Controller"))
                 .Equals(0))
             { return; }
 
             IEnumerable<MethodDeclarationSyntax> methodsWithParameters = node.DescendantNodesAndSelf()
                 .OfType<MethodDeclarationSyntax>()
-                .Where(method => !method.ParameterList.Parameters.Count().Equals(0))
+                .Where(method => !method.ParameterList.Parameters.Count.Equals(0))
                 .Where(method => method.Modifiers.ToString().Equals("public"))
                 .Where(method => method.ReturnType.ToString().Equals("string"));
 
@@ -54,7 +54,7 @@ namespace RoslynSecurityGuard.Analyzers
                 SyntaxList<StatementSyntax> methodStatements = method.Body.Statements;
                 IEnumerable<InvocationExpressionSyntax> methodInvocations = method.DescendantNodes().OfType<InvocationExpressionSyntax>();
 
-                if (!methodStatements.Count().Equals(0))
+                if (!methodStatements.Count.Equals(0))
                 {
                     DataFlowAnalysis flow = ctx.SemanticModel.AnalyzeDataFlow(methodStatements.First(), methodStatements.Last());
 
@@ -72,9 +72,9 @@ namespace RoslynSecurityGuard.Analyzers
                             foreach (InvocationExpressionSyntax methodInvocation in methodInvocations)
                             {
                                 SeparatedSyntaxList<ArgumentSyntax> arguments = methodInvocation.ArgumentList.Arguments;
-                                if (!arguments.Count().Equals(0))
+                                if (!arguments.Count.Equals(0))
                                 {
-                                    if (arguments.First().ToString().Contains(sensibleVariable.Name.ToString()))
+                                    if (arguments.First().ToString().Contains(sensibleVariable.Name))
                                     {
                                         sensibleVariableIsEncoded = true;
                                     }

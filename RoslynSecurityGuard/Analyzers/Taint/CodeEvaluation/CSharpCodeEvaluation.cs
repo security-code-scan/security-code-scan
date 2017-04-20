@@ -83,7 +83,6 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         /// Statement are all segment separate by semi-colon.
         /// </summary>
         /// <param name="node"></param>
-        /// <param name="ctx"></param>
         /// <param name="state"></param>
         private VariableState VisitNode(SyntaxNode node, ExecutionState state)
         {
@@ -151,12 +150,9 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         /// Evaluate expression that contains a list of assignment.
         /// </summary>
         /// <param name="declaration"></param>
-        /// <param name="ctx"></param>
         /// <param name="state"></param>
         private VariableState VisitVariableDeclaration(VariableDeclarationSyntax declaration, ExecutionState state)
         {
-            var variables = declaration.Variables;
-
             VariableState lastState = new VariableState(VariableTaint.UNKNOWN);
 
             foreach (var variable in declaration.Variables)
@@ -228,7 +224,6 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             {
                 var memberAccess = (MemberAccessExpressionSyntax)expression;
                 var leftExpression = memberAccess.Expression;
-                var name = memberAccess.Name;
                 return VisitExpression(leftExpression, state);
             }
             else if (expression is ElementAccessExpressionSyntax)
@@ -253,9 +248,9 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                 var finalState = new VariableState(VariableTaint.SAFE);
 
                 var whenTrueState = VisitExpression(conditional.WhenTrue, state);
-                finalState.merge(whenTrueState);
+                finalState = finalState.merge(whenTrueState);
                 var whenFalseState = VisitExpression(conditional.WhenFalse, state);
-                finalState.merge(whenFalseState);
+                finalState = finalState.merge(whenFalseState);
 
                 return finalState;
             }

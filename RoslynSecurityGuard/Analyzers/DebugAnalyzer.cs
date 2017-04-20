@@ -41,7 +41,7 @@ namespace RoslynSecurityGuard.Analyzers
 
             string code = node.GetText().Lines[0].Text.ToString().Trim() + (node.GetText().Lines.Count > 1 ? "[...]" : "");
 
-            if (node.ChildNodes().Count() > 0)
+            if (node.ChildNodes().Any())
             {
                 code = "";
             }

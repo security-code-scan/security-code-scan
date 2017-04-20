@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers.Taint;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Tests
@@ -24,7 +25,7 @@ namespace RoslynSecurityGuard.Tests
         }
 
         [TestMethod]
-        public void VariableTransferSimple()
+        public async Task VariableTransferSimple()
         {
             var test = @"
 using System.Data.SqlClient;
@@ -44,11 +45,11 @@ namespace sample
     }
 }
 ";
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(test);
         }
 
         [TestMethod]
-        public void VariableConcatenation()
+        public async Task VariableConcatenation()
         {
             var test = @"
 using System.Data.SqlClient;
@@ -66,11 +67,11 @@ namespace sample
     }
 }
 ";
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(test);
         }
 
         [TestMethod]
-        public void VariableTransferWithConcatenation()
+        public async Task VariableTransferWithConcatenation()
         {
             var test = @"
 using System.Data.SqlClient;
@@ -91,11 +92,11 @@ namespace sample
 }
 ";
 
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(test);
         }
 
         [TestMethod]
-        public void VariableTransferUnsafe()
+        public async Task VariableTransferUnsafe()
         {
             var test = @"
 using System.Data.SqlClient;
@@ -120,12 +121,12 @@ namespace sample
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
 
         [TestMethod]
-        public void VariableConcatenationUnsafe()
+        public async Task VariableConcatenationUnsafe()
         {
             var test = @"
 using System.Data.SqlClient;
@@ -147,13 +148,13 @@ namespace sample
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
 
 
         [TestMethod]
-        public void VariableOverride() {
+        public async Task VariableOverride() {
             var test = @"
 using System.Data.SqlClient;
 
@@ -164,7 +165,9 @@ namespace sample
         public static void Run(string input)
         {
             {
+#pragma warning disable 219
                 string username = ""ignore_me"";
+#pragma warning restore 219
             }
             {
                 string username = input;
@@ -180,13 +183,13 @@ namespace sample
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
 
 
         [TestMethod]
-        public void VariableReuse()
+        public async Task VariableReuse()
         {
             var test = @"
 using System.Data.SqlClient;
@@ -212,7 +215,7 @@ namespace sample
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
 /*

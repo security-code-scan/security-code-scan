@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers.Taint;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Test.Tests
@@ -27,7 +28,7 @@ namespace RoslynSecurityGuard.Test.Tests
         }
 
         [TestMethod]
-        public void Condition1()
+        public async Task Condition1()
         {
             var test = @"
 using System.Data.SqlClient;
@@ -42,7 +43,7 @@ namespace sample
             var variable1 = username;
             var variable2 = variable1;
 
-            if(variable2 != '') {
+            if(variable2 != """") {
                 new SqlCommand(variable2);
             }
         }
@@ -54,11 +55,11 @@ namespace sample
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test,expected);
+            await VerifyCSharpDiagnostic(test,expected);
         }
 
         [TestMethod]
-        public void Condition2()
+        public async Task Condition2()
         {
             var test = @"
 using System.Data.SqlClient;
@@ -73,7 +74,7 @@ namespace sample
             var variable1 = username;
             var variable2 = variable1;
 
-            if(variable2 != '')
+            if(variable2 != """")
                 new SqlCommand(variable2);
 
         }
@@ -86,12 +87,12 @@ namespace sample
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
 
         [TestMethod]
-        public void Loop1()
+        public async Task Loop1()
         {
             var test = @"
 using System.Data.SqlClient;
@@ -119,12 +120,12 @@ namespace sample
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
 
         [TestMethod]
-        public void Loop2()
+        public async Task Loop2()
         {
             var test = @"
 using System.Data.SqlClient;
@@ -150,7 +151,7 @@ namespace sample
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers.Taint;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Test.Tests.Taint
@@ -22,7 +23,7 @@ namespace RoslynSecurityGuard.Test.Tests.Taint
         }
 
         [TestMethod]
-        public void TransferStringFormatSafe()
+        public async Task TransferStringFormatSafe()
         {
             var test = @"
 using System;
@@ -39,11 +40,11 @@ class SqlTransferTesting
     }
 }
 ";
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(test);
         }
 
         [TestMethod]
-        public void TransferStringFormatUnSafe1()
+        public async Task TransferStringFormatUnSafe1()
         {
             var test = @"
 using System;
@@ -68,11 +69,11 @@ class SqlTransferTesting
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
         [TestMethod]
-        public void TransferStringFormatUnSafe2()
+        public async Task TransferStringFormatUnSafe2()
         {
             var test = @"
 using System;
@@ -96,15 +97,14 @@ class SqlTransferTesting
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
 
         [TestMethod]
-        public void TransferStringInterpolatedSafe()
+        public async Task TransferStringInterpolatedSafe()
         {
             var test = @"
-using System;
 using System.Data.SqlClient;
 
 class SqlTransferTesting
@@ -120,14 +120,13 @@ class SqlTransferTesting
 ";
 
             var yolo = $"123 {test.ToString()}";
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(test);
         }
 
         [TestMethod]
-        public void TransferStringInterpolatedUnSafe()
+        public async Task TransferStringInterpolatedUnSafe()
         {
             var test = @"
-using System;
 using System.Data.SqlClient;
 
 class SqlTransferTesting
@@ -148,7 +147,7 @@ class SqlTransferTesting
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
     }
     

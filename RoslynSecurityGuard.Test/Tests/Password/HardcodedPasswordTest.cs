@@ -5,6 +5,7 @@ using RoslynSecurityGuard.Analyzers.Taint;
 
 using System.Collections.Generic;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Tests
@@ -25,11 +26,10 @@ namespace RoslynSecurityGuard.Tests
         }
 
         [TestMethod]
-        public void HardCodePasswordDerivedBytes()
+        public async Task HardCodePasswordDerivedBytes()
         {
 
             var test = @"
-using System.Collections.Generic;
 using System.Security.Cryptography;
 
 namespace VulnerableApp
@@ -49,16 +49,15 @@ namespace VulnerableApp
                 Id = "SG0015",
                 Severity = DiagnosticSeverity.Warning
             };
-            VerifyCSharpDiagnostic(test, expected );
+            await VerifyCSharpDiagnostic(test, expected );
         }
 
 
         [TestMethod]
-        public void HardCodePasswordDerivedBytesFalsePositive()
+        public async Task HardCodePasswordDerivedBytesFalsePositive()
         {
 
             var test = @"
-using System.Collections.Generic;
 using System.Security.Cryptography;
 
 namespace VulnerableApp
@@ -72,7 +71,7 @@ namespace VulnerableApp
     }
 }
 ";
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(test);
         }
 
         private void sandbox()

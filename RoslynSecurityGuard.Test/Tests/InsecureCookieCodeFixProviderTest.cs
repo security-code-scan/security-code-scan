@@ -34,7 +34,7 @@ namespace RoslynSecurityGuard.Test.Tests
         }
 
         [TestMethod]
-        public void VerifyBothFlagAdded()
+        public async Task VerifyBothFlagAdded()
         {
             var before = @"
 using System;
@@ -68,11 +68,11 @@ namespace VulnerableApp
     }
 }
 ";
-            VerifyCSharpFix(before, after);
+            await VerifyCSharpFix(before, after);
         }
 
         [TestMethod]
-        public void VerifySecureFlagAdded()
+        public async Task VerifySecureFlagAdded()
         {
             var before = @"
 using System;
@@ -107,11 +107,11 @@ namespace VulnerableApp
     }
 }
 ";
-            VerifyCSharpFix(before, after);
+            await VerifyCSharpFix(before, after);
         }
 
         [TestMethod]
-        public void VerifyHttpOnlyFlagAdded()
+        public async Task VerifyHttpOnlyFlagAdded()
         {
             var before = @"
 using System;
@@ -146,7 +146,7 @@ namespace VulnerableApp
     }
 }
 ";
-            VerifyCSharpFix(before, after);
+            await VerifyCSharpFix(before, after);
         }
     }
 }

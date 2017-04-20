@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Test.Tests
@@ -17,17 +18,13 @@ namespace RoslynSecurityGuard.Test.Tests
         }
 
         [TestMethod]
-        public void WeakCipherModeECB()
+        public async Task WeakCipherModeECB()
         {
             var test = @"
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-
 
 class WeakCipherMode
     {
@@ -37,7 +34,7 @@ class WeakCipherMode
             DESCryptoServiceProvider desProvider = new DESCryptoServiceProvider();
             desProvider.Mode = CipherMode.ECB;
             desProvider.Padding = PaddingMode.PKCS7;
-            desProvider.Key = Encoding.ASCII.GetBytes('d66cf8');
+            desProvider.Key = Encoding.ASCII.GetBytes(""d66cf8"");
             using (MemoryStream stream = new MemoryStream())
             {
                 using (CryptoStream cs = new CryptoStream(stream, desProvider.CreateEncryptor(), CryptoStreamMode.Write))
@@ -56,21 +53,17 @@ class WeakCipherMode
 
             };
 
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(test);
         }
 
         [TestMethod]
-        public void WeakCipherModeOFB()
+        public async Task WeakCipherModeOFB()
         {
             var test = @"
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-
 
 class WeakCipherMode
     {
@@ -80,7 +73,7 @@ class WeakCipherMode
             DESCryptoServiceProvider desProvider = new DESCryptoServiceProvider();
             desProvider.Mode = CipherMode.OFB;
             desProvider.Padding = PaddingMode.PKCS7;
-            desProvider.Key = Encoding.ASCII.GetBytes('e5d66cf8');
+            desProvider.Key = Encoding.ASCII.GetBytes(""e5d66cf8"");
             using (MemoryStream stream = new MemoryStream())
             {
                 using (CryptoStream cs = new CryptoStream(stream, desProvider.CreateEncryptor(), CryptoStreamMode.Write))
@@ -99,62 +92,60 @@ class WeakCipherMode
 
             };
 
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(test);
         }
 
         [TestMethod]
-        public void WeakCipherModeCBC()
+        public async Task WeakCipherModeCBC()
         {
             var test = @"
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-
 
 class WeakCipherMode
-    {
-public static byte[] EncryptStringToBytes_Aes(string plainText, byte[] Key, byte[] IV)
 {
-    // Check arguments.
-    if (plainText == null || plainText.Length <= 0)
-        throw new ArgumentNullException('plainText');
-    if (Key == null || Key.Length <= 0)
-                throw new ArgumentNullException('Key');
-            if (IV == null || IV.Length <= 0)
-                throw new ArgumentNullException('IV');
-            byte[] encrypted;
-            // Create an AesCryptoServiceProvider object
-            // with the specified key and IV.
-            using (AesCryptoServiceProvider aesAlg = new AesCryptoServiceProvider())
+    public static byte[] EncryptStringToBytes_Aes(string plainText, byte[] Key, byte[] IV)
+    {
+        // Check arguments.
+        if (plainText == null || plainText.Length <= 0)
+            throw new ArgumentNullException(""plainText"");
+        if (Key == null || Key.Length <= 0)
+            throw new ArgumentNullException(""Key"");
+
+        if (IV == null || IV.Length <= 0)
+            throw new ArgumentNullException(""IV"");
+        byte[] encrypted;
+        // Create an AesCryptoServiceProvider object
+        // with the specified key and IV.
+        using (AesCryptoServiceProvider aesAlg = new AesCryptoServiceProvider())
+        {
+            aesAlg.Key = Key;
+            aesAlg.IV = IV;
+            aesAlg.Mode = CipherMode.CBC;
+            aesAlg.Padding = PaddingMode.PKCS7;
+            // Create a decrytor to perform the stream transform.
+            ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
+
+            // Create the streams used for encryption.
+            using (MemoryStream msEncrypt = new MemoryStream())
             {
-                aesAlg.Key = Key;
-                aesAlg.IV = IV;
-                aesAlg.Mode = CipherMode.CBC;
-                aesAlg.Padding = PaddingMode.PKCS7;
-                // Create a decrytor to perform the stream transform.
-                ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
-
-                // Create the streams used for encryption.
-                using (MemoryStream msEncrypt = new MemoryStream())
+                using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
                 {
-                    using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+                    using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
                     {
-                        using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
-                        {
 
-                            //Write all data to the stream.
-                            swEncrypt.Write(plainText);
-                        }
-                        encrypted = msEncrypt.ToArray();
+                        //Write all data to the stream.
+                        swEncrypt.Write(plainText);
                     }
+                    encrypted = msEncrypt.ToArray();
                 }
             }
         }
-    }";
+
+        return encrypted;
+    }
+}";
             var expected = new DiagnosticResult
             {
                 Id = "SG0014",
@@ -162,7 +153,7 @@ public static byte[] EncryptStringToBytes_Aes(string plainText, byte[] Key, byte
 
             };
 
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(test);
         }
 
 

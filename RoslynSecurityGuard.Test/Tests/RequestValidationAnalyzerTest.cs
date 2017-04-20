@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using TestHelper;
 
@@ -15,13 +16,17 @@ namespace RoslynSecurityGuard.Test.Tests
         {
             return new[] { new RequestValidationAnalyzer() };
         }
-        
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
+        {
+            return new[] { MetadataReference.CreateFromFile(typeof(ValidateInputAttribute).Assembly.Location) };
+        }
+
         [TestMethod]
-        public void DetectAnnotationValidateInput()
+        public async Task DetectAnnotationValidateInput()
         {
             var test = @"
-using System;
-using System.Diagnostics;
+using System.Web.Mvc;
 
 namespace VulnerableApp
 {
@@ -42,7 +47,7 @@ namespace VulnerableApp
                 Id = "SG0017",
                 Severity = DiagnosticSeverity.Warning
             };
-            VerifyCSharpDiagnostic(test,expected);
+            await VerifyCSharpDiagnostic(test,expected);
         }
 
         [ValidateInput(false)]

@@ -62,7 +62,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         }
 
         public VariableState GetValueByIdentifier(string identifier) {
-            VariableState value = new VariableState(VariableTaint.UNKNOWN);
+            VariableState value = new VariableState(null, VariableTaint.UNKNOWN);
             Variables.TryGetValue(identifier, out value);
             return value;
         }
@@ -72,7 +72,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         /// </summary>
         /// <param name="node">Expression to evaluate</param>
         /// <returns>The resolved symbol with the complete class name and method name.</returns>
-        public ISymbol GetSymbol(ExpressionSyntax node) {
+        public ISymbol GetSymbol(SyntaxNode node) {
             return AnalysisContext.SemanticModel.GetSymbolInfo(node).Symbol;
         }
 

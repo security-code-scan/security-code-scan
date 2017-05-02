@@ -57,16 +57,14 @@ namespace RoslynSecurityGuard.Analyzers
                         var symbol = state.GetSymbol(objCreation);
                         if (AnalyzerUtil.SymbolMatch(symbol, "HttpCookie", ".ctor"))
                         {
-                            //It will override the initial state
-                            state.AddNewValue(variableDecorator.Identifier.Text, //
-                                new VariableState(VariableTaint.SAFE) //
-                                    .AddTag(VariableTag.HttpCookie) //
-                                    .AddSyntaxNode(variable));
+							//It will override the initial state
+							state.AddNewValue(variableDecorator.Identifier.Text, //
+								new VariableState(variable, VariableTaint.SAFE) //
+									.AddTag(VariableTag.HttpCookie));
                         }
                     }
                 }
-            }
-            
+            }            
         }
 
 

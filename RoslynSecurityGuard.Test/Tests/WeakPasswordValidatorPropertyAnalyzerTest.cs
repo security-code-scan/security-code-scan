@@ -38,7 +38,7 @@ namespace RoslynSecurityGuard.Test.Tests
 		/// Test case where the RequiredLength field has an accepted value.
 		/// </summary>
 		[TestMethod]
-		public void PasswordValidatorDeclarationOK()
+		public async void PasswordValidatorDeclarationOK()
 		{
 			var test = @"
 				using Microsoft.AspNet.Identity;
@@ -66,7 +66,7 @@ namespace RoslynSecurityGuard.Test.Tests
 					}
 				}";
 			
-			VerifyCSharpDiagnostic(test);
+			await VerifyCSharpDiagnostic(test);
 		}
 
 		/// <summary>
@@ -151,7 +151,7 @@ namespace RoslynSecurityGuard.Test.Tests
 		/// However the value of the variable is not tested.
 		/// </summary>
 		[TestMethod]
-		public void PasswordValidatorDeclarationWithVariable()
+		public async void PasswordValidatorDeclarationWithVariable()
 		{
 			var test = @"
 				using Microsoft.AspNet.Identity;
@@ -179,14 +179,14 @@ namespace RoslynSecurityGuard.Test.Tests
 					}
 				}";
 
-			VerifyCSharpDiagnostic(test);
+			await VerifyCSharpDiagnostic(test);
 		}
 
 		/// <summary>
 		/// Test case where some properties are set outside of the constructor
 		/// </summary>
 		[TestMethod]
-		public void PasswordValidatorOutOfDeclarationOK()
+		public async void PasswordValidatorOutOfDeclarationOK()
 		{
 			var test = @"
 				using Microsoft.AspNet.Identity;
@@ -210,14 +210,14 @@ namespace RoslynSecurityGuard.Test.Tests
 					}
 				}";
 						
-			VerifyCSharpDiagnostic(test);
+			await VerifyCSharpDiagnostic(test);
 		}
 
 		/// <summary>
 		/// Test case where the PasswordValidator doesn't have enough properties set
 		/// </summary>
 		[TestMethod]
-		public void PasswordValidatorNotEnoughProperties()
+		public async void PasswordValidatorNotEnoughProperties()
 		{
 			var test = @"
 				using Microsoft.AspNet.Identity;
@@ -246,14 +246,14 @@ namespace RoslynSecurityGuard.Test.Tests
 				Severity = DiagnosticSeverity.Warning
 			};
 
-			VerifyCSharpDiagnostic(test, expected);
+			await VerifyCSharpDiagnostic(test, expected);
 		}
 
 		/// <summary>
 		/// Test case where the RequiredLength isn't set
 		/// </summary>
 		[TestMethod]
-		public void PasswordValidatorNoRequiredLengthProperty()
+		public async void PasswordValidatorNoRequiredLengthProperty()
 		{
 			var test = @"
 				using Microsoft.AspNet.Identity;
@@ -285,7 +285,7 @@ int test2 = 3;
 				Severity = DiagnosticSeverity.Warning
 			};
 
-			VerifyCSharpDiagnostic(test, expected);
+			await VerifyCSharpDiagnostic(test, expected);
 		}
 	}
 }

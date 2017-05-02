@@ -67,7 +67,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             if (Variables.TryGetValue(identifier, out value))
                 return value;
 
-            return new VariableState(VariableTaint.UNKNOWN);
+            return new VariableState(value.node, VariableTaint.UNKNOWN);
         }
 
         /// <summary>

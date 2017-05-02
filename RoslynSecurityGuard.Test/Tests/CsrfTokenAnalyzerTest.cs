@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using TestHelper;
 
@@ -22,11 +23,9 @@ namespace RoslynSecurityGuard.Test.Tests
         }
         
         [TestMethod]
-        public void CsrfDetectMissingToken()
+        public async Task CsrfDetectMissingToken()
         {
             var test = @"
-                using System;
-                using System.Diagnostics;
                 using System.Web.Mvc;
 
                 namespace VulnerableApp
@@ -48,16 +47,14 @@ namespace RoslynSecurityGuard.Test.Tests
                 Severity = DiagnosticSeverity.Warning
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
 
         [TestMethod]
-        public void CsrfValidateAntiForgeryTokenPresent()
+        public async Task CsrfValidateAntiForgeryTokenPresent()
         {
             var test = @"
-                using System;
-                using System.Diagnostics;
                 using System.Web.Mvc;
 
                 namespace VulnerableApp
@@ -74,15 +71,13 @@ namespace RoslynSecurityGuard.Test.Tests
                 }
                 ";
 
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(test);
         }
 
         [TestMethod]
-        public void CsrfValidateAntiForgeryTokenPresentWithInlinedAttributes()
+        public async Task CsrfValidateAntiForgeryTokenPresentWithInlinedAttributes()
         {
             var test = @"
-                using System;
-                using System.Diagnostics;
                 using System.Web.Mvc;
 
                 namespace VulnerableApp
@@ -97,7 +92,7 @@ namespace RoslynSecurityGuard.Test.Tests
                 }
                 ";
 
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(test);
         }
     }
 }

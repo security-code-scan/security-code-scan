@@ -61,10 +61,13 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             }
         }
 
-        public VariableState GetValueByIdentifier(string identifier) {
-            VariableState value = new VariableState(null, VariableTaint.UNKNOWN);
-            Variables.TryGetValue(identifier, out value);
-            return value;
+        public VariableState GetValueByIdentifier(string identifier)
+        {
+            VariableState value;
+            if (Variables.TryGetValue(identifier, out value))
+                return value;
+
+            return new VariableState(VariableTaint.UNKNOWN);
         }
 
         /// <summary>

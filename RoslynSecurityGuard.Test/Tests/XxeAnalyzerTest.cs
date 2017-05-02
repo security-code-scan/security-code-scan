@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
+using RoslynSecurityGuard.Analyzers.Taint;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Tests
@@ -22,10 +24,9 @@ namespace RoslynSecurityGuard.Tests
         }
 
         [TestMethod]
-        public void XxeFalsePositive1()
+        public async Task XxeFalsePositive1()
         {
             var code = @"
-using System;
 using System.Xml;
 
 class Xxe
@@ -38,14 +39,13 @@ class Xxe
     }
 }";
 
-            VerifyCSharpDiagnostic(code);
+            await VerifyCSharpDiagnostic(code);
         }
 
         [TestMethod]
-        public void XxeFalsePositive2()
+        public async Task XxeFalsePositive2()
         {
             var code = @"
-using System;
 using System.Xml;
 
 class Xxe
@@ -53,21 +53,22 @@ class Xxe
     public static void parseUpload(string inputXml)
     {
         XmlReaderSettings settings = new XmlReaderSettings();
+#pragma warning disable 618
         settings.ProhibitDtd = true;
+#pragma warning restore 618
         XmlReader reader = XmlReader.Create(inputXml, settings);
 
     }
 }";
 
-            VerifyCSharpDiagnostic(code);
+            await VerifyCSharpDiagnostic(code);
         }
 
 
         [TestMethod]
-        public void XxeFalsePositive3()
+        public async Task XxeFalsePositive3()
         {
             var code = @"
-using System;
 using System.Xml;
 
 class Xxe
@@ -81,14 +82,13 @@ class Xxe
     }
 }";
 
-            VerifyCSharpDiagnostic(code);
+            await VerifyCSharpDiagnostic(code);
         }
 
         [TestMethod]
-        public void XxeFalsePositive4()
+        public async Task XxeFalsePositive4()
         {
             var code = @"
-using System;
 using System.Xml;
 
 class Xxe
@@ -102,14 +102,13 @@ class Xxe
     }
 }";
 
-            VerifyCSharpDiagnostic(code);
+            await VerifyCSharpDiagnostic(code);
         }
 
         [TestMethod]
-        public void XxeVulnerable1()
+        public async Task XxeVulnerable1()
         {
             var code = @"
-using System;
 using System.Xml;
 
 class Xxe
@@ -117,7 +116,9 @@ class Xxe
     public static void parseUpload(string inputXml)
     {
         XmlReaderSettings settings = new XmlReaderSettings();
+#pragma warning disable 618
         settings.ProhibitDtd = false;
+#pragma warning restore 618
         XmlReader reader = XmlReader.Create(inputXml, settings);
 
     }
@@ -126,14 +127,13 @@ class Xxe
             var expected = new[] {
                 new DiagnosticResult {Id = "SG0007",Severity = DiagnosticSeverity.Warning}};
 
-            VerifyCSharpDiagnostic(code, expected);
+            await VerifyCSharpDiagnostic(code, expected);
         }
 
         [TestMethod]
-        public void XxeVulnerable2()
+        public async Task XxeVulnerable2()
         {
             var code = @"
-using System;
 using System.Xml;
 
 class Xxe
@@ -149,7 +149,42 @@ class Xxe
             var expected = new[] {
                 new DiagnosticResult {Id = "SG0007",Severity = DiagnosticSeverity.Warning}};
 
-            VerifyCSharpDiagnostic(code, expected);
+            await VerifyCSharpDiagnostic(code, expected);
+        }
+    }
+
+    [TestClass]
+    public class XxeAnalyzerTest2 : DiagnosticVerifier
+    {
+        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
+        {
+            return new DiagnosticAnalyzer[] { new XxeAnalyzer(), new TaintAnalyzer() };
+        }
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
+        {
+            return new[] { MetadataReference.CreateFromFile(typeof(XmlNode).Assembly.Location) };
+        }
+
+        [TestMethod]
+        public async Task FalsePositive1()
+        {
+            var test = @"
+using System.IO;
+using System.Xml;
+
+class PathTraversal
+{
+    public static void Run(string strText)
+    {
+        using (var reader = XmlReader.Create(new StringReader(strText)))
+        {
+            reader.Read();
+        }
+    }
+}
+";
+            await VerifyCSharpDiagnostic(test);
         }
     }
 }

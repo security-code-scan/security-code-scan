@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Tests
@@ -17,7 +18,7 @@ namespace RoslynSecurityGuard.Tests
         }
 
         [TestMethod]
-        public void WeakHashingFalsePositive()
+        public async Task WeakHashingFalsePositive()
         {
             var test = @"
 using System;
@@ -42,11 +43,11 @@ class Sha256OK
         return sBuilder.ToString();
     }
 }";
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(test);
         }
 
         [TestMethod]
-        public void WeakHashingVulnerableMd5()
+        public async Task WeakHashingVulnerableMd5()
         {
             var test = @"
 using System;
@@ -80,11 +81,11 @@ class WeakHashing
                 Severity = DiagnosticSeverity.Warning
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
         [TestMethod]
-        public void WeakHashingVulnerableSha1()
+        public async Task WeakHashingVulnerableSha1()
         {
             var test = @"
 using System;
@@ -118,7 +119,7 @@ class WeakHashing
                 Severity = DiagnosticSeverity.Warning
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
     }
 }

@@ -101,7 +101,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             }
             catch (KeyNotFoundException) {
                 if(mandatory)
-                    throw new Exception(string.Format("Unable to load the property {} in node {}",field,node.Key));
+                    throw new Exception(string.Format("Unable to load the property {0} in node {1}",field,node.Key));
                 return defaultValue;
             }
         }
@@ -116,7 +116,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         /// Equivalent to : 
         /// <code>Array.ConvertAll(arrayString, int.Parse)</code>
         /// </summary>
-        /// <param name="symbol"></param>
+        /// <param name="arrayStrings"></param>
         /// <returns></returns>
         private int[] convertToIntArray(string[] arrayStrings) {
             if (arrayStrings.Length == 1 && arrayStrings[0].Trim() == "")
@@ -142,15 +142,17 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
             string key = symbol.ContainingType + "|" + symbol.Name;
 
-            MethodBehavior behavior = null;
-            methodInjectableArguments.TryGetValue(key, out behavior);
+            MethodBehavior behavior;
+            if (methodInjectableArguments.TryGetValue(key, out behavior))
+                return behavior;
 
-            if (behavior == null && symbol.ToString().Contains("(")) { //Find a signature with parameter type discrimator
+            if (symbol.ToString().Contains("(")) { //Find a signature with parameter type discrimator
                 string keyExtended = symbol.ContainingType.ContainingNamespace + "." + symbol.ContainingType.Name + "|" + symbol.Name + "|" + ExtractParameterSignature(symbol);
-                methodInjectableArguments.TryGetValue(keyExtended, out behavior);
+                if (methodInjectableArguments.TryGetValue(keyExtended, out behavior))
+                    return behavior;
             }
 
-            return behavior;
+            return null;
         }
 
         private string ExtractParameterSignature(ISymbol symbol) {

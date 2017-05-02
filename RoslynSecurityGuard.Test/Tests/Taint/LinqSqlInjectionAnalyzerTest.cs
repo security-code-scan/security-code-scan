@@ -5,6 +5,7 @@ using RoslynSecurityGuard.Analyzers;
 using RoslynSecurityGuard.Analyzers.Taint;
 using System.Collections.Generic;
 using System.Data.Linq;
+using System.Threading.Tasks;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Tests
@@ -25,7 +26,7 @@ namespace RoslynSecurityGuard.Tests
         }
 
         [TestMethod]
-        public void LinqInjectionFalsePositiveWithGeneric()
+        public async Task LinqInjectionFalsePositiveWithGeneric()
         {
             var test = @"
 using System.Data.Linq;
@@ -35,7 +36,7 @@ namespace VulnerableApp
 
     public class LyncInjectionFP
     {
-        public static int Main(DataContext ctx,string city) {
+        public static int Run(DataContext ctx,string city) {
             var users = ctx.ExecuteQuery<UserEntity>(@""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
                 Address, City, Region, PostalCode, Country, Phone, Fax
                 FROM dbo.Users"");
@@ -49,11 +50,11 @@ namespace VulnerableApp
     }
 }
 ";
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(test);
         }
 
         [TestMethod]
-        public void LinqInjectionVulnerableWithGeneric()
+        public async Task LinqInjectionVulnerableWithGeneric()
         {
             var test = @"
 using System.Data.Linq;
@@ -63,7 +64,7 @@ namespace VulnerableApp
 
     public class LyncInjectionTP
     {
-        public static int Main(DataContext ctx,string city) {
+        public static int Run(DataContext ctx,string city) {
             var users = ctx.ExecuteQuery<UserEntity>(@""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
                 Address, City, Region, PostalCode, Country, Phone, Fax
                 FROM dbo.Users
@@ -85,13 +86,14 @@ namespace VulnerableApp
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
 
         [TestMethod]
-        public void LinqInjectionFalsePositiveWithoutGeneric()
+        public async Task LinqInjectionFalsePositiveWithoutGeneric()
         {
             var test = @"
+using System;
 using System.Data.Linq;
 
 namespace VulnerableApp
@@ -99,8 +101,8 @@ namespace VulnerableApp
 
     public class LyncInjectionTP
     {
-        public static int Main(DataContext ctx,string city) {
-            var users = ctx.ExecuteQuery(typeof(UserEntity),@""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
+        public static int Run(DataContext ctx,string city) {
+            var users = ctx.ExecuteQuery(typeof(String),@""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
                 Address, City, Region, PostalCode, Country, Phone, Fax
                 FROM dbo.Users
                 WHERE  City = 'Montreal'"");
@@ -117,23 +119,23 @@ namespace VulnerableApp
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(test);
         }
 
 
         [TestMethod]
-        public void LinqInjectionVulnerableWithoutGeneric()
+        public async Task LinqInjectionVulnerableWithoutGeneric()
         {
             var test = @"
+using System;
 using System.Data.Linq;
 
 namespace VulnerableApp
 {
-
     public class LyncInjectionTP
     {
-        public static int Main(DataContext ctx,string city) {
-            var users = ctx.ExecuteQuery(typeof(UserEntity),@""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
+        public static int Run(DataContext ctx,string city) {
+            var users = ctx.ExecuteQuery(typeof(String),@""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
                 Address, City, Region, PostalCode, Country, Phone, Fax
                 FROM dbo.Users
                 WHERE  City = '"" + city+ ""'"");
@@ -150,7 +152,7 @@ namespace VulnerableApp
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(test, expected);
         }
     }
 }

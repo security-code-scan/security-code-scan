@@ -73,7 +73,7 @@ namespace RoslynSecurityGuard.Test.Tests
 		/// Test case where the RequiredLength field is too small inside the declaration.
 		/// </summary>
 		[TestMethod]
-		public void PasswordValidatorDeclarationTooSmall()
+		public async Task PasswordValidatorDeclarationTooSmall()
 		{
 			var test = @"
 				using Microsoft.AspNet.Identity;
@@ -105,14 +105,14 @@ namespace RoslynSecurityGuard.Test.Tests
 				Severity = DiagnosticSeverity.Warning
 			};
 
-			VerifyCSharpDiagnostic(test, expected);
+			await VerifyCSharpDiagnostic(test, expected);
 		}
 
 		/// <summary>
 		/// Test case where the RequiredLength field is too small but the value is affected outside of the declaration.
 		/// </summary>
 		[TestMethod]
-		public void PasswordValidatorTooShort()
+		public async Task PasswordValidatorTooShort()
 		{
 			var test = @"
 				using Microsoft.AspNet.Identity;
@@ -143,7 +143,7 @@ namespace RoslynSecurityGuard.Test.Tests
 				Severity = DiagnosticSeverity.Warning
 			};
 
-			VerifyCSharpDiagnostic(test, expected);
+			await VerifyCSharpDiagnostic(test, expected);
 		}
 
 		/// <summary>

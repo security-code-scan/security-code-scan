@@ -68,8 +68,16 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         
         public static void RegisterExtension(CSharpTaintAnalyzerExtension extension)
         {
-            extensions.Add(extension);
-            CSharpCodeEvaluation.extensions = extensions;
+			// Must be executed in a synchronous way for testing purposes
+			lock (extensions)
+			{
+				// Makes sure an extension of the same time isn't already registered before adding it to the list
+				if (!extensions.Any(x => x.GetType().FullName.Equals((extension).GetType().FullName)))
+				{
+					extensions.Add(extension);
+					CSharpCodeEvaluation.extensions = extensions;
+				}
+			}	
         }
 
 
@@ -78,6 +86,5 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             csharpCodeEval.VisitMethods(obj);
             //vbCodeEval.VisitMethods(obj);
         }
-
     }
 }

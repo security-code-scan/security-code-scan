@@ -173,6 +173,11 @@ SG0032:
     description: The minimal length of a password is recommended to be set at least to 8.
 
 SG0033:
-    class: WeakPasswordValidatorAnalyzer
-    title: Not enough properties set in PasswordValidator
+    class: WeakPasswordValidatorPropertyAnalyzer
+    title: Not enough properties set in PasswordValidator declaration.
     description: "PasswordValidator should have at least two requirements for better security (RequiredLength, RequireDigit, RequireLowercase, RequireUppercase and/or RequireNonLetterOrDigit)."
+
+SG0034:
+    class: WeakPasswordValidatorPropertyAnalyzer
+    title: The RequiredLength property must be set.
+    description: The RequiredLength property must be set with a minimum value of 8.

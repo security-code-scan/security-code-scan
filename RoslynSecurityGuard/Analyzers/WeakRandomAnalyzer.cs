@@ -1,8 +1,12 @@
 ﻿using System.Collections.Immutable;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using VB = Microsoft.CodeAnalysis.VisualBasic;
+using CSharp = Microsoft.CodeAnalysis.CSharp;
+using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
+using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
+
 using RoslynSecurityGuard.Analyzers.Utils;
 using RoslynSecurityGuard.Analyzers.Locale;
 
@@ -18,12 +22,26 @@ namespace RoslynSecurityGuard.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(VisitSyntaxNode, SyntaxKind.InvocationExpression);
+            context.RegisterSyntaxNodeAction(VisitSyntaxNode, CSharp.SyntaxKind.InvocationExpression);
+            context.RegisterSyntaxNodeAction(VisitSyntaxNode, VB.SyntaxKind.InvocationExpression);
         }
 
         private static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx)
         {
-            InvocationExpressionSyntax node = ctx.Node as InvocationExpressionSyntax;
+            SyntaxNode node;
+            SyntaxNode expression;
+
+            if (ctx.Node.Language == LanguageNames.CSharp) 
+            {
+                node = ctx.Node as CSharpSyntax.InvocationExpressionSyntax;
+                expression = ((CSharpSyntax.InvocationExpressionSyntax)node)?.Expression;
+            }
+            else
+            {
+                node = ctx.Node as VBSyntax.InvocationExpressionSyntax;
+                expression = ((VBSyntax.InvocationExpressionSyntax)node)?.Expression;
+            }
+
             if (node != null)
             {
                 var symbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
@@ -33,7 +51,7 @@ namespace RoslynSecurityGuard.Analyzers
                     AnalyzerUtil.SymbolMatch(symbol, type: "Random", name: "NextBytes") ||
                     AnalyzerUtil.SymbolMatch(symbol, type: "Random", name: "NextDouble"))
                 {
-                    var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation());
+                    var diagnostic = Diagnostic.Create(Rule, expression.GetLocation());
                     ctx.ReportDiagnostic(diagnostic);
                 }
             }

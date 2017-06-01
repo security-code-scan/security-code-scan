@@ -12,7 +12,7 @@ namespace RoslynSecurityGuard.Test.Tests.Taint
     public class TaintTransferTest : DiagnosticVerifier
     {
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new List<DiagnosticAnalyzer> { new TaintAnalyzer() };
         }
@@ -25,7 +25,7 @@ namespace RoslynSecurityGuard.Test.Tests.Taint
         [TestMethod]
         public async Task TransferStringFormatSafe()
         {
-            var test = @"
+            var cSharpTest = @"
 using System;
 using System.Data.SqlClient;
 
@@ -40,13 +40,27 @@ class SqlTransferTesting
     }
 }
 ";
-            await VerifyCSharpDiagnostic(test);
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Class SqlTransferTesting
+    Public Shared Sub Run()
+        Dim tableName As String = ""table_name""
+
+        Dim safeQuery As String = String.Format(""Select * FROM {0}"", tableName)
+		Dim com As New SqlCommand(safeQuery)
+	End Sub
+End Class
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            
         }
 
         [TestMethod]
         public async Task TransferStringFormatUnSafe1()
         {
-            var test = @"
+            var cSharpTest = @"
 using System;
 using System.Data.SqlClient;
 
@@ -61,21 +75,32 @@ class SqlTransferTesting
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
 
+Class SqlTransferTesting
+    Public Shared Sub Run(input As String)
+        Dim tableName As String = input
 
+        Dim safeQuery As String = String.Format(""Select * FROM {0}"", tableName)
+		Dim com As New SqlCommand(safeQuery)
+	End Sub
+End Class
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(test, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
         }
 
         [TestMethod]
         public async Task TransferStringFormatUnSafe2()
         {
-            var test = @"
+            var cSharpTest = @"
 using System;
 using System.Data.SqlClient;
 
@@ -90,6 +115,18 @@ class SqlTransferTesting
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Class SqlTransferTesting
+    Public Shared Sub Run(input As String)
+        Dim query As String = input
+
+        Dim safeQuery As String = String.Format(query, ""test"")
+		Dim com As New SqlCommand(safeQuery)
+	End Sub
+End Class
+";
 
             var expected = new DiagnosticResult
             {
@@ -97,14 +134,15 @@ class SqlTransferTesting
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(test, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
         }
 
 
         [TestMethod]
         public async Task TransferStringInterpolatedSafe()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Data.SqlClient;
 
 class SqlTransferTesting
@@ -119,14 +157,27 @@ class SqlTransferTesting
 }
 ";
 
-            var yolo = $"123 {test.ToString()}";
-            await VerifyCSharpDiagnostic(test);
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Class SqlTransferTesting
+    Public Shared Sub Run(input As String)
+        Dim query As String = input
+
+        Dim safeQuery As String = ""SELECT* FROM test""
+        Dim com As New SqlCommand(safeQuery)
+	End Sub
+End Class
+";
+
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest);
         }
 
         [TestMethod]
         public async Task TransferStringInterpolatedUnSafe()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Data.SqlClient;
 
 class SqlTransferTesting
@@ -147,7 +198,7 @@ class SqlTransferTesting
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
         }
     }
     

@@ -21,7 +21,7 @@ StringFormat_1:
   className: String
   member: method
   name: Format
-  argTypes: (IFormatProvider, string, params object[])
+  argTypes: (IFormatProvider, System.String, params System.Object[])
   taintFromArguments: 1,2
 
 StringFormat_2:
@@ -29,7 +29,7 @@ StringFormat_2:
   className: String
   member: method
   name: Format
-  argTypes: (IFormatProvider, string, object)
+  argTypes: (IFormatProvider, System.String, System.Object)
   taintFromArguments: 1,2
 
 StringFormat_3:
@@ -37,7 +37,7 @@ StringFormat_3:
   className: String
   member: method
   name: Format
-  argTypes: (IFormatProvider, string, object, object)
+  argTypes: (IFormatProvider, System.String, System.Object, System.Object)
   taintFromArguments: 1,2,3
 
 StringFormat_4:
@@ -45,7 +45,7 @@ StringFormat_4:
   className: String
   member: method
   name: Format
-  argTypes: (IFormatProvider, string, object, object, object)
+  argTypes: (IFormatProvider, System.String, System.Object, System.Object, System.Object)
   taintFromArguments: 1,2,3,4
 
 StringFormat_5:
@@ -53,7 +53,7 @@ StringFormat_5:
   className: String
   member: method
   name: Format
-  argTypes: (string, params object[])
+  argTypes: (System.String, params System.Object[])
   taintFromArguments: 0,1
 
 StringFormat_6:
@@ -61,7 +61,7 @@ StringFormat_6:
   className: String
   member: method
   name: Format
-  argTypes: (string, object)
+  argTypes: (System.String, System.Object)
   taintFromArguments: 0,1
 
 StringFormat_7:
@@ -69,7 +69,7 @@ StringFormat_7:
   className: String
   member: method
   name: Format
-  argTypes: (string, object, object)
+  argTypes: (System.String, System.Object, System.Object)
   taintFromArguments: 0,1,2
 
 StringFormat_8:
@@ -77,6 +77,6 @@ StringFormat_8:
   className: String
   member: method
   name: Format
-  argTypes: (string, object, object, object)
+  argTypes: (System.String, System.Object, System.Object, object)
   taintFromArguments: 0,1,2,3
 

@@ -14,7 +14,7 @@ namespace RoslynSecurityGuard.Tests
     public class HardcodedPasswordTest : DiagnosticVerifier
     {
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new[] { new TaintAnalyzer() };
         }
@@ -29,7 +29,7 @@ namespace RoslynSecurityGuard.Tests
         public async Task HardCodePasswordDerivedBytes()
         {
 
-            var test = @"
+            var cSharpTest = @"
 using System.Security.Cryptography;
 
 namespace VulnerableApp
@@ -43,13 +43,26 @@ namespace VulnerableApp
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Security.Cryptography
+
+Namespace VulnerableApp
+	Class HardCodedPassword
+		Private Shared Sub TestHardcodedValue()
+			Dim test = New PasswordDeriveBytes(""hardcode"", New Byte() {0, 1, 2, 3})
+        End Sub
+    End Class
+End Namespace
+";
 
             var expected = new DiagnosticResult
             {
                 Id = "SG0015",
                 Severity = DiagnosticSeverity.Warning
             };
-            await VerifyCSharpDiagnostic(test, expected );
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
 
@@ -57,7 +70,7 @@ namespace VulnerableApp
         public async Task HardCodePasswordDerivedBytesFalsePositive()
         {
 
-            var test = @"
+            var cSharpTest = @"
 using System.Security.Cryptography;
 
 namespace VulnerableApp
@@ -71,12 +84,24 @@ namespace VulnerableApp
     }
 }
 ";
-            await VerifyCSharpDiagnostic(test);
+            var visualBasicTest = @"
+Imports System.Security.Cryptography
+
+Namespace VulnerableApp
+	Class HardCodedPassword
+		Private Shared Sub TestHardcodedValue(input As String)
+			Dim test = New PasswordDeriveBytes(input, New Byte() {0, 1, 2, 3})
+		End Sub
+	End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
-        private void sandbox()
-        {
-            var test = new PasswordDeriveBytes("test", new byte[] { 0, 1, 2, 3 });
-        }
+        //private void sandbox()
+        //{
+        //    var test = new PasswordDeriveBytes("test", new byte[] { 0, 1, 2, 3 });
+        //}
     }
 }

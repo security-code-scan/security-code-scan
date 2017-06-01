@@ -15,13 +15,11 @@ namespace RoslynSecurityGuard.Test.Tests
     [TestClass]
     public class TaintAnalyzerControlFlowTest : DiagnosticVerifier
     {
-
-        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new[] { new TaintAnalyzer() };
         }
-
-
+        
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
         {
             return new[] { MetadataReference.CreateFromFile(typeof(System.Data.SqlClient.SqlCommand).Assembly.Location) };
@@ -30,7 +28,7 @@ namespace RoslynSecurityGuard.Test.Tests
         [TestMethod]
         public async Task Condition1()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Data.SqlClient;
 
 namespace sample
@@ -50,18 +48,36 @@ namespace sample
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+	Class SqlConstant
+		Public Shared Sub Run(input As String)
+			Dim username As String = input
+			Dim variable1 = username
+			Dim variable2 = variable1
+
+			If variable2 <> """" Then
+				Dim com As New SqlCommand(variable2)
+			End If
+		End Sub
+	End Class
+End Namespace
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            await VerifyCSharpDiagnostic(test,expected);
+            await VerifyCSharpDiagnostic(cSharpTest,expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
         [TestMethod]
         public async Task Condition2()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Data.SqlClient;
 
 namespace sample
@@ -81,20 +97,36 @@ namespace sample
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
 
+Namespace sample
+	Class SqlConstant
+		Public Shared Sub Run(input As String)
+			Dim username As String = input
+			Dim variable1 = username
+			Dim variable2 = variable1
+
+            Dim com As SqlCommand
+			If (variable2 <> """") Then com = New SqlCommand(variable2)
+		End Sub
+	End Class
+End Namespace
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            await VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
 
         [TestMethod]
         public async Task Loop1()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Data.SqlClient;
 
 namespace sample
@@ -115,19 +147,37 @@ namespace sample
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+	Class SqlConstant
+		Public Shared Sub Run(input As String)
+			Dim username As String = input
+			Dim variable1 = username
+			Dim variable2 = variable1
+
+			For i As Integer = 0 To 9
+				Dim com As New SqlCommand(variable2)
+			Next
+		End Sub
+	End Class
+End Namespace
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            await VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
 
         [TestMethod]
         public async Task Loop2()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Data.SqlClient;
 
 namespace sample
@@ -146,12 +196,30 @@ namespace sample
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+	Class SqlConstant
+		Public Shared Sub Run(input As String)
+			Dim username As String = input
+			Dim variable1 = username
+			Dim variable2 = variable1
+
+			For i As Integer = 0 To 9
+				Dim com As New SqlCommand(variable2)
+			Next
+		End Sub
+	End Class
+End Namespace
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            await VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
     }
 }

@@ -1,14 +1,18 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using VB = Microsoft.CodeAnalysis.VisualBasic;
+using CSharp = Microsoft.CodeAnalysis.CSharp;
+using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
+using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
+
 using System.Collections.Immutable;
+
 using RoslynSecurityGuard.Analyzers.Utils;
 using RoslynSecurityGuard.Analyzers.Locale;
 
 namespace RoslynSecurityGuard.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class WeakCipherAnalyzer : DiagnosticAnalyzer
     {
         private static DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SG0010");
@@ -19,14 +23,27 @@ namespace RoslynSecurityGuard.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(VisitSyntaxNode, SyntaxKind.InvocationExpression, SyntaxKind.ObjectCreationExpression);
+            context.RegisterSyntaxNodeAction(VisitSyntaxNode, CSharp.SyntaxKind.InvocationExpression, CSharp.SyntaxKind.ObjectCreationExpression);
+            context.RegisterSyntaxNodeAction(VisitSyntaxNode, VB.SyntaxKind.InvocationExpression, VB.SyntaxKind.ObjectCreationExpression);
         }
 
         private static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx)
         {
+            SyntaxNode node, node2, expression;
 
-            InvocationExpressionSyntax node = ctx.Node as InvocationExpressionSyntax;
-            ObjectCreationExpressionSyntax node2 = ctx.Node as ObjectCreationExpressionSyntax;
+            if (ctx.Node.Language == LanguageNames.CSharp)
+            {
+                node = ctx.Node as CSharpSyntax.InvocationExpressionSyntax;
+                expression = ((CSharpSyntax.InvocationExpressionSyntax)node)?.Expression;
+                node2 = ctx.Node as CSharpSyntax.ObjectCreationExpressionSyntax;
+            }
+            else
+            {
+                node = ctx.Node as VBSyntax.InvocationExpressionSyntax;
+                expression = ((VBSyntax.InvocationExpressionSyntax)node)?.Expression;
+                node2 = ctx.Node as VBSyntax.ObjectCreationExpressionSyntax;
+            }
+
             if (node != null)
             {
                 var symbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
@@ -35,7 +52,7 @@ namespace RoslynSecurityGuard.Analyzers
                 {
                     if (AnalyzerUtil.SymbolMatch(symbol, type: cipher, name: "Create"))
                     {
-                        var diagnostic = Diagnostic.Create(Rule, node.Expression.GetLocation(), cipher);
+                        var diagnostic = Diagnostic.Create(Rule, expression.GetLocation(), cipher);
                         ctx.ReportDiagnostic(diagnostic);
                     }
                 }

@@ -14,7 +14,7 @@ namespace RoslynSecurityGuard.Test.Tests.Taint
     public class PathTraversalAnalyzerTest : DiagnosticVerifier
     {
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new[] { new TaintAnalyzer() };
         }
@@ -28,7 +28,7 @@ namespace RoslynSecurityGuard.Test.Tests.Taint
         [TestMethod]
         public async Task PathTraversalFound1()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.IO;
 
 class PathTraversal
@@ -39,18 +39,28 @@ class PathTraversal
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.IO
+
+Class PathTraversal
+	Public Shared Sub Run(input As String)
+		File.ReadAllText(input)
+	End Sub
+End Class
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0018",
                 Severity = DiagnosticSeverity.Warning,
             };
-            await VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
         [TestMethod]
         public async Task PathTraversalFound2()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.IO;
 
 class PathTraversal
@@ -61,19 +71,29 @@ class PathTraversal
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.IO
+
+Class PathTraversal
+	Public Shared Sub Run(input As String)
+		File.OpenRead(input)
+	End Sub
+End Class
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0018",
                 Severity = DiagnosticSeverity.Warning,
             };
-            await VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
 
         [TestMethod]
         public async Task PathTraversalFound3()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.IO;
 
 class PathTraversal
@@ -84,18 +104,28 @@ class PathTraversal
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.IO
+
+Class PathTraversal
+	Public Shared Sub Run(input As String)
+		File.WriteAllText(input,""ouput.."")
+	End Sub
+End Class
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0018",
                 Severity = DiagnosticSeverity.Warning,
             };
-            await VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
         [TestMethod]
         public async Task PathTraversalFound4()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.IO;
 
 class PathTraversal
@@ -106,18 +136,40 @@ class PathTraversal
     }
 }
 ";
+            var visualBasicTest1 = @"
+Imports System.IO
+
+Class PathTraversal
+	Public Shared Sub Run(input As String)
+		Dim sr As New StreamReader(input)
+	End Sub
+End Class
+";
+            //TODO: Move to VB expression test class. 
+            var visualBasicTest2 = @"
+Imports System.IO
+
+Class PathTraversal
+	Public Shared Sub Run(input As String)
+		Using sr As New StreamReader(input)
+        End Using
+	End Sub
+End Class
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0018",
                 Severity = DiagnosticSeverity.Warning,
             };
-            await VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest1, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest2, expected);
         }
 
         [TestMethod]
         public async Task PathTraversalFound5()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.IO;
 
 class PathTraversal
@@ -128,18 +180,28 @@ class PathTraversal
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.IO
+
+Class PathTraversal
+	Public Shared Sub Run(input As String)
+		Dim sr As New StreamReader(input, System.Text.Encoding.ASCII, False, 0)
+	End Sub
+End Class
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0018",
                 Severity = DiagnosticSeverity.Warning,
             };
-            await VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
         [TestMethod]
         public async Task PathTraversalFound6()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Xml;
 
 class PathTraversal
@@ -151,18 +213,29 @@ class PathTraversal
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Xml
+
+Class PathTraversal
+	Public Shared Sub Run(input As String)
+        Dim settings As New XmlReaderSettings()
+        Dim reader As XMLReader = XMLReader.Create(input, settings, Nothing)
+	End Sub
+End Class
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0018",
                 Severity = DiagnosticSeverity.Warning,
             };
-            await VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
         [TestMethod]
         public async Task FalsePositive1()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.IO;
 
 class PathTraversal
@@ -173,7 +246,17 @@ class PathTraversal
     }
 }
 ";
-            await VerifyCSharpDiagnostic(test);
+            var visualBasicTest = @"
+Imports System.IO
+
+Class PathTraversal
+	Public Shared Sub Run(input As String)
+		File.OpenRead(""C:/static/fsociety.dat"")
+	End Sub
+End Class
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
     }
 }

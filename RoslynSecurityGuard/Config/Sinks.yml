@@ -80,7 +80,7 @@ DataContext_ExecuteQuery_0:
   className: DataContext
   member: method
   name: ExecuteQuery
-  argTypes: (string, params object[])
+  argTypes: (System.String, params System.Object[])
   injectableArguments: 0
   locale: SG0002
 
@@ -89,7 +89,7 @@ DataContext_ExecuteQuery_1:
   className: DataContext
   member: method
   name: ExecuteQuery
-  argTypes: (System.Type, string, params object[])
+  argTypes: (System.Type, System.String, params System.Object[])
   injectableArguments: 1
   locale: SG0002
 
@@ -332,7 +332,7 @@ XmlReader_Create_uri:
   className: XmlReader
   member: method
   name: Create
-  argTypes: (string)
+  argTypes: (System.String)
   injectableArguments: 0
   locale: SG0018
 
@@ -341,7 +341,7 @@ XmlReader_Create_uri_settings:
   className: XmlReader
   member: method
   name: Create
-  argTypes: (string, System.Xml.XmlReaderSettings)
+  argTypes: (System.String, System.Xml.XmlReaderSettings)
   injectableArguments: 0
   locale: SG0018
 
@@ -350,7 +350,7 @@ XmlReader_Create_uri_settings_context:
   className: XmlReader
   member: method
   name: Create
-  argTypes: (string, System.Xml.XmlReaderSettings, System.Xml.XmlParserContext)
+  argTypes: (System.String, System.Xml.XmlReaderSettings, System.Xml.XmlParserContext)
   injectableArguments: 0
   locale: SG0018
 
@@ -359,7 +359,7 @@ StreamReader_Create_path:
   className: StreamReader
   member: method
   name: .ctor
-  argTypes: (string)
+  argTypes: (System.String)
   injectableArguments: 0
   locale: SG0018
 
@@ -368,7 +368,7 @@ StreamReader_Create_path_bool:
   className: StreamReader
   member: method
   name: .ctor
-  argTypes: (string, bool)
+  argTypes: (System.String, System.Boolean)
   injectableArguments: 0
   locale: SG0018
 
@@ -377,7 +377,7 @@ StreamReader_Create_path_encoding:
   className: StreamReader
   member: method
   name: .ctor
-  argTypes: (string, System.Text.Encoding)
+  argTypes: (System.String, System.Text.Encoding)
   injectableArguments: 0
   locale: SG0018
 
@@ -386,7 +386,7 @@ StreamReader_Create_path_encoding_bool:
   className: StreamReader
   member: method
   name: .ctor
-  argTypes: (string, System.Text.Encoding, bool)
+  argTypes: (System.String, System.Text.Encoding, System.Boolean)
   injectableArguments: 0
   locale: SG0018
 
@@ -395,6 +395,6 @@ StreamReader_Create_path_encoding_bool_int:
   className: StreamReader
   member: method
   name: .ctor
-  argTypes: (string, System.Text.Encoding, bool, int)
+  argTypes: (System.String, System.Text.Encoding, System.Boolean, System.Int32)
   injectableArguments: 0
   locale: SG0018

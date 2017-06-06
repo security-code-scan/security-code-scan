@@ -17,7 +17,7 @@ namespace RoslynSecurityGuard.Test.Tests
     public class HardcodedPasswordFieldTest : DiagnosticVerifier
     {
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new DiagnosticAnalyzer[] { new TaintAnalyzer(), new UnknownPasswordApiAnalyzer() };
         }
@@ -25,8 +25,7 @@ namespace RoslynSecurityGuard.Test.Tests
         [TestMethod]
         public async Task HardCodePasswordDerivedBytes()
         {
-
-            var test = @"
+            var cSharpTest = @"
 using System;
 
 namespace VulnerableApp
@@ -41,19 +40,33 @@ namespace VulnerableApp
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System
+
+Namespace VulnerableApp
+	Class HardCodedPassword
+		Private Shared Sub TestCookie()
+			Dim uri = New UriBuilder()
+			uri.Password = ""t0ps3cr3t""
+        End Sub
+    End Class
+End Namespace
+";
 
             var expected = new DiagnosticResult
             {
                 Id = "SG0015",
                 Severity = DiagnosticSeverity.Warning
             };
-            await VerifyCSharpDiagnostic(test, expected);
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
-        public void sandbox()
-        {
-            var uri = new UriBuilder();
-            uri.Password = "t0ps3cr3t";
-        }
+        //public void sandbox()
+        //{
+        //    var uri = new UriBuilder();
+        //    uri.Password = "t0ps3cr3t";
+        //}
     }
 }

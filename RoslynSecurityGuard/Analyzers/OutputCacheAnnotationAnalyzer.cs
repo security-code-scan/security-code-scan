@@ -1,12 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
-using RoslynSecurityGuard.Analyzers.Locale;
 using System.Collections.Immutable;
 using System.Linq;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+using RoslynSecurityGuard.Analyzers.Locale;
+
+using VB = Microsoft.CodeAnalysis.VisualBasic;
+using CSharp = Microsoft.CodeAnalysis.CSharp;
+using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
+using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
+
 
 namespace RoslynSecurityGuard.Analyzers
 {
@@ -19,7 +25,8 @@ namespace RoslynSecurityGuard.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(VisitClass, SyntaxKind.ClassDeclaration);
+            context.RegisterSyntaxNodeAction(VisitClass, CSharp.SyntaxKind.ClassDeclaration);
+            context.RegisterSyntaxNodeAction(VisitClass, VB.SyntaxKind.ClassBlock);
         }
 
         private bool HasDerivedAttribute(ISymbol symbol, Func<AttributeData, bool> condition)
@@ -80,11 +87,18 @@ namespace RoslynSecurityGuard.Analyzers
 
         private void VisitClass(SyntaxNodeAnalysisContext ctx)
         {
-            var node = ctx.Node as ClassDeclarationSyntax;
-
-            if (node == null)
+            SyntaxNode node;
+            SyntaxList<SyntaxNode> members;
+            if (ctx.Node.Language == LanguageNames.CSharp)
             {
-                return; //Not the expected node type
+                node = ctx.Node as CSharpSyntax.ClassDeclarationSyntax;
+                if (node == null) return; //Not the expected node type
+                members = ((CSharpSyntax.ClassDeclarationSyntax)node).Members;
+            }
+            else {
+                node = ctx.Node as VBSyntax.ClassBlockSyntax;
+                if (node == null) return; //Not the expected node type
+                members = ((VBSyntax.ClassBlockSyntax)node).Members;
             }
 
             var classSymbol = ctx.SemanticModel.GetDeclaredSymbol(node);
@@ -93,11 +107,18 @@ namespace RoslynSecurityGuard.Analyzers
             int classCacheDuration = 0;
             bool classHasCacheAnnotation = HasOutputCacheAttribute(classSymbol, ref classCacheDuration);
 
-            foreach (MemberDeclarationSyntax member in node.Members)
+            foreach (SyntaxNode member in members)
             {
-                var method = member as MethodDeclarationSyntax;
-                if (method == null)
-                    continue;
+                SyntaxNode method;
+                if (ctx.Node.Language == LanguageNames.CSharp)
+                {
+                    method = member as CSharpSyntax.MethodDeclarationSyntax;
+                }
+                else
+                {
+                    method = member as VBSyntax.MethodBlockSyntax;
+                }
+                if (method == null) continue;
 
                 var methodSymbol = ctx.SemanticModel.GetDeclaredSymbol(method);
                 if (methodSymbol.DeclaredAccessibility != Accessibility.Public)

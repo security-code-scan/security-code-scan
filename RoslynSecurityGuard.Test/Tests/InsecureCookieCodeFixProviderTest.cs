@@ -23,7 +23,7 @@ namespace RoslynSecurityGuard.Test.Tests
             return new[] { MetadataReference.CreateFromFile(typeof(HttpCookie).Assembly.Location) };
         }
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new DiagnosticAnalyzer[] { new TaintAnalyzer(), new InsecureCookieAnalyzer() };
         }

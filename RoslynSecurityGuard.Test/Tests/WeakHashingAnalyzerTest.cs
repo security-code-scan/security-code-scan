@@ -12,7 +12,7 @@ namespace RoslynSecurityGuard.Tests
     public class WeakHashingAnalyzerTest : DiagnosticVerifier
     {
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new[] { new WeakHashingAnalyzer() };
         }
@@ -20,7 +20,7 @@ namespace RoslynSecurityGuard.Tests
         [TestMethod]
         public async Task WeakHashingFalsePositive()
         {
-            var test = @"
+            var cSharpTest = @"
 using System;
 using System.Text;
 using System.Security.Cryptography;
@@ -43,20 +43,38 @@ class Sha256OK
         return sBuilder.ToString();
     }
 }";
-            await VerifyCSharpDiagnostic(test);
+            var visualBasicTest = @"
+Imports System.Text
+Imports System.Security.Cryptography
+
+Class Sha256OK
+	Private Shared Function generateSecureHashing() As String
+		Dim source As String = ""Hello World!""
+        Dim sha256__1 As SHA256 = SHA256.Create()
+        Dim data As Byte() = sha256__1.ComputeHash(Encoding.UTF8.GetBytes(source))
+        Dim sBuilder As New StringBuilder()
+        For i As Integer = 0 To data.Length - 1
+            sBuilder.Append(data(i).ToString(""x2""))
+        Next
+        ' Return the hexadecimal string. 
+        Return sBuilder.ToString()
+    End Function
+End Class
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
         [TestMethod]
         public async Task WeakHashingVulnerableMd5()
         {
-            var test = @"
+            var cSharpTest = @"
 using System;
 using System.Text;
 using System.Security.Cryptography;
 
 class WeakHashing
 {
-
     static String generateWeakHashingMD5()
     {
         string source = ""Hello World!"";
@@ -74,20 +92,38 @@ class WeakHashing
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Text
+Imports System.Security.Cryptography
 
+Class WeakHashing
+	Private Shared Function generateWeakHashingMD5() As String
+		Dim source As String = ""Hello World!""
+        Dim md5__1 As MD5 = MD5.Create()
+        Dim data As Byte() = md5__1.ComputeHash(Encoding.UTF8.GetBytes(source))
+        Dim sBuilder As New StringBuilder()
+        For i As Integer = 0 To data.Length - 1
+            sBuilder.Append(data(i).ToString(""x2""))
+        Next
+        ' Return the hexadecimal string. 
+        Return sBuilder.ToString()
+    End Function
+End Class
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0006",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
         [TestMethod]
         public async Task WeakHashingVulnerableSha1()
         {
-            var test = @"
+            var cSharpTest = @"
 using System;
 using System.Text;
 using System.Security.Cryptography;
@@ -112,14 +148,32 @@ class WeakHashing
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Text
+Imports System.Security.Cryptography
 
+Class WeakHashing
+	Private Shared Function generateWeakHashingSHA1() As String
+		Dim source As String = ""Hello World!""
+        Dim sha1__1 As SHA1 = SHA1.Create()
+        Dim data As Byte() = sha1__1.ComputeHash(Encoding.UTF8.GetBytes(source))
+        Dim sBuilder As New StringBuilder()
+        For i As Integer = 0 To data.Length - 1
+            sBuilder.Append(data(i).ToString(""x2""))
+        Next
+        ' Return the hexadecimal string. 
+        Return sBuilder.ToString()
+    End Function
+End Class
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0006",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
     }
 }

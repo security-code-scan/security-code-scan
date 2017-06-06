@@ -13,7 +13,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
     /// </summary>
     public class CSharpCodeEvaluation : BaseCodeEvaluation
     {
-        public static List<CSharpTaintAnalyzerExtension> extensions { get; set; } = new List<CSharpTaintAnalyzerExtension>();
+        public static List<TaintAnalyzerExtension> extensions { get; set; } = new List<TaintAnalyzerExtension>();
         
 
         public void VisitMethods(SyntaxNodeAnalysisContext ctx)

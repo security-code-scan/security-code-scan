@@ -1,9 +1,12 @@
 ﻿using System;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp;
+using VB = Microsoft.CodeAnalysis.VisualBasic;
+using CSharp = Microsoft.CodeAnalysis.CSharp;
+using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
+using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using System.Collections.Generic;
 
 namespace RoslynSecurityGuard.Analyzers.Utils
 {
@@ -29,14 +32,14 @@ namespace RoslynSecurityGuard.Analyzers.Utils
         }
 
 
-        public static void ForEachAnnotation(SyntaxList<AttributeListSyntax> attributes, Action<string,AttributeSyntax> callback)
+        public static void ForEachAnnotation(SyntaxList<CSharpSyntax.AttributeListSyntax> attributes, Action<string, CSharpSyntax.AttributeSyntax> callback)
         {
             foreach (var attribute in attributes)
             {
                 if (attribute.Attributes == null || attribute.Attributes.Count == 0) continue; //Bound check .. Unlikely to happens
 
                 //Extract the annotation identifier
-                var identifier = attribute.Attributes[0].Name as IdentifierNameSyntax;
+                var identifier = attribute.Attributes[0].Name as CSharpSyntax.IdentifierNameSyntax;
 
                 if (identifier == null) continue;
 
@@ -55,15 +58,52 @@ namespace RoslynSecurityGuard.Analyzers.Utils
         }
 
 
+        public static List<string> getAttributesForMethod(CSharpSyntax.MethodDeclarationSyntax node)
+        {
+            List<string> attributesList = new List<string>();
+
+            if (node.AttributeLists != null)
+            {
+                foreach (CSharpSyntax.AttributeListSyntax attributeList in node.AttributeLists)
+                {
+                    if (attributeList.Attributes != null)
+                    {
+                        foreach (CSharpSyntax.AttributeSyntax attribute in attributeList.Attributes)
+                            attributesList.Add(attribute.Name.GetText().ToString());
+                    }
+                }
+            }
+            return attributesList;
+        }
+
+        public static List<string> getAttributesForMethod(VBSyntax.MethodBlockSyntax node)
+        {
+            List<string> attributesList = new List<string>();
+
+            if (node.SubOrFunctionStatement.AttributeLists != null)
+            {
+                foreach (VBSyntax.AttributeListSyntax attributeList in node.SubOrFunctionStatement.AttributeLists)
+                {
+                    if (attributeList.Attributes != null)
+                    {
+                        foreach (VBSyntax.AttributeSyntax attribute in attributeList.Attributes)
+                            attributesList.Add(attribute.Name.GetText().ToString());
+                    }
+                }
+            }
+            return attributesList;
+        }
+
+
         /// <summary>
         /// Verify is the expression passed is a constant string.
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
         [Obsolete]
-        public static bool IsStaticString(ExpressionSyntax expression)
+        public static bool IsStaticString(CSharpSyntax.ExpressionSyntax expression)
         {
-            return expression.Kind() == SyntaxKind.StringLiteralExpression && expression is LiteralExpressionSyntax;
+            return expression.Kind() == CSharp.SyntaxKind.StringLiteralExpression && expression is CSharpSyntax.LiteralExpressionSyntax;
         }
         
         public static Location CreateLocation(string path, int lineStart, int linePosition = -1)

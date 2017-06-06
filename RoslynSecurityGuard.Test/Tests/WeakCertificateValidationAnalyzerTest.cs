@@ -13,7 +13,7 @@ namespace RoslynSecurityGuard.Tests
     public class WeakCertificateValidationAnalyzerTest : DiagnosticVerifier
     {
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new[] { new WeakCertificateValidationAnalyzer() };
         }
@@ -21,7 +21,7 @@ namespace RoslynSecurityGuard.Tests
         [TestMethod]
         public async Task WeakCertFalsePositive()
         {
-            var code = @"
+            var cSharpTest = @"
 using System.Net;
 
 class OkCert {
@@ -34,13 +34,26 @@ class OkCert {
     }
 }
 ";
-            await VerifyCSharpDiagnostic(code);
+            var visualBsicTest = @"
+Imports System.Net
+
+Class OkCert
+	Public Sub DoGetRequest1()
+		Dim url As String = ""https://hack.me/""
+        Dim request As HttpWebRequest = DirectCast(WebRequest.Create(url), HttpWebRequest)
+        Dim response As HttpWebResponse = DirectCast(request.GetResponse(), HttpWebResponse)
+        response.GetResponseStream()
+    End Sub
+End Class
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBsicTest);
         }
 
         [TestMethod]
         public async Task WeakCertVulnerable1()
         {
-            var code = @"
+            var cSharpTest = @"
 using System.Net;
 
 class weakCert {
@@ -54,20 +67,35 @@ class weakCert {
     }
 }
 ";
+            var visualBsicTest = @"
+Imports System.Net
+
+Class weakCert
+    Public Sub DoGetRequest1()        '
+        ServicePointManager.ServerCertificateValidationCallback = Function(sender, cert, chain, sslPolicyErrors)
+                                                                      Return True
+                                                                  End Function
+        Dim url As String = ""https://hack.me/""
+        Dim request As HttpWebRequest = DirectCast(WebRequest.Create(url), HttpWebRequest)
+        request.GetResponse()
+    End Sub
+End Class
+";
 
             var expected = new DiagnosticResult
             {
                 Id = "SG0004",
                 Severity = DiagnosticSeverity.Warning,
-            }.WithLocation(7,-1);
+            };
 
-            await VerifyCSharpDiagnostic(code, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(7));
+            await VerifyVisualBasicDiagnostic(visualBsicTest, expected.WithLocation("Test0.vb", 6));
         }
 
         [TestMethod]
         public async Task WeakCertVulnerable2()
         {
-            var code = @"
+            var cSharpTest = @"
 using System.Net;
 
 class weakCert {
@@ -82,14 +110,29 @@ class weakCert {
     }
 }
 ";
+            var visualBsicTest = @"
+Imports System.Net
 
+Class weakCert
+    Public Sub DoGetRequest1()        '
+        ServicePointManager.ServerCertificateValidationCallback = Function(sender, cert, chain, sslPolicyErrors)
+                                                                      Return True
+                                                                  End Function
+        Dim url As String = ""https://hack.me/""
+        Dim request As HttpWebRequest = DirectCast(WebRequest.Create(url), HttpWebRequest)
+        Dim response As HttpWebResponse = DirectCast(request.GetResponse(), HttpWebResponse)
+		response.GetResponseStream()
+    End Sub
+End Class
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0004",
                 Severity = DiagnosticSeverity.Warning,
-            }.WithLocation(7, -1);
+            };
 
-            await VerifyCSharpDiagnostic(code, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(7));
+            await VerifyVisualBasicDiagnostic(visualBsicTest, expected.WithLocation("Test0.vb", 6));
         }
     }
 }

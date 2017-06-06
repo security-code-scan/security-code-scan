@@ -1,19 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using VB = Microsoft.CodeAnalysis.VisualBasic;
+using CSharp = Microsoft.CodeAnalysis.CSharp;
+using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
+using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System.Collections.Immutable;
+
 using RoslynSecurityGuard.Analyzers.Locale;
 using RoslynSecurityGuard.Analyzers.Utils;
 
 namespace RoslynSecurityGuard.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class WeakCipherModeAnalyzer : DiagnosticAnalyzer
     {
         private static readonly DiagnosticDescriptor RuleCBC = LocaleUtil.GetDescriptor("SG0011");
@@ -25,29 +30,42 @@ namespace RoslynSecurityGuard.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(VisitSyntaxNode, SyntaxKind.InvocationExpression);
+            context.RegisterSyntaxNodeAction(VisitSyntaxNode, CSharp.SyntaxKind.InvocationExpression);
+            context.RegisterSyntaxNodeAction(VisitSyntaxNode, VB.SyntaxKind.InvocationExpression);
         }
 
         private static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx)
         {
-            MemberAccessExpressionSyntax node = ctx.Node as MemberAccessExpressionSyntax;
+            SyntaxNode node, expression;
+
+            if (ctx.Node.Language == LanguageNames.CSharp)
+            {
+                node = ctx.Node as CSharpSyntax.MemberAccessExpressionSyntax;
+                expression = ((CSharpSyntax.InvocationExpressionSyntax)node)?.Expression;
+            }
+            else
+            {
+                node = ctx.Node as VBSyntax.MemberAccessExpressionSyntax;
+                expression = ((VBSyntax.InvocationExpressionSyntax)node)?.Expression;
+            }
+           
             if (node != null)
             {
                 var symbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
                 //DES.Create()
                 if (AnalyzerUtil.SymbolMatch(symbol, "CipherMode", "ECB"))
                 {
-                    var diagnostic = Diagnostic.Create(RuleECB, node.Expression.GetLocation(), "ECB");
+                    var diagnostic = Diagnostic.Create(RuleECB, expression.GetLocation(), "ECB");
                     ctx.ReportDiagnostic(diagnostic);
                 }
                 else if (AnalyzerUtil.SymbolMatch(symbol, "CipherMode", "CBC"))
                 {
-                    var diagnostic = Diagnostic.Create(RuleCBC, node.Expression.GetLocation(), "CBC");
+                    var diagnostic = Diagnostic.Create(RuleCBC, expression.GetLocation(), "CBC");
                     ctx.ReportDiagnostic(diagnostic);
                 }
                 else if (AnalyzerUtil.SymbolMatch(symbol, "CipherMode", "OFB") || AnalyzerUtil.SymbolMatch(symbol, "CipherMode", "CFB") || AnalyzerUtil.SymbolMatch(symbol, "CipherMode", "CTS"))
                 {
-                    var diagnostic = Diagnostic.Create(RuleGeneric, node.Expression.GetLocation(), "OFB");
+                    var diagnostic = Diagnostic.Create(RuleGeneric, expression.GetLocation(), "OFB");
                     ctx.ReportDiagnostic(diagnostic);
                 }
             }

@@ -56,7 +56,7 @@ namespace TestHelper
             //Console.WriteLine("== New source (END) ==");
 
 
-            var a = GetCSharpDiagnosticAnalyzers().ToList();
+            var a = GetDiagnosticAnalyzers().ToList();
             a.Add(new DebugAnalyzer());
 
             await VerifyFix(LanguageNames.CSharp, a, GetCSharpCodeFixProvider(), normalizeOld, normalizeNew, codeFixIndex, allowNewCompilerDiagnostics);

@@ -12,7 +12,7 @@ namespace RoslynSecurityGuard.Test.Tests
     [TestClass]
     public class RequestValidationAnalyzerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new[] { new RequestValidationAnalyzer() };
         }
@@ -25,7 +25,7 @@ namespace RoslynSecurityGuard.Test.Tests
         [TestMethod]
         public async Task DetectAnnotationValidateInput()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Web.Mvc;
 
 namespace VulnerableApp
@@ -35,19 +35,31 @@ namespace VulnerableApp
         [HttpPost]
         [ValidateInput(false)]
         public ActionResult ControllerMethod(string input) {
-
             return null;
         }
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Web.Mvc
 
+Namespace VulnerableApp
+	Public Class TestController
+		<HttpPost> _
+		<ValidateInput(False)> _
+		Public Function ControllerMethod(input As String) As ActionResult
+			Return Nothing
+		End Function
+	End Class
+End Namespace
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0017",
                 Severity = DiagnosticSeverity.Warning
             };
-            await VerifyCSharpDiagnostic(test,expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
         [ValidateInput(false)]

@@ -135,42 +135,42 @@ End Namespace
         }
             
 
-        [TestMethod]
-        public async Task CookieWithFlagsInLine()
-        {
-            var cSharpTest = @"
-using System.Web;
+//        [TestMethod]
+//        public async Task CookieWithFlagsInLine()
+//        {
+//            var cSharpTest = @"
+//using System.Web;
 
-namespace VulnerableApp
-{
-    class CookieCreation
-    {
-        static void TestCookie()
-        {
-            var a = new HttpCookie(""test"")
-            {
-                Secure = true,
-                HttpOnly = true
-            };
-        }
-    }
-}
-";
+//namespace VulnerableApp
+//{
+//    class CookieCreation
+//    {
+//        static void TestCookie()
+//        {
+//            var a = new HttpCookie(""test"")
+//            {
+//                Secure = true,
+//                HttpOnly = true
+//            };
+//        }
+//    }
+//}
+//";
 
-            var visualBasicTest = @"
-Imports System.Web
+//            var visualBasicTest = @"
+//Imports System.Web
 
-Namespace VulnerableApp
-    Class CookieCreation
-        Private Shared Sub TestCookie()
-            Dim cookie As New HttpCookie(""test"") With {.Secure = True, .HttpOnly = True}
-        End Sub
-    End Class
-End Namespace
-";
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
-        }
+//Namespace VulnerableApp
+//    Class CookieCreation
+//        Private Shared Sub TestCookie()
+//            Dim cookie As New HttpCookie(""test"") With {.Secure = True, .HttpOnly = True}
+//        End Sub
+//    End Class
+//End Namespace
+//";
+//            await VerifyCSharpDiagnostic(cSharpTest);
+//            await VerifyVisualBasicDiagnostic(visualBasicTest);
+//        }
 
         /*
                 static void TestCookie()

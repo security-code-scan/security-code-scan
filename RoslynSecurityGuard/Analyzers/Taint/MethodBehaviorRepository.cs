@@ -170,8 +170,13 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
         private string ExtractGenericParameterSignature(ISymbol symbol)
         {
+            // If not a method revert to the old method, just in case!
             if (symbol.Kind != SymbolKind.Method || !(symbol is IMethodSymbol))
-                throw new ArgumentException("Unexpected symbol type");
+            {
+                Debug.WriteLine("Unexpected symbol type. " + symbol.ToString());
+                var firstParenthese = symbol.ToString().IndexOf("(");
+                return symbol.ToString().Substring(firstParenthese);
+            }
 
             var methodSymbol = symbol as IMethodSymbol;
             string result = "(";

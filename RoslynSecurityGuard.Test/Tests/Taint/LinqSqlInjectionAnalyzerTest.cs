@@ -5,6 +5,7 @@ using RoslynSecurityGuard.Analyzers;
 using RoslynSecurityGuard.Analyzers.Taint;
 using System.Collections.Generic;
 using System.Data.Linq;
+using System.Threading.Tasks;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Tests
@@ -13,21 +14,21 @@ namespace RoslynSecurityGuard.Tests
     public class LinqSqlInjectionAnalyzerTest : DiagnosticVerifier
     {
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new[] { new TaintAnalyzer() };
         }
 
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
         {
-            return new [] { MetadataReference.CreateFromFile(typeof(DataContext).Assembly.Location), //Main assembly for Linq
+            return new[] { MetadataReference.CreateFromFile(typeof(DataContext).Assembly.Location), //Main assembly for Linq
                 MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location) }; //Seems to be needed so that invoke symbol gets build
         }
 
         [TestMethod]
-        public void LinqInjectionFalsePositiveWithGeneric()
+        public async Task LinqInjectionFalsePositiveWithGeneric()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Data.Linq;
 
 namespace VulnerableApp
@@ -35,7 +36,7 @@ namespace VulnerableApp
 
     public class LyncInjectionFP
     {
-        public static int Main(DataContext ctx,string city) {
+        public static int Run(DataContext ctx,string city) {
             var users = ctx.ExecuteQuery<UserEntity>(@""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
                 Address, City, Region, PostalCode, Country, Phone, Fax
                 FROM dbo.Users"");
@@ -49,13 +50,30 @@ namespace VulnerableApp
     }
 }
 ";
-            VerifyCSharpDiagnostic(test);
+            var visualBasicTest = @"
+Imports System.Data.Linq
+
+Namespace VulnerableApp
+	Public Class LyncInjectionFP
+		Public Shared Function Run(ctx As DataContext, city As String) As Integer
+			Dim users = ctx.ExecuteQuery(Of UserEntity)(""SELECT CustomerID, CompanyName, ContactName, ContactTitle, Address, City, Region, PostalCode, Country, Phone, Fax
+                                                          FROM dbo.Users"")
+            Return 0
+        End Function
+    End Class
+
+    Class UserEntity
+    End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
         [TestMethod]
-        public void LinqInjectionVulnerableWithGeneric()
+        public async Task LinqInjectionVulnerableWithGeneric()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Data.Linq;
 
 namespace VulnerableApp
@@ -63,7 +81,7 @@ namespace VulnerableApp
 
     public class LyncInjectionTP
     {
-        public static int Main(DataContext ctx,string city) {
+        public static int Run(DataContext ctx,string city) {
             var users = ctx.ExecuteQuery<UserEntity>(@""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
                 Address, City, Region, PostalCode, Country, Phone, Fax
                 FROM dbo.Users
@@ -79,28 +97,47 @@ namespace VulnerableApp
 }
         ";
 
+            var visualBasicTest = @"
+Imports System.Data.Linq
+
+Namespace VulnerableApp
+	Public Class LyncInjectionTP
+		Public Shared Function Run(ctx As DataContext, city As String) As Integer
+			Dim users = ctx.ExecuteQuery(Of UserEntity)(""SELECT CustomerID, CompanyName, ContactName, ContactTitle, Address, City, Region, PostalCode, Country, Phone, Fax
+                                                          FROM dbo.Users
+                                                          WHERE City = '"" & city & ""'"")
+            Return 0
+        End Function
+    End Class
+
+    Class UserEntity
+    End Class
+End Namespace
+        ";
+
             var expected = new DiagnosticResult
             {
                 Id = "SG0002",
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
         [TestMethod]
-        public void LinqInjectionFalsePositiveWithoutGeneric()
+        public async Task LinqInjectionFalsePositiveWithoutGeneric()
         {
-            var test = @"
+            var cSharpTest = @"
+using System;
 using System.Data.Linq;
 
 namespace VulnerableApp
 {
-
     public class LyncInjectionTP
     {
-        public static int Main(DataContext ctx,string city) {
-            var users = ctx.ExecuteQuery(typeof(UserEntity),@""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
+        public static int Run(DataContext ctx,string city) {
+            var users = ctx.ExecuteQuery(typeof(String),@""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
                 Address, City, Region, PostalCode, Country, Phone, Fax
                 FROM dbo.Users
                 WHERE  City = 'Montreal'"");
@@ -110,30 +147,39 @@ namespace VulnerableApp
     }
 }
         ";
+            var visualBasicTest = @"
+Imports System.Data.Linq
 
-            var expected = new DiagnosticResult
-            {
-                Id = "SG0002",
-                Severity = DiagnosticSeverity.Warning,
-            };
+Namespace VulnerableApp
+	Public Class LyncInjectionTP
+		Public Shared Function Run(ctx As DataContext, city As String) As Integer
+			Dim users = ctx.ExecuteQuery(GetType(String), ""SELECT CustomerID, CompanyName, ContactName, ContactTitle, Address, City, Region, PostalCode, Country, Phone, Fax
+                                                            FROM dbo.Users
+                                                            WHERE City = 'Montreal'"")
+            Return 0
+        End Function
+    End Class
+End Namespace
+        ";
 
-            VerifyCSharpDiagnostic(test);
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
 
         [TestMethod]
-        public void LinqInjectionVulnerableWithoutGeneric()
+        public async Task LinqInjectionVulnerableWithoutGeneric()
         {
-            var test = @"
+            var cSharpTest = @"
+using System;
 using System.Data.Linq;
 
 namespace VulnerableApp
 {
-
     public class LyncInjectionTP
     {
-        public static int Main(DataContext ctx,string city) {
-            var users = ctx.ExecuteQuery(typeof(UserEntity),@""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
+        public static int Run(DataContext ctx,string city) {
+            var users = ctx.ExecuteQuery(typeof(String),@""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
                 Address, City, Region, PostalCode, Country, Phone, Fax
                 FROM dbo.Users
                 WHERE  City = '"" + city+ ""'"");
@@ -143,14 +189,28 @@ namespace VulnerableApp
     }
 }
         ";
+            var visualBasicTest = @"
+Imports System.Data.Linq
 
+Namespace VulnerableApp
+	Public Class LyncInjectionTP
+		Public Shared Function Run(ctx As DataContext, city As String) As Integer
+			Dim users = ctx.ExecuteQuery(GetType(String), ""SELECT CustomerID, CompanyName, ContactName, ContactTitle, Address, City, Region, PostalCode, Country, Phone, Fax
+                                                            FROM dbo.Users
+                                                            WHERE City = '"" & city & ""'"")
+            Return 0
+        End Function
+    End Class
+End Namespace
+        ";
             var expected = new DiagnosticResult
             {
                 Id = "SG0002",
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
     }
 }

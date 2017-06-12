@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using TestHelper;
 
@@ -11,17 +12,21 @@ namespace RoslynSecurityGuard.Test.Tests
     [TestClass]
     public class RequestValidationAnalyzerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new[] { new RequestValidationAnalyzer() };
         }
-        
-        [TestMethod]
-        public void DetectAnnotationValidateInput()
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
         {
-            var test = @"
-using System;
-using System.Diagnostics;
+            return new[] { MetadataReference.CreateFromFile(typeof(ValidateInputAttribute).Assembly.Location) };
+        }
+
+        [TestMethod]
+        public async Task DetectAnnotationValidateInput()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
 
 namespace VulnerableApp
 {
@@ -30,19 +35,31 @@ namespace VulnerableApp
         [HttpPost]
         [ValidateInput(false)]
         public ActionResult ControllerMethod(string input) {
-
             return null;
         }
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Web.Mvc
 
+Namespace VulnerableApp
+	Public Class TestController
+		<HttpPost> _
+		<ValidateInput(False)> _
+		Public Function ControllerMethod(input As String) As ActionResult
+			Return Nothing
+		End Function
+	End Class
+End Namespace
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0017",
                 Severity = DiagnosticSeverity.Warning
             };
-            VerifyCSharpDiagnostic(test,expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
         [ValidateInput(false)]

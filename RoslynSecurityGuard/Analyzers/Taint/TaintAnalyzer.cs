@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using VB = Microsoft.CodeAnalysis.VisualBasic;
+using CSharp = Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using RoslynSecurityGuard.Analyzers.Locale;
 using RoslynSecurityGuard.Analyzers.Utils;
@@ -18,7 +18,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         
         private MethodBehaviorRepository behaviorRepo = new MethodBehaviorRepository();
 
-        private static List<CSharpTaintAnalyzerExtension> extensions = new List<CSharpTaintAnalyzerExtension>();
+        private static List<TaintAnalyzerExtension> extensions = new List<TaintAnalyzerExtension>();
 
         private CSharpCodeEvaluation csharpCodeEval = new CSharpCodeEvaluation();
         private VbCodeEvaluation vbCodeEval = new VbCodeEvaluation();
@@ -58,26 +58,31 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                 Descriptors.Add(desc);
             }
 
+            vbCodeEval.behaviorRepo = behaviorRepo;
             csharpCodeEval.behaviorRepo = behaviorRepo;
         }
         
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(VisitMethods, SyntaxKind.MethodDeclaration);
+            
+            context.RegisterSyntaxNodeAction(csharpCodeEval.VisitMethods, CSharp.SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(vbCodeEval.VisitMethods, VB.SyntaxKind.SubBlock);
+            context.RegisterSyntaxNodeAction(vbCodeEval.VisitMethods, VB.SyntaxKind.FunctionBlock);
         }
         
-        public static void RegisterExtension(CSharpTaintAnalyzerExtension extension)
+        public static void RegisterExtension(TaintAnalyzerExtension extension)
         {
-            extensions.Add(extension);
-            CSharpCodeEvaluation.extensions = extensions;
+			// Must be executed in a synchronous way for testing purposes
+			lock (extensions)
+			{
+				// Makes sure an extension of the same time isn't already registered before adding it to the list
+				if (!extensions.Any(x => x.GetType().FullName.Equals((extension).GetType().FullName)))
+				{
+					extensions.Add(extension);
+					CSharpCodeEvaluation.extensions = extensions;
+                    VbCodeEvaluation.extensions = extensions;
+                }
+			}	
         }
-
-
-        private void VisitMethods(SyntaxNodeAnalysisContext obj)
-        {
-            csharpCodeEval.VisitMethods(obj);
-            //vbCodeEval.VisitMethods(obj);
-        }
-
     }
 }

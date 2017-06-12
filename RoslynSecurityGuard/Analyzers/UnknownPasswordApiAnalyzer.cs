@@ -1,19 +1,23 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+
+using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
+using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
+
 using RoslynSecurityGuard.Analyzers.Locale;
 using RoslynSecurityGuard.Analyzers.Taint;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace RoslynSecurityGuard.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class UnknownPasswordApiAnalyzer : DiagnosticAnalyzer, CSharpTaintAnalyzerExtension
+    public class UnknownPasswordApiAnalyzer : TaintAnalyzerExtension
     {
 
         private static DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SG0015");
@@ -26,9 +30,8 @@ namespace RoslynSecurityGuard.Analyzers
         {
             TaintAnalyzer.RegisterExtension(this);
         }
-
-
-        public void VisitAssignment(AssignmentExpressionSyntax node, ExecutionState state, MethodBehavior behavior, ISymbol symbol, VariableState variableRightState)
+        
+        public override void VisitAssignment(CSharpSyntax.AssignmentExpressionSyntax node, ExecutionState state, MethodBehavior behavior, ISymbol symbol, VariableState variableRightState)
         {
             if (behavior == null && //Unknown API
                     (symbol != null && IsPasswordField(symbol)) &&
@@ -40,24 +43,29 @@ namespace RoslynSecurityGuard.Analyzers
             }
         }
 
-        public void VisitInvocationAndCreation(ExpressionSyntax node, ArgumentListSyntax argList, ExecutionState state)
-        {
 
+        public override void VisitAssignment(VBSyntax.AssignmentStatementSyntax node, ExecutionState state, MethodBehavior behavior, ISymbol symbol, VariableState variableRightState)
+        {
+            if (behavior == null && //Unknown API
+                    (symbol != null && IsPasswordField(symbol)) &&
+                    variableRightState.taint == VariableTaint.CONSTANT //Only constant
+        )
+            {
+                var diagnostic = Diagnostic.Create(Rule, node.GetLocation());
+                state.AnalysisContext.ReportDiagnostic(diagnostic);
+            }
         }
 
-        public void VisitBeginMethodDeclaration(MethodDeclarationSyntax node, ExecutionState state)
+        public override void VisitNamedFieldInitializer(VBSyntax.NamedFieldInitializerSyntax node, ExecutionState state, MethodBehavior behavior, ISymbol symbol, VariableState variableRightState)
         {
-
-        }
-        
-        public void VisitStatement(StatementSyntax node, ExecutionState state)
-        {
-
-        }
-
-        public void VisitEndMethodDeclaration(MethodDeclarationSyntax node, ExecutionState state)
-        {
-
+            if (behavior == null && //Unknown API
+                    (symbol != null && IsPasswordField(symbol)) &&
+                    variableRightState.taint == VariableTaint.CONSTANT //Only constant
+        )
+            {
+                var diagnostic = Diagnostic.Create(Rule, node.GetLocation());
+                state.AnalysisContext.ReportDiagnostic(diagnostic);
+            }
         }
 
         private bool IsPasswordField(ISymbol symbol)

@@ -1,16 +1,20 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using VB = Microsoft.CodeAnalysis.VisualBasic;
+using CSharp = Microsoft.CodeAnalysis.CSharp;
+using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
+using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+
 using RoslynSecurityGuard.Analyzers.Utils;
 using RoslynSecurityGuard.Analyzers.Locale;
 
 namespace RoslynSecurityGuard.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class WeakCertificateValidationAnalyzer : DiagnosticAnalyzer
     {
         private static DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SG0004");
@@ -19,13 +23,25 @@ namespace RoslynSecurityGuard.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(VisitSyntaxNode, SyntaxKind.AddAssignmentExpression, SyntaxKind.SimpleAssignmentExpression);
+            context.RegisterSyntaxNodeAction(VisitSyntaxNode, CSharp.SyntaxKind.AddAssignmentExpression, CSharp.SyntaxKind.SimpleAssignmentExpression);
+            context.RegisterSyntaxNodeAction(VisitSyntaxNode, VB.SyntaxKind.AddAssignmentStatement, VB.SyntaxKind.SimpleAssignmentStatement);
         }
 
         private static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx)
         {
-            var assignment = ctx.Node as AssignmentExpressionSyntax;
-            var memberAccess = assignment?.Left as MemberAccessExpressionSyntax;
+            SyntaxNode assignment;
+            SyntaxNode memberAccess;
+
+            if (ctx.Node.Language == LanguageNames.CSharp)
+            {
+                assignment = ctx.Node as CSharpSyntax.AssignmentExpressionSyntax;
+                memberAccess = ((CSharpSyntax.AssignmentExpressionSyntax)assignment)?.Left as CSharpSyntax.MemberAccessExpressionSyntax;            }
+            else
+            {
+                assignment = ctx.Node as VBSyntax.AssignmentStatementSyntax;
+                memberAccess = ((VBSyntax.AssignmentStatementSyntax)assignment)?.Left as VBSyntax.MemberAccessExpressionSyntax;
+            }       
+
             if (memberAccess == null) return;
 
             var symbolMemberAccess = ctx.SemanticModel.GetSymbolInfo(memberAccess).Symbol;

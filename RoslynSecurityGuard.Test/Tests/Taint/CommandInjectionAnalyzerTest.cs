@@ -5,6 +5,7 @@ using RoslynSecurityGuard.Analyzers;
 using RoslynSecurityGuard.Analyzers.Taint;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Tests
@@ -14,17 +15,16 @@ namespace RoslynSecurityGuard.Tests
     public class CommandInjectionAnalyzerTest : DiagnosticVerifier
     {
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new[] { new TaintAnalyzer() };
         }
 
         //No diagnostics expected to show up
         [TestMethod]
-        public void CommandInjectionFalsePositive()
+        public async Task CommandInjectionFalsePositive()
         {
-            var test = @"
-using System;
+            var cSharpTest = @"
 using System.Diagnostics;
 
 namespace VulnerableApp
@@ -33,21 +33,33 @@ namespace VulnerableApp
     {
         static void TestCommandInject(string input)
         {
-                Process.Start(""dir"");
+            Process.Start(""dir"");
         }
     }
 }
 ";
-            VerifyCSharpDiagnostic(test);
+            var visualBasicTest = @"
+Imports System.Diagnostics
+
+Namespace VulnerableApp
+	Class ProcessExec
+		Private Shared Sub TestCommandInject(input As String)
+			Process.Start(""dir"")
+        End Sub
+
+    End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
 
 
         [TestMethod]
-        public void CommandInjectionFalsePositive_Filename()
+        public async Task CommandInjectionFalsePositive_Filename()
         {
-            var test = @"
-using System;
+            var cSharpTest = @"
 using System.Diagnostics;
 
 namespace VulnerableApp
@@ -62,21 +74,26 @@ namespace VulnerableApp
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Diagnostics
 
-            var expected = new DiagnosticResult
-            {
-                Id = "SG0001",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            VerifyCSharpDiagnostic(test);
+Namespace VulnerableApp
+	Class ProcessExec
+		Private Shared Sub TestCommandInject(input As String)
+			Dim p As New ProcessStartInfo()
+			p.FileName = ""1234""
+        End Sub
+    End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
-        
+
         [TestMethod]
-        public void CommandInjectionVulnerable1()
+        public async Task CommandInjectionVulnerable1()
         {
-            var test = @"
-using System;
+            var cSharpTest = @"
 using System.Diagnostics;
 
 namespace VulnerableApp
@@ -91,21 +108,33 @@ namespace VulnerableApp
 }
         ";
 
+            var visualBasicTest = @"
+Imports System.Diagnostics
+
+Namespace VulnerableApp
+	Class ProcessExec
+		Private Shared Sub TestCommandInject(input As String)
+			Process.Start(input)
+        End Sub
+    End Class
+End Namespace
+";
+
             var expected = new DiagnosticResult
             {
                 Id = "SG0001",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
 
         [TestMethod]
-        public void CommandInjectionVulnerable2()
+        public async Task CommandInjectionVulnerable2()
         {
-            var test = @"
-using System;
+            var cSharpTest = @"
 using System.Diagnostics;
 
 namespace VulnerableApp
@@ -116,27 +145,30 @@ namespace VulnerableApp
         {
             ProcessStartInfo p = new ProcessStartInfo();
             p.FileName = input;
-            //Process.Start(p);
         }
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Diagnostics
 
+Namespace VulnerableApp
+	Class ProcessExec
+		Private Shared Sub TestCommandInject(input As String)
+			Dim p As New ProcessStartInfo()
+			p.FileName = input
+        End Sub
+    End Class
+End Namespace
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0001",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            VerifyCSharpDiagnostic(test, expected);
-        }
-
-
-        private void sandbox(string input) {
-            ProcessStartInfo p = new ProcessStartInfo();
-            p.FileName = input;
-            p.Arguments = input;
-            Process.Start(p);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
     }
 }

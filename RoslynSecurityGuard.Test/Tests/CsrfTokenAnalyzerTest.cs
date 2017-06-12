@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using TestHelper;
 
@@ -11,93 +12,124 @@ namespace RoslynSecurityGuard.Test.Tests
     [TestClass]
     public class CsrfTokenAnalyzerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
-            return new [] { new CsrfTokenAnalyzer() };
+            return new[] { new CsrfTokenAnalyzer() };
         }
-        
+
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
         {
             return new[] { MetadataReference.CreateFromFile(typeof(ValidateAntiForgeryTokenAttribute).Assembly.Location) };
         }
-        
+
         [TestMethod]
-        public void CsrfDetectMissingToken()
+        public async Task CsrfDetectMissingToken()
         {
-            var test = @"
-                using System;
-                using System.Diagnostics;
-                using System.Web.Mvc;
+            var cSharpTest = @"
+using System.Web.Mvc;
 
-                namespace VulnerableApp
-                {
-                    public class TestController
-                    {
-                        [HttpPost]
-                        //[ValidateAntiForgeryToken]
-                        public ActionResult ControllerMethod(string input) {
+namespace VulnerableApp
+{
+    public class TestController
+    {
+        [HttpPost]
+        public ActionResult ControllerMethod(string input) {
+            return null;
+        }
+    }
+}
+";
+            var visualBasicTest = @"
+Imports System.Web.Mvc
 
-                            return null;
-                        }
-                    }
-                }
-                ";
+Namespace VulnerableApp
+	Public Class TestController
+		<HttpPost> _
+		Public Function ControllerMethod(input As String) As ActionResult
+			Return Nothing
+		End Function
+	End Class
+End Namespace
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0016",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
 
         [TestMethod]
-        public void CsrfValidateAntiForgeryTokenPresent()
+        public async Task CsrfValidateAntiForgeryTokenPresent()
         {
-            var test = @"
-                using System;
-                using System.Diagnostics;
-                using System.Web.Mvc;
+            var cSharpTest = @"
+using System.Web.Mvc;
 
-                namespace VulnerableApp
-                {
-                    public class TestController
-                    {
-                        [HttpPost]
-                        [ValidateAntiForgeryToken]
-                        public ActionResult ControllerMethod(string input) {
+namespace VulnerableApp
+{
+    public class TestController
+    {
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ControllerMethod(string input) {
 
-                            return null;
-                        }
-                    }
-                }
+            return null;
+        }
+    }
+}
                 ";
+            var visualBasicTest = @"
+Imports System.Web.Mvc
 
-            VerifyCSharpDiagnostic(test);
+Namespace VulnerableApp
+	Public Class TestController
+		<HttpPost> _
+		<ValidateAntiForgeryToken> _
+		Public Function ControllerMethod(input As String) As ActionResult
+			Return Nothing
+		End Function
+	End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
         [TestMethod]
-        public void CsrfValidateAntiForgeryTokenPresentWithInlinedAttributes()
+        public async Task CsrfValidateAntiForgeryTokenPresentWithInlinedAttributes()
         {
-            var test = @"
-                using System;
-                using System.Diagnostics;
-                using System.Web.Mvc;
+            var cSharpTest = @"
+using System.Web.Mvc;
 
-                namespace VulnerableApp
-                {
-                    public class TestController
-                    {
-                        [HttpPost, ValidateAntiForgeryToken]
-                        public ActionResult ControllerMethod(string input) {
-                            return null;
-                        }
-                    }
-                }
+namespace VulnerableApp
+{
+    public class TestController
+    {
+        [HttpPost, ValidateAntiForgeryToken]
+        public ActionResult ControllerMethod(string input) {
+            return null;
+        }
+    }
+}
                 ";
+            var visualBasicTest = @"
+Imports System.Web.Mvc
 
-            VerifyCSharpDiagnostic(test);
+Namespace VulnerableApp
+	Public Class TestController
+		<HttpPost, ValidateAntiForgeryToken> _
+		Public Function ControllerMethod(input As String) As ActionResult
+			Return Nothing
+		End Function
+	End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
     }
 }

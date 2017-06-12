@@ -67,7 +67,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             if (Variables.TryGetValue(identifier, out value))
                 return value;
 
-            return new VariableState(VariableTaint.UNKNOWN);
+            return new VariableState(value.node, VariableTaint.UNKNOWN);
         }
 
         /// <summary>
@@ -75,7 +75,8 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         /// </summary>
         /// <param name="node">Expression to evaluate</param>
         /// <returns>The resolved symbol with the complete class name and method name.</returns>
-        public ISymbol GetSymbol(ExpressionSyntax node) {
+        public ISymbol GetSymbol(SyntaxNode node) {
+            if (node == null) return null;
             return AnalysisContext.SemanticModel.GetSymbolInfo(node).Symbol;
         }
 

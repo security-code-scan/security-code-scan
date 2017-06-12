@@ -1,15 +1,20 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using VB = Microsoft.CodeAnalysis.VisualBasic;
+using CSharp = Microsoft.CodeAnalysis.CSharp;
+using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
+using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
+
 using RoslynSecurityGuard.Analyzers.Utils;
 using RoslynSecurityGuard.Analyzers.Locale;
-using System.Collections.Generic;
+
 
 namespace RoslynSecurityGuard.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class WeakHashingAnalyzer : DiagnosticAnalyzer
     {
         private static DiagnosticDescriptor Md5Rule = LocaleUtil.GetDescriptor("SG0006",new string[] { "MD5" });
@@ -23,13 +28,23 @@ namespace RoslynSecurityGuard.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(VisitSyntaxNode, SyntaxKind.InvocationExpression);
+            context.RegisterSyntaxNodeAction(VisitSyntaxNode, CSharp.SyntaxKind.InvocationExpression);
+            context.RegisterSyntaxNodeAction(VisitSyntaxNode, VB.SyntaxKind.InvocationExpression);
         }
 
         private static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx)
         {
-
-            var node = ctx.Node as InvocationExpressionSyntax;
+            SyntaxNode node, expression;
+            if (ctx.Node.Language == LanguageNames.CSharp)
+            {
+                node = ctx.Node as CSharpSyntax.InvocationExpressionSyntax;
+                expression = ((CSharpSyntax.InvocationExpressionSyntax)node)?.Expression;
+            } else
+            {
+                node = ctx.Node as VBSyntax.InvocationExpressionSyntax;
+                expression = ((VBSyntax.InvocationExpressionSyntax)node)?.Expression;
+            }
+            
             if (node == null) return;
 
             var symbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
@@ -38,7 +53,7 @@ namespace RoslynSecurityGuard.Analyzers
                 //XXX.Create()
                 if (AnalyzerUtil.SymbolMatch(symbol, type: entry.Key, name: "Create"))
                 {
-                    var diagnostic = Diagnostic.Create(entry.Value, node.Expression.GetLocation(), "MD5");
+                    var diagnostic = Diagnostic.Create(entry.Value, expression.GetLocation(), "MD5");
                     ctx.ReportDiagnostic(diagnostic);
                 }
             }

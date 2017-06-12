@@ -84,12 +84,24 @@ namespace TestHelper
             }
         }
 
-        public DiagnosticResult WithLocation(int line, int column = -1)
+        //TODO: Find a better way to specify .vb
+
+        public DiagnosticResult WithLocation(int line)
+        {
+            return this.WithLocation("Test0.cs", line, -1);
+        }
+
+        public DiagnosticResult WithLocation(int line, int column)
         {
             return this.WithLocation("Test0.cs", line, column);
         }
 
-        public DiagnosticResult WithLocation(string path, int line, int column = -1)
+        public DiagnosticResult WithLocation(string path, int line)
+        {
+            return this.WithLocation(path, line, -1);
+        }
+
+        public DiagnosticResult WithLocation(string path, int line, int column)
         {
             DiagnosticResult result = this;
             Array.Resize(ref result.locations, (result.locations?.Length ?? 0) + 1);

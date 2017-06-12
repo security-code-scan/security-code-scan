@@ -1,18 +1,23 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using VB = Microsoft.CodeAnalysis.VisualBasic;
+using CSharp = Microsoft.CodeAnalysis.CSharp;
+using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
+using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Immutable;
+
 using RoslynSecurityGuard.Analyzers.Locale;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using RoslynSecurityGuard.Analyzers.Utils;
 
 namespace RoslynSecurityGuard.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class CsrfTokenAnalyzer : DiagnosticAnalyzer
     {
         public const string DiagnosticId = "SG0016";
@@ -25,66 +30,44 @@ namespace RoslynSecurityGuard.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(VisitMethods, SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(VisitMethods, CSharp.SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(VisitMethods, VB.SyntaxKind.SubBlock, VB.SyntaxKind.FunctionBlock);
         }
 
         private void VisitMethods(SyntaxNodeAnalysisContext ctx)
         {
-            var node = ctx.Node as MethodDeclarationSyntax;
-
-            if (node == null)
-            { //Not the expected node type
-                return;
-            }
-
             bool hasActionMethod = false;
             bool hasValidateAntiForgeryToken = false;
+            SyntaxNode node = null;
+            List<string> attributesList;
+            if (ctx.Node.Language == LanguageNames.CSharp)
+            {
+                node = ctx.Node as CSharpSyntax.MethodDeclarationSyntax;
+                if (node == null) return;
+                attributesList = AnalyzerUtil.getAttributesForMethod((CSharpSyntax.MethodDeclarationSyntax)node);
+            }
+            else
+            {
+                node = ctx.Node as VBSyntax.MethodBlockSyntax;
+                if (node == null) return;
+                attributesList = AnalyzerUtil.getAttributesForMethod((VBSyntax.MethodBlockSyntax)node);
+            }
 
-            //Iterating over the list of annotation for a given method
-            foreach (var attributesInlined in node.AttributeLists) {
-                if (attributesInlined.Attributes.Count == 0) continue; //Bound check .. Unlikely to happens
-
-                List<string> attributesList = getAttributesForMethod(node);
-
-                //Extract the annotation identifier
-                //var identifier = attributesInlined.Attributes[0].Name as IdentifierNameSyntax;
-                foreach (var attribute in attributesList)
+            //Extract the annotation identifier
+            foreach (var attribute in attributesList)
+            {
+                if (MethodsHttp.Contains(attribute))
                 {
-                    if (MethodsHttp.Contains(attribute))
-                    {
-                        hasActionMethod = true;
-                    }
-                    else if (attribute.Equals("ValidateAntiForgeryToken"))
-                    {
-                        hasValidateAntiForgeryToken = true;
-                    }
+                    hasActionMethod = true;
+                }
+                else if (attribute.Equals("ValidateAntiForgeryToken"))
+                {
+                    hasValidateAntiForgeryToken = true;
                 }
             }
 
             if (hasActionMethod && !hasValidateAntiForgeryToken)
-            {
                 ctx.ReportDiagnostic(Diagnostic.Create(Rule, node.GetLocation()));
-            }
-        }
-        private List<string> getAttributesForMethod(MethodDeclarationSyntax node)
-        {
-            List<string> attributesList = new List<string>();
-
-            if(node.AttributeLists != null)
-            {
-                foreach (AttributeListSyntax attributeList in node.AttributeLists)
-                { 
-
-                    if (attributeList.Attributes != null)
-                    {
-                        foreach (AttributeSyntax attribute in attributeList.Attributes)
-                        {
-                            attributesList.Add(attribute.Name.GetText().ToString());
-                        }
-                    }
-                }
-            }
-            return attributesList;
         }
     }
 }

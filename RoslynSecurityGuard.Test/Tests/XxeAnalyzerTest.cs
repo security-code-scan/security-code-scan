@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
+using RoslynSecurityGuard.Analyzers.Taint;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Tests
@@ -11,7 +13,7 @@ namespace RoslynSecurityGuard.Tests
     [TestClass]
     public class XxeAnalyzerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new [] { new XxeAnalyzer() };
         }
@@ -22,10 +24,9 @@ namespace RoslynSecurityGuard.Tests
         }
 
         [TestMethod]
-        public void XxeFalsePositive1()
+        public async Task XxeFalsePositive1()
         {
-            var code = @"
-using System;
+            var cSharpTest = @"
 using System.Xml;
 
 class Xxe
@@ -34,18 +35,27 @@ class Xxe
     {
         XmlReaderSettings settings = new XmlReaderSettings();
         XmlReader reader = XmlReader.Create(inputXml, settings);
-
     }
-}";
+}
+";
+            var visualBasicTest = @"
+Imports System.Xml
 
-            VerifyCSharpDiagnostic(code);
+Class Xxe
+	Public Shared Sub parseUpload(inputXml As String)
+		Dim settings As New XmlReaderSettings()
+		Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
+	End Sub
+End Class
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
         [TestMethod]
-        public void XxeFalsePositive2()
+        public async Task XxeFalsePositive2()
         {
-            var code = @"
-using System;
+            var cSharpTest = @"
 using System.Xml;
 
 class Xxe
@@ -53,21 +63,34 @@ class Xxe
     public static void parseUpload(string inputXml)
     {
         XmlReaderSettings settings = new XmlReaderSettings();
+#pragma warning disable 618
         settings.ProhibitDtd = true;
+#pragma warning restore 618
         XmlReader reader = XmlReader.Create(inputXml, settings);
-
     }
 }";
+            var visualBasicTest = @"
+Imports System.Xml
 
-            VerifyCSharpDiagnostic(code);
+Class Xxe
+	Public Shared Sub parseUpload(inputXml As String)
+		Dim settings As New XmlReaderSettings()
+#Disable Warning BC40000
+		settings.ProhibitDtd = True
+#Enable Warning BC40000
+		Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
+	End Sub
+End Class
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
 
         [TestMethod]
-        public void XxeFalsePositive3()
+        public async Task XxeFalsePositive3()
         {
-            var code = @"
-using System;
+            var cSharpTest = @"
 using System.Xml;
 
 class Xxe
@@ -77,18 +100,28 @@ class Xxe
         XmlReaderSettings settings = new XmlReaderSettings();
         settings.DtdProcessing = DtdProcessing.Prohibit;
         XmlReader reader = XmlReader.Create(inputXml, settings);
-
     }
-}";
+}
+";
+            var visualBasicTest = @"
+Imports System.Xml
 
-            VerifyCSharpDiagnostic(code);
+Class Xxe
+	Public Shared Sub parseUpload(inputXml As String)
+		Dim settings As New XmlReaderSettings()
+		settings.DtdProcessing = DtdProcessing.Prohibit
+		Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
+	End Sub
+End Class
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
         [TestMethod]
-        public void XxeFalsePositive4()
+        public async Task XxeFalsePositive4()
         {
-            var code = @"
-using System;
+            var cSharpTest = @"
 using System.Xml;
 
 class Xxe
@@ -98,18 +131,28 @@ class Xxe
         XmlReaderSettings settings = new XmlReaderSettings();
         settings.DtdProcessing = DtdProcessing.Ignore;
         XmlReader reader = XmlReader.Create(inputXml, settings);
-
     }
-}";
+}
+";
+            var visualBasicTest = @"
+Imports System.Xml
 
-            VerifyCSharpDiagnostic(code);
+Class Xxe
+	Public Shared Sub parseUpload(inputXml As String)
+		Dim settings As New XmlReaderSettings()
+		settings.DtdProcessing = DtdProcessing.Ignore
+		Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
+	End Sub
+End Class
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
         [TestMethod]
-        public void XxeVulnerable1()
+        public async Task XxeVulnerable1()
         {
-            var code = @"
-using System;
+            var cSharpTest = @"
 using System.Xml;
 
 class Xxe
@@ -117,23 +160,37 @@ class Xxe
     public static void parseUpload(string inputXml)
     {
         XmlReaderSettings settings = new XmlReaderSettings();
+#pragma warning disable 618
         settings.ProhibitDtd = false;
+#pragma warning restore 618
         XmlReader reader = XmlReader.Create(inputXml, settings);
-
     }
-}";
+}
+";
+            var visualBasicTest = @"
+Imports System.Xml
 
+Class Xxe
+	Public Shared Sub parseUpload(inputXml As String)
+		Dim settings As New XmlReaderSettings()
+#Disable Warning BC40000
+		settings.ProhibitDtd = False
+#Enable Warning BC40000
+		Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
+	End Sub
+End Class
+";
             var expected = new[] {
                 new DiagnosticResult {Id = "SG0007",Severity = DiagnosticSeverity.Warning}};
 
-            VerifyCSharpDiagnostic(code, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
         [TestMethod]
-        public void XxeVulnerable2()
+        public async Task XxeVulnerable2()
         {
-            var code = @"
-using System;
+            var cSharpTest = @"
 using System.Xml;
 
 class Xxe
@@ -143,13 +200,73 @@ class Xxe
         XmlReaderSettings settings = new XmlReaderSettings();
         settings.DtdProcessing = DtdProcessing.Parse;
         XmlReader reader = XmlReader.Create(inputXml, settings);
-
     }
-}";
+}
+";
+            var visualBasicTest = @"
+Imports System.Xml
+
+Class Xxe
+	Public Shared Sub parseUpload(inputXml As String)
+		Dim settings As New XmlReaderSettings()
+		settings.DtdProcessing = DtdProcessing.Parse
+		Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
+	End Sub
+End Class
+";
             var expected = new[] {
                 new DiagnosticResult {Id = "SG0007",Severity = DiagnosticSeverity.Warning}};
 
-            VerifyCSharpDiagnostic(code, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+        }
+    }
+
+    [TestClass]
+    public class XxeAnalyzerTest2 : DiagnosticVerifier
+    {
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        {
+            return new DiagnosticAnalyzer[] { new XxeAnalyzer(), new TaintAnalyzer() };
+        }
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
+        {
+            return new[] { MetadataReference.CreateFromFile(typeof(XmlNode).Assembly.Location) };
+        }
+
+        [TestMethod]
+        public async Task FalsePositive1()
+        {
+            var cSharpTest = @"
+using System.IO;
+using System.Xml;
+
+class PathTraversal
+{
+    public static void Run(string strText)
+    {
+        using (var reader = XmlReader.Create(new StringReader(strText)))
+        {
+            reader.Read();
+        }
+    }
+}
+";
+            var visualBasicTest = @"
+Imports System.IO
+Imports System.Xml
+
+Class PathTraversal
+	Public Shared Sub Run(strText As String)
+		Using reader = XmlReader.Create(New StringReader(strText))
+			reader.Read()
+		End Using
+	End Sub
+End Class
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
     }
 }

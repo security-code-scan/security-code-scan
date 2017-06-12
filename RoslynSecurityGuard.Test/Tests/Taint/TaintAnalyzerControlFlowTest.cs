@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers.Taint;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Test.Tests
@@ -14,22 +15,20 @@ namespace RoslynSecurityGuard.Test.Tests
     [TestClass]
     public class TaintAnalyzerControlFlowTest : DiagnosticVerifier
     {
-
-        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new[] { new TaintAnalyzer() };
         }
-
-
+        
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
         {
             return new[] { MetadataReference.CreateFromFile(typeof(System.Data.SqlClient.SqlCommand).Assembly.Location) };
         }
 
         [TestMethod]
-        public void Condition1()
+        public async Task Condition1()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Data.SqlClient;
 
 namespace sample
@@ -42,25 +41,43 @@ namespace sample
             var variable1 = username;
             var variable2 = variable1;
 
-            if(variable2 != '') {
+            if(variable2 != """") {
                 new SqlCommand(variable2);
             }
         }
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+	Class SqlConstant
+		Public Shared Sub Run(input As String)
+			Dim username As String = input
+			Dim variable1 = username
+			Dim variable2 = variable1
+
+			If variable2 <> """" Then
+				Dim com As New SqlCommand(variable2)
+			End If
+		End Sub
+	End Class
+End Namespace
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test,expected);
+            await VerifyCSharpDiagnostic(cSharpTest,expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
         [TestMethod]
-        public void Condition2()
+        public async Task Condition2()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Data.SqlClient;
 
 namespace sample
@@ -73,27 +90,43 @@ namespace sample
             var variable1 = username;
             var variable2 = variable1;
 
-            if(variable2 != '')
+            if(variable2 != """")
                 new SqlCommand(variable2);
 
         }
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
 
+Namespace sample
+	Class SqlConstant
+		Public Shared Sub Run(input As String)
+			Dim username As String = input
+			Dim variable1 = username
+			Dim variable2 = variable1
+
+            Dim com As SqlCommand
+			If (variable2 <> """") Then com = New SqlCommand(variable2)
+		End Sub
+	End Class
+End Namespace
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
 
         [TestMethod]
-        public void Loop1()
+        public async Task Loop1()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Data.SqlClient;
 
 namespace sample
@@ -114,19 +147,37 @@ namespace sample
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+	Class SqlConstant
+		Public Shared Sub Run(input As String)
+			Dim username As String = input
+			Dim variable1 = username
+			Dim variable2 = variable1
+
+			For i As Integer = 0 To 9
+				Dim com As New SqlCommand(variable2)
+			Next
+		End Sub
+	End Class
+End Namespace
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
 
         [TestMethod]
-        public void Loop2()
+        public async Task Loop2()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Data.SqlClient;
 
 namespace sample
@@ -145,12 +196,30 @@ namespace sample
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+	Class SqlConstant
+		Public Shared Sub Run(input As String)
+			Dim username As String = input
+			Dim variable1 = username
+			Dim variable2 = variable1
+
+			For i As Integer = 0 To 9
+				Dim com As New SqlCommand(variable2)
+			Next
+		End Sub
+	End Class
+End Namespace
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
     }
 }

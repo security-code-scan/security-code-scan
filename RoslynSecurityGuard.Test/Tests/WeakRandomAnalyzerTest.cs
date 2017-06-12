@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Tests
@@ -11,15 +12,16 @@ namespace RoslynSecurityGuard.Tests
     [TestClass]
     public class WeakRandomAnalyzerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new[] { new WeakRandomAnalyzer() };
         }
 
         [TestMethod]
-        public void RandomFalsePositive()
+        public async Task RandomFalsePositive()
         {
-            var code = @"using System;
+            var cSharpTest = @"
+using System;
 using System.Security.Cryptography;
 
 class WeakRandom
@@ -35,33 +37,56 @@ class WeakRandom
     }
 }
 ";
-            VerifyCSharpDiagnostic(code);
+            var visualBasicTest = @"
+Imports System
+Imports System.Security.Cryptography
+
+Class WeakRandom
+	Private Shared Function generateSecureToken() As String
+		Dim rnd As RandomNumberGenerator = RandomNumberGenerator.Create()
+		Dim buffer As Byte() = New Byte(15) {}
+		rnd.GetBytes(buffer)
+		Return BitConverter.ToString(buffer)
+	End Function
+End Class
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
         [TestMethod]
-        public void RandomVulnerable1()
+        public async Task RandomVulnerable1()
         {
-            var code = @"
+            var cSharpTest = @"
 using System;
-using System.Security.Cryptography;
 
 class WeakRandom
 {
-    static String generateWeakToken()
+    static string generateWeakToken()
     {
         Random rnd = new Random();
-        return rnd.Next().ToString(); //Vulnerable
+        return rnd.Next().ToString(); 
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System
 
+Class WeakRandom
+	Private Shared Function generateWeakToken() As String
+		Dim rnd As New Random()
+		Return rnd.Next().ToString()
+	End Function
+End Class
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0005",
                 Severity = DiagnosticSeverity.Warning,
-            }.WithLocation(10, -1);
+            };
 
-            VerifyCSharpDiagnostic(code, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(9, -1)); ;
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 7));
         }
     }
 }

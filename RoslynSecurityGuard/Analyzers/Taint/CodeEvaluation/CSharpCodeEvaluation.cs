@@ -13,7 +13,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
     /// </summary>
     public class CSharpCodeEvaluation : BaseCodeEvaluation
     {
-        public static List<CSharpTaintAnalyzerExtension> extensions { get; set; } = new List<CSharpTaintAnalyzerExtension>();
+        public static List<TaintAnalyzerExtension> extensions { get; set; } = new List<TaintAnalyzerExtension>();
         
 
         public void VisitMethods(SyntaxNodeAnalysisContext ctx)
@@ -57,9 +57,9 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         /// <returns></returns>
         private VariableState VisitMethodDeclaration(MethodDeclarationSyntax node, ExecutionState state)
         {
-            foreach (ParameterSyntax statement in node.ParameterList.Parameters)
+            foreach (ParameterSyntax parameter in node.ParameterList.Parameters)
             {
-                state.AddNewValue(ResolveIdentifier(statement.Identifier), new VariableState(VariableTaint.TAINTED));
+                state.AddNewValue(ResolveIdentifier(parameter.Identifier), new VariableState(parameter, VariableTaint.TAINTED));
             }
 
             if (node.Body != null)
@@ -76,14 +76,13 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             }
 
             //The state return is irrelevant because it is not use.
-            return new VariableState(VariableTaint.UNKNOWN);
+            return new VariableState(node, VariableTaint.UNKNOWN);
         }
 
         /// <summary>
         /// Statement are all segment separate by semi-colon.
         /// </summary>
         /// <param name="node"></param>
-        /// <param name="ctx"></param>
         /// <param name="state"></param>
         private VariableState VisitNode(SyntaxNode node, ExecutionState state)
         {
@@ -117,23 +116,22 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                 var methodDeclaration = (MethodDeclarationSyntax)node;
                 return VisitMethodDeclaration(methodDeclaration, state);
             }
-
             else
             {
                 foreach (var n in node.ChildNodes())
                 {
                     VisitNode(n, state);
                 }
-            }
 
-            var isBlockStatement = node is BlockSyntax || node is IfStatementSyntax || node is ForEachStatementSyntax || node is ForStatementSyntax;
+				var isBlockStatement = node is BlockSyntax || node is IfStatementSyntax || node is ForEachStatementSyntax || node is ForStatementSyntax;
 
-            if (!isBlockStatement)
-            {
-                SGLogging.Log("Unsupported statement " + node.GetType() + " (" + node.ToString() + ")");
-            }
+				if (!isBlockStatement)
+				{
+					SGLogging.Log("Unsupported statement " + node.GetType() + " (" + node.ToString() + ")");
+				}
 
-            return new VariableState(VariableTaint.UNKNOWN);
+				return new VariableState(node, VariableTaint.UNKNOWN);
+			}            
         }
 
         /// <summary>
@@ -151,13 +149,10 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         /// Evaluate expression that contains a list of assignment.
         /// </summary>
         /// <param name="declaration"></param>
-        /// <param name="ctx"></param>
         /// <param name="state"></param>
         private VariableState VisitVariableDeclaration(VariableDeclarationSyntax declaration, ExecutionState state)
         {
-            var variables = declaration.Variables;
-
-            VariableState lastState = new VariableState(VariableTaint.UNKNOWN);
+            VariableState lastState = new VariableState(declaration, VariableTaint.UNKNOWN);
 
             foreach (var variable in declaration.Variables)
             {
@@ -168,6 +163,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                     EqualsValueClauseSyntax equalsClause = initializer;
 
                     VariableState varState = VisitExpression(equalsClause.Value, state);
+					//varState.SetType(lastState.type);
                     state.AddNewValue(ResolveIdentifier(identifier), varState);
                     lastState = varState;
                 }
@@ -204,7 +200,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
             else if (expression is LiteralExpressionSyntax)
             {
-                return new VariableState(VariableTaint.CONSTANT);
+                return new VariableState(expression, VariableTaint.CONSTANT);
             }
             else if (expression is IdentifierNameSyntax)
             {
@@ -228,7 +224,6 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             {
                 var memberAccess = (MemberAccessExpressionSyntax)expression;
                 var leftExpression = memberAccess.Expression;
-                var name = memberAccess.Name;
                 return VisitExpression(leftExpression, state);
             }
             else if (expression is ElementAccessExpressionSyntax)
@@ -244,18 +239,18 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             else if (expression is TypeOfExpressionSyntax)
             {
                 var typeofEx = (TypeOfExpressionSyntax)expression;
-                return new VariableState(VariableTaint.SAFE);
+                return new VariableState(expression, VariableTaint.SAFE);
             }
             else if (expression is ConditionalExpressionSyntax)
             {
                 var conditional = (ConditionalExpressionSyntax)expression;
                 VisitExpression(conditional.Condition, state);
-                var finalState = new VariableState(VariableTaint.SAFE);
+                var finalState = new VariableState(expression, VariableTaint.SAFE);
 
                 var whenTrueState = VisitExpression(conditional.WhenTrue, state);
-                finalState.merge(whenTrueState);
+                finalState = finalState.merge(whenTrueState);
                 var whenFalseState = VisitExpression(conditional.WhenFalse, state);
-                finalState.merge(whenFalseState);
+                finalState = finalState.merge(whenFalseState);
 
                 return finalState;
             }
@@ -268,7 +263,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             {
                 var query = (QueryExpressionSyntax)expression;
                 var body = query.Body;
-                return new VariableState(VariableTaint.UNKNOWN);
+                return new VariableState(expression, VariableTaint.UNKNOWN);
             }
             else if (expression is InterpolatedStringExpressionSyntax)
             {
@@ -280,20 +275,20 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             SGLogging.Log("Unsupported expression " + expression.GetType() + " (" + expression.ToString() + ")");
 
             //Unsupported expression
-            return new VariableState(VariableTaint.UNKNOWN);
+            return new VariableState(expression, VariableTaint.UNKNOWN);
         }
 
         private VariableState VisitInterpolatedString(InterpolatedStringExpressionSyntax interpolatedString, ExecutionState state)
         {
 
-            var varState = new VariableState(VariableTaint.CONSTANT);
+            var varState = new VariableState(interpolatedString, VariableTaint.CONSTANT);
 
             foreach (var content in interpolatedString.Contents)
             {
                 var textString = content as InterpolatedStringTextSyntax;
                 if (textString != null)
                 {
-                    varState = varState.merge(new VariableState(VariableTaint.CONSTANT));
+                    varState = varState.merge(new VariableState(textString, VariableTaint.CONSTANT));
                 }
                 var interpolation = content as InterpolationSyntax;
                 if (interpolation != null)
@@ -311,7 +306,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             {
                 VisitExpression(argument.Expression, state);
             }
-            return new VariableState(VariableTaint.UNKNOWN);
+            return new VariableState(elementAccess, VariableTaint.UNKNOWN);
         }
 
         private VariableState VisitExpressionStatement(ExpressionStatementSyntax node, ExecutionState state)
@@ -326,14 +321,28 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
         private VariableState VisitObjectCreation(ObjectCreationExpressionSyntax node, ExecutionState state)
         {
-            return VisitInvocationAndCreation(node, node.ArgumentList, state);
+			VariableState finalState = VisitInvocationAndCreation(node, node.ArgumentList, state);
+
+			foreach (SyntaxNode child in node.DescendantNodes())
+			{
+				if (child is AssignmentExpressionSyntax)
+				{
+					finalState = finalState.merge(VisitAssignment((AssignmentExpressionSyntax)child, state));
+				}
+				else
+				{
+					SGLogging.Log(child.GetText().ToString().Trim() + " -> " + finalState);
+				}
+			}
+			
+            return finalState;
         }
 
         private VariableState VisitArrayCreation(ArrayCreationExpressionSyntax node, ExecutionState state)
         {
             var arrayInit = node.Initializer;
 
-            var finalState = new VariableState(VariableTaint.SAFE);
+            var finalState = new VariableState(node, VariableTaint.SAFE);
             if (arrayInit != null)
             {
                 foreach (var ex in arrayInit.Expressions)
@@ -363,10 +372,10 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             int i = 0;
             if (argList == null)
             {
-                return new VariableState(VariableTaint.UNKNOWN);
+                return new VariableState(node, VariableTaint.UNKNOWN);
             }
 
-            var returnState = new VariableState(VariableTaint.SAFE);
+            var returnState = new VariableState(node, VariableTaint.SAFE);
 
             foreach (var argument in argList.Arguments)
             {
@@ -424,7 +433,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             }
             else
             {
-                return new VariableState(VariableTaint.UNKNOWN);
+                return new VariableState(node, VariableTaint.UNKNOWN);
             }
 
         }
@@ -437,13 +446,25 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
             var variableState = VisitExpression(node.Right, state);
 
-            if (node.Left is IdentifierNameSyntax)
-            {
-                var assignmentIdentifier = node.Left as IdentifierNameSyntax;
-                state.MergeValue(ResolveIdentifier(assignmentIdentifier.Identifier), variableState);
-            }
+			//Additionnal analysis by extension
+			foreach (var ext in extensions)
+			{
+				ext.VisitAssignment(node, state, behavior, symbol, variableState);
+			}
 
-            if (behavior != null && //Injection
+			//if (node.Left is IdentifierNameSyntax)
+			//         {
+			//             var assignmentIdentifier = node.Left as IdentifierNameSyntax;
+			//             state.MergeValue(ResolveIdentifier(assignmentIdentifier.Identifier), variableState);
+			//         }
+
+			IdentifierNameSyntax parentIdentifierSyntax = GetParentIdentifier(node.Left);
+			if (parentIdentifierSyntax != null)
+			{
+				state.MergeValue(ResolveIdentifier(parentIdentifierSyntax.Identifier), variableState);
+			}
+
+			if (behavior != null && //Injection
                     behavior.isInjectableField &&
                     variableState.taint != VariableTaint.CONSTANT && //Skip safe values
                     variableState.taint != VariableTaint.SAFE)
@@ -465,23 +486,48 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
             //TODO: tainted the variable being assign.
 
-            //Additionnal analysis by extension
-            foreach (var ext in extensions)
-            {
-                ext.VisitAssignment(node, state, behavior, symbol, variableState);
-            }
 
             return variableState;
         }
 
+		/// <summary>
+		/// Return the top member from an assignment.
+		/// <code>
+		/// a.b.c = 1234; //Will return a
+		/// d.e = 1234 //Will return d
+		/// </code>
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <returns></returns>
+		private IdentifierNameSyntax GetParentIdentifier(ExpressionSyntax expression)
+		{
+			//if (!(expression is IdentifierNameSyntax))
+			//{
+			//	return GetParentIdentifier((ExpressionSyntax)expression.Parent);
+			//}
 
-        /// <summary>
-        /// Identifier name include variable name.
-        /// </summary>
-        /// <param name="expression"></param>
-        /// <param name="state"></param>
-        /// <returns></returns>
-        private VariableState VisitIdentifierName(IdentifierNameSyntax expression, ExecutionState state)
+			if (expression is MemberAccessExpressionSyntax)
+			{
+				return GetParentIdentifier(((MemberAccessExpressionSyntax)expression).Expression);
+			}
+
+			if (expression is IdentifierNameSyntax)
+			{
+				return (IdentifierNameSyntax)expression;
+			}
+
+			return null;
+
+		}
+
+
+		/// <summary>
+		/// Identifier name include variable name.
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="state"></param>
+		/// <returns></returns>
+		private VariableState VisitIdentifierName(IdentifierNameSyntax expression, ExecutionState state)
         {
             var value = ResolveIdentifier(expression.Identifier);
             return state.GetValueByIdentifier(value);

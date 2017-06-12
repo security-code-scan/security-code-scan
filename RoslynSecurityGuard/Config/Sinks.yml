@@ -80,7 +80,7 @@ DataContext_ExecuteQuery_0:
   className: DataContext
   member: method
   name: ExecuteQuery
-  argTypes: (string, params object[])
+  argTypes: (System.String, params System.Object[])
   injectableArguments: 0
   locale: SG0002
 
@@ -89,7 +89,7 @@ DataContext_ExecuteQuery_1:
   className: DataContext
   member: method
   name: ExecuteQuery
-  argTypes: (System.Type, string, params object[])
+  argTypes: (System.Type, System.String, params System.Object[])
   injectableArguments: 1
   locale: SG0002
 
@@ -327,18 +327,74 @@ File_WriteAllText:
 
 #XmlReader
 
-XmlReader_Create:
+XmlReader_Create_uri:
   namespace: System.Xml
   className: XmlReader
   member: method
   name: Create
+  argTypes: (System.String)
   injectableArguments: 0
   locale: SG0018
 
-StreamReader_Create:
+XmlReader_Create_uri_settings:
+  namespace: System.Xml
+  className: XmlReader
+  member: method
+  name: Create
+  argTypes: (System.String, System.Xml.XmlReaderSettings)
+  injectableArguments: 0
+  locale: SG0018
+
+XmlReader_Create_uri_settings_context:
+  namespace: System.Xml
+  className: XmlReader
+  member: method
+  name: Create
+  argTypes: (System.String, System.Xml.XmlReaderSettings, System.Xml.XmlParserContext)
+  injectableArguments: 0
+  locale: SG0018
+
+StreamReader_Create_path:
   namespace: System.IO
   className: StreamReader
   member: method
   name: .ctor
+  argTypes: (System.String)
+  injectableArguments: 0
+  locale: SG0018
+
+StreamReader_Create_path_bool:
+  namespace: System.IO
+  className: StreamReader
+  member: method
+  name: .ctor
+  argTypes: (System.String, System.Boolean)
+  injectableArguments: 0
+  locale: SG0018
+
+StreamReader_Create_path_encoding:
+  namespace: System.IO
+  className: StreamReader
+  member: method
+  name: .ctor
+  argTypes: (System.String, System.Text.Encoding)
+  injectableArguments: 0
+  locale: SG0018
+
+StreamReader_Create_path_encoding_bool:
+  namespace: System.IO
+  className: StreamReader
+  member: method
+  name: .ctor
+  argTypes: (System.String, System.Text.Encoding, System.Boolean)
+  injectableArguments: 0
+  locale: SG0018
+
+StreamReader_Create_path_encoding_bool_int:
+  namespace: System.IO
+  className: StreamReader
+  member: method
+  name: .ctor
+  argTypes: (System.String, System.Text.Encoding, System.Boolean, System.Int32)
   injectableArguments: 0
   locale: SG0018

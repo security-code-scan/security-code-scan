@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers.Taint;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
 using TestHelper;
 
 namespace RoslynSecurityGuard.Tests
@@ -12,7 +13,7 @@ namespace RoslynSecurityGuard.Tests
     public class TaintAnalyzerTest : DiagnosticVerifier
     {
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetCSharpDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new List<DiagnosticAnalyzer> { new TaintAnalyzer() };
         }
@@ -24,9 +25,9 @@ namespace RoslynSecurityGuard.Tests
         }
 
         [TestMethod]
-        public void VariableTransferSimple()
+        public async Task VariableTransferSimple()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Data.SqlClient;
 
 namespace sample
@@ -44,13 +45,30 @@ namespace sample
     }
 }
 ";
-            VerifyCSharpDiagnostic(test);
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+	Class SqlConstant
+		Public Shared Sub Run()
+			Dim username As String = ""Hello Friend..""
+            Dim variable1 = username
+            Dim variable2 = variable1
+
+            Dim com As New SqlCommand(variable2)
+        End Sub
+
+    End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
         [TestMethod]
-        public void VariableConcatenation()
+        public async Task VariableConcatenation()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Data.SqlClient;
 
 namespace sample
@@ -66,13 +84,27 @@ namespace sample
     }
 }
 ";
-            VerifyCSharpDiagnostic(test);
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+	Class SqlConstant
+		Public Shared Sub Run()
+			Dim username As String = ""Shall we play a game?""
+
+			Dim com As New SqlCommand(""SELECT * FROM users WHERE username = '"" & username + ""' LIMIT 1"")
+		End Sub
+	End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
         [TestMethod]
-        public void VariableTransferWithConcatenation()
+        public async Task VariableTransferWithConcatenation()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Data.SqlClient;
 
 namespace sample
@@ -90,14 +122,30 @@ namespace sample
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
 
-            VerifyCSharpDiagnostic(test);
+Namespace sample
+	Class SqlConstant
+		Public Shared Sub Run()
+			Dim username As String = ""Hello Friend..""
+            Dim variable1 = username
+            Dim variable2 = variable1
+
+            Dim com As New SqlCommand(""SELECT* FROM users WHERE username = '"" + variable2 + ""' LIMIT 1"")
+        End Sub
+
+    End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
         [TestMethod]
-        public void VariableTransferUnsafe()
+        public async Task VariableTransferUnsafe()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Data.SqlClient;
 
 namespace sample
@@ -115,19 +163,35 @@ namespace sample
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+	Class SqlConstant
+		Public Shared Sub Run(input As String)
+			Dim username As String = input
+            Dim variable1 = username
+            Dim variable2 = variable1
+
+            Dim com As New SqlCommand(variable2)
+        End Sub
+
+    End Class
+End Namespace
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
-
-
+        
         [TestMethod]
-        public void VariableConcatenationUnsafe()
+        public async Task VariableConcatenationUnsafe()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Data.SqlClient;
 
 namespace sample
@@ -141,20 +205,31 @@ namespace sample
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+    Class SqlConstant
+        Public Shared Sub Run(input As String)
+            Dim com As New SqlCommand(""SELECT* FROM users WHERE username = '"" & input & ""' LIMIT 1"")
+        End Sub
+    End Class
+End Namespace
+";
+
 
             var expected = new DiagnosticResult
             {
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
-
-
         [TestMethod]
-        public void VariableOverride() {
-            var test = @"
+        public async Task VariableOverride() {
+            var cSharpTest = @"
 using System.Data.SqlClient;
 
 namespace sample
@@ -164,7 +239,9 @@ namespace sample
         public static void Run(string input)
         {
             {
+#pragma warning disable 219
                 string username = ""ignore_me"";
+#pragma warning restore 219
             }
             {
                 string username = input;
@@ -174,21 +251,38 @@ namespace sample
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
 
+Namespace sample
+	Class SqlConstant
+		Public Shared Sub Run(input As String)
+			If True Then
+				Dim username As String = ""ignore_me""
+			End If
+			If True Then
+				Dim username As String = input
+				Dim com As New SqlCommand(""SELECT* FROM users WHERE username = '"" & username + ""' LIMIT 1"")
+			End If
+		End Sub
+	End Class
+End Namespace
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
 
 
         [TestMethod]
-        public void VariableReuse()
+        public async Task VariableReuse()
         {
-            var test = @"
+            var cSharpTest = @"
 using System.Data.SqlClient;
 
 namespace sample
@@ -206,13 +300,28 @@ namespace sample
     }
 }
 ";
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
 
+Namespace sample
+	Class SqlConstant
+		Public Shared Sub Run(input As String)
+			Dim query As String = ""SELECT * FROM [User] WHERE user_id = 1""
+			Dim cmd1 As New SqlCommand(query)
+
+			query = input
+			Dim cmd2 As SqlCommand = New SqlCommand(query)
+		End Sub
+	End Class
+End Namespace
+";
             var expected = new DiagnosticResult
             {
                 Id = "SG0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
 /*

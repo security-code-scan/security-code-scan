@@ -2,12 +2,13 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VisualBasic;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Data.Linq;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace TestHelper
 {
@@ -23,6 +24,9 @@ namespace TestHelper
         private static readonly MetadataReference CodeAnalysisReference = MetadataReference.CreateFromFile(typeof(Compilation).Assembly.Location);
         private static readonly MetadataReference SystemDiagReference = MetadataReference.CreateFromFile(typeof(Process).Assembly.Location);
 
+        private static readonly CompilationOptions CSharpDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        private static readonly CompilationOptions VisualBasicDefaultOptions = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+
         internal static string DefaultFilePathPrefix = "Test";
         internal static string CSharpDefaultFileExt = "cs";
         internal static string VisualBasicDefaultExt = "vb";
@@ -35,11 +39,13 @@ namespace TestHelper
         /// </summary>
         /// <param name="sources">Classes in the form of strings</param>
         /// <param name="language">The language the source classes are in</param>
-        /// <param name="analyzer">The analyzer to be run on the sources</param>
+        /// <param name="analyzers">The analyzers to be run on the sources</param>
+        /// <param name="references">Addional refenced modules</param>
+        /// <param name="includeCompilerDiagnostics">Get compiler diagnostics too</param>
         /// <returns>An IEnumerable of Diagnostics that surfaced in the source code, sorted by Location</returns>
-        private static Diagnostic[] GetSortedDiagnostics(string[] sources, string language, List<DiagnosticAnalyzer> analyzers, IEnumerable<MetadataReference> references = null)
+        private static async Task<Diagnostic[]> GetSortedDiagnostics(string[] sources, string language, List<DiagnosticAnalyzer> analyzers, IEnumerable<MetadataReference> references = null, bool includeCompilerDiagnostics = false)
         {
-            return GetSortedDiagnosticsFromDocuments(analyzers, GetDocuments(sources, language, references));
+            return await GetSortedDiagnosticsFromDocuments(analyzers, GetDocuments(sources, language, references), includeCompilerDiagnostics);
         }
 
         /// <summary>
@@ -48,8 +54,9 @@ namespace TestHelper
         /// </summary>
         /// <param name="analyzer">The analyzer to run on the documents</param>
         /// <param name="documents">The Documents that the analyzer will be run on</param>
+        /// <param name="includeCompilerDiagnostics">Get compiler diagnostics too</param>
         /// <returns>An IEnumerable of Diagnostics that surfaced in the source code, sorted by Location</returns>
-        protected static Diagnostic[] GetSortedDiagnosticsFromDocuments(List<DiagnosticAnalyzer> analyzers, Document[] documents)
+        protected static async Task<Diagnostic[]> GetSortedDiagnosticsFromDocuments(List<DiagnosticAnalyzer> analyzers, Document[] documents, bool includeCompilerDiagnostics = false)
         {
             var projects = new HashSet<Project>();
             foreach (var document in documents)
@@ -60,8 +67,10 @@ namespace TestHelper
             var diagnostics = new List<Diagnostic>();
             foreach (var project in projects)
             {
-                var compilationWithAnalyzers = project.GetCompilationAsync().Result.WithAnalyzers(ImmutableArray.Create(analyzers.ToArray()));
-                var diags = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
+                var compilation = await project.GetCompilationAsync();
+                var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create(analyzers.ToArray()));
+                var diags = includeCompilerDiagnostics ? await compilationWithAnalyzers.GetAllDiagnosticsAsync() : await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
+
                 foreach (var diag in diags)
                 {
                     if (diag.Location == Location.None || diag.Location.IsInMetadata)
@@ -73,7 +82,7 @@ namespace TestHelper
                         for (int i = 0; i < documents.Length; i++)
                         {
                             var document = documents[i];
-                            var tree = document.GetSyntaxTreeAsync().Result;
+                            var tree = await document.GetSyntaxTreeAsync();
                             if (tree == diag.Location.SourceTree)
                             {
                                 diagnostics.Add(diag);
@@ -84,7 +93,6 @@ namespace TestHelper
             }
 
             var results = SortDiagnostics(diagnostics);
-            diagnostics.Clear();
             return results;
         }
 
@@ -147,6 +155,8 @@ namespace TestHelper
             string fileNamePrefix = DefaultFilePathPrefix;
             string fileExt = language == LanguageNames.CSharp ? CSharpDefaultFileExt : VisualBasicDefaultExt;
 
+            CompilationOptions options = language == LanguageNames.CSharp ? CSharpDefaultOptions : VisualBasicDefaultOptions;
+
             var projectId = ProjectId.CreateNewId(debugName: TestProjectName);
 
             var solution = new AdhocWorkspace()
@@ -156,7 +166,8 @@ namespace TestHelper
                 .AddMetadataReference(projectId, SystemCoreReference)
                 .AddMetadataReference(projectId, CSharpSymbolsReference)
                 .AddMetadataReference(projectId, CodeAnalysisReference)
-                .AddMetadataReference(projectId, SystemDiagReference);
+                .AddMetadataReference(projectId, SystemDiagReference)
+                .WithProjectCompilationOptions(projectId, options);
 
             if (references != null) {
                 solution = solution.AddMetadataReferences(projectId, references);

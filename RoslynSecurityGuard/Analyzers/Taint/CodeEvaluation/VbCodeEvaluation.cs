@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using RoslynSecurityGuard.Analyzers.Utils;
 using Microsoft.CodeAnalysis;
 using RoslynSecurityGuard.Analyzers.Locale;
+using Microsoft.CodeAnalysis.VisualBasic;
 
 namespace RoslynSecurityGuard.Analyzers.Taint
 {
@@ -99,7 +100,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             else if (node is AssignmentStatementSyntax)
             {
                 var assignment = (AssignmentStatementSyntax)node;
-                return VisitAssignment(assignment, state);
+                return VisitAssignmentStatement(assignment, state);
             }
 
             //Expression
@@ -356,27 +357,32 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
         }
 
-        private VariableState VisitAssignment(AssignmentStatementSyntax node, ExecutionState state)
+        private VariableState VisitAssignmentStatement(AssignmentStatementSyntax node, ExecutionState state)
+        {
+            return VisitAssignment(node, node.Left, node.Right, state);
+        }
+        
+        private VariableState VisitNamedFieldInitializer(NamedFieldInitializerSyntax node, ExecutionState state)
+        {
+            return VisitAssignment(node, node.Name, node.Expression, state);
+        }
+
+        private VariableState VisitAssignment(VisualBasicSyntaxNode node, ExpressionSyntax leftExpression, 
+            ExpressionSyntax rightExpression, ExecutionState state)
         {
 
-            var symbol = state.GetSymbol(node.Left);
+                var symbol = state.GetSymbol(leftExpression);
             MethodBehavior behavior = behaviorRepo.GetMethodBehavior(symbol);
 
-            var variableState = VisitExpression(node.Right, state);
+            var variableState = VisitExpression(rightExpression, state);
 
             //Additionnal analysis by extension
             foreach (var ext in extensions)
             {
                 ext.VisitAssignment(node, state, behavior, symbol, variableState);
             }
-
-            //if (node.Left is IdentifierNameSyntax)
-            //         {
-            //             var assignmentIdentifier = node.Left as IdentifierNameSyntax;
-            //             state.MergeValue(ResolveIdentifier(assignmentIdentifier.Identifier), variableState);
-            //         }
-
-            IdentifierNameSyntax parentIdentifierSyntax = GetParentIdentifier(node.Left);
+            
+            IdentifierNameSyntax parentIdentifierSyntax = GetParentIdentifier(leftExpression);
             if (parentIdentifierSyntax != null)
             {
                 state.MergeValue(ResolveIdentifier(parentIdentifierSyntax.Identifier), variableState);
@@ -409,57 +415,6 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         }
 
 
-        private VariableState VisitNamedFieldInitializer(NamedFieldInitializerSyntax node, ExecutionState state)
-        {
-
-            var symbol = state.GetSymbol(node.Name);
-            MethodBehavior behavior = behaviorRepo.GetMethodBehavior(symbol);
-
-            var variableState = VisitExpression(node.Expression, state);
-
-            //Additionnal analysis by extension
-            foreach (var ext in extensions)
-            {
-                ext.VisitNamedFieldInitializer(node, state, behavior, symbol, variableState);
-            }
-
-            //if (node.Left is IdentifierNameSyntax)
-            //         {
-            //             var assignmentIdentifier = node.Left as IdentifierNameSyntax;
-            //             state.MergeValue(ResolveIdentifier(assignmentIdentifier.Identifier), variableState);
-            //         }
-
-            IdentifierNameSyntax parentIdentifierSyntax = GetParentIdentifier(node.Name);
-            if (parentIdentifierSyntax != null)
-            {
-                state.MergeValue(ResolveIdentifier(parentIdentifierSyntax.Identifier), variableState);
-            }
-
-            if (behavior != null && //Injection
-                    behavior.isInjectableField &&
-                    variableState.taint != VariableTaint.CONSTANT && //Skip safe values
-                    variableState.taint != VariableTaint.SAFE)
-            {
-                var newRule = LocaleUtil.GetDescriptor(behavior.localeInjection);
-                var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
-                state.AnalysisContext.ReportDiagnostic(diagnostic);
-            }
-            if (behavior != null && //Known Password API
-                    behavior.isPasswordField &&
-                    variableState.taint == VariableTaint.CONSTANT //Only constant
-                    )
-            {
-                var newRule = LocaleUtil.GetDescriptor(behavior.localePassword);
-                var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
-                state.AnalysisContext.ReportDiagnostic(diagnostic);
-            }
-
-
-            //TODO: tainted the variable being assign.
-
-
-            return variableState;
-        }
 
         private VariableState VisitObjectCreation(ObjectCreationExpressionSyntax node, ExecutionState state)
         {

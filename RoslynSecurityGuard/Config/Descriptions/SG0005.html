@@ -13,17 +13,19 @@
 <h3>Vulnerable Code</h3>
 
 <pre>
-    ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
+Random rnd = new Random();
+byte[] buffer = new byte[16];
+rnd.GetBytes(buffer);
+return BitConverter.ToString(buffer);
 </pre>
 
 <h3>Solution</h3>
 
-Using sign certificate.
+<pre>
+using System.Security.Cryptography;
 
-<!--
-    TODO
-    https://forums.asp.net/p/1957866/5588946.aspx#5593221 
-    -->
+RandomNumberGenerator rnd = RandomNumberGenerator.Create();
+</pre>
 
 <h3>References</h3>
 

@@ -12,13 +12,34 @@
 <h3>Vulnerable Code</h3>
 
 <pre>
+XmlReaderSettings settings = new XmlReaderSettings();
+settings.ProhibitDtd = false;
+XmlReader reader = XmlReader.Create(inputXml, settings);
+</pre>
 
+<pre>
+XmlReaderSettings settings = new XmlReaderSettings();
+settings.DtdProcessing = DtdProcessing.Parse;
+XmlReader reader = XmlReader.Create(inputXml, settings);
 </pre>
 
 <h3>Solution</h3>
 
 <pre>
+//Avoid overriding the secure settings
+XmlReader reader = XmlReader.Create(inputXml);
+</pre>
 
+<pre>
+XmlReaderSettings settings = new XmlReaderSettings();
+settings.ProhibitDtd = true;
+XmlReader reader = XmlReader.Create(inputXml, settings);
+</pre>
+
+<pre>
+XmlReaderSettings settings = new XmlReaderSettings();
+settings.DtdProcessing = DtdProcessing.Ignore;
+XmlReader reader = XmlReader.Create(inputXml, settings);
 </pre>
 
 <h3>References</h3>

@@ -6,7 +6,7 @@
 <h3>Risk</h3>
 
 <p>
-
+    The Secure flag is a directive to the browser to make sure that the cookie is not sent for insecure communication (http://).
 </p>
 
 <h3>Vulnerable Code</h3>
@@ -16,6 +16,10 @@ var cookie = new HttpCookie("test");
 </pre>
 
 <h3>Solution</h3>
+
+<pre>
+&lt;httpCookies requireSSL="true" [..] /&gt;
+</pre>
 
 <pre>
 var cookie = new HttpCookie("test");

@@ -13,6 +13,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.VisualBasic;
 
 namespace RoslynSecurityGuard.Analyzers
 {
@@ -44,19 +45,7 @@ namespace RoslynSecurityGuard.Analyzers
         }
 
 
-        public override void VisitAssignment(VBSyntax.AssignmentStatementSyntax node, ExecutionState state, MethodBehavior behavior, ISymbol symbol, VariableState variableRightState)
-        {
-            if (behavior == null && //Unknown API
-                    (symbol != null && IsPasswordField(symbol)) &&
-                    variableRightState.taint == VariableTaint.CONSTANT //Only constant
-        )
-            {
-                var diagnostic = Diagnostic.Create(Rule, node.GetLocation());
-                state.AnalysisContext.ReportDiagnostic(diagnostic);
-            }
-        }
-
-        public override void VisitNamedFieldInitializer(VBSyntax.NamedFieldInitializerSyntax node, ExecutionState state, MethodBehavior behavior, ISymbol symbol, VariableState variableRightState)
+        public override void VisitAssignment(VisualBasicSyntaxNode node, ExecutionState state, MethodBehavior behavior, ISymbol symbol, VariableState variableRightState)
         {
             if (behavior == null && //Unknown API
                     (symbol != null && IsPasswordField(symbol)) &&

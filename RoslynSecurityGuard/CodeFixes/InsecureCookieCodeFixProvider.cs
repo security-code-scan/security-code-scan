@@ -65,7 +65,7 @@ namespace RoslynSecurityGuard
         private async Task<Document> AddSecureFlags(Document document, Diagnostic diagnostic, CancellationToken cancellationToken, string[] propertyNames)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var variableDeclarator = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent as VariableDeclaratorSyntax;
+            var variableDeclarator = FindParentNode(root.FindToken(diagnostic.Location.SourceSpan.Start).Parent);
 
             if (variableDeclarator == null) return document; //Abort!
 
@@ -100,6 +100,16 @@ namespace RoslynSecurityGuard
             //Inserting the nodes
             var newRoot = root.InsertNodesAfter(parentDeclaration, nodes);
             return document.WithSyntaxRoot(newRoot);
+        }
+
+        private VariableDeclaratorSyntax FindParentNode(SyntaxNode node) {
+            if (node == null) {
+                return null;
+            }
+            if (node is VariableDeclaratorSyntax) {
+                return node as VariableDeclaratorSyntax;
+            }
+            return FindParentNode(node.Parent);
         }
     }
 }

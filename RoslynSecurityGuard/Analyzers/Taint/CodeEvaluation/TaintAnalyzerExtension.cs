@@ -3,6 +3,7 @@ using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.VisualBasic;
 
 namespace RoslynSecurityGuard.Analyzers.Taint
 {
@@ -18,8 +19,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         // (ii) Visual Basic
         public virtual void VisitStatement(VBSyntax.StatementSyntax node, ExecutionState state) { }
         public virtual void VisitInvocationAndCreation(VBSyntax.ExpressionSyntax node, VBSyntax.ArgumentListSyntax argList, ExecutionState state) { }
-        public virtual void VisitAssignment(VBSyntax.AssignmentStatementSyntax node, ExecutionState state, MethodBehavior behavior, ISymbol symbol, VariableState variableRightState) { }
-        public virtual void VisitNamedFieldInitializer(VBSyntax.NamedFieldInitializerSyntax node, ExecutionState state, MethodBehavior behavior, ISymbol symbol, VariableState variableRightState) { }
+        public virtual void VisitAssignment(VisualBasicSyntaxNode node, ExecutionState state, MethodBehavior behavior, ISymbol symbol, VariableState variableRightState) { }
         public virtual void VisitBeginMethodDeclaration(VBSyntax.MethodBlockSyntax node, ExecutionState state) { }
         public virtual void VisitEndMethodDeclaration(VBSyntax.MethodBlockSyntax node, ExecutionState state) { }
     }

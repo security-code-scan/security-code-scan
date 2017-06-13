@@ -133,44 +133,44 @@ End Namespace
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
-            
 
-//        [TestMethod]
-//        public async Task CookieWithFlagsInLine()
-//        {
-//            var cSharpTest = @"
-//using System.Web;
 
-//namespace VulnerableApp
-//{
-//    class CookieCreation
-//    {
-//        static void TestCookie()
-//        {
-//            var a = new HttpCookie(""test"")
-//            {
-//                Secure = true,
-//                HttpOnly = true
-//            };
-//        }
-//    }
-//}
-//";
+        [TestMethod]
+        public async Task CookieWithFlagsInLine()
+        {
+            var cSharpTest = @"
+using System.Web;
 
-//            var visualBasicTest = @"
-//Imports System.Web
+namespace VulnerableApp
+{
+    class CookieCreation
+    {
+        static void TestCookie()
+        {
+            var a = new HttpCookie(""test"")
+            {
+                Secure = true,
+                HttpOnly = true
+            };
+        }
+    }
+}
+";
 
-//Namespace VulnerableApp
-//    Class CookieCreation
-//        Private Shared Sub TestCookie()
-//            Dim cookie As New HttpCookie(""test"") With {.Secure = True, .HttpOnly = True}
-//        End Sub
-//    End Class
-//End Namespace
-//";
-//            await VerifyCSharpDiagnostic(cSharpTest);
-//            await VerifyVisualBasicDiagnostic(visualBasicTest);
-//        }
+            var visualBasicTest = @"
+Imports System.Web
+
+Namespace VulnerableApp
+    Class CookieCreation
+        Private Shared Sub TestCookie()
+            Dim cookie As New HttpCookie(""test"") With {.Secure = True, .HttpOnly = True}
+        End Sub
+    End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
+        }
 
         /*
                 static void TestCookie()

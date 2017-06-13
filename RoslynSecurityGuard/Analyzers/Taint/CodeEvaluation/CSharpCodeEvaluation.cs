@@ -452,12 +452,6 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 				ext.VisitAssignment(node, state, behavior, symbol, variableState);
 			}
 
-			//if (node.Left is IdentifierNameSyntax)
-			//         {
-			//             var assignmentIdentifier = node.Left as IdentifierNameSyntax;
-			//             state.MergeValue(ResolveIdentifier(assignmentIdentifier.Identifier), variableState);
-			//         }
-
 			IdentifierNameSyntax parentIdentifierSyntax = GetParentIdentifier(node.Left);
 			if (parentIdentifierSyntax != null)
 			{

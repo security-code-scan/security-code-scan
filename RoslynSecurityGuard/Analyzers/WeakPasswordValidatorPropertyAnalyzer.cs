@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using RoslynSecurityGuard.Analyzers.Taint;
 using RoslynSecurityGuard.Analyzers.Locale;
 using RoslynSecurityGuard.Analyzers.Utils;
+using Microsoft.CodeAnalysis.VisualBasic;
 
 namespace RoslynSecurityGuard.Analyzers
 {
@@ -59,7 +60,7 @@ namespace RoslynSecurityGuard.Analyzers
                     right = node.Expression;
                     left = node.Name;
                 }
-            }            
+            }
 
 
 
@@ -98,17 +99,12 @@ namespace RoslynSecurityGuard.Analyzers
             CheckState(state);
         }
 
-        public override void VisitAssignment(VBSyntax.AssignmentStatementSyntax node, ExecutionState state, MethodBehavior behavior, ISymbol symbol, VariableState variableRightState)
+        public override void VisitAssignment(VisualBasicSyntaxNode node, ExecutionState state, MethodBehavior behavior, ISymbol symbol, VariableState variableRightState)
         {
-            if (node is VBSyntax.AssignmentStatementSyntax)
+            if (node is VBSyntax.AssignmentStatementSyntax || node is VBSyntax.NamedFieldInitializerSyntax)
                 TagVariables(symbol, variableRightState);
         }
-
-        public override void VisitNamedFieldInitializer(VBSyntax.NamedFieldInitializerSyntax node, ExecutionState state, MethodBehavior behavior, ISymbol symbol, VariableState variableRightState)
-        {
-            if (node is VBSyntax.NamedFieldInitializerSyntax)
-                TagVariables(symbol, variableRightState);
-        }
+        
 
         public override void VisitEndMethodDeclaration(VBSyntax.MethodBlockSyntax node, ExecutionState state)
         {

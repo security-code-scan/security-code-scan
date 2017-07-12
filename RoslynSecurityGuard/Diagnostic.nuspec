@@ -14,6 +14,7 @@
     <releaseNotes>This release introduce improved taint analysis. It also brings new code fixes.</releaseNotes>
     <copyright>Copyright Philippe Arteau</copyright>
     <tags>security,vulnerability,guard,owasp,injection,xss,csrf</tags>
+    <developmentDependency>true</developmentDependency>
     <frameworkAssemblies>
       <frameworkAssembly assemblyName="System" targetFramework="" />
     </frameworkAssemblies>

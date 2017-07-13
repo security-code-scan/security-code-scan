@@ -209,7 +209,7 @@ namespace RoslynSecurityGuard.Analyzers.Taint
                 result += parameterTypeString;
                 // result += " " + parameter.Name;
 
-                if (parameter.HasExplicitDefaultValue)
+                if (parameter.HasExplicitDefaultValue && parameter.ExplicitDefaultValue != null)
                     result += " = " + parameter.ExplicitDefaultValue.ToString();                
             }
 

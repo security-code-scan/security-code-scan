@@ -58,6 +58,15 @@ namespace RoslynSecurityGuard.Analyzers
             {
                 if (MethodsHttp.Contains(attribute))
                 {
+                    //Create the diagnostic on the annotation rather than the complete method
+                    if (ctx.Node.Language == LanguageNames.CSharp) {
+                        var attributes = AnalyzerUtil.getAttributesByName(attribute, node as CSharpSyntax.MethodDeclarationSyntax);
+                        if (attributes.Count > 0) node = attributes[0];
+                    }
+                    else {
+                        var attributes = AnalyzerUtil.getAttributesByName(attribute, node as VBSyntax.MethodBlockSyntax);
+                        if (attributes.Count > 0) node = attributes[0];
+                    }
                     hasActionMethod = true;
                 }
                 else if (attribute.Equals("ValidateAntiForgeryToken"))

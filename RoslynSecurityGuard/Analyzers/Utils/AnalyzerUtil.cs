@@ -60,7 +60,7 @@ namespace RoslynSecurityGuard.Analyzers.Utils
 
         public static List<string> getAttributesForMethod(CSharpSyntax.MethodDeclarationSyntax node)
         {
-            List<string> attributesList = new List<string>();
+            var attributesList = new List<string>();
 
             if (node.AttributeLists != null)
             {
@@ -78,7 +78,7 @@ namespace RoslynSecurityGuard.Analyzers.Utils
 
         public static List<string> getAttributesForMethod(VBSyntax.MethodBlockSyntax node)
         {
-            List<string> attributesList = new List<string>();
+            var attributesList = new List<string>();
 
             if (node.SubOrFunctionStatement.AttributeLists != null)
             {
@@ -88,6 +88,52 @@ namespace RoslynSecurityGuard.Analyzers.Utils
                     {
                         foreach (VBSyntax.AttributeSyntax attribute in attributeList.Attributes)
                             attributesList.Add(attribute.Name.GetText().ToString());
+                    }
+                }
+            }
+            return attributesList;
+        }
+
+        public static List<CSharpSyntax.AttributeSyntax> getAttributesByName(string attributeName, CSharpSyntax.MethodDeclarationSyntax node)
+        {
+            var attributesList = new List<CSharpSyntax.AttributeSyntax>();
+
+            if (node?.AttributeLists != null)
+            {
+                foreach (CSharpSyntax.AttributeListSyntax attributeList in node.AttributeLists)
+                {
+                    if (attributeList.Attributes != null)
+                    {
+                        foreach (CSharpSyntax.AttributeSyntax attribute in attributeList.Attributes)
+                        {
+                            if(attribute.Name.GetText().ToString().Equals(attributeName))
+                            {
+                                attributesList.Add(attribute);
+                            }
+                        }
+                    }
+                }
+            }
+            return attributesList;
+        }
+
+        public static List<VBSyntax.AttributeSyntax> getAttributesByName(string attributeName, VBSyntax.MethodBlockSyntax node)
+        {
+            var attributesList = new List<VBSyntax.AttributeSyntax>();
+
+            if (node?.SubOrFunctionStatement?.AttributeLists != null)
+            {
+                foreach (VBSyntax.AttributeListSyntax attributeList in node.SubOrFunctionStatement.AttributeLists)
+                {
+                    if (attributeList.Attributes != null)
+                    {
+                        foreach (VBSyntax.AttributeSyntax attribute in attributeList.Attributes)
+                        {
+                            if (attribute.Name.GetText().ToString().Equals(attributeName))
+                            {
+                                attributesList.Add(attribute);
+                            }
+                        }
                     }
                 }
             }

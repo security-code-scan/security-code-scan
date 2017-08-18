@@ -48,18 +48,24 @@ namespace RoslynSecurityGuard.CodeFixes
         private async Task<Document> AddAnnotation(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var annotationsHttp = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent as AttributeListSyntax;
-            var methodDeclaration = annotationsHttp.Parent as MethodDeclarationSyntax;
+            var highlightedNode = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent;
+
+            var methodDeclaration = CodeFixUtil.GetParentNode(highlightedNode, typeof(MethodDeclarationSyntax)) as MethodDeclarationSyntax;
+            var attributesList = methodDeclaration.AttributeLists[0] as AttributeListSyntax;
+
+            if (methodDeclaration == null) return document;
 
             var annotationValidate = SF.AttributeList()
                     .AddAttributes(SF.Attribute(SF.IdentifierName("ValidateAntiForgeryToken")))
-                    .WithLeadingTrivia(CodeFixUtil.KeepLastLine(annotationsHttp.GetLeadingTrivia()));
+                    .WithLeadingTrivia(CodeFixUtil.KeepLastLine(attributesList.GetLeadingTrivia()));
 
             var nodes = new List<SyntaxNode>();
             nodes.Add(annotationValidate);
 
-            var newRoot = root.InsertNodesAfter(annotationsHttp, nodes);
+            var newRoot = root.InsertNodesAfter(attributesList, nodes);
             return document.WithSyntaxRoot(newRoot);
         }
+
+
     }
 }

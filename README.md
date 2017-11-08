@@ -3,7 +3,7 @@
 
 Roslyn analyzers that aim to help security audits on .NET applications.
 
-[Website](https://dotnet-security-guard.github.io) | [Visual Studio Gallery](https://marketplace.visualstudio.com/items?itemName=PhilippeArteau.RoslynSecurityGuard)
+[Website](https://dotnet-security-guard.github.io) | [Visual Studio Gallery](https://marketplace.visualstudio.com/items?itemName=PhilippeArteau.RoslynSecurityGuard) | [NuGet](https://www.nuget.org/packages/RoslynSecurityGuard/)
 
 ## Screenshots
 

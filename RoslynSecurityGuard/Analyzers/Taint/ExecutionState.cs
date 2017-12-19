@@ -85,7 +85,8 @@ namespace RoslynSecurityGuard.Analyzers.Taint
             if (DebugMode)
                 SGLogging.Log($"Adding tag '{httpCookieSecure}' to  {variableAccess}");
 
-            if (Variables.TryGetValue(variableAccess, out VariableState variable))
+            VariableState variable;
+            if (Variables.TryGetValue(variableAccess, out variable))
                 variable.AddTag(httpCookieSecure);
         }
     }

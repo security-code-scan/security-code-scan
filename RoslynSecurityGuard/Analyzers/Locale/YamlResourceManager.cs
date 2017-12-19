@@ -53,7 +53,8 @@ namespace RoslynSecurityGuard.Analyzers.Locale
         }
 
         public override string GetString(string name, CultureInfo culture) {
-            if (!LocaleString.TryGetValue(name, out string val))
+            string val;
+            if (!LocaleString.TryGetValue(name, out val))
                 return "??" + name + "??";
 
             return val;

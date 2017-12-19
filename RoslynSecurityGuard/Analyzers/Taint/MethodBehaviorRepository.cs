@@ -103,7 +103,8 @@ namespace RoslynSecurityGuard.Analyzers.Taint
         private string GetField(KeyValuePair<YamlNode, YamlNode> node, string field, bool mandatory = false, string defaultValue = null)
         {
             var nodeValue = (YamlMappingNode)node.Value;
-            if (nodeValue.Children.TryGetValue(new YamlScalarNode(field), out YamlNode yamlNode))
+            YamlNode yamlNode;
+            if (nodeValue.Children.TryGetValue(new YamlScalarNode(field), out yamlNode))
             {
                 return ((YamlScalarNode)yamlNode).Value;
             }

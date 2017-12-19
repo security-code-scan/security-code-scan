@@ -30,8 +30,8 @@ namespace RoslynSecurityGuard.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(VisitSyntaxNode, CSharp.SyntaxKind.InvocationExpression);
-            context.RegisterSyntaxNodeAction(VisitSyntaxNode, VB.SyntaxKind.InvocationExpression);
+            context.RegisterSyntaxNodeAction(VisitSyntaxNode, CSharp.SyntaxKind.SimpleMemberAccessExpression );
+            context.RegisterSyntaxNodeAction(VisitSyntaxNode, VB.SyntaxKind.SimpleMemberAccessExpression);
         }
 
         private static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx)
@@ -40,13 +40,13 @@ namespace RoslynSecurityGuard.Analyzers
 
             if (ctx.Node.Language == LanguageNames.CSharp)
             {
-                node = ctx.Node as CSharpSyntax.MemberAccessExpressionSyntax;
-                expression = ((CSharpSyntax.InvocationExpressionSyntax)node)?.Expression;
+                node = ctx.Node as CSharpSyntax.MemberAccessExpressionSyntax  ;
+                expression = ((CSharpSyntax.MemberAccessExpressionSyntax)node)?.Expression;
             }
             else
             {
                 node = ctx.Node as VBSyntax.MemberAccessExpressionSyntax;
-                expression = ((VBSyntax.InvocationExpressionSyntax)node)?.Expression;
+                expression = ((VBSyntax.MemberAccessExpressionSyntax)node)?.Expression;
             }
            
             if (node != null)

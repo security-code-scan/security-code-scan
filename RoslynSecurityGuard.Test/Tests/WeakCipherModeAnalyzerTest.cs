@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RoslynSecurityGuard.Analyzers;
@@ -77,8 +77,8 @@ End Class
 
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
         [TestMethod]
@@ -133,8 +133,15 @@ Class WeakCipherMode
     End Function
 End Class
 ";
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            var expected = new DiagnosticResult
+            {
+                Id = "SG0013",
+                Severity = DiagnosticSeverity.Warning,
+
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
         [TestMethod]
@@ -232,12 +239,12 @@ End Class
 ";
             var expected = new DiagnosticResult
             {
-                Id = "SG0014",
+                Id = "SG0011",
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest, expected );
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
         //TODO: Add tests to trigger the analyzer. 

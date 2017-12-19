@@ -82,13 +82,11 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
         public void AddTag(string variableAccess, VariableTag httpCookieSecure)
         {
-            try
-            {
-                if (DebugMode) SGLogging.Log(string.Format("Adding tag '{1}' to  {0}", variableAccess, httpCookieSecure));
-                Variables[variableAccess].AddTag(httpCookieSecure);
-            }
-            catch (KeyNotFoundException e) {
-            }
+            if (DebugMode)
+                SGLogging.Log($"Adding tag '{httpCookieSecure}' to  {variableAccess}");
+
+            if (Variables.TryGetValue(variableAccess, out VariableState variable))
+                variable.AddTag(httpCookieSecure);
         }
     }
 }

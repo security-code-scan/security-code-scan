@@ -1,9 +1,9 @@
-# ![Roslyn Security Guard](https://dotnet-security-guard.github.io/images/logo-small.png) [![Build status](https://ci.appveyor.com/api/projects/status/pkob4ym74k3j2j6i?svg=true)](https://ci.appveyor.com/project/h3xstream/roslyn-security-guard)
+# ![Roslyn Security Guard](https://dotnet-security-guard.github.io/images/logo-small.png) [![Build status](https://ci.appveyor.com/api/projects/status/5xo31u5q78k6ndh7?svg=true)](https://ci.appveyor.com/project/JarLob/roslyn-security-guard)
 
 
 Roslyn analyzers that aim to help security audits on .NET applications.
 
-[Website](https://dotnet-security-guard.github.io) | [Visual Studio Gallery](https://marketplace.visualstudio.com/items?itemName=PhilippeArteau.RoslynSecurityGuard) | [NuGet](https://www.nuget.org/packages/RoslynSecurityGuard/)
+[Website](https://dotnet-security-guard.github.io)
 
 ## Screenshots
 

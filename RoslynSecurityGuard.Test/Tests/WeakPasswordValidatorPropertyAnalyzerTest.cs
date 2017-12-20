@@ -38,7 +38,7 @@ namespace RoslynSecurityGuard.Test.Tests
         /// Test case where the RequiredLength field has an accepted value.
         /// </summary>
         [TestMethod]
-        public async void PasswordValidatorDeclarationOK()
+        public async Task PasswordValidatorDeclarationOK()
         {
             var cSharpTest = @"
 using Microsoft.AspNet.Identity;
@@ -46,24 +46,24 @@ using System.Web.Mvc;
 
 namespace WebApplicationSandbox.Controllers
 {
-	public class HomeController : Controller
-	{
-		public ActionResult Index()
-		{
-			PasswordValidator pwdv = new PasswordValidator
-			{
-				RequiredLength = " + (Constants.PasswordValidatorRequiredLength + 1) + @",
-				RequireNonLetterOrDigit = true,
-				RequireDigit = true,
-				RequireLowercase = true,
-				RequireUppercase = true,
-			};
-			pwdv.RequireNonLetterOrDigit = true;
-			pwdv.RequireDigit = true;
+    public class HomeController : Controller
+    {
+        public ActionResult Index()
+        {
+            PasswordValidator pwdv = new PasswordValidator
+            {
+                RequiredLength = " + (Constants.PasswordValidatorRequiredLength + 1) + @",
+                RequireNonLetterOrDigit = true,
+                RequireDigit = true,
+                RequireLowercase = true,
+                RequireUppercase = true,
+            };
+            pwdv.RequireNonLetterOrDigit = true;
+            pwdv.RequireDigit = true;
 
-			return View();
-		}
-	}
+            return View();
+        }
+    }
 }
 ";
             var visualBasicTest = @"
@@ -71,22 +71,22 @@ Imports Microsoft.AspNet.Identity
 Imports System.Web.Mvc
 
 Namespace WebApplicationSandbox.Controllers
-	Public Class HomeController
-		Inherits Controller
-		Public Function Index() As ActionResult
-			Dim pwdv As New PasswordValidator() With { _
-				Key .RequiredLength = " + (Constants.PasswordValidatorRequiredLength + 1) + @", _
-				Key .RequireNonLetterOrDigit = True, _
-				Key .RequireDigit = True, _
-				Key .RequireLowercase = True, _
-				Key .RequireUppercase = True _
-			}
-			pwdv.RequireNonLetterOrDigit = True
-			pwdv.RequireDigit = True
+    Public Class HomeController
+        Inherits Controller
+        Public Function Index() As ActionResult
+            Dim pwdv As New PasswordValidator() With { _
+                .RequiredLength = " + (Constants.PasswordValidatorRequiredLength + 1) + @", _
+                .RequireNonLetterOrDigit = True, _
+                .RequireDigit = True, _
+                .RequireLowercase = True, _
+                .RequireUppercase = True _
+            }
+            pwdv.RequireNonLetterOrDigit = True
+            pwdv.RequireDigit = True
 
-			Return View()
-		End Function
-	End Class
+            Return View()
+        End Function
+    End Class
 End Namespace
 ";
             await VerifyCSharpDiagnostic(cSharpTest);
@@ -105,22 +105,22 @@ using System.Web.Mvc;
 
 namespace WebApplicationSandbox.Controllers
 {
-	public class HomeController : Controller
-	{
-		public ActionResult Index()
-		{
-			PasswordValidator pwdv = new PasswordValidator
-			{
-				RequiredLength = " + (Constants.PasswordValidatorRequiredLength - 1) + @",
-				RequireNonLetterOrDigit = true,
-				RequireDigit = true,
-				RequireLowercase = true,
-				RequireUppercase = true,
-			};
+    public class HomeController : Controller
+    {
+        public ActionResult Index()
+        {
+            PasswordValidator pwdv = new PasswordValidator
+            {
+                RequiredLength = " + (Constants.PasswordValidatorRequiredLength - 1) + @",
+                RequireNonLetterOrDigit = true,
+                RequireDigit = true,
+                RequireLowercase = true,
+                RequireUppercase = true,
+            };
 
-			return View();
-		}
-	}
+            return View();
+        }
+    }
 }
 ";
             var visualBasicTest = @"
@@ -128,20 +128,20 @@ Imports Microsoft.AspNet.Identity
 Imports System.Web.Mvc
 
 Namespace WebApplicationSandbox.Controllers
-	Public Class HomeController
-		Inherits Controller
-		Public Function Index() As ActionResult
-			Dim pwdv As New PasswordValidator() With { _
-				.RequiredLength = " + (Constants.PasswordValidatorRequiredLength - 1) + @", _
-				.RequireNonLetterOrDigit = True, _
-				.RequireDigit = True, _
-				.RequireLowercase = True, _
-				.RequireUppercase = True _
-			}
+    Public Class HomeController
+        Inherits Controller
+        Public Function Index() As ActionResult
+            Dim pwdv As New PasswordValidator() With { _
+                .RequiredLength = " + (Constants.PasswordValidatorRequiredLength - 1) + @", _
+                .RequireNonLetterOrDigit = True, _
+                .RequireDigit = True, _
+                .RequireLowercase = True, _
+                .RequireUppercase = True _
+            }
 
-			Return View()
-		End Function
-	End Class
+            Return View()
+        End Function
+    End Class
 End Namespace
 ";
             var expected = new DiagnosticResult
@@ -166,21 +166,21 @@ using System.Web.Mvc;
 
 namespace WebApplicationSandbox.Controllers
 {
-	public class HomeController : Controller
-	{
-		public ActionResult Index()
-		{
-			PasswordValidator pwdv = new PasswordValidator
-			{
-				RequireNonLetterOrDigit = true,
-				RequireDigit = true,
-			};
+    public class HomeController : Controller
+    {
+        public ActionResult Index()
+        {
+            PasswordValidator pwdv = new PasswordValidator
+            {
+                RequireNonLetterOrDigit = true,
+                RequireDigit = true,
+            };
 
-			pwdv.RequiredLength = " + (Constants.PasswordValidatorRequiredLength - 1) + @";
+            pwdv.RequiredLength = " + (Constants.PasswordValidatorRequiredLength - 1) + @";
 
-			return View();
-		}
-	}
+            return View();
+        }
+    }
 }
 ";
             var visualBasicTest = @"
@@ -188,19 +188,19 @@ Imports Microsoft.AspNet.Identity
 Imports System.Web.Mvc
 
 Namespace WebApplicationSandbox.Controllers
-	Public Class HomeController
-		Inherits Controller
-		Public Function Index() As ActionResult
-			Dim pwdv As New PasswordValidator() With { _
-			    .RequireNonLetterOrDigit = True, _
-			    .RequireDigit = True _
-			}
+    Public Class HomeController
+        Inherits Controller
+        Public Function Index() As ActionResult
+            Dim pwdv As New PasswordValidator() With { _
+                .RequireNonLetterOrDigit = True, _
+                .RequireDigit = True _
+            }
 
             pwdv.RequiredLength = " + (Constants.PasswordValidatorRequiredLength - 1) + @"
 
-			Return View()
-		End Function
-	End Class
+            Return View()
+        End Function
+    End Class
 End Namespace
 ";
             var expected = new DiagnosticResult
@@ -218,7 +218,7 @@ End Namespace
         /// However the value of the variable is not tested.
         /// </summary>
         [TestMethod]
-        public async void PasswordValidatorDeclarationWithVariable()
+        public async Task PasswordValidatorDeclarationWithVariable()
         {
             var cSharpTest = @"
 using Microsoft.AspNet.Identity;
@@ -226,24 +226,24 @@ using System.Web.Mvc;
 
 namespace WebApplicationSandbox.Controllers
 {
-	public class HomeController : Controller
-	{
-		public ActionResult Index()
-		{
-			int reqLen = " + Constants.PasswordValidatorRequiredLength + @";
+    public class HomeController : Controller
+    {
+        public ActionResult Index()
+        {
+            int reqLen = " + Constants.PasswordValidatorRequiredLength + @";
 
-			PasswordValidator pwdv = new PasswordValidator
-			{
-				RequiredLength = reqLen,
-				RequireNonLetterOrDigit = true,
-				RequireDigit = true,
-				RequireLowercase = true,
-				RequireUppercase = true,
-			};
+            PasswordValidator pwdv = new PasswordValidator
+            {
+                RequiredLength = reqLen,
+                RequireNonLetterOrDigit = true,
+                RequireDigit = true,
+                RequireLowercase = true,
+                RequireUppercase = true,
+            };
 
-			return View();
-		}
-	}
+            return View();
+        }
+    }
 }
 ";
             var visualBasicTest = @"
@@ -251,22 +251,22 @@ Imports Microsoft.AspNet.Identity
 Imports System.Web.Mvc
 
 Namespace WebApplicationSandbox.Controllers
-	Public Class HomeController
-		Inherits Controller
-		Public Function Index() As ActionResult
-			Dim reqLen As Integer = " + Constants.PasswordValidatorRequiredLength + @"
+    Public Class HomeController
+        Inherits Controller
+        Public Function Index() As ActionResult
+            Dim reqLen As Integer = " + Constants.PasswordValidatorRequiredLength + @"
 
-			Dim pwdv As New PasswordValidator() With { _
-				.RequiredLength = reqLen, _
-				.RequireNonLetterOrDigit = True, _
-				.RequireDigit = True, _
-				.RequireLowercase = True, _
-				.RequireUppercase = True _
-			}
+            Dim pwdv As New PasswordValidator() With { _
+                .RequiredLength = reqLen, _
+                .RequireNonLetterOrDigit = True, _
+                .RequireDigit = True, _
+                .RequireLowercase = True, _
+                .RequireUppercase = True _
+            }
 
-			Return View()
-		End Function
-	End Class
+            Return View()
+        End Function
+    End Class
 End Namespace
 ";
             await VerifyCSharpDiagnostic(cSharpTest);
@@ -277,7 +277,7 @@ End Namespace
         /// Test case where some properties are set outside of the constructor
         /// </summary>
         [TestMethod]
-        public async void PasswordValidatorOutOfDeclarationOK()
+        public async Task PasswordValidatorOutOfDeclarationOK()
         {
             var cSharpTest = @"
 using Microsoft.AspNet.Identity;
@@ -285,20 +285,20 @@ using System.Web.Mvc;
 
 namespace WebApplicationSandbox.Controllers
 {
-	public class HomeController : Controller
-	{
-		public ActionResult Index()
-		{
-			PasswordValidator pwdv = new PasswordValidator
-			{
-				RequiredLength = " + (Constants.PasswordValidatorRequiredLength + 1) + @",								
-			};
-			pwdv.RequireNonLetterOrDigit = true;
-			pwdv.RequireDigit = true;
+    public class HomeController : Controller
+    {
+        public ActionResult Index()
+        {
+            PasswordValidator pwdv = new PasswordValidator
+            {
+                RequiredLength = " + (Constants.PasswordValidatorRequiredLength + 1) + @",
+            };
+            pwdv.RequireNonLetterOrDigit = true;
+            pwdv.RequireDigit = true;
 
-			return View();
-		}
-	}
+            return View();
+        }
+    }
 }
 ";
             var visualBasicTest = @"
@@ -306,18 +306,18 @@ Imports Microsoft.AspNet.Identity
 Imports System.Web.Mvc
 
 Namespace WebApplicationSandbox.Controllers
-	Public Class HomeController
-		Inherits Controller
-		Public Function Index() As ActionResult
-			Dim pwdv As New PasswordValidator() With { _
-				.RequiredLength = " + (Constants.PasswordValidatorRequiredLength + 1) + @", _
-			}
-			pwdv.RequireNonLetterOrDigit = True
-			pwdv.RequireDigit = True
+    Public Class HomeController
+        Inherits Controller
+        Public Function Index() As ActionResult
+            Dim pwdv As New PasswordValidator() With { _
+                .RequiredLength = " + (Constants.PasswordValidatorRequiredLength + 1) + @" _
+            }
+            pwdv.RequireNonLetterOrDigit = True
+            pwdv.RequireDigit = True
 
-			Return View()
-		End Function
-	End Class
+            Return View()
+        End Function
+    End Class
 End Namespace
 ";
             await VerifyCSharpDiagnostic(cSharpTest);
@@ -328,7 +328,7 @@ End Namespace
         /// Test case where the PasswordValidator doesn't have enough properties set
         /// </summary>
         [TestMethod]
-        public async void PasswordValidatorNotEnoughProperties()
+        public async Task PasswordValidatorNotEnoughProperties()
         {
             var cSharpTest = @"
 using Microsoft.AspNet.Identity;
@@ -336,19 +336,19 @@ using System.Web.Mvc;
 
 namespace WebApplicationSandbox.Controllers
 {
-	public class HomeController : Controller
-	{
-		public ActionResult Index()
-		{
-			PasswordValidator pwdv = new PasswordValidator
-			{
-				RequiredLength = " + (Constants.PasswordValidatorRequiredLength + 1) + @",								
-			};
-			pwdv.RequireDigit = true;
+    public class HomeController : Controller
+    {
+        public ActionResult Index()
+        {
+            PasswordValidator pwdv = new PasswordValidator
+            {
+                RequiredLength = " + (Constants.PasswordValidatorRequiredLength + 1) + @",
+            };
+            pwdv.RequireDigit = true;
 
-			return View();
-		}
-	}
+            return View();
+        }
+    }
 }
 ";
             var visualBasicTest = @"
@@ -356,22 +356,22 @@ Imports Microsoft.AspNet.Identity
 Imports System.Web.Mvc
 
 Namespace WebApplicationSandbox.Controllers
-	Public Class HomeController
-		Inherits Controller
-		Public Function Index() As ActionResult
-			Dim pwdv As New PasswordValidator() With { _
-				.RequiredLength = " + (Constants.PasswordValidatorRequiredLength + 1) + @", _
-			}
-			pwdv.RequireDigit = True
+    Public Class HomeController
+        Inherits Controller
+        Public Function Index() As ActionResult
+            Dim pwdv As New PasswordValidator() With { _
+                .RequiredLength = " + (Constants.PasswordValidatorRequiredLength + 1) + @" _
+            }
+            pwdv.RequireDigit = True
 
-			Return View()
-		End Function
-	End Class
+            Return View()
+        End Function
+    End Class
 End Namespace
 ";
             var expected = new DiagnosticResult
             {
-                Id = "SG0033",
+                Id = WeakPasswordValidatorPropertyAnalyzer.RulePasswordDiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -383,7 +383,7 @@ End Namespace
         /// Test case where the RequiredLength isn't set
         /// </summary>
         [TestMethod]
-        public async void PasswordValidatorNoRequiredLengthProperty()
+        public async Task PasswordValidatorNoRequiredLengthProperty()
         {
             var cSharpTest = @"
 using Microsoft.AspNet.Identity;
@@ -393,19 +393,17 @@ namespace WebApplicationSandbox.Controllers
 {
     public class HomeController : Controller
     {
-	    public ActionResult Index()
-	    {
-            int test1 = 2;
-		    PasswordValidator pwdv = new PasswordValidator
-		    {
-			    RequireNonLetterOrDigit = true,
-			    RequireDigit = true,
-			    RequireLowercase = true,
-			    RequireUppercase = true,						
-		    };
-            int test2 = 3;
-		    return View();
-	    }
+        public ActionResult Index()
+        {
+            PasswordValidator pwdv = new PasswordValidator
+        {
+                RequireNonLetterOrDigit = true,
+                RequireDigit = true,
+                RequireLowercase = true,
+                RequireUppercase = true,
+            };
+            return View();
+        }
     }
 }
 ";
@@ -414,21 +412,18 @@ Imports Microsoft.AspNet.Identity
 Imports System.Web.Mvc
 
 Namespace WebApplicationSandbox.Controllers
-	Public Class HomeController
-		Inherits Controller
-		Public Function Index() As ActionResult			
-            Dim test1 As Integer = 2
-			Dim pwdv As New PasswordValidator() With { _
-				.RequireNonLetterOrDigit = True, _
-				.RequireDigit = True, _
-				.RequireLowercase = True, _
-				.RequireUppercase = True _
-			}            
-            Dim test2 As Integer = 3
-
-			Return View()
-		End Function
-	End Class
+    Public Class HomeController
+        Inherits Controller
+        Public Function Index() As ActionResult
+            Dim pwdv As New PasswordValidator() With { _
+                .RequireNonLetterOrDigit = True, _
+                .RequireDigit = True, _
+                .RequireLowercase = True, _
+                .RequireUppercase = True _
+            }
+            Return View()
+        End Function
+    End Class
 End Namespace
 ";
             var expected = new DiagnosticResult

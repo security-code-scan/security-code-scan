@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using RoslynSecurityGuard.Analyzers.Locale;
-
+using RoslynSecurityGuard.Analyzers.Utils;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -29,58 +29,24 @@ namespace RoslynSecurityGuard.Analyzers
             context.RegisterSyntaxNodeAction(VisitClass, VB.SyntaxKind.ClassBlock);
         }
 
-        private bool HasDerivedAttribute(ISymbol symbol, Func<AttributeData, bool> condition)
-        {
-            var attributes = symbol.GetAttributes();
-            foreach (var attributeData in attributes)
-            {
-                if (condition(attributeData))
-                    return true;
-            }
-
-            var typeSymbol = symbol as ITypeSymbol;
-            if (typeSymbol != null)
-            {
-                if (typeSymbol.BaseType != null)
-                    return HasDerivedAttribute(typeSymbol.BaseType, condition);
-
-                return false;
-            }
-
-            var methodSymbol = symbol as IMethodSymbol;
-            if (methodSymbol != null)
-            {
-                if (methodSymbol.OverriddenMethod != null)
-                    return HasDerivedAttribute(methodSymbol.OverriddenMethod, condition);
-
-                return false;
-            }
-
-            return false;
-        }
-
-        private bool HasAuthAttribute(ISymbol symbol)
-        {
-            return HasDerivedAttribute(symbol,
-                                       attributeData => attributeData.AttributeClass.ToString() == "System.Web.Mvc.AuthorizeAttribute");
-        }
-
-        private bool HasOutputCacheAttribute(ISymbol symbol, ref int duration)
+        private bool HasOutputCacheAttribute(ISymbol symbol, ref int duration, bool method)
         {
             int d = duration;
-            var ret = HasDerivedAttribute(symbol,
-                                          attributeData =>
-                                          {
-                                              if (attributeData.AttributeClass.ToString() != "System.Web.Mvc.OutputCacheAttribute")
-                                                  return false;
-                                              var durationArgument = attributeData.NamedArguments.FirstOrDefault(x => x.Key == "Duration");
-                                              if (durationArgument.Equals(default(KeyValuePair<string, TypedConstant>)))
-                                                  d = int.MaxValue;
-                                              else
-                                                  d = (int)durationArgument.Value.Value;
 
-                                              return true;
-                                          });
+            Func<AttributeData, bool> condition = attributeData =>
+            {
+                if (attributeData.AttributeClass.ToString() != "System.Web.Mvc.OutputCacheAttribute")
+                    return false;
+                var durationArgument = attributeData.NamedArguments.FirstOrDefault(x => x.Key == "Duration");
+                if (durationArgument.Equals(default(KeyValuePair<string, TypedConstant>)))
+                    d = int.MaxValue;
+                else
+                    d = (int) durationArgument.Value.Value;
+
+                return true;
+            };
+
+            var ret = method ? ((IMethodSymbol)symbol).HasDerivedMethodAttribute(condition) : ((ITypeSymbol)symbol).HasDerivedClassAttribute(condition);
             duration = d;
             return ret;
         }
@@ -101,11 +67,11 @@ namespace RoslynSecurityGuard.Analyzers
                 members = ((VBSyntax.ClassBlockSyntax)node).Members;
             }
 
-            var classSymbol = ctx.SemanticModel.GetDeclaredSymbol(node);
+            var classSymbol = (ITypeSymbol)ctx.SemanticModel.GetDeclaredSymbol(node);
 
-            bool classHasAuthAnnotation = HasAuthAttribute(classSymbol);
+            bool classHasAuthAnnotation = classSymbol.HasDerivedClassAttribute(attributeData => attributeData.AttributeClass.ToString() == "System.Web.Mvc.AuthorizeAttribute");
             int classCacheDuration = 0;
-            bool classHasCacheAnnotation = HasOutputCacheAttribute(classSymbol, ref classCacheDuration);
+            bool classHasCacheAnnotation = HasOutputCacheAttribute(classSymbol, ref classCacheDuration, method: false);
 
             foreach (SyntaxNode member in members)
             {
@@ -118,15 +84,16 @@ namespace RoslynSecurityGuard.Analyzers
                 {
                     method = member as VBSyntax.MethodBlockSyntax;
                 }
-                if (method == null) continue;
+                if (method == null)
+                    continue;
 
-                var methodSymbol = ctx.SemanticModel.GetDeclaredSymbol(method);
+                var methodSymbol = (IMethodSymbol)ctx.SemanticModel.GetDeclaredSymbol(method);
                 if (methodSymbol.DeclaredAccessibility != Accessibility.Public)
                     continue;
 
-                bool methodHasAuthAnnotation = HasAuthAttribute(methodSymbol);
+                bool methodHasAuthAnnotation = methodSymbol.HasDerivedMethodAttribute(attributeData => attributeData.AttributeClass.ToString() == "System.Web.Mvc.AuthorizeAttribute");
                 int methodCacheDuration = 0;
-                bool methodHasCacheAnnotation = HasOutputCacheAttribute(methodSymbol, ref methodCacheDuration);
+                bool methodHasCacheAnnotation = HasOutputCacheAttribute(methodSymbol, ref methodCacheDuration, method: true);
 
                 bool hasAuth = classHasAuthAnnotation || methodHasAuthAnnotation;
                 bool hasCache = methodHasCacheAnnotation ? methodCacheDuration > 0 : (classHasCacheAnnotation && classCacheDuration > 0);

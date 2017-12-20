@@ -102,16 +102,17 @@ namespace RoslynSecurityGuard.Analyzers.Taint
 
         private string GetField(KeyValuePair<YamlNode, YamlNode> node, string field, bool mandatory = false, string defaultValue = null)
         {
-            try
+            var nodeValue = (YamlMappingNode)node.Value;
+            YamlNode yamlNode;
+            if (nodeValue.Children.TryGetValue(new YamlScalarNode(field), out yamlNode))
             {
-                return ((YamlScalarNode)((YamlMappingNode)node.Value).Children[new YamlScalarNode(field)]).Value;
+                return ((YamlScalarNode)yamlNode).Value;
             }
-            catch (KeyNotFoundException)
-            {
-                if (mandatory)
-                    throw new Exception(string.Format("Unable to load the property {0} in node {1}", field, node.Key));
-                return defaultValue;
-            }
+
+            if (mandatory)
+                throw new Exception($"Unable to load the property {field} in node {node.Key}");
+
+            return defaultValue;
         }
 
         public DiagnosticDescriptor[] GetDescriptors()

@@ -10,6 +10,43 @@ using System.Collections.Generic;
 
 namespace RoslynSecurityGuard.Analyzers.Utils
 {
+    static class SymbolExtensions
+    {
+        private static bool HasAttribute(this ISymbol symbol, Func<AttributeData, bool> condition)
+        {
+            var attributes = symbol.GetAttributes();
+            foreach (var attributeData in attributes)
+            {
+                if (condition(attributeData))
+                    return true;
+            }
+
+            return false;
+        }
+
+        public static bool HasDerivedClassAttribute(this ITypeSymbol symbol, Func<AttributeData, bool> condition)
+        {
+            if (symbol.HasAttribute(condition))
+                return true;
+
+            if (symbol.BaseType != null)
+                return HasDerivedClassAttribute(symbol.BaseType, condition);
+
+            return false;
+        }
+
+        public static bool HasDerivedMethodAttribute(this IMethodSymbol symbol, Func<AttributeData, bool> condition)
+        {
+            if (symbol.HasAttribute(condition))
+                return true;
+
+            if (symbol.OverriddenMethod != null)
+                return HasDerivedMethodAttribute(symbol.OverriddenMethod, condition);
+
+            return false;
+        }
+    }
+
     public class AnalyzerUtil
     {
         public static bool SymbolMatch(ISymbol symbol, string type = null, string name = null) {

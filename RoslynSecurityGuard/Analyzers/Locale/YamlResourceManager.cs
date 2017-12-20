@@ -53,12 +53,11 @@ namespace RoslynSecurityGuard.Analyzers.Locale
         }
 
         public override string GetString(string name, CultureInfo culture) {
-            try {
-                return LocaleString[name];
-            }
-            catch (KeyNotFoundException e) {
+            string val;
+            if (!LocaleString.TryGetValue(name, out val))
                 return "??" + name + "??";
-            }
+
+            return val;
         }
     }
 }

@@ -19,23 +19,24 @@ using Microsoft.CodeAnalysis.VisualBasic;
 
 namespace RoslynSecurityGuard.Analyzers
 {
-	[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-	public class WeakPasswordValidatorPropertyAnalyzer : TaintAnalyzerExtension
-	{
-		private static DiagnosticDescriptor RulePasswordLength = LocaleUtil.GetDescriptor("SG0032");					// RequiredLength's value is too small
-		private static DiagnosticDescriptor RulePasswordValidators = LocaleUtil.GetDescriptor("SG0033");				// Not enough properties set
-		private static DiagnosticDescriptor RulePasswordValidatorRequiredLength = LocaleUtil.GetDescriptor("SG0034");	// RequiredLength must be set
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class WeakPasswordValidatorPropertyAnalyzer : TaintAnalyzerExtension
+    {
+        private static readonly DiagnosticDescriptor RulePasswordLength = LocaleUtil.GetDescriptor("SG0032");                     // RequiredLength's value is too small
+        public const string RulePasswordDiagnosticId = "SG0033";
+        private static readonly DiagnosticDescriptor RulePasswordValidators = LocaleUtil.GetDescriptor(RulePasswordDiagnosticId); // Not enough properties set
+        private static readonly DiagnosticDescriptor RulePasswordValidatorRequiredLength = LocaleUtil.GetDescriptor("SG0034");    // RequiredLength must be set
 
-		public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RulePasswordLength, RulePasswordValidators, RulePasswordValidatorRequiredLength);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RulePasswordLength, RulePasswordValidators, RulePasswordValidatorRequiredLength);
 
-		public override void Initialize(AnalysisContext context)
-		{
-			context.RegisterSyntaxNodeAction(VisitAssignmentExpression, CSharp.SyntaxKind.SimpleAssignmentExpression);
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSyntaxNodeAction(VisitAssignmentExpression, CSharp.SyntaxKind.SimpleAssignmentExpression);
             context.RegisterSyntaxNodeAction(VisitAssignmentExpression, VB.SyntaxKind.SimpleAssignmentStatement, VB.SyntaxKind.NamedFieldInitializer);
         }
 
-		private static void VisitAssignmentExpression(SyntaxNodeAnalysisContext ctx)
-		{
+        private static void VisitAssignmentExpression(SyntaxNodeAnalysisContext ctx)
+        {
             SyntaxNode n, right, left;
             if(ctx.Node.Language == LanguageNames.CSharp)
             {
@@ -64,38 +65,38 @@ namespace RoslynSecurityGuard.Analyzers
 
 
 
-			var symbol = ctx.SemanticModel.GetSymbolInfo(left).Symbol;
+            var symbol = ctx.SemanticModel.GetSymbolInfo(left).Symbol;
 
-			var content = right.GetText().ToString();
+            var content = right.GetText().ToString();
 
-			// Only if it is the RequiredLength property of a PasswordValidator
-			if (AnalyzerUtil.SymbolMatch(symbol, type: "PasswordValidator", name: "RequiredLength") && content != String.Empty)
-			{
-				int numericValue;
-				// Validates that the value is an int and that it is over the minimum value required
-				if (int.TryParse(right.GetText().ToString(), out numericValue) && numericValue < Constants.PasswordValidatorRequiredLength)
-				{
-					var diagnostic = Diagnostic.Create(RulePasswordLength, n.GetLocation());
-					ctx.ReportDiagnostic(diagnostic);
-				}
-			}
-		}
+            // Only if it is the RequiredLength property of a PasswordValidator
+            if (AnalyzerUtil.SymbolMatch(symbol, type: "PasswordValidator", name: "RequiredLength") && content != String.Empty)
+            {
+                int numericValue;
+                // Validates that the value is an int and that it is over the minimum value required
+                if (int.TryParse(right.GetText().ToString(), out numericValue) && numericValue < Constants.PasswordValidatorRequiredLength)
+                {
+                    var diagnostic = Diagnostic.Create(RulePasswordLength, n.GetLocation());
+                    ctx.ReportDiagnostic(diagnostic);
+                }
+            }
+        }
 
-		public WeakPasswordValidatorPropertyAnalyzer()
-		{
-			TaintAnalyzer.RegisterExtension(this);
-		}
+        public WeakPasswordValidatorPropertyAnalyzer()
+        {
+            TaintAnalyzer.RegisterExtension(this);
+        }
 
-		public override void VisitAssignment(CSharpSyntax.AssignmentExpressionSyntax node, ExecutionState state, MethodBehavior behavior, ISymbol symbol, VariableState variableRightState)
-		{
-			var assignment = node;
+        public override void VisitAssignment(CSharpSyntax.AssignmentExpressionSyntax node, ExecutionState state, MethodBehavior behavior, ISymbol symbol, VariableState variableRightState)
+        {
+            var assignment = node;
 
-			if (assignment is CSharpSyntax.AssignmentExpressionSyntax)
+            if (assignment is CSharpSyntax.AssignmentExpressionSyntax)
                 TagVariables(symbol, variableRightState);
         }
 
         public override void VisitEndMethodDeclaration(CSharpSyntax.MethodDeclarationSyntax node, ExecutionState state)
-		{
+        {
             CheckState(state);
         }
 

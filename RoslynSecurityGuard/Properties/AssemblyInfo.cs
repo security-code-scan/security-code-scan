@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Roslyn Security Guard")]
 [assembly: AssemblyDescription("Analyzers that aim to help security audits on .NET applications.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("https://github.com/dotnet-security-guard")]
+[assembly: AssemblyCompany("https://github.com/JarLob/roslyn-security-guard")]
 [assembly: AssemblyProduct("Roslyn Security Guard")]
 [assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
@@ -28,7 +28,7 @@ using System.Runtime.InteropServices;
 //
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
-[assembly: AssemblyVersion("2.3.0.0")]
-[assembly: AssemblyFileVersion("2.3.0.0")]
+[assembly: AssemblyVersion("2.4.0.0")]
+[assembly: AssemblyFileVersion("2.4.0.0")]
 [assembly: NeutralResourcesLanguage("en")]
 

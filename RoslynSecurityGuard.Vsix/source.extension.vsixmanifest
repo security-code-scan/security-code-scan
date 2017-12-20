@@ -1,28 +1,28 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
-  <Metadata>
-    <Identity Id="RoslynSecurityGuard..45fa56c2-16f1-4395-8c10-a5a460084018" Version="2.3.0" Language="en-US" Publisher="Philippe Arteau"/>
-    <DisplayName>Roslyn Security Guard</DisplayName>
-    <Description xml:space="preserve">Roslyn analyzers that aim to help security audit on .NET applications.</Description>
-    <MoreInfo>https://github.com/dotnet-security-guard/roslyn-security-guard</MoreInfo>
-    <License>LICENSE-LGPL.txt</License>
-    <Icon>icon.png</Icon>
-    <PreviewImage>preview.png</PreviewImage>
-    <Tags>security,vulnerability,guard,owasp,wasc</Tags>
-  </Metadata>
-  <Installation>
-    <InstallationTarget Version="[14.0,15.0]" Id="Microsoft.VisualStudio.Pro" />
-    <InstallationTarget Version="[14.0,15.0]" Id="Microsoft.VisualStudio.Community" />
-    <InstallationTarget Version="[14.0,15.0]" Id="Microsoft.VisualStudio.Enterprise" />
-  </Installation>
-  <Dependencies>
-    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
-  </Dependencies>
-  <Assets>
-    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="RoslynSecurityGuard" Path="|RoslynSecurityGuard|"/>
-    <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="RoslynSecurityGuard" Path="|RoslynSecurityGuard|"/>
-  </Assets>
-  <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[14.0,16.0)" DisplayName="Visual Studio core editor" />
-  </Prerequisites>
+    <Metadata>
+        <Identity Id="C5C07C5B-13F9-4355-B989-90A82B396773" Version="2.4.0" Language="en-US" Publisher="Jaroslav Lobacevski"/>
+        <DisplayName>Roslyn Security Guard</DisplayName>
+        <Description xml:space="preserve">Roslyn analyzers that aim to help security audit on .NET applications.</Description>
+        <MoreInfo>https://github.com/JarLob/roslyn-security-guard</MoreInfo>
+        <License>LICENSE-LGPL.txt</License>
+        <Icon>icon.png</Icon>
+        <PreviewImage>preview.png</PreviewImage>
+        <Tags>security,vulnerability,guard,owasp,wasc</Tags>
+    </Metadata>
+    <Installation>
+        <InstallationTarget Version="[14.0,15.0]" Id="Microsoft.VisualStudio.Pro" />
+        <InstallationTarget Version="[14.0,15.0]" Id="Microsoft.VisualStudio.Community" />
+        <InstallationTarget Version="[14.0,15.0]" Id="Microsoft.VisualStudio.Enterprise" />
+    </Installation>
+    <Dependencies>
+        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+    </Dependencies>
+    <Assets>
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="RoslynSecurityGuard" Path="|RoslynSecurityGuard|"/>
+        <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="RoslynSecurityGuard" Path="|RoslynSecurityGuard|"/>
+    </Assets>
+    <Prerequisites>
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[14.0,16.0)" DisplayName="Visual Studio core editor" />
+    </Prerequisites>
 </PackageManifest>

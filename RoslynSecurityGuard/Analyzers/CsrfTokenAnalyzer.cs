@@ -13,6 +13,20 @@ using RoslynSecurityGuard.Analyzers.Utils;
 
 namespace RoslynSecurityGuard.Analyzers
 {
+    public class MvcCsrfTokenAnalyzer : CsrfTokenAnalyzer
+    {
+        public MvcCsrfTokenAnalyzer() : base("System.Web.Mvc")
+        {
+        }
+    }
+
+    public class CoreCsrfTokenAnalyzer : CsrfTokenAnalyzer
+    {
+        public CoreCsrfTokenAnalyzer() : base("Microsoft.AspNetCore.Mvc")
+        {
+        }
+    }
+
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class CsrfTokenAnalyzer : DiagnosticAnalyzer
     {
@@ -20,15 +34,24 @@ namespace RoslynSecurityGuard.Analyzers
         private static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor(DiagnosticId);
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
-        //99% of the occurences will be HttpPost.. but here are some additionnal HTTP methods
-        //https://msdn.microsoft.com/en-us/library/system.web.mvc.actionmethodselectorattribute(v=vs.118).aspx
-        private readonly List<string> MethodsHttp = new List<string>
+        public CsrfTokenAnalyzer(string nameSpace)
         {
-            "System.Web.Mvc.HttpPostAttribute",
-            "System.Web.Mvc.HttpPutAttribute",
-            "System.Web.Mvc.HttpDeleteAttribute",
-            "System.Web.Mvc.HttpPatchAttribute",
-        };
+            //99% of the occurences will be HttpPost.. but here are some additionnal HTTP methods
+            //https://msdn.microsoft.com/en-us/library/system.web.mvc.actionmethodselectorattribute(v=vs.118).aspx
+            MethodsHttp = new List<string>
+            {
+                $"{nameSpace}.HttpPostAttribute",
+                $"{nameSpace}.HttpPutAttribute",
+                $"{nameSpace}.HttpDeleteAttribute",
+                $"{nameSpace}.HttpPatchAttribute",
+            };
+
+            AntiForgeryAttribute = $"{nameSpace}.ValidateAntiForgeryTokenAttribute";
+        }
+
+        private readonly string AntiForgeryAttribute;
+
+        private readonly List<string> MethodsHttp;
 
         public override void Initialize(AnalysisContext context)
         {
@@ -38,7 +61,7 @@ namespace RoslynSecurityGuard.Analyzers
 
         private bool HasAntiForgeryToken(AttributeData attributeData)
         {
-            return attributeData.AttributeClass.ToString() == "System.Web.Mvc.ValidateAntiForgeryTokenAttribute";
+            return attributeData.AttributeClass.ToString() == AntiForgeryAttribute;
         }
 
         private void VisitMethods(SyntaxNodeAnalysisContext ctx)

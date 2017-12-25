@@ -2,29 +2,17 @@
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using RoslynSecurityGuard.Analyzers;
-using RoslynSecurityGuard.CodeFixes;
-
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Web.Mvc;
+using RoslynSecurityGuard.Analyzers;
+using RoslynSecurityGuard.CodeFixes;
 using TestHelper;
 
-namespace RoslynSecurityGuard.Test.Tests
+namespace RoslynSecurityGuard.Test.AntiCsrf
 {
-    [TestClass]
-    public class CsrfTokenCodeFixProviderTest : CodeFixVerifier
+    public abstract class CsrfTokenCodeFixProviderTest : CodeFixVerifier
     {
-
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
-        {
-            return new[] { MetadataReference.CreateFromFile(typeof(ValidateAntiForgeryTokenAttribute).Assembly.Location) };
-        }
-
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
-        {
-            return new[] { new CsrfTokenAnalyzer() };
-        }
+        protected abstract string Namespace { get; }
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
@@ -34,38 +22,74 @@ namespace RoslynSecurityGuard.Test.Tests
         [TestMethod]
         public async Task CsrfVerifyTokenAdded()
         {
-            var before = @"
-using System;
-using System.Diagnostics;
-using System.Web.Mvc;
+            var before = $@"
+using {Namespace};
 
 public class TestController
-{
+{{
 
     //Test comment
     [HttpPost]
-    public ActionResult ControllerMethod(string input) {
+    public ActionResult ControllerMethod(string input) {{
         return null;
-    }
-}
+    }}
+}}
 ";
-            var after = @"
-using System;
-using System.Diagnostics;
-using System.Web.Mvc;
+            var after = $@"
+using {Namespace};
 
 public class TestController
-{
+{{
 
     //Test comment
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult ControllerMethod(string input) {
+    public ActionResult ControllerMethod(string input) {{
         return null;
-    }
-}
+    }}
+}}
 ";
             await VerifyCSharpFix(before, after);
+        }
+    }
+
+    [TestClass]
+    public class MvcCsrfTokenCodeFixProviderTest : CsrfTokenCodeFixProviderTest
+    {
+        protected override string Namespace => "System.Web.Mvc";
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
+        {
+            return new[]
+            {
+                MetadataReference.CreateFromFile(typeof(System.Web.Mvc.ValidateAntiForgeryTokenAttribute).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(System.Web.Mvc.HttpPostAttribute).Assembly.Location)
+            };
+        }
+
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        {
+            return new[] { new MvcCsrfTokenAnalyzer() };
+        }
+    }
+
+    [TestClass]
+    public class CoreCsrfTokenCodeFixProviderTest : CsrfTokenCodeFixProviderTest
+    {
+        protected override string Namespace => "Microsoft.AspNetCore.Mvc";
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
+        {
+            return new[]
+            {
+                MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.HttpPostAttribute).Assembly.Location)
+            };
+        }
+
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        {
+            return new[] { new CoreCsrfTokenAnalyzer() };
         }
     }
 }

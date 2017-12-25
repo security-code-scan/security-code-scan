@@ -15,14 +15,14 @@ namespace RoslynSecurityGuard.Analyzers
 {
     public class MvcCsrfTokenAnalyzer : CsrfTokenAnalyzer
     {
-        public MvcCsrfTokenAnalyzer() : base("System.Web.Mvc")
+        public MvcCsrfTokenAnalyzer() : base("System.Web.Mvc", "System.Web.Mvc")
         {
         }
     }
 
     public class CoreCsrfTokenAnalyzer : CsrfTokenAnalyzer
     {
-        public CoreCsrfTokenAnalyzer() : base("Microsoft.AspNetCore.Mvc")
+        public CoreCsrfTokenAnalyzer() : base("Microsoft.AspNetCore.Mvc", "Microsoft.AspNetCore.Authorization")
         {
         }
     }
@@ -34,7 +34,7 @@ namespace RoslynSecurityGuard.Analyzers
         private static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor(DiagnosticId);
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
-        public CsrfTokenAnalyzer(string nameSpace)
+        public CsrfTokenAnalyzer(string nameSpace, string allowAnonymousNamespace)
         {
             //99% of the occurences will be HttpPost.. but here are some additionnal HTTP methods
             //https://msdn.microsoft.com/en-us/library/system.web.mvc.actionmethodselectorattribute(v=vs.118).aspx
@@ -47,10 +47,11 @@ namespace RoslynSecurityGuard.Analyzers
             };
 
             AntiForgeryAttribute = $"{nameSpace}.ValidateAntiForgeryTokenAttribute";
+            AnonymousAttribute = $"{allowAnonymousNamespace}.AllowAnonymousAttribute";
         }
 
         private readonly string AntiForgeryAttribute;
-
+        private readonly string AnonymousAttribute;
         private readonly List<string> MethodsHttp;
 
         public override void Initialize(AnalysisContext context)
@@ -62,6 +63,11 @@ namespace RoslynSecurityGuard.Analyzers
         private bool HasAntiForgeryToken(AttributeData attributeData)
         {
             return attributeData.AttributeClass.ToString() == AntiForgeryAttribute;
+        }
+
+        private bool HasAnonymousAttribute(AttributeData attributeData)
+        {
+            return attributeData.AttributeClass.ToString() == AnonymousAttribute;
         }
 
         private void VisitMethods(SyntaxNodeAnalysisContext ctx)
@@ -82,16 +88,16 @@ namespace RoslynSecurityGuard.Analyzers
 
             var symbol = (IMethodSymbol)ctx.SemanticModel.GetDeclaredSymbol(ctx.Node);
 
-            bool hasActionMethod = symbol.HasDerivedMethodAttribute(attributeData => MethodsHttp.Contains(attributeData.AttributeClass.ToString()));
-            if (!hasActionMethod)
+            if (!symbol.HasDerivedMethodAttribute(attributeData => MethodsHttp.Contains(attributeData.AttributeClass.ToString())))
                 return;
 
-            bool classHasValidateAntiForgeryToken = symbol.ReceiverType.HasDerivedClassAttribute(HasAntiForgeryToken);
-            if (classHasValidateAntiForgeryToken)
+            if (symbol.HasDerivedMethodAttribute(HasAnonymousAttribute) || symbol.ReceiverType.HasDerivedClassAttribute(HasAnonymousAttribute))
                 return;
 
-            bool hasValidateAntiForgeryToken = symbol.HasDerivedMethodAttribute(HasAntiForgeryToken);
-            if (hasValidateAntiForgeryToken)
+            if (symbol.ReceiverType.HasDerivedClassAttribute(HasAntiForgeryToken))
+                return;
+
+            if (symbol.HasDerivedMethodAttribute(HasAntiForgeryToken))
                 return;
 
             ctx.ReportDiagnostic(Diagnostic.Create(Rule, node.GetLocation()));

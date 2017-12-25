@@ -12,6 +12,8 @@ namespace RoslynSecurityGuard.Test.AntiCsrf
     {
         protected abstract string Namespace { get; }
 
+        protected abstract string AllowAnonymousNamespace { get; }
+
         [TestMethod]
         public async Task CsrfDetectMissingToken()
         {
@@ -136,6 +138,78 @@ End Namespace
         }
 
         [TestMethod]
+        public async Task CsrfMissingTokenOnAnonymous()
+        {
+            var cSharpTest = $@"
+using {Namespace};
+
+namespace VulnerableApp
+{{
+    public class TestController
+    {{
+        [HttpPost]
+        [{AllowAnonymousNamespace}.AllowAnonymous]
+        public ActionResult ControllerMethod(string input) {{
+            return null;
+        }}
+    }}
+}}
+";
+            var visualBasicTest = $@"
+Imports {Namespace}
+
+Namespace VulnerableApp
+    Public Class TestController
+        <HttpPost> _
+        <{AllowAnonymousNamespace}.AllowAnonymous> _
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
+        }
+
+        [TestMethod]
+        public async Task CsrfMissingTokenOnAnonymousClass()
+        {
+            var cSharpTest = $@"
+using {Namespace};
+
+namespace VulnerableApp
+{{
+    [{AllowAnonymousNamespace}.AllowAnonymous]
+    public class TestController
+    {{
+        [HttpPost]
+        public ActionResult ControllerMethod(string input) {{
+            return null;
+        }}
+    }}
+}}
+";
+            var visualBasicTest = $@"
+Imports {Namespace}
+
+Namespace VulnerableApp
+    <{AllowAnonymousNamespace}.AllowAnonymous> _
+    Public Class TestController
+        <HttpPost> _
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
+        }
+
+        [TestMethod]
         public async Task CsrfValidateAntiForgeryTokenPresent()
         {
             var cSharpTest = $@"
@@ -248,12 +322,15 @@ End Namespace
     {
         protected override string Namespace => "System.Web.Mvc";
 
+        protected override string AllowAnonymousNamespace => "System.Web.Mvc";
+
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
         {
             return new[]
             {
                 MetadataReference.CreateFromFile(typeof(System.Web.Mvc.ValidateAntiForgeryTokenAttribute).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(System.Web.Mvc.HttpPostAttribute).Assembly.Location)
+                MetadataReference.CreateFromFile(typeof(System.Web.Mvc.HttpPostAttribute).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(System.Web.Mvc.AllowAnonymousAttribute).Assembly.Location)
             };
         }
 
@@ -268,12 +345,15 @@ End Namespace
     {
         protected override string Namespace => "Microsoft.AspNetCore.Mvc";
 
+        protected override string AllowAnonymousNamespace => "Microsoft.AspNetCore.Authorization";
+
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
         {
             return new[]
             {
                 MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.HttpPostAttribute).Assembly.Location)
+                MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.HttpPostAttribute).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute).Assembly.Location)
             };
         }
 

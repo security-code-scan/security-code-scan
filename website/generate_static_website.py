@@ -1,86 +1,38 @@
-from jinja2 import Environment, FileSystemLoader
 import os
-import yaml
-from collections import OrderedDict
 import os.path
-import codecs
 
-import sys
-reload(sys)
-sys.setdefaultencoding("utf-8")
+def writeGroup(outFile, rulesDir, groupMdFile, group):
+    groupFile = open(os.path.join(rulesDir, groupMdFile), "r")
+    outFile.write(groupFile.read())
+    outFile.write("\n")
+    groupFile.close()
+    for md in group:
+        mdFile = open(os.path.join(rulesDir, md), "r")
+        outFile.write(mdFile.read())
+        outFile.write("\n")
+        mdFile.close()
 
+sqliGroup = ["0002.md", "0014.md", "0020.md", "0025.md", "0026.md"]
+injectionGroup = ["0001.md", "0003.md", "0007.md", "0018.md", "0029.md"]
+cryptoGroup = ["0004.md", "0005.md", "0006.md", "0010.md", "0011.md", "0012.md", "0013.md"]
+cookiesGroup = ["0008.md", "0009.md"]
+viewStateGroup = ["0023.md", "0024.md"]
+requestValidationGroup = ["0017.md", "0021.md"]
+passwordGroup = ["0015.md", "0034.md", "0032.md", "0033.md"]
+miscGroup = ["0016.md", "0019.md", "0022.md"]
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+outFile = open(os.path.join(THIS_DIR, "out_site/readme.md"), "w")
+outFile.write("# Rules\n")
 
-def render_template(templateFile,outFile,**args):
-    print("Generating "+outFile)
-    j2_env = Environment(loader=FileSystemLoader(THIS_DIR+"/templates"),trim_blocks=True)
-    main_html = j2_env.get_template(templateFile).render(args)
-    header_html = j2_env.get_template("header.htm").render(args)
-    footer_html = j2_env.get_template("footer.htm").render(args)
-    with open(THIS_DIR+"/out_site/"+outFile, "wb") as fh:
-        fh.write(header_html)
-        fh.write(main_html)
-        fh.write(footer_html)
+rulesDir = os.path.join(THIS_DIR, "rules")
+writeGroup(outFile, rulesDir, "sqli.md", sqliGroup)
+writeGroup(outFile, rulesDir, "injection.md", injectionGroup)
+writeGroup(outFile, rulesDir, "cryptography.md", cryptoGroup)
+writeGroup(outFile, rulesDir, "cookies.md", cookiesGroup)
+writeGroup(outFile, rulesDir, "viewstate.md", viewStateGroup)
+writeGroup(outFile, rulesDir, "requestvalidation.md", requestValidationGroup)
+writeGroup(outFile, rulesDir, "password.md", passwordGroup)
+writeGroup(outFile, rulesDir, "misc.md", miscGroup)
 
-#Loading rule descriptions
-#rules = OrderedDict()
-rules = {}
-with open("../RoslynSecurityGuard/Config/Messages.yml", 'r') as stream:
-    try:
-        data = yaml.load(stream)
-
-        for msg_key in data:
-            print "Loading "+msg_key
-            
-            descFile = "../RoslynSecurityGuard/Config/Descriptions/" + msg_key + ".html"
-            if os.path.isfile(descFile):
-                with codecs.open(descFile, 'r', encoding='utf-8') as descStream:
-                    render_template('rule.htm',msg_key+".htm", title=data[msg_key]['title'], description=descStream.read())
-            else:
-                render_template('rule.htm',msg_key+".htm", title=data[msg_key]['title'], description=data[msg_key]['description']+"<br/><br/><i>A detailed description will soon be added.</i>")
-
-            rules[msg_key] = {}
-            rules[msg_key]['Title'] = data[msg_key]['title']
-
-            description = data[msg_key]['description']
-            if("{0}" in data[msg_key]['description']):
-                
-                fv = data[msg_key]['descriptionFormatValues']
-                
-
-                indexValue = 0
-                for formatValue in [fv] if isinstance(fv, basestring) else fv:
-                    description = description.replace("{"+str(indexValue)+"}", formatValue)
-                    indexValue+=1
-            rules[msg_key]['Message'] = description
-            
-    except yaml.YAMLError as exc:
-        print(exc)
-
-nb_sinks = 0
-with open("../RoslynSecurityGuard/Config/Sinks.yml", 'r') as stream:
-    try:
-        data = yaml.load(stream)
-        nb_sinks = len(data)
-        print "%s injection sinks" % (nb_sinks)
-    except yaml.YAMLError as exc:
-        print(exc)
-
-
-nb_passwords = 0
-with open("../RoslynSecurityGuard/Config/Passwords.yml", 'r') as stream:
-    try:
-        data = yaml.load(stream)
-        nb_passwords = len(data)
-        print "%s passwords sinks" % (nb_passwords)
-    except yaml.YAMLError as exc:
-        print(exc)
-
-#Building the complete website
-
-download_link = "https://marketplace.visualstudio.com/items?itemName=PhilippeArteau.RoslynSecurityGuard"
-version = '2.3.0'
-
-render_template('index.htm', 'index.htm', title='Home' , latest_version=version, nb_rules=len(rules), nb_signatures=(len(rules)+nb_sinks+nb_passwords), download_link = download_link)
-render_template('rules.htm', 'rules.htm', title='Rules', rules=rules )
+outFile.close()

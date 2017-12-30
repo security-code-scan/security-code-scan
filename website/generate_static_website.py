@@ -1,16 +1,19 @@
 import os
 import os.path
 
+def appendFile(outFile, inFile):
+    mdFile = open(inFile, "r")
+    outFile.write(mdFile.read())
+    outFile.write("\n")
+    mdFile.close()
+
 def writeGroup(outFile, rulesDir, groupMdFile, group):
     groupFile = open(os.path.join(rulesDir, groupMdFile), "r")
     outFile.write(groupFile.read())
     outFile.write("\n")
     groupFile.close()
     for md in group:
-        mdFile = open(os.path.join(rulesDir, md), "r")
-        outFile.write(mdFile.read())
-        outFile.write("\n")
-        mdFile.close()
+        appendFile(outFile, os.path.join(rulesDir, md))
 
 sqliGroup = ["0002.md", "0014.md", "0020.md", "0025.md", "0026.md"]
 injectionGroup = ["0001.md", "0003.md", "0007.md", "0018.md", "0029.md"]
@@ -23,11 +26,14 @@ miscGroup = ["0016.md", "0019.md", "0022.md"]
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 outFile = open(os.path.join(THIS_DIR, "out_site/readme.md"), "w")
-outFile.write("# Rules\n")
+appendFile(outFile, os.path.join(THIS_DIR, "facts.md"))
+appendFile(outFile, os.path.join(THIS_DIR, "installation.md"))
+appendFile(outFile, os.path.join(THIS_DIR, "configuration.md"))
 
+outFile.write("# Rules\n")
 rulesDir = os.path.join(THIS_DIR, "rules")
-writeGroup(outFile, rulesDir, "sqli.md", sqliGroup)
 writeGroup(outFile, rulesDir, "injection.md", injectionGroup)
+writeGroup(outFile, rulesDir, "sqli.md", sqliGroup)
 writeGroup(outFile, rulesDir, "cryptography.md", cryptoGroup)
 writeGroup(outFile, rulesDir, "cookies.md", cookiesGroup)
 writeGroup(outFile, rulesDir, "viewstate.md", viewStateGroup)

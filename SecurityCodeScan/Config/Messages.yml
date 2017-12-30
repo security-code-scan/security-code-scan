@@ -1,0 +1,174 @@
+﻿#
+# This file contains the localization of the diagnostics
+#
+# File format:
+# <<<
+# [Locale ID that is use to load the diagnostic reference (LocaleUtil.GetDescriptor())]:
+#   class: [(Informationnal) Class of the analyzer provider this diagnostic]
+#   title: [Title of the diagnostic]
+#   description: [Description of the diagnostic]
+#   descriptionFormatValues: [(Optional) Values to used to replace String format placeholder used in the description. This is only use for the documentation website.]
+# <<<
+
+#Injections
+
+SCS0001:
+  class: TaintAnalyzer
+  title: Potential command injection with Process.Start
+  description: The dynamic value passed to the command execution should be validated.
+
+SCS0002:
+  class: TaintAnalyzer
+  title: Potential SQL injection with LINQ API
+  description: The dynamic value passed in the SQL query should be validated.
+
+SCS0014:
+  class: TaintAnalyzer
+  title: Potential SQL injection
+  description: The dynamic value passed in the SQL query should be validated.
+
+SCS0020:
+  class: TaintAnalyzer
+  title: Potential SQL injection with OleDb API
+  description: The dynamic value passed in the SQL query should be validated.
+
+SCS0025:
+  class: TaintAnalyzer
+  title: Potential SQL injection with Odbc API
+  description: The dynamic value passed in the SQL query should be validated.
+
+SCS0026:
+  class: TaintAnalyzer
+  title: Potential SQL injection with MsSQL Data Provider
+  description: The dynamic value passed in the SQL query should be validated.
+
+SCS0003:
+  class: TaintAnalyzer
+  title: Potential XPath injection with XmlDocument
+  description: The dynamic value passed to the XPath query should be validated
+
+# Various
+
+SCS0004:
+  class: WeakCertificateValidationAnalyzer
+  title: Certificate Validation has been disabled
+  description: Certificate Validation has been disabled. The communication could be intercepted.
+
+SCS0007:
+  class: XxeAnalyzer
+  title: XML parsing vulnerable to XXE
+  description: The XML parser is configured incorrectly. The operation could be vulnerable to XML eXternal Entity (XXE) processing.
+
+SCS0008:
+  class: InsecureCookieAnalyzer
+  title: The cookie is missing security flag Secure
+  description: It is recommended to specify the Secure flag to new cookie.
+
+SCS0009:
+  class: InsecureCookieAnalyzer
+  title: The cookie is missing security flag HttpOnly
+  description: It is recommended to specify the HttpOnly flag to new cookie.
+
+#Crypto
+
+SCS0005:
+  class: WeakRandomAnalyzer
+  title: Weak random generator
+  description: The random numbers generated could be predicted.
+
+SCS0006:
+  class: WeakHashingAnalyzer
+  title: Weak hashing function
+  description: "{0} is no longer considered a strong hashing algorithm."
+  descriptionFormatValues: MD5/SHA1
+
+SCS0010:
+  class: WeakCipherAnalyzer
+  title: Weak cipher algorithm
+  description: "{0} is not considered a strong cipher for modern applications. Currently, NIST recommends the usage of AES block ciphers instead of {0}."
+  descriptionFormatValues: DES/3DES
+
+SCS0011:
+  class: WeakCipherModeAnalyzerCbc
+  title: CBC mode is weak
+  description: This specific mode of CBC with PKCS5Padding is susceptible to padding oracle attacks. An adversary could potentially decrypt the message if the system exposed the difference between plaintext with invalid padding or valid padding.
+
+SCS0012:
+  class: WeakCipherModeAnalyzerEcb
+  title: ECB mode is weak
+  description: "ECB mode will produce the same result for identical blocks (ie: 16 bytes for AES). An attacker could be able to guess the encrypted message. The use of AES in CBC mode with a HMAC is recommended guaranteeing integrity and confidentiality."
+
+SCS0013:
+  class: WeakCipherModeAnalyzerGeneric
+  title: Weak cipher mode
+  description: The ciphertext produced is susceptible to alteration by an adversary. This mean that the cipher provides no way to detect that the data has been tampered with. If the ciphertext can be controlled by an attacker, it could be altered without detection. The use of AES in CBC mode with a HMAC is recommended guaranteeing integrity and confidentiality.
+
+SCS0016:
+  class: CsrfTokenAnalyzer
+  title: Controller method is vulnerable to CSRF
+  description: The annotation [ValidateAntiForgeryToken] is missing.
+
+SCS0017:
+  class: RequestValidationDisableAnalyzer
+  title: Request validation is disabled
+  description: Request validation is disabled. Request validation allows the filtering of some XSS patterns submitted to the application.
+
+SCS0018:
+  class: TaintAnalyzer
+  title: Path traversal
+  description: The file path passed to this API is susceptible to Path traversal attacks. With a malicious relative path, an attacker could reach a secret file.
+
+SCS0019:
+  class: OutputCacheAnnotationAnalyzer
+  title: OutputCache annotation is disabling authorization checks
+  description: Having the annotation [OutputCache] will disable the annotation [Authorize] for the requests following the first one.
+
+#Configuration issues
+
+SCS0021:
+  class: ValidateRequestFalse
+  title: Request validation has been disabled
+  description: Request validation, which provided additionnal protection against Cross-Site Scripting (XSS), has been disabled. 
+
+SCS0022:
+  class: EnableEventValidationFalse
+  title: Event validation is disabled
+  description: Event validation is disabled. The integrity of client-side control will not be validated on postback.
+
+SCS0023:
+  class: ViewStateEncryptionModeFalse
+  title: View state is not encrypted
+  description: View state is not encrypted. Controls may leak sensitive data that could be read client-side.
+  
+SCS0024:
+  class: EnableViewStateMac
+  title: View state mac is disabled
+  description: View state mac is disabled. The view state could be altered by an attacker. (This feature cannot be disabled in the recent version of ASP.net)
+
+# XSS
+SCS0029:
+  class: XssPreventionAnalyzer
+  title: Potential XSS vulnerability
+  description: The endpoint returns a variable from the client input that has not been encoded.
+
+#Password Validator
+
+SCS0015:
+  class: TaintAnalyzer
+  title: Hardcoded password
+  description: The password configuration to this API appears to be hardcoded. It is suggest to externalized configuration such as password to avoid leakage of secret information.
+
+SCS0032:
+    class: WeakPasswordValidatorAnalyzer
+    title: The RequiredLength property of PasswordValidator is too small
+    description: The minimal length of a password is recommended to be set at least to 8.
+
+SCS0033:
+    class: WeakPasswordValidatorPropertyAnalyzer
+    title: Not enough properties set in PasswordValidator declaration
+    description: PasswordValidator should have at least two requirements for better security (RequiredLength, RequireDigit, RequireLowercase, RequireUppercase and/or RequireNonLetterOrDigit).
+
+SCS0034:
+    class: WeakPasswordValidatorPropertyAnalyzer
+    title: The RequiredLength property must be set
+    description: The RequiredLength property must be set with a minimum value of 8.

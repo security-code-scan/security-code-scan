@@ -44,7 +44,7 @@ If SCS is installed as NuGet package you'll need to build the solution. Then you
 
 ![Intellisense](/images/output.png)
 ## Severity
-Each warning severity is configurable: expand References > Analyzers > RoslynSecurityGuard under the project in a Solution window, right click on a warning ID and modify the severity. WebGoat.NET.ruleset will be automatically saved in the project's directory:
+Each warning severity is configurable: expand References > Analyzers > SecurityCodeScan under the project in a Solution window, right click on a warning ID and modify the severity. WebGoat.NET.ruleset will be automatically saved in the project's directory:
 
 ![Intellisense](/images/severity.png)
 ## Troubleshooting

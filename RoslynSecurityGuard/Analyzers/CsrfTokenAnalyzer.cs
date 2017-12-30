@@ -13,6 +13,7 @@ using RoslynSecurityGuard.Analyzers.Utils;
 
 namespace RoslynSecurityGuard.Analyzers
 {
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class MvcCsrfTokenAnalyzer : CsrfTokenAnalyzer
     {
         public MvcCsrfTokenAnalyzer() : base("System.Web.Mvc", "System.Web.Mvc")
@@ -20,6 +21,7 @@ namespace RoslynSecurityGuard.Analyzers
         }
     }
 
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class CoreCsrfTokenAnalyzer : CsrfTokenAnalyzer
     {
         public CoreCsrfTokenAnalyzer() : base("Microsoft.AspNetCore.Mvc", "Microsoft.AspNetCore.Authorization")
@@ -27,8 +29,7 @@ namespace RoslynSecurityGuard.Analyzers
         }
     }
 
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class CsrfTokenAnalyzer : DiagnosticAnalyzer
+    public abstract class CsrfTokenAnalyzer : DiagnosticAnalyzer
     {
         public const string DiagnosticId = "SG0016";
         private static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor(DiagnosticId);

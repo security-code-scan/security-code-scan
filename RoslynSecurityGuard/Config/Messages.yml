@@ -14,7 +14,7 @@
 
 SG0001:
   class: TaintAnalyzer
-  title:   Potential command injection with Process.Start
+  title: Potential command injection with Process.Start
   description: The dynamic value passed to the command execution should be validated.
 
 SG0002:
@@ -40,16 +40,6 @@ SG0025:
 SG0026:
   class: TaintAnalyzer
   title: Potential SQL injection with MsSQL Data Provider
-  description: The dynamic value passed in the SQL query should be validated.
-
-SG0027:
-  class: TaintAnalyzer
-  title: Potential SQL injection with WebControls
-  description: The dynamic value passed in the SQL query should be validated.
-
-SG0028:
-  class: TaintAnalyzer
-  title: Potential SQL injection with SqlUtility
   description: The dynamic value passed in the SQL query should be validated.
 
 SG0003:
@@ -89,7 +79,7 @@ SG0005:
 SG0006:
   class: WeakHashingAnalyzer
   title: Weak hashing function
-  description: "{0} is no longer considered a strong hashing algorithim for password storage and signature generation."
+  description: "{0} is no longer considered a strong hashing algorithm."
   descriptionFormatValues: MD5/SHA1
 
 SG0010:
@@ -112,11 +102,6 @@ SG0013:
   class: WeakCipherModeAnalyzerGeneric
   title: Weak cipher mode
   description: The ciphertext produced is susceptible to alteration by an adversary. This mean that the cipher provides no way to detect that the data has been tampered with. If the ciphertext can be controlled by an attacker, it could be altered without detection. The use of AES in CBC mode with a HMAC is recommended guaranteeing integrity and confidentiality.
-
-SG0015:
-  class: TaintAnalyzer
-  title: Hardcoded password
-  description: The password configuration to this API appears to be hardcoded. It is suggest to externalized configuration such as password to avoid leakage of secret information.
 
 SG0016:
   class: CsrfTokenAnalyzer
@@ -142,7 +127,7 @@ SG0019:
 
 SG0021:
   class: ValidateRequestFalse
-  title: Request validation has been disabled (Future)
+  title: Request validation has been disabled
   description: Request validation, which provided additionnal protection against Cross-Site Scripting (XSS), has been disabled. 
 
 SG0022:
@@ -152,12 +137,12 @@ SG0022:
 
 SG0023:
   class: ViewStateEncryptionModeFalse
-  title: View state is not encrypted (Future)
+  title: View state is not encrypted
   description: View state is not encrypted. Controls may leak sensitive data that could be read client-side.
   
 SG0024:
   class: EnableViewStateMac
-  title: View state mac is disabled (Future)
+  title: View state mac is disabled
   description: View state mac is disabled. The view state could be altered by an attacker. (This feature cannot be disabled in the recent version of ASP.net)
 
 # XSS
@@ -167,17 +152,23 @@ SG0029:
   description: The endpoint returns a variable from the client input that has not been encoded.
 
 #Password Validator
+
+SG0015:
+  class: TaintAnalyzer
+  title: Hardcoded password
+  description: The password configuration to this API appears to be hardcoded. It is suggest to externalized configuration such as password to avoid leakage of secret information.
+
 SG0032:
     class: WeakPasswordValidatorAnalyzer
-    title: The RequiredLength property of PasswordValidator is too small.
+    title: The RequiredLength property of PasswordValidator is too small
     description: The minimal length of a password is recommended to be set at least to 8.
 
 SG0033:
     class: WeakPasswordValidatorPropertyAnalyzer
-    title: Not enough properties set in PasswordValidator declaration.
-    description: "PasswordValidator should have at least two requirements for better security (RequiredLength, RequireDigit, RequireLowercase, RequireUppercase and/or RequireNonLetterOrDigit)."
+    title: Not enough properties set in PasswordValidator declaration
+    description: PasswordValidator should have at least two requirements for better security (RequiredLength, RequireDigit, RequireLowercase, RequireUppercase and/or RequireNonLetterOrDigit).
 
 SG0034:
     class: WeakPasswordValidatorPropertyAnalyzer
-    title: The RequiredLength property must be set.
+    title: The RequiredLength property must be set
     description: The RequiredLength property must be set with a minimum value of 8.

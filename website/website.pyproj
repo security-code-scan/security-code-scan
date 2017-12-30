@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{713a3e92-c612-444c-85cd-73d902f32b89}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>generate_static_website.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId>Global|PythonCore|2.7-32</InterpreterId>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="generate_static_website.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="out_site\css\bootstrap-theme.min.css" />
+    <Content Include="out_site\css\bootstrap.min.css" />
+    <Content Include="out_site\css\font-awesome.min.css" />
+    <Content Include="out_site\css\styles.css" />
+    <Content Include="out_site\fonts\fontawesome-webfont.svg" />
+    <Content Include="out_site\images\cookie_fix_animation.gif" />
+    <Content Include="out_site\images\install.png" />
+    <Content Include="out_site\images\install_success.png" />
+    <Content Include="out_site\images\logo-small.png" />
+    <Content Include="out_site\images\run_analysis.png" />
+    <Content Include="out_site\images\visual-studio-small.png" />
+    <Content Include="out_site\images\visual-studio.png" />
+    <Content Include="out_site\js\bootstrap.min.js" />
+    <Content Include="templates\footer.htm" />
+    <Content Include="templates\header.htm" />
+    <Content Include="templates\index.htm" />
+    <Content Include="templates\rule.htm" />
+    <Content Include="templates\rules.htm" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="out_site\" />
+    <Folder Include="out_site\css" />
+    <Folder Include="out_site\fonts" />
+    <Folder Include="out_site\images" />
+    <Folder Include="out_site\js" />
+    <Folder Include="templates" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|PythonCore|2.7-32" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+</Project>

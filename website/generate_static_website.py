@@ -13,7 +13,7 @@ def writeGroup(outFile, rulesDir, groupMdFile, group):
     outFile.write("\n")
     groupFile.close()
     for md in group:
-        outFile.write('<div id="SCS{}"></div>\n'.format(md))
+        outFile.write('<div id="SCS{}"></div>\n\n'.format(md))
         appendFile(outFile, os.path.join(rulesDir, md + ".md"))
 
 sqliGroup = ["0002", "0014", "0020", "0025", "0026"]

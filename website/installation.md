@@ -1,7 +1,7 @@
 # Installation
 Security Code Scan (SCS) can be installed as:
-* [Visual Studio extension](https://marketplace.visualstudio.com/items?itemName=PhilippeArteau.RoslynSecurityGuard). Use the link or open "Tools > Extensions and Updates..." Select "Online" in the tree on the left and search for RoslynSecurityGuard in the right upper field. Click "Download" and install.
-* [NuGet package](https://www.nuget.org/packages/RoslynSecurityGuard/).
+* [Visual Studio extension](https://marketplace.visualstudio.com/items?itemName=JaroslavLobacevski.SecurityCodeScan). Use the link or open "Tools > Extensions and Updates..." Select "Online" in the tree on the left and search for SecurityCodeScan in the right upper field. Click "Download" and install.
+* [NuGet package](https://www.nuget.org/packages/SecurityCodeScan/).
   * Right-click on the root item in your solution. Select "Manage NuGet Packages for Solution...". Select "Browse" on the top and search for Security Code Scan. Select project you want to install into and click "Install".
   * Another option is to install the package into all projects in a solution: use "Tools > NuGet Package Manager > Package Manager Console". Run the command `Get-Project -All | Install-Package SecurityCodeScan`.
 

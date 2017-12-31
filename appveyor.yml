@@ -1,2 +1,10 @@
+version: 2.4.0.{build}
+configuration:
+- Debug
+- Release
 before_build:
-  - nuget restore
+- cmd: nuget restore
+build:
+  project: RoslynSecurityGuard.sln
+  parallel: true
+  verbosity: minimal

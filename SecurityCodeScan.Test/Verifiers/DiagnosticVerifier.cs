@@ -180,7 +180,7 @@ namespace TestHelper
                 {
                     Assert.IsTrue(false,
                         string.Format("Expected diagnostic severity to be \"{0}\" was \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n(Language: {3})\r\n ",
-                            expected.Severity, actual.Severity, FormatDiagnostics(analyzers[0], actual)));
+                            expected.Severity, actual.Severity, FormatDiagnostics(analyzers[0], actual), language));
                 }
 
                 if (expected.Message != null && actual.GetMessage() != expected.Message)

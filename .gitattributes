@@ -1,0 +1,22 @@
+*         text=auto
+
+*.vsixmanifest text
+*.txt     text
+*.cs      text diff=csharp
+*.csproj  text
+*.sln     text
+*.config  text
+*.nuspec  text
+*.ps1     text
+*.md      text
+*.yml     text
+*.resx    text
+*.py      text
+*.html    text
+*.htm     text
+
+*.png     binary
+*.bmp     binary
+*.jpg     binary
+*.jpeg    binary
+*.ico     binary

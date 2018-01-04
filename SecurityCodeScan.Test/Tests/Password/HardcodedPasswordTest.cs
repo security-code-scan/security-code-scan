@@ -1,11 +1,10 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers.Taint;
-
-using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Threading.Tasks;
 using TestHelper;
 
 namespace SecurityCodeScan.Tests
@@ -13,7 +12,6 @@ namespace SecurityCodeScan.Tests
     [TestClass]
     public class HardcodedPasswordTest : DiagnosticVerifier
     {
-
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new[] { new TaintAnalyzer() };
@@ -28,7 +26,6 @@ namespace SecurityCodeScan.Tests
         [TestMethod]
         public async Task HardCodePasswordDerivedBytes()
         {
-
             var cSharpTest = @"
 using System.Security.Cryptography;
 
@@ -43,6 +40,7 @@ namespace VulnerableApp
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Security.Cryptography
 
@@ -57,7 +55,7 @@ End Namespace
 
             var expected = new DiagnosticResult
             {
-                Id = "SCS0015",
+                Id       = "SCS0015",
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -65,11 +63,9 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
-
         [TestMethod]
         public async Task HardCodePasswordDerivedBytesFalsePositive()
         {
-
             var cSharpTest = @"
 using System.Security.Cryptography;
 
@@ -84,6 +80,7 @@ namespace VulnerableApp
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Security.Cryptography
 
@@ -95,13 +92,9 @@ Namespace VulnerableApp
 	End Class
 End Namespace
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
-
-        //private void sandbox()
-        //{
-        //    var test = new PasswordDeriveBytes("test", new byte[] { 0, 1, 2, 3 });
-        //}
     }
 }

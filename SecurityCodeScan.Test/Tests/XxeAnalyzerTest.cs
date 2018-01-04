@@ -15,7 +15,7 @@ namespace SecurityCodeScan.Tests
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
-            return new [] { new XxeAnalyzer() };
+            return new[] { new XxeAnalyzer() };
         }
 
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
@@ -38,6 +38,7 @@ class Xxe
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Xml
 
@@ -48,6 +49,7 @@ Class Xxe
 	End Sub
 End Class
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
@@ -69,6 +71,7 @@ class Xxe
         XmlReader reader = XmlReader.Create(inputXml, settings);
     }
 }";
+
             var visualBasicTest = @"
 Imports System.Xml
 
@@ -82,10 +85,10 @@ Class Xxe
 	End Sub
 End Class
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
-
 
         [TestMethod]
         public async Task XxeFalsePositive3()
@@ -103,6 +106,7 @@ class Xxe
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Xml
 
@@ -114,6 +118,7 @@ Class Xxe
 	End Sub
 End Class
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
@@ -134,6 +139,7 @@ class Xxe
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Xml
 
@@ -145,6 +151,7 @@ Class Xxe
 	End Sub
 End Class
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
@@ -167,6 +174,7 @@ class Xxe
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Xml
 
@@ -180,8 +188,15 @@ Class Xxe
 	End Sub
 End Class
 ";
-            var expected = new[] {
-                new DiagnosticResult {Id = "SCS0007",Severity = DiagnosticSeverity.Warning}};
+
+            var expected = new[]
+            {
+                new DiagnosticResult
+                {
+                    Id       = "SCS0007",
+                    Severity = DiagnosticSeverity.Warning
+                }
+            };
 
             await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
@@ -203,6 +218,7 @@ class Xxe
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Xml
 
@@ -214,8 +230,15 @@ Class Xxe
 	End Sub
 End Class
 ";
-            var expected = new[] {
-                new DiagnosticResult {Id = "SCS0007",Severity = DiagnosticSeverity.Warning}};
+
+            var expected = new[]
+            {
+                new DiagnosticResult
+                {
+                    Id       = "SCS0007",
+                    Severity = DiagnosticSeverity.Warning
+                }
+            };
 
             await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
@@ -253,6 +276,7 @@ class PathTraversal
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.IO
 Imports System.Xml
@@ -265,6 +289,7 @@ Class PathTraversal
 	End Sub
 End Class
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }

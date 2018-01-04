@@ -1,23 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
-using TestHelper;
-using Microsoft.CodeAnalysis.CodeFixes;
-using SecurityCodeScan.Analyzers;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.CodeAnalysis;
 using System.Web;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
+using TestHelper;
 
 namespace SecurityCodeScan.Test.Tests
 {
     [TestClass]
     public class InsecureCookieCodeFixProviderTest : CodeFixVerifier
     {
-
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
         {
             return new[] { MetadataReference.CreateFromFile(typeof(HttpCookie).Assembly.Location) };
@@ -51,6 +47,7 @@ namespace VulnerableApp
     }
 }
 ";
+
             var after = @"
 using System;
 using System.Web;
@@ -68,6 +65,7 @@ namespace VulnerableApp
     }
 }
 ";
+
             await VerifyCSharpFix(before, after);
         }
 
@@ -90,6 +88,7 @@ namespace VulnerableApp
     }
 }
 ";
+
             var after = @"
 using System;
 using System.Web;
@@ -107,6 +106,7 @@ namespace VulnerableApp
     }
 }
 ";
+
             await VerifyCSharpFix(before, after);
         }
 
@@ -129,6 +129,7 @@ namespace VulnerableApp
     }
 }
 ";
+
             var after = @"
 using System;
 using System.Web;
@@ -146,6 +147,7 @@ namespace VulnerableApp
     }
 }
 ";
+
             await VerifyCSharpFix(before, after);
         }
     }

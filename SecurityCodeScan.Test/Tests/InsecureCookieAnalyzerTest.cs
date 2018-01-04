@@ -1,21 +1,18 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Web;
-
-using TestHelper;
-using Microsoft.CodeAnalysis.Diagnostics;
-using SecurityCodeScan.Analyzers;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
+using TestHelper;
 
 namespace SecurityCodeScan.Test.Tests
 {
     [TestClass]
     public class InsecureCookieAnalyzerTest : DiagnosticVerifier
     {
-
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new DiagnosticAnalyzer[] { new TaintAnalyzer(), new InsecureCookieAnalyzer() };
@@ -29,7 +26,6 @@ namespace SecurityCodeScan.Test.Tests
         [TestMethod]
         public async Task CookieWithoutFlags()
         {
-
             var cSharpTest = @"
 using System.Web;
 
@@ -44,6 +40,7 @@ namespace VulnerableApp
     }
 }
 ";
+
             var visualBasicTest1 = @"
 Imports System.Web
 
@@ -67,6 +64,7 @@ Namespace VulnerableApp
     End Class
 End Namespace
 ";
+
             var visualBasicTest3 = @"
 Imports System.Web
 
@@ -78,18 +76,20 @@ Namespace VulnerableApp
     End Class
 End Namespace
 ";
+
             var expected08 = new DiagnosticResult
             {
-                Id = "SCS0008",
-                Severity = DiagnosticSeverity.Warning
-            };
-            var expected09 = new DiagnosticResult
-            {
-                Id = "SCS0009",
+                Id       = "SCS0008",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            DiagnosticResult[] expected = new DiagnosticResult[] { expected08, expected09 };
+            var expected09 = new DiagnosticResult
+            {
+                Id       = "SCS0009",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            DiagnosticResult[] expected = { expected08, expected09 };
 
             await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest1, expected);
@@ -116,6 +116,7 @@ namespace VulnerableApp
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Web
 
@@ -133,7 +134,6 @@ End Namespace
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
-
 
         [TestMethod]
         public async Task CookieWithFlagsInLine()
@@ -168,6 +168,7 @@ Namespace VulnerableApp
     End Class
 End Namespace
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }

@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
-
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis;
-using System;
+using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Utils;
 
 namespace SecurityCodeScan.Analyzers.Taint
@@ -19,8 +16,8 @@ namespace SecurityCodeScan.Analyzers.Taint
     {
         private bool DebugMode = true;
 
-        public SyntaxNodeAnalysisContext AnalysisContext { get; }
-        public IDictionary<string, VariableState> Variables { get; private set; }
+        public SyntaxNodeAnalysisContext          AnalysisContext { get; }
+        public IDictionary<string, VariableState> Variables       { get; }
 
         /// <summary>
         /// Initialize the state with no variable recorded yet.
@@ -29,17 +26,22 @@ namespace SecurityCodeScan.Analyzers.Taint
         public ExecutionState(SyntaxNodeAnalysisContext ctx)
         {
             AnalysisContext = ctx;
-            Variables = new Dictionary<string, VariableState>();
+            Variables       = new Dictionary<string, VariableState>();
         }
 
-        public void AddNewValue(string identifier, VariableState value) {
-
+        public void AddNewValue(string identifier, VariableState value)
+        {
             if (Variables.ContainsKey(identifier)) //New variable in a different scope
             {
-                if (DebugMode) SGLogging.Log("Removing existing state for " + identifier);
+                if (DebugMode)
+                    Logger.Log("Removing existing state for " + identifier);
+
                 Variables.Remove(identifier);
             }
-            if (DebugMode) SGLogging.Log(string.Format("Adding state for {0} ({1})", identifier, value));
+
+            if (DebugMode)
+                Logger.Log($"Adding state for {identifier} ({value})");
+
             Variables.Add(identifier, value);
         }
 
@@ -47,16 +49,19 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             if (Variables.ContainsKey(identifier)) //Override existing value
             {
-
-                var state = Variables[identifier];
-                var newState = state.merge(value);
+                var state    = Variables[identifier];
+                var newState = state.Merge(value);
                 Variables.Remove(identifier);
                 Variables.Add(identifier, newState);
-                if (DebugMode) SGLogging.Log(string.Format("Merging state for {0} ({1})", identifier, newState));
+                if (DebugMode)
+                    Logger.Log($"Merging state for {identifier} ({newState})");
             }
             else
-            { //Unexpected state
-                if (DebugMode) SGLogging.Log(string.Format("Merging state for {0} ({1}) .. /!\\ unexpected state", identifier, value));
+            {
+                //Unexpected state
+                if (DebugMode)
+                    Logger.Log($"Merging state for {identifier} ({value}) .. /!\\ unexpected state");
+
                 Variables.Add(identifier, value);
             }
         }
@@ -64,10 +69,8 @@ namespace SecurityCodeScan.Analyzers.Taint
         public VariableState GetValueByIdentifier(string identifier)
         {
             VariableState value;
-            if (Variables.TryGetValue(identifier, out value))
-                return value;
-
-            return new VariableState(value.node, VariableTaint.UNKNOWN);
+            return Variables.TryGetValue(identifier, out value) ? value :
+                                                                  new VariableState(value.Node, VariableTaint.Unknown);
         }
 
         /// <summary>
@@ -75,15 +78,15 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// </summary>
         /// <param name="node">Expression to evaluate</param>
         /// <returns>The resolved symbol with the complete class name and method name.</returns>
-        public ISymbol GetSymbol(SyntaxNode node) {
-            if (node == null) return null;
-            return AnalysisContext.SemanticModel.GetSymbolInfo(node).Symbol;
+        public ISymbol GetSymbol(SyntaxNode node)
+        {
+            return node != null ? AnalysisContext.SemanticModel.GetSymbolInfo(node).Symbol : null;
         }
 
         public void AddTag(string variableAccess, VariableTag httpCookieSecure)
         {
             if (DebugMode)
-                SGLogging.Log($"Adding tag '{httpCookieSecure}' to  {variableAccess}");
+                Logger.Log($"Adding tag '{httpCookieSecure}' to  {variableAccess}");
 
             VariableState variable;
             if (Variables.TryGetValue(variableAccess, out variable))

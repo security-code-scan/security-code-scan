@@ -1,14 +1,10 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
-using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Security;
-using System.Threading.Tasks;
 using TestHelper;
 
 namespace SecurityCodeScan.Test.Tests
@@ -16,7 +12,6 @@ namespace SecurityCodeScan.Test.Tests
     [TestClass]
     public class HardcodedPasswordFieldTest : DiagnosticVerifier
     {
-
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new DiagnosticAnalyzer[] { new TaintAnalyzer(), new UnknownPasswordApiAnalyzer() };
@@ -40,6 +35,7 @@ namespace VulnerableApp
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System
 
@@ -55,7 +51,7 @@ End Namespace
 
             var expected = new DiagnosticResult
             {
-                Id = "SCS0015",
+                Id       = "SCS0015",
                 Severity = DiagnosticSeverity.Warning
             };
 

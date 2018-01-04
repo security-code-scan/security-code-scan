@@ -1,9 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
-using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
-using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.VisualBasic;
+using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
+using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers.Taint
 {

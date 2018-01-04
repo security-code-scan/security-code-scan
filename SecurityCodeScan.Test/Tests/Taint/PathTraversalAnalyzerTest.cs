@@ -1,11 +1,11 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SecurityCodeScan.Analyzers.Taint;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Xml;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SecurityCodeScan.Analyzers.Taint;
 using TestHelper;
 
 namespace SecurityCodeScan.Test.Tests.Taint
@@ -13,7 +13,6 @@ namespace SecurityCodeScan.Test.Tests.Taint
     [TestClass]
     public class PathTraversalAnalyzerTest : DiagnosticVerifier
     {
-
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new[] { new TaintAnalyzer() };
@@ -21,9 +20,12 @@ namespace SecurityCodeScan.Test.Tests.Taint
 
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
         {
-            return new[] { MetadataReference.CreateFromFile(typeof(File).Assembly.Location), MetadataReference.CreateFromFile(typeof(XmlReader).Assembly.Location) };
+            return new[]
+            {
+                MetadataReference.CreateFromFile(typeof(File).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(XmlReader).Assembly.Location)
+            };
         }
-
 
         [TestMethod]
         public async Task PathTraversalFound1()
@@ -39,6 +41,7 @@ class PathTraversal
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.IO
 
@@ -48,11 +51,13 @@ Class PathTraversal
 	End Sub
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0018",
+                Id       = "SCS0018",
                 Severity = DiagnosticSeverity.Warning,
             };
+
             await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
@@ -71,6 +76,7 @@ class PathTraversal
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.IO
 
@@ -80,15 +86,16 @@ Class PathTraversal
 	End Sub
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0018",
+                Id       = "SCS0018",
                 Severity = DiagnosticSeverity.Warning,
             };
+
             await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
-
 
         [TestMethod]
         public async Task PathTraversalFound3()
@@ -104,6 +111,7 @@ class PathTraversal
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.IO
 
@@ -113,11 +121,13 @@ Class PathTraversal
 	End Sub
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0018",
+                Id       = "SCS0018",
                 Severity = DiagnosticSeverity.Warning,
             };
+
             await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
@@ -136,6 +146,7 @@ class PathTraversal
     }
 }
 ";
+
             var visualBasicTest1 = @"
 Imports System.IO
 
@@ -145,6 +156,7 @@ Class PathTraversal
 	End Sub
 End Class
 ";
+
             //TODO: Move to VB expression test class. 
             var visualBasicTest2 = @"
 Imports System.IO
@@ -156,11 +168,13 @@ Class PathTraversal
 	End Sub
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0018",
+                Id       = "SCS0018",
                 Severity = DiagnosticSeverity.Warning,
             };
+
             await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest1, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest2, expected);
@@ -180,6 +194,7 @@ class PathTraversal
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.IO
 
@@ -189,11 +204,13 @@ Class PathTraversal
 	End Sub
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0018",
+                Id       = "SCS0018",
                 Severity = DiagnosticSeverity.Warning,
             };
+
             await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
@@ -213,6 +230,7 @@ class PathTraversal
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Xml
 
@@ -223,11 +241,13 @@ Class PathTraversal
 	End Sub
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0018",
+                Id       = "SCS0018",
                 Severity = DiagnosticSeverity.Warning,
             };
+
             await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
@@ -246,6 +266,7 @@ class PathTraversal
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.IO
 
@@ -255,6 +276,7 @@ Class PathTraversal
 	End Sub
 End Class
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }

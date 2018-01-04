@@ -1,15 +1,13 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Utils;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TestHelper
 {
@@ -19,14 +17,17 @@ namespace TestHelper
     public abstract partial class DiagnosticVerifier
     {
         #region To be implemented by Test classes
+
         /// <summary>
         /// Get the CSharp analyzer being tested - to be implemented in non-abstract class
         /// </summary>
         protected abstract IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers();
 
-        protected virtual IEnumerable<MetadataReference> GetAdditionnalReferences() {
+        protected virtual IEnumerable<MetadataReference> GetAdditionnalReferences()
+        {
             return null;
         }
+
         #endregion
 
         #region Verifier wrappers
@@ -38,11 +39,17 @@ namespace TestHelper
         /// <param name="source">A class in the form of a string to run the analyzer on</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
-        protected async Task VerifyCSharpDiagnostic(string source, DiagnosticResult[] expected = null, bool verifyIfCompiles = true)
+        protected async Task VerifyCSharpDiagnostic(string             source,
+                                                    DiagnosticResult[] expected         = null,
+                                                    bool               verifyIfCompiles = true)
         {
             var a = GetDiagnosticAnalyzers().ToList();
             a.Add(new DebugAnalyzer());
-            await VerifyDiagnostics(new[] { source }, LanguageNames.CSharp, a, expected ?? new DiagnosticResult[0], verifyIfCompiles);
+            await VerifyDiagnostics(new[] { source },
+                                    LanguageNames.CSharp,
+                                    a,
+                                    expected ?? new DiagnosticResult[0],
+                                    verifyIfCompiles);
         }
 
         /// <summary>
@@ -52,11 +59,17 @@ namespace TestHelper
         /// <param name="source">A class in the form of a string to run the analyzer on</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
-        protected async Task VerifyVisualBasicDiagnostic(string source, DiagnosticResult[] expected = null, bool verifyIfCompiles = true)
+        protected async Task VerifyVisualBasicDiagnostic(string             source,
+                                                         DiagnosticResult[] expected         = null,
+                                                         bool               verifyIfCompiles = true)
         {
             var a = GetDiagnosticAnalyzers().ToList();
             a.Add(new DebugAnalyzer());
-            await VerifyDiagnostics(new[] { source }, LanguageNames.VisualBasic, a, expected ?? new DiagnosticResult[0], verifyIfCompiles);
+            await VerifyDiagnostics(new[] { source },
+                                    LanguageNames.VisualBasic,
+                                    a,
+                                    expected ?? new DiagnosticResult[0],
+                                    verifyIfCompiles);
         }
 
         /// <summary>
@@ -68,7 +81,7 @@ namespace TestHelper
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
         protected async Task VerifyCSharpDiagnostic(string source, DiagnosticResult expected, bool verifyIfCompiles = true)
         {
-            await VerifyCSharpDiagnostic(source, new [] { expected }, verifyIfCompiles);
+            await VerifyCSharpDiagnostic(source, new[] { expected }, verifyIfCompiles);
         }
 
         /// <summary>
@@ -84,9 +97,9 @@ namespace TestHelper
         }
 
         [TestInitialize]
-        public void initOutput()
+        public void InitOutput()
         {
-            SGLogging.LoggerHandler = value => Console.WriteLine(value);
+            Logger.LoggerHandler = Console.WriteLine;
         }
 
         /// <summary>
@@ -98,46 +111,68 @@ namespace TestHelper
         /// <param name="analyzers">The analyzers to be run on the source code</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
         /// <param name="includeCompilerDiagnostics">Verify built-in compile diagnostics</param>
-        private async Task VerifyDiagnostics(string[] sources, string language, List<DiagnosticAnalyzer> analyzers, DiagnosticResult[] expected, bool includeCompilerDiagnostics = true)
+        private async Task VerifyDiagnostics(string[]                 sources,
+                                             string                   language,
+                                             List<DiagnosticAnalyzer> analyzers,
+                                             DiagnosticResult[]       expected,
+                                             bool                     includeCompilerDiagnostics = true)
         {
-            var diagnostics = await GetSortedDiagnostics(sources, language, analyzers, GetAdditionnalReferences(), includeCompilerDiagnostics);
+            var diagnostics = await GetSortedDiagnostics(sources,
+                                                         language,
+                                                         analyzers,
+                                                         GetAdditionnalReferences(),
+                                                         includeCompilerDiagnostics);
             VerifyDiagnosticResults(diagnostics, analyzers, language, expected);
         }
 
         #endregion
 
         #region Actual comparisons and verifications
+
         /// <summary>
-        /// Checks each of the actual Diagnostics found and compares them with the corresponding DiagnosticResult in the array of expected results.
-        /// Diagnostics are considered equal only if the DiagnosticResultLocation, Id, Severity, and Message of the DiagnosticResult match the actual diagnostic.
+        /// Checks each of the actual Diagnostics found and
+        /// compares them with the corresponding DiagnosticResult in the array of expected results.
+        /// Diagnostics are considered equal only if the DiagnosticResultLocation, Id,
+        /// Severity, and Message of the DiagnosticResult match the actual diagnostic.
         /// </summary>
-        /// <param name="actualResults">The Diagnostics found by the compiler after running the analyzer on the source code</param>
+        /// <param name="actualResults">The Diagnostics found by the compiler after
+        /// running the analyzer on the source code</param>
         /// <param name="analyzers">The analyzers that was being run on the sources</param>
         /// <param name="expectedResults">Diagnostic Results that should have appeared in the code</param>
-        private static void VerifyDiagnosticResults(IEnumerable<Diagnostic> actualResults, List<DiagnosticAnalyzer> analyzers, string language, params DiagnosticResult[] expectedResults)
+        private static void VerifyDiagnosticResults(ICollection<Diagnostic>   actualResults,
+                                                    List<DiagnosticAnalyzer>  analyzers,
+                                                    string                    language,
+                                                    params DiagnosticResult[] expectedResults)
         {
-            int expectedCount = expectedResults.Count();
-            int actualCount = actualResults.Count();
+            int expectedCount = expectedResults.Length;
+            int actualCount   = actualResults.Count;
 
             if (expectedCount != actualCount)
             {
-                string diagnosticsOutput = actualResults.Any() ? FormatDiagnostics(analyzers[0], actualResults.ToArray()) : "    NONE.";
+                string diagnosticsOutput = actualResults.Any()
+                                               ? FormatDiagnostics(analyzers[0], actualResults.ToArray())
+                                               : "    NONE.";
 
+                var msg =
+                    $@"Mismatch between number of diagnostics returned, expected ""{expectedCount}"" actual ""{actualCount}"" (Language:{language})
+
+Diagnostics:
+{diagnosticsOutput}
+";
                 Assert.IsTrue(false,
-                    string.Format("Mismatch between number of diagnostics returned, expected \"{0}\" actual \"{1}\" (Language:{3})\r\n\r\nDiagnostics:\r\n{2}\r\n", expectedCount, actualCount, diagnosticsOutput, language));
+                              msg);
             }
 
             //For debug purpose
-            foreach(var actual in actualResults)
+            foreach (var actual in actualResults)
             {
-                Console.WriteLine(string.Format("Bug : {0} ({1}) {2}", actual.Id, actual.Severity, actual.Location.GetLineSpan().StartLinePosition));
+                var line = actual.Location.GetLineSpan().StartLinePosition;
+                Console.WriteLine($"Bug : {actual.Id} ({actual.Severity}) {line}");
             }
-
 
             for (int i = 0; i < expectedResults.Length; i++)
             {
                 var actual = actualResults.ElementAt(i);
-
 
                 var expected = expectedResults[i];
 
@@ -152,60 +187,91 @@ namespace TestHelper
                 }
                 else
                 {
-                    VerifyDiagnosticLocation(analyzers[0], actual, actual.Location, expected.Locations.First(), language);
+                    VerifyDiagnosticLocation(analyzers[0],
+                                             actual,
+                                             actual.Location,
+                                             expected.Locations.First(),
+                                             language);
                     var additionalLocations = actual.AdditionalLocations.ToArray();
 
                     if (additionalLocations.Length != expected.Locations.Length - 1)
                     {
                         Assert.IsTrue(false,
-                            string.Format("Expected {0} additional locations but got {1} for Diagnostic:\r\n    {2}\r\n(Language: {3})\r\n ",
-                                expected.Locations.Length - 1, additionalLocations.Length,
-                                FormatDiagnostics(analyzers[0], actual), language));
+                                      $@"Expected {expected.Locations.Length - 1} additional locations but got {additionalLocations.Length} for Diagnostic:
+    {FormatDiagnostics(analyzers[0], actual)}
+(Language: {language})
+ ");
                     }
 
                     for (int j = 0; j < additionalLocations.Length; ++j)
                     {
-                        VerifyDiagnosticLocation(analyzers[0], actual, additionalLocations[j], expected.Locations[j + 1], language);
+                        VerifyDiagnosticLocation(analyzers[0],
+                                                 actual,
+                                                 additionalLocations[j],
+                                                 expected.Locations[j + 1],
+                                                 language);
                     }
                 }
 
                 if (actual.Id != expected.Id)
                 {
                     Assert.IsTrue(false,
-                        string.Format("Expected diagnostic id to be \"{0}\" was \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n(Language: {3})\r\n ",
-                            expected.Id, actual.Id, FormatDiagnostics(analyzers[0], actual), language));
+                                  $@"Expected diagnostic id to be ""{expected.Id}"" was ""{actual.Id}""
+
+Diagnostic:
+    {FormatDiagnostics(analyzers[0], actual)}
+(Language: {language})
+ ");
                 }
 
                 if (actual.Severity != expected.Severity)
                 {
                     Assert.IsTrue(false,
-                        string.Format("Expected diagnostic severity to be \"{0}\" was \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n(Language: {3})\r\n ",
-                            expected.Severity, actual.Severity, FormatDiagnostics(analyzers[0], actual), language));
+                                  $@"Expected diagnostic severity to be ""{expected.Severity}"" was ""{actual.Severity}""
+
+Diagnostic:
+    {FormatDiagnostics(analyzers[0], actual)}
+(Language: {language})
+ ");
                 }
 
                 if (expected.Message != null && actual.GetMessage() != expected.Message)
                 {
                     Assert.IsTrue(false,
-                        string.Format("Expected diagnostic message to be \"{0}\" was \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n(Language: {3})\r\n ",
-                            expected.Message, actual.GetMessage(), FormatDiagnostics(analyzers[0], actual), language));
+                                  $@"Expected diagnostic message to be ""{expected.Message}"" was ""{actual.GetMessage()}""
+
+Diagnostic:
+    {FormatDiagnostics(analyzers[0], actual)}
+(Language: {language})
+ ");
                 }
             }
         }
 
         /// <summary>
-        /// Helper method to VerifyDiagnosticResult that checks the location of a diagnostic and compares it with the location in the expected DiagnosticResult.
+        /// Helper method to VerifyDiagnosticResult that checks the location of a diagnostic and
+        /// compares it with the location in the expected DiagnosticResult.
         /// </summary>
         /// <param name="analyzer">The analyzer that was being run on the sources</param>
         /// <param name="diagnostic">The diagnostic that was found in the code</param>
         /// <param name="actual">The Location of the Diagnostic found in the code</param>
         /// <param name="expected">The DiagnosticResultLocation that should have been found</param>
-        private static void VerifyDiagnosticLocation(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Location actual, DiagnosticResultLocation expected, string language)
+        private static void VerifyDiagnosticLocation(DiagnosticAnalyzer       analyzer,
+                                                     Diagnostic               diagnostic,
+                                                     Location                 actual,
+                                                     DiagnosticResultLocation expected,
+                                                     string                   language)
         {
             var actualSpan = actual.GetLineSpan();
 
-            Assert.IsTrue(actualSpan.Path == expected.Path || (actualSpan.Path != null && actualSpan.Path.Contains("Test0.") && expected.Path.Contains("Test.")),
-                string.Format("Expected diagnostic to be in file \"{0}\" was actually in file \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n(Language: {3})\r\n ",
-                    expected.Path, actualSpan.Path, FormatDiagnostics(analyzer, diagnostic), language));
+            Assert.IsTrue(actualSpan.Path == expected.Path ||
+                          (actualSpan.Path != null && actualSpan.Path.Contains("Test0.") && expected.Path.Contains("Test.")),
+                          $@"Expected diagnostic to be in file ""{expected.Path}"" was actually in file ""{actualSpan.Path}""
+
+Diagnostic:
+    {FormatDiagnostics(analyzer, diagnostic)}
+(Language: {language})
+ ");
 
             var actualLinePosition = actualSpan.StartLinePosition;
 
@@ -215,25 +281,35 @@ namespace TestHelper
                 if (actualLinePosition.Line + 1 != expected.Line)
                 {
                     Assert.IsTrue(false,
-                        string.Format("Expected diagnostic to be on line \"{0}\" was actually on line \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n(Language: {3})\r\n ",
-                            expected.Line, actualLinePosition.Line + 1, FormatDiagnostics(analyzer, diagnostic), language));
+                                  $@"Expected diagnostic to be on line ""{expected.Line}"" was actually on line ""{actualLinePosition.Line + 1}""
+
+Diagnostic:
+    {FormatDiagnostics(analyzer, diagnostic)}
+(Language: {language})
+ ");
                 }
             }
 
             // Only check column position if there is an actual column position in the real diagnostic
-            if (expected.Column != -1 && actualLinePosition.Character > 0)
+            if (expected.Column == -1 || actualLinePosition.Character <= 0)
+                return;
+
+            if (actualLinePosition.Character + 1 != expected.Column)
             {
-                if (actualLinePosition.Character + 1 != expected.Column)
-                {
-                    Assert.IsTrue(false,
-                        string.Format("Expected diagnostic to start at column \"{0}\" was actually at column \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n(Language: {3})\r\n ",
-                            expected.Column, actualLinePosition.Character + 1, FormatDiagnostics(analyzer, diagnostic), language));
-                }
+                Assert.IsTrue(false,
+                              $@"Expected diagnostic to start at column ""{expected.Column}"" was actually at column ""{actualLinePosition.Character + 1}""
+
+Diagnostic:
+    {FormatDiagnostics(analyzer, diagnostic)}
+(Language: {language})
+ ");
             }
         }
+
         #endregion
 
         #region Formatting Diagnostics
+
         /// <summary>
         /// Helper method to format a Diagnostic into an easily readable string
         /// </summary>
@@ -248,45 +324,49 @@ namespace TestHelper
                 builder.AppendLine("// " + diagnostics[i].ToString());
 
                 var analyzerType = analyzer.GetType();
-                var rules = analyzer.SupportedDiagnostics;
+                var rules        = analyzer.SupportedDiagnostics;
 
                 foreach (var rule in rules)
                 {
-                    if (rule != null && rule.Id == diagnostics[i].Id)
+                    if (rule == null || rule.Id != diagnostics[i].Id)
+                        continue;
+
+                    var location = diagnostics[i].Location;
+                    if (location == Location.None)
                     {
-                        var location = diagnostics[i].Location;
-                        if (location == Location.None)
-                        {
-                            builder.AppendFormat("GetGlobalResult({0}.{1})", analyzerType.Name, rule.Id);
-                        }
-                        else
-                        {
-                            Assert.IsTrue(location.IsInSource,
-                                $"Test base does not currently handle diagnostics in metadata locations. Diagnostic in metadata: {diagnostics[i]}\r\n");
-
-                            string resultMethodName = diagnostics[i].Location.SourceTree.FilePath.EndsWith(".cs") ? "GetCSharpResultAt" : "GetBasicResultAt";
-                            var linePosition = diagnostics[i].Location.GetLineSpan().StartLinePosition;
-
-                            builder.AppendFormat("{0}({1}, {2}, {3}.{4})",
-                                resultMethodName,
-                                linePosition.Line + 1,
-                                linePosition.Character + 1,
-                                analyzerType.Name,
-                                rule.Id);
-                        }
-
-                        if (i != diagnostics.Length - 1)
-                        {
-                            builder.Append(',');
-                        }
-
-                        builder.AppendLine();
-                        break;
+                        builder.AppendFormat("GetGlobalResult({0}.{1})", analyzerType.Name, rule.Id);
                     }
+                    else
+                    {
+                        Assert.IsTrue(location.IsInSource,
+                                      $"Test base does not currently handle diagnostics in metadata locations. Diagnostic in metadata: {diagnostics[i]}\r\n");
+
+                        string resultMethodName = diagnostics[i].Location.SourceTree.FilePath.EndsWith(".cs")
+                                                      ? "GetCSharpResultAt"
+                                                      : "GetBasicResultAt";
+                        var    linePosition     = diagnostics[i].Location.GetLineSpan().StartLinePosition;
+
+                        builder.AppendFormat("{0}({1}, {2}, {3}.{4})",
+                                             resultMethodName,
+                                             linePosition.Line      + 1,
+                                             linePosition.Character + 1,
+                                             analyzerType.Name,
+                                             rule.Id);
+                    }
+
+                    if (i != diagnostics.Length - 1)
+                    {
+                        builder.Append(',');
+                    }
+
+                    builder.AppendLine();
+                    break;
                 }
             }
+
             return builder.ToString();
         }
+
         #endregion
     }
 }

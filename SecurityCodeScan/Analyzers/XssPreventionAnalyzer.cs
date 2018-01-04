@@ -1,20 +1,13 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using VB = Microsoft.CodeAnalysis.VisualBasic;
+using SecurityCodeScan.Analyzers.Locale;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
+using VB = Microsoft.CodeAnalysis.VisualBasic;
 using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Collections.Immutable;
-
-using SecurityCodeScan.Analyzers.Locale;
-
 
 namespace SecurityCodeScan.Analyzers
 {
@@ -23,75 +16,84 @@ namespace SecurityCodeScan.Analyzers
     {
         public const string DiagnosticId = "SCS0029";
 
-        private List<string> encodingMethods = new List<string>() { "HtmlEncoder.Default.Encode", "HttpContext.Server.HtmlEncode" };
+        private List<string> EncodingMethods = new List<string>
+        {
+            "HtmlEncoder.Default.Encode",
+            "HttpContext.Server.HtmlEncode"
+        };
 
-        private static DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor(DiagnosticId);
+        private static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor(DiagnosticId);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(VisitMethodsCSharp, CSharp.SyntaxKind.ClassDeclaration);
+            context.RegisterSyntaxNodeAction(VisitMethodsCSharp,      CSharp.SyntaxKind.ClassDeclaration);
             context.RegisterSyntaxNodeAction(VisitMethodsVisualBasic, VB.SyntaxKind.ClassBlock);
         }
 
         private void VisitMethodsCSharp(SyntaxNodeAnalysisContext ctx)
         {
-            CSharpSyntax.ClassDeclarationSyntax node = ctx.Node as CSharpSyntax.ClassDeclarationSyntax;
+            var node = ctx.Node as CSharpSyntax.ClassDeclarationSyntax;
 
-            if (node == null) return;
+            if (node == null)
+                return;
 
             // Ensures that the analyzed class has a dependency to Controller
-            if (node
-                .DescendantNodesAndSelf()
-                .OfType<CSharpSyntax.BaseListSyntax>()
-                .Count(childrenNode => childrenNode.ToString().Contains("Controller"))
-                .Equals(0))
-            { return; }
+            if (!node.DescendantNodesAndSelf()
+                     .OfType<CSharpSyntax.BaseListSyntax>()
+                     .Any(childrenNode => childrenNode.ToString().Contains("Controller")))
+            {
+                return;
+            }
 
-            IEnumerable<CSharpSyntax.MethodDeclarationSyntax> methodsWithParameters = node.DescendantNodesAndSelf()
-                .OfType<CSharpSyntax.MethodDeclarationSyntax>()
-                .Where(method => !method.ParameterList.Parameters.Count.Equals(0))
-                .Where(method => method.Modifiers.ToString().Equals("public"))
-                .Where(method => method.ReturnType.ToString().Equals("string"));
+            var methodsWithParameters = node.DescendantNodesAndSelf()
+                                            .OfType<CSharpSyntax.MethodDeclarationSyntax>()
+                                            .Where(method => method.ParameterList.Parameters.Any())
+                                            .Where(method => method.Modifiers.ToString().Equals("public"))
+                                            .Where(method => method.ReturnType.ToString().Equals("string"));
 
             foreach (CSharpSyntax.MethodDeclarationSyntax method in methodsWithParameters)
             {
-                SyntaxList<CSharpSyntax.StatementSyntax> methodStatements = method.Body.Statements;
-                IEnumerable<CSharpSyntax.InvocationExpressionSyntax> methodInvocations = method.DescendantNodes().OfType<CSharpSyntax.InvocationExpressionSyntax>();
+                SyntaxList<CSharpSyntax.StatementSyntax> methodStatements  = method.Body.Statements;
+                var methodInvocations = method.DescendantNodes()
+                                              .OfType<CSharpSyntax.InvocationExpressionSyntax>()
+                                              .ToArray();
 
-                if (!methodStatements.Count.Equals(0))
+                if (!methodStatements.Any())
+                    continue;
+
+                DataFlowAnalysis flow = ctx.SemanticModel.AnalyzeDataFlow(methodStatements.First(),
+                                                                          methodStatements.Last());
+
+                // Returns from the Data Flow Analysis of sensible data 
+                // Sensible data is: Data passed as a parameter that is also returned as is by the method
+                var sensibleVariables  = flow.DataFlowsIn.Union(flow.VariablesDeclared.Except(flow.AlwaysAssigned))
+                                                         .Union(flow.WrittenInside)
+                                                         .Intersect(flow.WrittenOutside)
+                                                         .ToArray();
+
+                if (!sensibleVariables.Any())
+                    continue;
+
+                foreach (ISymbol sensibleVariable in sensibleVariables)
                 {
-                    DataFlowAnalysis flow = ctx.SemanticModel.AnalyzeDataFlow(methodStatements.First(), methodStatements.Last());
-
-                    // Returns from the Data Flow Analysis of sensible data 
-                    // Sensible data is: Data passed as a parameter that is also returned as is by the method
-                    IEnumerable<ISymbol> sensibleVariables = flow.DataFlowsIn.Union(flow.VariablesDeclared.Except(flow.AlwaysAssigned))
-                                                                .Union(flow.WrittenInside)
-                                                                .Intersect(flow.WrittenOutside);
-
-                    if (!sensibleVariables.Count().Equals(0))
+                    bool sensibleVariableIsEncoded = false;
+                    foreach (CSharpSyntax.InvocationExpressionSyntax methodInvocation in methodInvocations)
                     {
-                        foreach (ISymbol sensibleVariable in sensibleVariables)
-                        {
-                            bool sensibleVariableIsEncoded = false;
-                            foreach (CSharpSyntax.InvocationExpressionSyntax methodInvocation in methodInvocations)
-                            {
-                                SeparatedSyntaxList<CSharpSyntax.ArgumentSyntax> arguments = methodInvocation.ArgumentList.Arguments;
-                                if (!arguments.Count.Equals(0))
-                                {
-                                    if (arguments.First().ToString().Contains(sensibleVariable.Name))
-                                    {
-                                        sensibleVariableIsEncoded = true;
-                                    }
-                                }
-                            }
+                        var arguments = methodInvocation.ArgumentList.Arguments;
+                        if (!arguments.Any())
+                            continue;
 
-                            if (!sensibleVariableIsEncoded)
-                            {
-                                ctx.ReportDiagnostic(Diagnostic.Create(Rule, method.GetLocation()));
-                            }
+                        if (arguments.First().ToString().Contains(sensibleVariable.Name))
+                        {
+                            sensibleVariableIsEncoded = true;
                         }
+                    }
+
+                    if (!sensibleVariableIsEncoded)
+                    {
+                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, method.GetLocation()));
                     }
                 }
             }
@@ -105,61 +107,75 @@ namespace SecurityCodeScan.Analyzers
 
         private void VisitMethodsVisualBasic(SyntaxNodeAnalysisContext ctx)
         {
-            VBSyntax.ClassBlockSyntax node = ctx.Node as VBSyntax.ClassBlockSyntax;
+            var node = ctx.Node as VBSyntax.ClassBlockSyntax;
 
-            if (node == null) return;
+            if (node == null)
+                return;
 
             // Ensures that the analyzed class has a dependency to Controller
-            if (node
-                .DescendantNodesAndSelf()
-                .OfType<VBSyntax.InheritsOrImplementsStatementSyntax>()
-                .Count(childrenNode => childrenNode.ToString().Contains("Controller"))
-                .Equals(0))
-            { return; }
+            if (!node.DescendantNodesAndSelf()
+                     .OfType<VBSyntax.InheritsOrImplementsStatementSyntax>()
+                     .Any(childrenNode => childrenNode.ToString().Contains("Controller")))
+            {
+                return;
+            }
 
-            IEnumerable<VBSyntax.MethodBlockSyntax> methodsWithParameters = node.DescendantNodesAndSelf()
-                .OfType<VBSyntax.MethodBlockSyntax>()
-                .Where(method => !method.SubOrFunctionStatement.ParameterList.Parameters.Count.Equals(0))
-                .Where(method => method.SubOrFunctionStatement.Modifiers.ToString().Equals("Public"))
-                .Where(method => method.SubOrFunctionStatement.AsClause?.Type.ToString().Equals("String") ?? false);
+            var methodsWithParameters = node.DescendantNodesAndSelf()
+                                            .OfType<VBSyntax.MethodBlockSyntax>()
+                                            .Where(method =>
+                                                       method.SubOrFunctionStatement.ParameterList.Parameters.Any())
+                                            .Where(method => method
+                                                             .SubOrFunctionStatement
+                                                             .Modifiers
+                                                             .ToString()
+                                                             .Equals("Public"))
+                                            .Where(method => method.SubOrFunctionStatement
+                                                                   .AsClause
+                                                                   ?.Type
+                                                                   .ToString()
+                                                                   .Equals("String") ?? false);
 
             foreach (VBSyntax.MethodBlockSyntax method in methodsWithParameters)
             {
-                SyntaxList<VBSyntax.StatementSyntax> methodStatements = method.Statements;
-                IEnumerable<VBSyntax.InvocationExpressionSyntax> methodInvocations = method.DescendantNodes().OfType<VBSyntax.InvocationExpressionSyntax>();
+                SyntaxList<VBSyntax.StatementSyntax> methodStatements  = method.Statements;
+                var methodInvocations = method.DescendantNodes()
+                                              .OfType<VBSyntax.InvocationExpressionSyntax>()
+                                              .ToArray();
 
-                if (!methodStatements.Count.Equals(0))
+                if (!methodStatements.Any())
+                    continue;
+
+                DataFlowAnalysis flow = ctx.SemanticModel.AnalyzeDataFlow(methodStatements.First(),
+                                                                          methodStatements.Last());
+
+                // Returns from the Data Flow Analysis of sensible data 
+                // Sensible data is: Data passed as a parameter that is also returned as is by the method
+                var sensibleVariables = flow.DataFlowsIn.Union(flow.VariablesDeclared.Except(flow.AlwaysAssigned))
+                                                        .Union(flow.WrittenInside)
+                                                        .Intersect(flow.WrittenOutside)
+                                                        .ToArray();
+
+                if (!sensibleVariables.Any())
+                    continue;
+
+                foreach (ISymbol sensibleVariable in sensibleVariables)
                 {
-                    DataFlowAnalysis flow = ctx.SemanticModel.AnalyzeDataFlow(methodStatements.First(), methodStatements.Last());
-
-                    // Returns from the Data Flow Analysis of sensible data 
-                    // Sensible data is: Data passed as a parameter that is also returned as is by the method
-                    IEnumerable<ISymbol> sensibleVariables = flow.DataFlowsIn.Union(flow.VariablesDeclared.Except(flow.AlwaysAssigned))
-                                                                .Union(flow.WrittenInside)
-                                                                .Intersect(flow.WrittenOutside);
-
-                    if (!sensibleVariables.Count().Equals(0))
+                    bool sensibleVariableIsEncoded = false;
+                    foreach (VBSyntax.InvocationExpressionSyntax methodInvocation in methodInvocations)
                     {
-                        foreach (ISymbol sensibleVariable in sensibleVariables)
-                        {
-                            bool sensibleVariableIsEncoded = false;
-                            foreach (VBSyntax.InvocationExpressionSyntax methodInvocation in methodInvocations)
-                            {
-                                SeparatedSyntaxList<VBSyntax.ArgumentSyntax> arguments = methodInvocation.ArgumentList.Arguments;
-                                if (!arguments.Count.Equals(0))
-                                {
-                                    if (arguments.First().ToString().Contains(sensibleVariable.Name))
-                                    {
-                                        sensibleVariableIsEncoded = true;
-                                    }
-                                }
-                            }
+                        var arguments = methodInvocation.ArgumentList.Arguments;
+                        if (!arguments.Any())
+                            continue;
 
-                            if (!sensibleVariableIsEncoded)
-                            {
-                                ctx.ReportDiagnostic(Diagnostic.Create(Rule, method.GetLocation()));
-                            }
+                        if (arguments.First().ToString().Contains(sensibleVariable.Name))
+                        {
+                            sensibleVariableIsEncoded = true;
                         }
+                    }
+
+                    if (!sensibleVariableIsEncoded)
+                    {
+                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, method.GetLocation()));
                     }
                 }
             }

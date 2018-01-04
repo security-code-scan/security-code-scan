@@ -1,41 +1,35 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using VB = Microsoft.CodeAnalysis.VisualBasic;
-using CSharp = Microsoft.CodeAnalysis.CSharp;
-using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
-using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
-
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
+using CSharp = Microsoft.CodeAnalysis.CSharp;
+using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
+using VB = Microsoft.CodeAnalysis.VisualBasic;
+using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class MvcCsrfTokenAnalyzer : CsrfTokenAnalyzer
     {
-        public MvcCsrfTokenAnalyzer() : base("System.Web.Mvc", "System.Web.Mvc")
-        {
-        }
+        public MvcCsrfTokenAnalyzer() : base("System.Web.Mvc", "System.Web.Mvc") { }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class CoreCsrfTokenAnalyzer : CsrfTokenAnalyzer
     {
-        public CoreCsrfTokenAnalyzer() : base("Microsoft.AspNetCore.Mvc", "Microsoft.AspNetCore.Authorization")
-        {
-        }
+        public CoreCsrfTokenAnalyzer() : base("Microsoft.AspNetCore.Mvc", "Microsoft.AspNetCore.Authorization") { }
     }
 
     public abstract class CsrfTokenAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "SCS0016";
-        private static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor(DiagnosticId);
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public const            string                               DiagnosticId = "SCS0016";
+        private static readonly DiagnosticDescriptor                 Rule         = LocaleUtil.GetDescriptor(DiagnosticId);
+        public override         ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
-        public CsrfTokenAnalyzer(string nameSpace, string allowAnonymousNamespace)
+        protected CsrfTokenAnalyzer(string nameSpace, string allowAnonymousNamespace)
         {
             //99% of the occurences will be HttpPost.. but here are some additionnal HTTP methods
             //https://msdn.microsoft.com/en-us/library/system.web.mvc.actionmethodselectorattribute(v=vs.118).aspx
@@ -48,11 +42,11 @@ namespace SecurityCodeScan.Analyzers
             };
 
             AntiForgeryAttribute = $"{nameSpace}.ValidateAntiForgeryTokenAttribute";
-            AnonymousAttribute = $"{allowAnonymousNamespace}.AllowAnonymousAttribute";
+            AnonymousAttribute   = $"{allowAnonymousNamespace}.AllowAnonymousAttribute";
         }
 
-        private readonly string AntiForgeryAttribute;
-        private readonly string AnonymousAttribute;
+        private readonly string       AntiForgeryAttribute;
+        private readonly string       AnonymousAttribute;
         private readonly List<string> MethodsHttp;
 
         public override void Initialize(AnalysisContext context)
@@ -89,11 +83,15 @@ namespace SecurityCodeScan.Analyzers
 
             var symbol = (IMethodSymbol)ctx.SemanticModel.GetDeclaredSymbol(ctx.Node);
 
-            if (!symbol.HasDerivedMethodAttribute(attributeData => MethodsHttp.Contains(attributeData.AttributeClass.ToString())))
+            if (!symbol.HasDerivedMethodAttribute(attributeData =>
+                                                      MethodsHttp.Contains(attributeData.AttributeClass.ToString())))
                 return;
 
-            if (symbol.HasDerivedMethodAttribute(HasAnonymousAttribute) || symbol.ReceiverType.HasDerivedClassAttribute(HasAnonymousAttribute))
+            if (symbol.HasDerivedMethodAttribute(HasAnonymousAttribute) ||
+                symbol.ReceiverType.HasDerivedClassAttribute(HasAnonymousAttribute))
+            {
                 return;
+            }
 
             if (symbol.ReceiverType.HasDerivedClassAttribute(HasAntiForgeryToken))
                 return;

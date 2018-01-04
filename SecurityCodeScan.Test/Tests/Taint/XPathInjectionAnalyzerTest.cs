@@ -1,11 +1,11 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestHelper;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Xml;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers.Taint;
+using TestHelper;
 
 namespace SecurityCodeScan.Tests
 {
@@ -40,6 +40,7 @@ class XPathInjectionTP
         doc.SelectSingleNode(""/Config/Devices/Device[type='2600']"");
     }
 }";
+
             var visualBasicTest = @"
 Imports System.Xml
 
@@ -52,9 +53,9 @@ Class XPathInjectionTP
     End Sub
 End Class
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
-
         }
 
         [TestMethod]
@@ -74,6 +75,7 @@ class XPathInjectionTP
         doc.SelectSingleNode(""/Config/Devices/Device[type='"" + input + ""']"");
     }
 }";
+
             var visualBasicTest = @"
 Imports System.Xml
 
@@ -86,10 +88,21 @@ Class XPathInjectionTP
     End Sub
 End Class
 ";
+
             //Two occurrences
-            var expected = new[] {
-                new DiagnosticResult {Id = "SCS0003",Severity = DiagnosticSeverity.Warning},
-                new DiagnosticResult { Id = "SCS0003", Severity = DiagnosticSeverity.Warning} };
+            var expected = new[]
+            {
+                new DiagnosticResult
+                {
+                    Id       = "SCS0003",
+                    Severity = DiagnosticSeverity.Warning
+                },
+                new DiagnosticResult
+                {
+                    Id       = "SCS0003",
+                    Severity = DiagnosticSeverity.Warning
+                }
+            };
 
             await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
@@ -113,6 +126,7 @@ class XPathInjectionTP
         doc.SelectSingleNode(""/Config/Devices/Device[type='"" + input + ""']"");
     }
 }";
+
             var visualBasicTest = @"
 Imports System.Xml
 
@@ -125,10 +139,21 @@ Class XPathInjectionTP
     End Sub
 End Class
 ";
+
             //Two occurrences
-            var expected = new[] {
-                new DiagnosticResult {Id = "SCS0003",Severity = DiagnosticSeverity.Warning},
-                new DiagnosticResult { Id = "SCS0003", Severity = DiagnosticSeverity.Warning} };
+            var expected = new[]
+            {
+                new DiagnosticResult
+                {
+                    Id       = "SCS0003",
+                    Severity = DiagnosticSeverity.Warning
+                },
+                new DiagnosticResult
+                {
+                    Id       = "SCS0003",
+                    Severity = DiagnosticSeverity.Warning
+                }
+            };
 
             await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);

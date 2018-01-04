@@ -1,10 +1,10 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Web.Mvc;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Web.Mvc;
 using TestHelper;
 
 namespace SecurityCodeScan.Test.Tests
@@ -38,6 +38,7 @@ public class HomeController : Controller
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Web.Mvc
 
@@ -50,9 +51,10 @@ Public Class HomeController
 	End Function
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = OutputCacheAnnotationAnalyzer.DiagnosticId,
+                Id       = OutputCacheAnnotationAnalyzer.DiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -76,6 +78,7 @@ public class HomeController : Controller
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Web.Mvc
 
@@ -88,9 +91,10 @@ Public Class HomeController
 	End Function
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = OutputCacheAnnotationAnalyzer.DiagnosticId,
+                Id       = OutputCacheAnnotationAnalyzer.DiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -114,6 +118,7 @@ public class HomeController : Controller
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Web.Mvc
 
@@ -126,9 +131,10 @@ Public Class HomeController
 	End Function
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = OutputCacheAnnotationAnalyzer.DiagnosticId,
+                Id       = OutputCacheAnnotationAnalyzer.DiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -156,6 +162,7 @@ public class HomeController : MyController
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Web.Mvc
 
@@ -172,9 +179,10 @@ Public Class HomeController
 	End Function
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = OutputCacheAnnotationAnalyzer.DiagnosticId,
+                Id       = OutputCacheAnnotationAnalyzer.DiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -206,6 +214,7 @@ public class HomeController : MyController
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Web.Mvc
 
@@ -225,9 +234,10 @@ Public Class HomeController
 	End Function
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = OutputCacheAnnotationAnalyzer.DiagnosticId,
+                Id       = OutputCacheAnnotationAnalyzer.DiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -256,6 +266,7 @@ public class HomeController : MyController
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Web.Mvc
 
@@ -273,9 +284,10 @@ Public Class HomeController
 	End Function
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = OutputCacheAnnotationAnalyzer.DiagnosticId,
+                Id       = OutputCacheAnnotationAnalyzer.DiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -307,6 +319,7 @@ public class HomeController : MyController
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Web.Mvc
 
@@ -326,9 +339,10 @@ Public Class HomeController
 	End Function
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = OutputCacheAnnotationAnalyzer.DiagnosticId,
+                Id       = OutputCacheAnnotationAnalyzer.DiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -357,6 +371,7 @@ public class HomeController : MyController
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Web.Mvc
 
@@ -374,9 +389,10 @@ Public Class HomeController
 	End Function
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = OutputCacheAnnotationAnalyzer.DiagnosticId,
+                Id       = OutputCacheAnnotationAnalyzer.DiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -461,6 +477,7 @@ public class HomeController : Controller
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Web.Mvc
 
@@ -472,6 +489,7 @@ Public Class HomeController
 	End Function
 End Class
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
@@ -492,6 +510,7 @@ public class HomeController : Controller
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Web.Mvc
 
@@ -504,6 +523,7 @@ Public Class HomeController
 	End Function
 End Class
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
@@ -529,6 +549,7 @@ public class HomeController : MyController
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Web.Mvc
 
@@ -546,6 +567,7 @@ Public Class HomeController
 	End Function
 End Class
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
@@ -571,6 +593,7 @@ public class HomeController : MyController
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Web.Mvc
 
@@ -588,6 +611,7 @@ Public Class HomeController
 	End Function
 End Class
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
@@ -608,6 +632,7 @@ public class HomeController : Controller
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Web.Mvc
 
@@ -620,6 +645,7 @@ Public Class HomeController
 	End Function
 End Class
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
@@ -649,6 +675,7 @@ public class HomeController : Controller
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System
 Imports System.Web.Mvc
@@ -670,6 +697,7 @@ Public Class HomeController
 	End Function
 End Class
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }

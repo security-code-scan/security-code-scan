@@ -1,14 +1,14 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SecurityCodeScan.Analyzers;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
-using TestHelper;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SecurityCodeScan.Analyzers;
+using TestHelper;
 
 namespace SecurityCodeScan.Test.Tests
 {
@@ -28,14 +28,15 @@ namespace SecurityCodeScan.Test.Tests
                 MetadataReference.CreateFromFile(typeof(HtmlEncoder).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(Controller).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(AllowAnonymousAttribute).Assembly.Location),
-                MetadataReference.CreateFromFile(Assembly.Load("System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").Location),
+                MetadataReference.CreateFromFile(Assembly.Load("System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")
+                                                         .Location),
             };
         }
 
         #region Tests that are producing diagnostics
 
         [TestMethod]
-        public async Task unencodedSensibleData()
+        public async Task UnencodedSensibleData()
         {
             var cSharpTest = @"
 using Microsoft.AspNetCore.Mvc;
@@ -52,6 +53,7 @@ namespace VulnerableApp
     }
 }
             ";
+
             var visualBasicTest = @"
 Imports Microsoft.AspNetCore.Mvc
 
@@ -65,9 +67,10 @@ Namespace VulnerableApp
     End Class
 End Namespace
             ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0029",
+                Id       = "SCS0029",
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -80,7 +83,7 @@ End Namespace
         #region Tests that are not producing diagnostics
 
         [TestMethod]
-        public async Task encodedSensibleDataWithTemporaryVariable()
+        public async Task EncodedSensibleDataWithTemporaryVariable()
         {
             var cSharpTest = @"
 using Microsoft.AspNetCore.Mvc;
@@ -99,6 +102,7 @@ namespace VulnerableApp
     }
 }
             ";
+
             var visualBasicTest = @"
 Imports Microsoft.AspNetCore.Mvc
 Imports System.Text.Encodings.Web
@@ -114,12 +118,13 @@ Namespace VulnerableApp
     End Class
 End Namespace
             ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
         [TestMethod]
-        public async Task encodedSensibleDataOnReturn()
+        public async Task EncodedSensibleDataOnReturn()
         {
             var cSharpTest = @"
 using Microsoft.AspNetCore.Mvc;
@@ -137,6 +142,7 @@ namespace VulnerableApp
     }
 }
             ";
+
             var visualBasicTest = @"
 Imports System.Text.Encodings.Web
 Imports Microsoft.AspNetCore.Mvc
@@ -157,7 +163,7 @@ End Namespace
         }
 
         [TestMethod]
-        public async Task returnEncodedData()
+        public async Task ReturnEncodedData()
         {
             var cSharpTest = @"
 using Microsoft.AspNetCore.Mvc;
@@ -175,6 +181,7 @@ namespace VulnerableApp
     }
 }
             ";
+
             var visualBasicTest = @"
 Imports System.Text.Encodings.Web
 Imports Microsoft.AspNetCore.Mvc
@@ -189,12 +196,13 @@ Namespace VulnerableApp
     End Class
 End Namespace
             ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
         [TestMethod]
-        public async Task encodedDataWithSameVariableUsage()
+        public async Task EncodedDataWithSameVariableUsage()
         {
             var cSharpTest = @"
 using Microsoft.AspNetCore.Mvc;
@@ -213,6 +221,7 @@ namespace VulnerableApp
     }
 }
             ";
+
             var visualBasicTest = @"
 Imports System.Text.Encodings.Web
 Imports Microsoft.AspNetCore.Mvc
@@ -228,12 +237,13 @@ Namespace VulnerableApp
     End Class
 End Namespace
             ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
         [TestMethod]
-        public async Task methodWithOtherReturningTypeThanString()
+        public async Task MethodWithOtherReturningTypeThanString()
         {
             var cSharpTest = @"
 using Microsoft.AspNetCore.Mvc;
@@ -252,6 +262,7 @@ namespace VulnerableApp
     }
 }
             ";
+
             var visualBasicTest = @"
 Imports Microsoft.AspNetCore.Mvc
 Imports Microsoft.AspNetCore.Authorization
@@ -267,12 +278,13 @@ Namespace VulnerableApp
 	End Class
 End Namespace
             ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
         [TestMethod]
-        public async Task privateMethod()
+        public async Task PrivateMethod()
         {
             var cSharpTest = @"
 using Microsoft.AspNetCore.Mvc;
@@ -289,6 +301,7 @@ namespace VulnerableApp
     }
 }
             ";
+
             var visualBasicTest = @"
 Imports Microsoft.AspNetCore.Mvc
 
@@ -302,6 +315,7 @@ Namespace VulnerableApp
     End Class
 End Namespace
             ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }

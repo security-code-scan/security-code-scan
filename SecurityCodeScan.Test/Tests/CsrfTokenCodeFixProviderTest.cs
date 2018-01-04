@@ -1,9 +1,9 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.CodeFixes;
 using TestHelper;
@@ -35,6 +35,7 @@ public class TestController
     }}
 }}
 ";
+
             var after = $@"
 using {Namespace};
 
@@ -49,6 +50,7 @@ public class TestController
     }}
 }}
 ";
+
             await VerifyCSharpFix(before, after);
         }
     }

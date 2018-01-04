@@ -1,10 +1,9 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using TestHelper;
 
 namespace SecurityCodeScan.Tests
@@ -12,7 +11,6 @@ namespace SecurityCodeScan.Tests
     [TestClass]
     public class WeakCertificateValidationAnalyzerTest : DiagnosticVerifier
     {
-
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new[] { new WeakCertificateValidationAnalyzer() };
@@ -34,6 +32,7 @@ class OkCert {
     }
 }
 ";
+
             var visualBsicTest = @"
 Imports System.Net
 
@@ -46,6 +45,7 @@ Class OkCert
     End Sub
 End Class
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBsicTest);
         }
@@ -67,6 +67,7 @@ class weakCert {
     }
 }
 ";
+
             var visualBsicTest = @"
 Imports System.Net
 
@@ -84,7 +85,7 @@ End Class
 
             var expected = new DiagnosticResult
             {
-                Id = "SCS0004",
+                Id       = "SCS0004",
                 Severity = DiagnosticSeverity.Warning,
             };
 
@@ -110,6 +111,7 @@ class weakCert {
     }
 }
 ";
+
             var visualBsicTest = @"
 Imports System.Net
 
@@ -125,9 +127,10 @@ Class weakCert
     End Sub
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0004",
+                Id       = "SCS0004",
                 Severity = DiagnosticSeverity.Warning,
             };
 

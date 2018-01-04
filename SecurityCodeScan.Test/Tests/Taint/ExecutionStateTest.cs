@@ -10,12 +10,12 @@ namespace SecurityCodeScan.Tests
         [TestMethod]
         public void GetValueByIdentifierTest()
         {
-            var ctx = new SyntaxNodeAnalysisContext();
+            var ctx            = new SyntaxNodeAnalysisContext();
             var executionState = new ExecutionState(ctx);
 
             var variableState = executionState.GetValueByIdentifier("none");
-            Assert.IsNotNull(variableState.tags);
-            Assert.AreEqual(VariableTaint.UNKNOWN, variableState.taint);
+            Assert.IsNotNull(variableState.Tags);
+            Assert.AreEqual(VariableTaint.Unknown, variableState.Taint);
         }
     }
 }

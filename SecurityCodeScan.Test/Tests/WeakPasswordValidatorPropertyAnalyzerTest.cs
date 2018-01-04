@@ -1,15 +1,12 @@
-﻿using Microsoft.AspNet.Identity;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Web.Mvc;
+using Microsoft.AspNet.Identity;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web.Mvc;
 using TestHelper;
 
 namespace SecurityCodeScan.Test.Tests
@@ -17,7 +14,6 @@ namespace SecurityCodeScan.Test.Tests
     [TestClass]
     public class WeakPasswordValidatorPropertyAnalyzerTest : DiagnosticVerifier
     {
-
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new DiagnosticAnalyzer[] { new WeakPasswordValidatorPropertyAnalyzer(), new TaintAnalyzer() };
@@ -29,9 +25,12 @@ namespace SecurityCodeScan.Test.Tests
         /// <returns>An array containing the different references required for the code segments to compile</returns>
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
         {
-            return new[] { MetadataReference.CreateFromFile(typeof(Controller).Assembly.Location),
+            return new[]
+            {
+                MetadataReference.CreateFromFile(typeof(Controller).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(PasswordValidator).Assembly.Location) };
+                MetadataReference.CreateFromFile(typeof(PasswordValidator).Assembly.Location)
+            };
         }
 
         /// <summary>
@@ -66,6 +65,7 @@ namespace WebApplicationSandbox.Controllers
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports Microsoft.AspNet.Identity
 Imports System.Web.Mvc
@@ -89,6 +89,7 @@ Namespace WebApplicationSandbox.Controllers
     End Class
 End Namespace
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
@@ -123,6 +124,7 @@ namespace WebApplicationSandbox.Controllers
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports Microsoft.AspNet.Identity
 Imports System.Web.Mvc
@@ -144,9 +146,10 @@ Namespace WebApplicationSandbox.Controllers
     End Class
 End Namespace
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0032",
+                Id       = "SCS0032",
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -183,6 +186,7 @@ namespace WebApplicationSandbox.Controllers
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports Microsoft.AspNet.Identity
 Imports System.Web.Mvc
@@ -203,9 +207,10 @@ Namespace WebApplicationSandbox.Controllers
     End Class
 End Namespace
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0032",
+                Id       = "SCS0032",
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -246,6 +251,7 @@ namespace WebApplicationSandbox.Controllers
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports Microsoft.AspNet.Identity
 Imports System.Web.Mvc
@@ -269,6 +275,7 @@ Namespace WebApplicationSandbox.Controllers
     End Class
 End Namespace
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
@@ -301,6 +308,7 @@ namespace WebApplicationSandbox.Controllers
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports Microsoft.AspNet.Identity
 Imports System.Web.Mvc
@@ -320,6 +328,7 @@ Namespace WebApplicationSandbox.Controllers
     End Class
 End Namespace
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
@@ -351,6 +360,7 @@ namespace WebApplicationSandbox.Controllers
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports Microsoft.AspNet.Identity
 Imports System.Web.Mvc
@@ -369,9 +379,10 @@ Namespace WebApplicationSandbox.Controllers
     End Class
 End Namespace
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = WeakPasswordValidatorPropertyAnalyzer.RulePasswordDiagnosticId,
+                Id       = WeakPasswordValidatorPropertyAnalyzer.RulePasswordDiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -407,6 +418,7 @@ namespace WebApplicationSandbox.Controllers
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports Microsoft.AspNet.Identity
 Imports System.Web.Mvc
@@ -426,9 +438,10 @@ Namespace WebApplicationSandbox.Controllers
     End Class
 End Namespace
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0034",
+                Id       = "SCS0034",
                 Severity = DiagnosticSeverity.Warning
             };
 

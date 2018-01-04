@@ -1,10 +1,9 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers.Taint;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Threading.Tasks;
 using TestHelper;
 
 namespace SecurityCodeScan.Tests
@@ -12,12 +11,10 @@ namespace SecurityCodeScan.Tests
     [TestClass]
     public class TaintAnalyzerTest : DiagnosticVerifier
     {
-
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new List<DiagnosticAnalyzer> { new TaintAnalyzer() };
         }
-
 
         protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
         {
@@ -45,6 +42,7 @@ namespace sample
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Data.SqlClient
 
@@ -61,6 +59,7 @@ Namespace sample
     End Class
 End Namespace
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
@@ -84,6 +83,7 @@ namespace sample
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Data.SqlClient
 
@@ -97,6 +97,7 @@ Namespace sample
 	End Class
 End Namespace
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
@@ -122,6 +123,7 @@ namespace sample
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Data.SqlClient
 
@@ -138,6 +140,7 @@ Namespace sample
     End Class
 End Namespace
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
@@ -163,6 +166,7 @@ namespace sample
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Data.SqlClient
 
@@ -179,15 +183,17 @@ Namespace sample
     End Class
 End Namespace
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0026",
+                Id       = "SCS0026",
                 Severity = DiagnosticSeverity.Warning,
             };
+
             await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
-        
+
         [TestMethod]
         public async Task VariableConcatenationUnsafe()
         {
@@ -205,6 +211,7 @@ namespace sample
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Data.SqlClient
 
@@ -217,18 +224,19 @@ Namespace sample
 End Namespace
 ";
 
-
             var expected = new DiagnosticResult
             {
-                Id = "SCS0026",
+                Id       = "SCS0026",
                 Severity = DiagnosticSeverity.Warning,
             };
+
             await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
         [TestMethod]
-        public async Task VariableOverride() {
+        public async Task VariableOverride()
+        {
             var cSharpTest = @"
 using System.Data.SqlClient;
 
@@ -251,6 +259,7 @@ namespace sample
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Data.SqlClient
 
@@ -268,16 +277,16 @@ Namespace sample
 	End Class
 End Namespace
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0026",
+                Id       = "SCS0026",
                 Severity = DiagnosticSeverity.Warning,
             };
+
             await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
-
-
 
         [TestMethod]
         public async Task VariableReuse()
@@ -300,6 +309,7 @@ namespace sample
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Data.SqlClient
 
@@ -315,24 +325,26 @@ Namespace sample
 	End Class
 End Namespace
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0026",
+                Id       = "SCS0026",
                 Severity = DiagnosticSeverity.Warning,
             };
+
             await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
-/*
-        public static void Run(string input)
-        {
-            string query = "SELECT* FROM[User] WHERE user_id = 1";
-            new SqlCommand(query);
+        /*
+                public static void Run(string input)
+                {
+                    string query = "SELECT* FROM[User] WHERE user_id = 1";
+                    new SqlCommand(query);
 
-            query = input;
-            new SqlCommand(query);
-        }
-*/
+                    query = input;
+                    new SqlCommand(query);
+                }
+        */
     }
 }

@@ -1,10 +1,10 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Web.Mvc;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Web.Mvc;
 using TestHelper;
 
 namespace SecurityCodeScan.Test.Tests
@@ -40,6 +40,7 @@ namespace VulnerableApp
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Web.Mvc
 
@@ -53,11 +54,13 @@ Namespace VulnerableApp
 	End Class
 End Namespace
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0017",
+                Id       = "SCS0017",
                 Severity = DiagnosticSeverity.Warning
             };
+
             await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }

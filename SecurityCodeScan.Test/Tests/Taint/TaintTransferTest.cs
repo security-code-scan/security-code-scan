@@ -1,9 +1,9 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers.Taint;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using TestHelper;
 
 namespace SecurityCodeScan.Test.Tests.Taint
@@ -11,7 +11,6 @@ namespace SecurityCodeScan.Test.Tests.Taint
     [TestClass]
     public class TaintTransferTest : DiagnosticVerifier
     {
-
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new List<DiagnosticAnalyzer> { new TaintAnalyzer() };
@@ -40,6 +39,7 @@ class SqlTransferTesting
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Data.SqlClient
 
@@ -52,9 +52,9 @@ Class SqlTransferTesting
 	End Sub
 End Class
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
-            
         }
 
         [TestMethod]
@@ -75,6 +75,7 @@ class SqlTransferTesting
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Data.SqlClient
 
@@ -87,9 +88,10 @@ Class SqlTransferTesting
 	End Sub
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0026",
+                Id       = "SCS0026",
                 Severity = DiagnosticSeverity.Warning,
             };
 
@@ -115,6 +117,7 @@ class SqlTransferTesting
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Data.SqlClient
 
@@ -130,14 +133,13 @@ End Class
 
             var expected = new DiagnosticResult
             {
-                Id = "SCS0026",
+                Id       = "SCS0026",
                 Severity = DiagnosticSeverity.Warning,
             };
 
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
             await VerifyCSharpDiagnostic(cSharpTest, expected);
         }
-
 
         [TestMethod]
         public async Task TransferStringInterpolatedSafe()
@@ -194,12 +196,11 @@ class SqlTransferTesting
 
             var expected = new DiagnosticResult
             {
-                Id = "SCS0026",
+                Id       = "SCS0026",
                 Severity = DiagnosticSeverity.Warning,
             };
 
             await VerifyCSharpDiagnostic(cSharpTest, expected);
         }
     }
-    
 }

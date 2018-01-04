@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SecurityCodeScan.Analyzers;
@@ -24,8 +22,8 @@ namespace SecurityCodeScan.Test.Tests
 </pages>
 </configuration>
 ";
-            
-            analyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()));
+
+            AnalyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()));
         }
 
         [TestMethod]
@@ -38,7 +36,7 @@ namespace SecurityCodeScan.Test.Tests
 </configuration>
 ";
 
-            analyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()));
+            AnalyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()));
         }
 
         [TestMethod]
@@ -51,7 +49,7 @@ namespace SecurityCodeScan.Test.Tests
 </configuration>
 ";
 
-            analyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()),Times.Never);
+            AnalyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()), Times.Never);
         }
 
         [TestMethod]
@@ -64,11 +62,11 @@ namespace SecurityCodeScan.Test.Tests
 </configuration>
 ";
 
-            analyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()), Times.Never);
+            AnalyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()), Times.Never);
         }
 
         //EnableEventValidation
-        
+
         [TestMethod]
         public void EnableEventValidationVulnerable1()
         {
@@ -79,7 +77,7 @@ namespace SecurityCodeScan.Test.Tests
 </configuration>
 ";
 
-            analyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()));
+            AnalyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()));
         }
 
         [TestMethod]
@@ -92,7 +90,7 @@ namespace SecurityCodeScan.Test.Tests
 </configuration>
 ";
 
-            analyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()));
+            AnalyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()));
         }
 
         [TestMethod]
@@ -105,7 +103,7 @@ namespace SecurityCodeScan.Test.Tests
 </configuration>
 ";
 
-            analyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()), Times.Never);
+            AnalyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()), Times.Never);
         }
 
         [TestMethod]
@@ -118,7 +116,7 @@ namespace SecurityCodeScan.Test.Tests
 </configuration>
 ";
 
-            analyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()), Times.Never);
+            AnalyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()), Times.Never);
         }
 
         //ViewStateEncryptionMode
@@ -133,7 +131,7 @@ namespace SecurityCodeScan.Test.Tests
 </configuration>
 ";
 
-            analyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()));
+            AnalyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()));
         }
 
         [TestMethod]
@@ -146,7 +144,7 @@ namespace SecurityCodeScan.Test.Tests
 </configuration>
 ";
 
-            analyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()));
+            AnalyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()));
         }
 
         [TestMethod]
@@ -159,7 +157,7 @@ namespace SecurityCodeScan.Test.Tests
 </configuration>
 ";
 
-            analyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()), Times.Never);
+            AnalyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()), Times.Never);
         }
 
         [TestMethod]
@@ -172,11 +170,11 @@ namespace SecurityCodeScan.Test.Tests
 </configuration>
 ";
 
-            analyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()), Times.Never);
+            AnalyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()), Times.Never);
         }
 
         //EnableViewStateMac
-        
+
         [TestMethod]
         public void EnableViewStateMacVulnerable1()
         {
@@ -187,7 +185,7 @@ namespace SecurityCodeScan.Test.Tests
 </configuration>
 ";
 
-            analyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()));
+            AnalyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()));
         }
 
         [TestMethod]
@@ -200,7 +198,7 @@ namespace SecurityCodeScan.Test.Tests
 </configuration>
 ";
 
-            analyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()));
+            AnalyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()));
         }
 
         [TestMethod]
@@ -213,7 +211,7 @@ namespace SecurityCodeScan.Test.Tests
 </configuration>
 ";
 
-            analyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()), Times.Never);
+            AnalyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()), Times.Never);
         }
 
         [TestMethod]
@@ -226,11 +224,10 @@ namespace SecurityCodeScan.Test.Tests
 </configuration>
 ";
 
-            analyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()), Times.Never);
+            AnalyzeConfiguration(config).Verify(call => call(It.IsAny<Diagnostic>()), Times.Never);
         }
 
-
-        private Mock<Action<Diagnostic>> analyzeConfiguration(string config)
+        private Mock<Action<Diagnostic>> AnalyzeConfiguration(string config)
         {
             var analyzer = new WebConfigAnalyzer();
 
@@ -239,15 +236,12 @@ namespace SecurityCodeScan.Test.Tests
 
             var diagnosticReportMock = new Mock<Action<Diagnostic>>(MockBehavior.Loose); //Will recorded the reported diagnostic..
 
-            var compilation = new CompilationAnalysisContext(null, //
-                null, diagnosticReportMock.Object, //
-                d => true, CancellationToken.None);
+            var compilation = new CompilationAnalysisContext(null,                              //
+                                                             null, diagnosticReportMock.Object, //
+                                                             d => true, CancellationToken.None);
 
             analyzer.AnalyzeConfigurationFile(config, additionalTextMock.Object, compilation);
             return diagnosticReportMock;
         }
-
-
     }
-
 }

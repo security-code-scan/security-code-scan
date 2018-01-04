@@ -1,9 +1,9 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using TestHelper;
 
 namespace SecurityCodeScan.Test.AntiCsrf
@@ -32,6 +32,7 @@ namespace VulnerableApp
     }}
 }}
 ";
+
             var visualBasicTest = $@"
 Imports {Namespace}
 
@@ -44,9 +45,10 @@ Namespace VulnerableApp
     End Class
 End Namespace
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = CsrfTokenAnalyzer.DiagnosticId,
+                Id       = CsrfTokenAnalyzer.DiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -76,6 +78,7 @@ namespace VulnerableApp
     }}
 }}
 ";
+
             var visualBasicTest = $@"
 Imports {Namespace}
 
@@ -93,9 +96,10 @@ Namespace VulnerableApp
     End Class
 End Namespace
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = CsrfTokenAnalyzer.DiagnosticId,
+                Id       = CsrfTokenAnalyzer.DiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -120,6 +124,7 @@ namespace VulnerableApp
     }}
 }}
 ";
+
             var visualBasicTest = $@"
 Imports {Namespace}
 
@@ -155,6 +160,7 @@ namespace VulnerableApp
     }}
 }}
 ";
+
             var visualBasicTest = $@"
 Imports {Namespace}
 
@@ -191,6 +197,7 @@ namespace VulnerableApp
     }}
 }}
 ";
+
             var visualBasicTest = $@"
 Imports {Namespace}
 
@@ -228,6 +235,7 @@ namespace VulnerableApp
     }}
 }}
                 ";
+
             var visualBasicTest = $@"
 Imports {Namespace}
 
@@ -265,6 +273,7 @@ namespace VulnerableApp
     }}
 }}
                 ";
+
             var visualBasicTest = $@"
 Imports {Namespace}
 
@@ -300,6 +309,7 @@ namespace VulnerableApp
     }}
 }}
                 ";
+
             var visualBasicTest = $@"
 Imports {Namespace}
 
@@ -312,6 +322,7 @@ Namespace VulnerableApp
 	End Class
 End Namespace
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
@@ -383,7 +394,8 @@ namespace VulnerableApp
     }
 }
                 ";
-            var visualBasicTest = $@"
+
+            var visualBasicTest = @"
 Namespace VulnerableApp
     Public Class TestController
         <Microsoft.AspNetCore.Mvc.HttpPost> _
@@ -397,7 +409,7 @@ End Namespace
 
             var expected = new DiagnosticResult
             {
-                Id = CsrfTokenAnalyzer.DiagnosticId,
+                Id       = CsrfTokenAnalyzer.DiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -422,7 +434,8 @@ namespace VulnerableApp
     }
 }
                 ";
-            var visualBasicTest = $@"
+
+            var visualBasicTest = @"
 Namespace VulnerableApp
     Public Class TestController
         <System.Web.Mvc.HttpPost> _
@@ -436,7 +449,7 @@ End Namespace
 
             var expected = new DiagnosticResult
             {
-                Id = CsrfTokenAnalyzer.DiagnosticId,
+                Id       = CsrfTokenAnalyzer.DiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -446,7 +459,7 @@ End Namespace
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
-            return new CsrfTokenAnalyzer []
+            return new CsrfTokenAnalyzer[]
             {
                 new CoreCsrfTokenAnalyzer(),
                 new MvcCsrfTokenAnalyzer()

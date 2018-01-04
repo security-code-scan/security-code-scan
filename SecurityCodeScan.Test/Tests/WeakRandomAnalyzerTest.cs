@@ -1,10 +1,9 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using TestHelper;
 
 namespace SecurityCodeScan.Tests
@@ -37,6 +36,7 @@ class WeakRandom
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System
 Imports System.Security.Cryptography
@@ -50,6 +50,7 @@ Class WeakRandom
 	End Function
 End Class
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
@@ -69,6 +70,7 @@ class WeakRandom
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System
 
@@ -79,13 +81,14 @@ Class WeakRandom
 	End Function
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0005",
+                Id       = "SCS0005",
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(9, -1)); ;
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(9, -1));
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 7));
         }
     }

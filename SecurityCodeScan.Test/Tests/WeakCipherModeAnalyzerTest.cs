@@ -1,9 +1,9 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using TestHelper;
 
 namespace SecurityCodeScan.Test.Tests
@@ -11,7 +11,6 @@ namespace SecurityCodeScan.Test.Tests
     [TestClass]
     public class WeakCipherModeAnalyzerTest : DiagnosticVerifier
     {
-
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new[] { new WeakCipherModeAnalyzer() };
@@ -47,6 +46,7 @@ class WeakCipherMode
         }
     }
 ";
+
             var visualBasicTest = @"
 Imports System
 Imports System.IO
@@ -70,11 +70,11 @@ Class WeakCipherMode
     End Function
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0012",
+                Id       = "SCS0012",
                 Severity = DiagnosticSeverity.Warning,
-
             };
 
             await VerifyCSharpDiagnostic(cSharpTest, expected);
@@ -110,6 +110,7 @@ class WeakCipherMode
             }
         }
 }";
+
             var visualBasicTest = @"
 Imports System
 Imports System.IO
@@ -133,11 +134,11 @@ Class WeakCipherMode
     End Function
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0013",
+                Id       = "SCS0013",
                 Severity = DiagnosticSeverity.Warning,
-
             };
 
             await VerifyCSharpDiagnostic(cSharpTest, expected);
@@ -195,6 +196,7 @@ class WeakCipherMode
         return encrypted;
     }
 }";
+
             var visualBasicTest = @"
 Imports System
 Imports System.IO
@@ -237,13 +239,14 @@ Class WeakCipherMode
     End Function
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0011",
+                Id       = "SCS0011",
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected );
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 

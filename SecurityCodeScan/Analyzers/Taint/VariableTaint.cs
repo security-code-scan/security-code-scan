@@ -1,28 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SecurityCodeScan.Analyzers.Taint
+﻿namespace SecurityCodeScan.Analyzers.Taint
 {
     public enum VariableTaint
     {
         /// <summary>
         /// Constant string
         /// </summary>
-        CONSTANT,
+        Constant,
         /// <summary>
         /// Value that are safe to use
         /// </summary>
-        SAFE,
+        Safe,
         /// <summary>
         /// Value obtain from an external sources
         /// </summary>
-        UNKNOWN,
+        Unknown,
         /// <summary>
         /// Value taken from input source.
         /// </summary>
-        TAINTED
+        Tainted
     }
 }

@@ -1,20 +1,16 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading.Tasks;
 using TestHelper;
 
 namespace SecurityCodeScan.Tests
 {
-
     [TestClass]
     public class CommandInjectionAnalyzerTest : DiagnosticVerifier
     {
-
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new[] { new TaintAnalyzer() };
@@ -38,6 +34,7 @@ namespace VulnerableApp
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Diagnostics
 
@@ -50,11 +47,10 @@ Namespace VulnerableApp
     End Class
 End Namespace
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
-
-
 
         [TestMethod]
         public async Task CommandInjectionFalsePositive_Filename()
@@ -74,6 +70,7 @@ namespace VulnerableApp
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Diagnostics
 
@@ -86,6 +83,7 @@ Namespace VulnerableApp
     End Class
 End Namespace
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
@@ -122,14 +120,13 @@ End Namespace
 
             var expected = new DiagnosticResult
             {
-                Id = "SCS0001",
+                Id       = "SCS0001",
                 Severity = DiagnosticSeverity.Warning
             };
 
             await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
-
 
         [TestMethod]
         public async Task CommandInjectionVulnerable2()
@@ -149,6 +146,7 @@ namespace VulnerableApp
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Diagnostics
 
@@ -161,9 +159,10 @@ Namespace VulnerableApp
     End Class
 End Namespace
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0001",
+                Id       = "SCS0001",
                 Severity = DiagnosticSeverity.Warning
             };
 

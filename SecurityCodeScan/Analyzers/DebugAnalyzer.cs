@@ -1,12 +1,11 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
-using System;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using SecurityCodeScan.Analyzers.Utils;
+using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
+using SecurityCodeScan.Analyzers.Utils;
 
 namespace SecurityCodeScan.Analyzers
 {
@@ -14,7 +13,7 @@ namespace SecurityCodeScan.Analyzers
     public class DebugAnalyzer : DiagnosticAnalyzer
     {
         //Dummy descriptor, it will never be reported
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => 
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(LocaleUtil.GetDescriptor("Debug"));
 
         public override void Initialize(AnalysisContext context)
@@ -26,20 +25,22 @@ namespace SecurityCodeScan.Analyzers
         {
             var node = ctx.Node as MethodDeclarationSyntax;
 
-            if (node != null)
-            {
-                //This analyzer will trace the node only if it is in debug mode.
-                if(SGLogging.IsConfigured()) {
-                    SGLogging.Log("== Method : "+ node.Identifier.Text +" (BEGIN) ==", false);
-                    visitNodeRecursively(node,0, ctx);
-                    SGLogging.Log("== Method : " + node.Identifier.Text + " (END) ==", false);
-                }
-            }
+            if (node == null)
+                return;
+
+            //This analyzer will trace the node only if it is in debug mode.
+            if (!Logger.IsConfigured())
+                return;
+
+            Logger.Log("== Method : " + node.Identifier.Text + " (BEGIN) ==", false);
+            VisitNodeRecursively(node, 0, ctx);
+            Logger.Log("== Method : " + node.Identifier.Text + " (END) ==", false);
         }
 
-        private static void visitNodeRecursively(SyntaxNode node, int indent, SyntaxNodeAnalysisContext ctx) {
-
-            string code = node.GetText().Lines[0].Text.ToString().Trim() + (node.GetText().Lines.Count > 1 ? "[...]" : "");
+        private static void VisitNodeRecursively(SyntaxNode node, int indent, SyntaxNodeAnalysisContext ctx)
+        {
+            string code = node.GetText().Lines[0].Text.ToString().Trim() +
+                          (node.GetText().Lines.Count > 1 ? "[...]" : "");
 
             if (node.ChildNodes().Any())
             {
@@ -52,7 +53,7 @@ namespace SecurityCodeScan.Analyzers
                 if (symbol != null)
                 {
                     string typeName = symbol.ContainingType?.Name; //Class name
-                    string name = symbol.Name; //Method
+                    string name     = symbol.Name;                 //Method
                     if (typeName != null && name != null)
                     {
                         code = typeName + "." + name;
@@ -60,10 +61,11 @@ namespace SecurityCodeScan.Analyzers
                 }
             }
 
-            SGLogging.Log(new string(' ', indent * 4) + code + " <" +node.GetType().Name+">", false);
+            Logger.Log(new string(' ', indent * 4) + code + " <" + node.GetType().Name + ">", false);
 
-            foreach (var n in node.ChildNodes()) {
-                visitNodeRecursively(n, indent+1, ctx);
+            foreach (var n in node.ChildNodes())
+            {
+                VisitNodeRecursively(n, indent + 1, ctx);
             }
         }
     }

@@ -1,30 +1,29 @@
-﻿using System.Resources;
+﻿using System.Collections.Generic;
 using System.Globalization;
-using SecurityCodeScan.Analyzers.Taint;
 using System.IO;
 using System.Reflection;
+using System.Resources;
 using YamlDotNet.RepresentationModel;
-using System.Collections.Generic;
-using System;
-using SecurityCodeScan.Analyzers.Utils;
 
 namespace SecurityCodeScan.Analyzers.Locale
 {
     public class YamlResourceManager : ResourceManager
     {
-        private const string RESOURCE_FILE = "Messages.yml";
+        private const string MessagesFileName = "Messages.yml";
 
-        private IDictionary<string, string> LocaleString = new Dictionary<string, string>();
+        private readonly IDictionary<string, string> LocaleString = new Dictionary<string, string>();
 
-        public YamlResourceManager() : base("SecurityCodeScan.Empty", typeof(YamlResourceManager).GetTypeInfo().Assembly) {
-            
+        public YamlResourceManager() : base("SecurityCodeScan.Empty",
+                                            typeof(YamlResourceManager).GetTypeInfo().Assembly)
+        {
         }
 
-        public void Load() {
+        public void Load()
+        {
             var assembly = typeof(YamlResourceManager).GetTypeInfo().Assembly;
 
-            using (Stream stream = assembly.GetManifestResourceStream("SecurityCodeScan.Config." + RESOURCE_FILE))
-            using (StreamReader reader = new StreamReader(stream))
+            using (Stream stream = assembly.GetManifestResourceStream("SecurityCodeScan.Config." + MessagesFileName))
+            using (var reader = new StreamReader(stream))
             {
                 var yaml = new YamlStream();
                 yaml.Load(reader);
@@ -33,26 +32,29 @@ namespace SecurityCodeScan.Analyzers.Locale
 
                 foreach (var entry in mapping.Children)
                 {
-                    var key = (YamlScalarNode)entry.Key;
+                    var key   = (YamlScalarNode)entry.Key;
                     var value = (YamlMappingNode)entry.Value;
 
-                    string messTitle = ((YamlScalarNode)value.Children[new YamlScalarNode("title")]).Value;
+                    string messTitle       = ((YamlScalarNode)value.Children[new YamlScalarNode("title")]).Value;
                     string messDescription = ((YamlScalarNode)value.Children[new YamlScalarNode("description")]).Value;
 
-                    LocaleString[key.Value + "_Title"] = messTitle;
+                    LocaleString[key.Value + "_Title"]       = messTitle;
                     LocaleString[key.Value + "_Description"] = messDescription;
-                    //SGLogging.Log(key.Value);
+
+                    //Logger.Log(key.Value);
                 }
 
-                //SGLogging.Log(LocaleString.Count + " locales loaded.");
+                //Logger.Log(LocaleString.Count + " locales loaded.");
             }
         }
 
-        public new string GetString(string name) {
+        public new string GetString(string name)
+        {
             return GetString(name, CultureInfo.CurrentCulture);
         }
 
-        public override string GetString(string name, CultureInfo culture) {
+        public override string GetString(string name, CultureInfo culture)
+        {
             string val;
             if (!LocaleString.TryGetValue(name, out val))
                 return "??" + name + "??";

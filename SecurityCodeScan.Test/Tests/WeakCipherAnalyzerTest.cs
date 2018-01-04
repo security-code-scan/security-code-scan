@@ -1,10 +1,10 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.CodeAnalysis.Diagnostics;
-using SecurityCodeScan.Analyzers;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using TestHelper;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SecurityCodeScan.Analyzers;
+using TestHelper;
 
 namespace SecurityCodeScan.Test.Tests
 {
@@ -54,6 +54,7 @@ class WeakCipherAlgorithm
         }
     }
 ";
+
             var visualBasicTest = @"
 Imports System.IO
 Imports System.Security.Cryptography
@@ -85,6 +86,7 @@ Class WeakCipherAlgorithm
 	End Sub
 End Class
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
@@ -130,6 +132,7 @@ class WeakCipherAlgorithm
         }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.IO
 Imports System.Security.Cryptography
@@ -162,9 +165,10 @@ Class WeakCipherAlgorithm
 	End Function
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0010",
+                Id       = "SCS0010",
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -213,6 +217,7 @@ class WeakCipherAlgorithm
         }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.IO
 Imports System.Security.Cryptography
@@ -250,9 +255,10 @@ Class WeakCipherAlgorithm
 	End Function
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0010",
+                Id       = "SCS0010",
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -300,6 +306,7 @@ class WeakCipherAlgorithm
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.IO
 Imports System.Security.Cryptography
@@ -340,7 +347,7 @@ End Class
 
             var expected = new DiagnosticResult
             {
-                Id = "SCS0010",
+                Id       = "SCS0010",
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -388,6 +395,7 @@ class WeakCipherAlgorithm
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.IO
 Imports System.Security.Cryptography
@@ -425,9 +433,10 @@ Class WeakCipherAlgorithm
 	End Sub
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0010",
+                Id       = "SCS0010",
                 Severity = DiagnosticSeverity.Warning
             };
 

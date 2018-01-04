@@ -1,9 +1,9 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using TestHelper;
 
 namespace SecurityCodeScan.Tests
@@ -11,7 +11,6 @@ namespace SecurityCodeScan.Tests
     [TestClass]
     public class WeakHashingAnalyzerTest : DiagnosticVerifier
     {
-
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new[] { new WeakHashingAnalyzer() };
@@ -43,6 +42,7 @@ class Sha256OK
         return sBuilder.ToString();
     }
 }";
+
             var visualBasicTest = @"
 Imports System.Text
 Imports System.Security.Cryptography
@@ -61,6 +61,7 @@ Class Sha256OK
     End Function
 End Class
 ";
+
             await VerifyCSharpDiagnostic(cSharpTest);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
@@ -92,6 +93,7 @@ class WeakHashing
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Text
 Imports System.Security.Cryptography
@@ -110,9 +112,10 @@ Class WeakHashing
     End Function
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0006",
+                Id       = "SCS0006",
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -148,6 +151,7 @@ class WeakHashing
     }
 }
 ";
+
             var visualBasicTest = @"
 Imports System.Text
 Imports System.Security.Cryptography
@@ -166,9 +170,10 @@ Class WeakHashing
     End Function
 End Class
 ";
+
             var expected = new DiagnosticResult
             {
-                Id = "SCS0006",
+                Id       = "SCS0006",
                 Severity = DiagnosticSeverity.Warning
             };
 

@@ -47,10 +47,11 @@ namespace SecurityCodeScan.CodeFixes
             var root            = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var highlightedNode = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent;
 
-            var methodDeclaration = CodeFixUtil.GetParentNode(highlightedNode,
-                                                              typeof(MethodDeclarationSyntax)) as MethodDeclarationSyntax;
-            if (methodDeclaration == null)
+            if (!(CodeFixUtil.GetParentNode(highlightedNode,
+                                            typeof(MethodDeclarationSyntax)) is MethodDeclarationSyntax methodDeclaration))
+            {
                 return document;
+            }
 
             var attributesList = methodDeclaration.AttributeLists[0];
 

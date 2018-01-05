@@ -31,7 +31,7 @@ namespace SecurityCodeScan.Analyzers
 
         protected CsrfTokenAnalyzer(string nameSpace, string allowAnonymousNamespace)
         {
-            //99% of the occurences will be HttpPost.. but here are some additionnal HTTP methods
+            //99% of the occurrences will be HttpPost.. but here are some additional HTTP methods
             //https://msdn.microsoft.com/en-us/library/system.web.mvc.actionmethodselectorattribute(v=vs.118).aspx
             MethodsHttp = new List<string>
             {

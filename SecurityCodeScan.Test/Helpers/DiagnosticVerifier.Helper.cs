@@ -41,7 +41,7 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="sources">Classes in the form of strings</param>
         /// <param name="language">The language the source classes are in</param>
         /// <param name="analyzers">The analyzers to be run on the sources</param>
-        /// <param name="references">Addional refenced modules</param>
+        /// <param name="references">Additional referenced modules</param>
         /// <param name="includeCompilerDiagnostics">Get compiler diagnostics too</param>
         /// <returns>An IEnumerable of Diagnostics that surfaced in the source code, sorted by Location</returns>
         private static async Task<Diagnostic[]> GetSortedDiagnostics(

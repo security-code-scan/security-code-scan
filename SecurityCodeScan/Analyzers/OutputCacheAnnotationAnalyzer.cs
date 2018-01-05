@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -30,24 +29,22 @@ namespace SecurityCodeScan.Analyzers
         {
             int d = duration;
 
-            Func<AttributeData, bool> condition = attributeData =>
-                                                  {
-                                                      if (attributeData.AttributeClass.ToString() != "System.Web.Mvc.OutputCacheAttribute")
-                                                          return false;
+            bool Condition(AttributeData attributeData)
+            {
+                if (attributeData.AttributeClass.ToString() != "System.Web.Mvc.OutputCacheAttribute") return false;
 
-                                                      var durationArgument = attributeData.NamedArguments
-                                                                                          .FirstOrDefault(x => x.Key == "Duration");
-                                                      if (durationArgument.Equals(default(KeyValuePair<string, TypedConstant>)))
-                                                          d = int.MaxValue;
-                                                      else
-                                                          d = (int)durationArgument.Value.Value;
+                var durationArgument = attributeData.NamedArguments.FirstOrDefault(x => x.Key == "Duration");
+                if (durationArgument.Equals(default(KeyValuePair<string, TypedConstant>)))
+                    d = int.MaxValue;
+                else
+                    d = (int)durationArgument.Value.Value;
 
-                                                      return true;
-                                                  };
+                return true;
+            }
 
             var ret = method
-                          ? ((IMethodSymbol)symbol).HasDerivedMethodAttribute(condition)
-                          : ((ITypeSymbol)symbol).HasDerivedClassAttribute(condition);
+                          ? ((IMethodSymbol)symbol).HasDerivedMethodAttribute(Condition)
+                          : ((ITypeSymbol)symbol).HasDerivedClassAttribute(Condition);
             duration = d;
             return ret;
         }

@@ -17,7 +17,7 @@ namespace SecurityCodeScan.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
-            // Seperated the parsers on this one as they use too many language dependant syntax types. 
+            // Separated the parsers on this one as they use too many language dependent syntax types. 
             // TODO: Review to see if this can be simplified. 
             context.RegisterSyntaxNodeAction(VisitMethodsCSharp,      CSharp.SyntaxKind.MethodDeclaration);
             context.RegisterSyntaxNodeAction(VisitMethodsVisualBasic, VB.SyntaxKind.FunctionBlock);
@@ -26,9 +26,7 @@ namespace SecurityCodeScan.Analyzers
 
         private void VisitMethodsCSharp(SyntaxNodeAnalysisContext ctx)
         {
-            var node = ctx.Node as CSharpSyntax.MethodDeclarationSyntax;
-
-            if (node == null)
+            if (!(ctx.Node is CSharpSyntax.MethodDeclarationSyntax node))
                 return;
 
             //Iterating over the list of annotation for a given method
@@ -40,9 +38,7 @@ namespace SecurityCodeScan.Analyzers
                 var att = attribute.Attributes[0];
 
                 //Extract the annotation identifier
-                var identifier = att.Name as CSharpSyntax.IdentifierNameSyntax;
-
-                if (identifier == null)
+                if (!(att.Name is CSharpSyntax.IdentifierNameSyntax identifier))
                     continue;
 
                 if (identifier.Identifier.Text != "ValidateInput")
@@ -69,9 +65,7 @@ namespace SecurityCodeScan.Analyzers
 
         private void VisitMethodsVisualBasic(SyntaxNodeAnalysisContext ctx)
         {
-            var node = ctx.Node as VBSyntax.MethodBlockSyntax;
-
-            if (node == null)
+            if (!(ctx.Node is VBSyntax.MethodBlockSyntax node))
                 return;
 
             //Iterating over the list of annotation for a given method
@@ -83,9 +77,7 @@ namespace SecurityCodeScan.Analyzers
                 var att = attribute.Attributes[0];
 
                 //Extract the annotation identifier
-                var identifier = att.Name as VBSyntax.IdentifierNameSyntax;
-
-                if (identifier == null)
+                if (!(att.Name is VBSyntax.IdentifierNameSyntax identifier))
                     continue;
 
                 if (identifier.Identifier.Text != "ValidateInput")

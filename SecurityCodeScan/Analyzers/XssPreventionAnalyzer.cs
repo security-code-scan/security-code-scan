@@ -34,9 +34,7 @@ namespace SecurityCodeScan.Analyzers
 
         private void VisitMethodsCSharp(SyntaxNodeAnalysisContext ctx)
         {
-            var node = ctx.Node as CSharpSyntax.ClassDeclarationSyntax;
-
-            if (node == null)
+            if (!(ctx.Node is CSharpSyntax.ClassDeclarationSyntax node))
                 return;
 
             // Ensures that the analyzed class has a dependency to Controller
@@ -100,16 +98,14 @@ namespace SecurityCodeScan.Analyzers
         }
 
         // TODO: Drink a lot of coffee and make this generic. 
-        // Problem #1: So many language specific sytax nodes (why o why are they implemented like this).
+        // Problem #1: So many language specific syntax nodes (why o why are they implemented like this).
         // Problem #2: Literal strings are different.
         // Perhaps there could be a way to swap the VB/C# syntax types about. 
-        // Maybe make a wrapper around each of the diffferent common syntax types. :@
+        // Maybe make a wrapper around each of the different common syntax types. :@
 
         private void VisitMethodsVisualBasic(SyntaxNodeAnalysisContext ctx)
         {
-            var node = ctx.Node as VBSyntax.ClassBlockSyntax;
-
-            if (node == null)
+            if (!(ctx.Node is VBSyntax.ClassBlockSyntax node))
                 return;
 
             // Ensures that the analyzed class has a dependency to Controller

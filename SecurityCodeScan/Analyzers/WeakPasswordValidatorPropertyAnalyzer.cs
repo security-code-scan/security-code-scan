@@ -44,8 +44,7 @@ namespace SecurityCodeScan.Analyzers
             }
             else
             {
-                var vbNode = ctx.Node as VBSyntax.AssignmentStatementSyntax;
-                if (vbNode != null)
+                if (ctx.Node is VBSyntax.AssignmentStatementSyntax vbNode)
                 {
                     n        = vbNode;
                     right    = vbNode.Right;
@@ -71,10 +70,8 @@ namespace SecurityCodeScan.Analyzers
                 return;
             }
 
-            int numericValue;
-
             // Validates that the value is an int and that it is over the minimum value required
-            if (!int.TryParse(right.GetText().ToString(), out numericValue) ||
+            if (!int.TryParse(right.GetText().ToString(), out var numericValue) ||
                 numericValue >= Constants.PasswordValidatorRequiredLength)
             {
                 return;

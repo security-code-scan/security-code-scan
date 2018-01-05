@@ -7,7 +7,7 @@ namespace SecurityCodeScan.Analyzers.Utils
     public class CodeFixUtil
     {
         /// <summary>
-        /// Extract the last indendation from the trivia passed.
+        /// Extract the last indentation from the trivia passed.
         /// </summary>
         /// <param name="leadingTrivia"></param>
         /// <returns></returns>

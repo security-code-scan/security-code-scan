@@ -93,9 +93,7 @@ namespace SecurityCodeScan.Analyzers.Utils
                     continue; //Bound check .. Unlikely to happen
 
                 //Extract the annotation identifier
-                var identifier = attribute.Attributes[0].Name as CSharpSyntax.IdentifierNameSyntax;
-
-                if (identifier == null)
+                if (!(attribute.Attributes[0].Name is CSharpSyntax.IdentifierNameSyntax identifier))
                     continue;
 
                 callback(identifier.Identifier.Text, attribute.Attributes[0]);

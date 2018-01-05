@@ -64,8 +64,7 @@ namespace SecurityCodeScan.Analyzers
         {
             if (behavior                 == null && //Unknown API
                 symbol                   != null && IsPasswordField(symbol) &&
-                variableRightState.Taint == VariableTaint.Constant //Only constant
-            )
+                variableRightState.Taint == VariableTaint.Constant) //Only constant
             {
                 var diagnostic = Diagnostic.Create(Rule, node.GetLocation());
                 state.AnalysisContext.ReportDiagnostic(diagnostic);

@@ -115,15 +115,17 @@ namespace SecurityCodeScan.Analyzers
 
                 foreach (var page in pagesNodes)
                 {
-                    if (AttributeInsensitive(page, "viewStateEncryptionMode")?.Value.ToLower() == "auto" ||
-                        AttributeInsensitive(page, "viewStateEncryptionMode")?.Value.ToLower() == "never") //Always, Auto & Never
+                    if (AttributeInsensitive(page, "viewStateEncryptionMode")?.Value.ToLower() != "auto" &&
+                        AttributeInsensitive(page, "viewStateEncryptionMode")?.Value.ToLower() != "never")
                     {
-                        var lineInfo   = (IXmlLineInfo)page;
-                        int lineNumber = lineInfo.HasLineInfo() ? lineInfo.LineNumber : 1;
-
-                        Location loc = AnalyzerUtil.CreateLocation(file.Path, lineNumber);
-                        context.ReportDiagnostic(Diagnostic.Create(RuleViewStateEncryptionMode, loc));
+                        continue;
                     }
+
+                    var lineInfo   = (IXmlLineInfo)page;
+                    int lineNumber = lineInfo.HasLineInfo() ? lineInfo.LineNumber : 1;
+
+                    Location loc = AnalyzerUtil.CreateLocation(file.Path, lineNumber);
+                    context.ReportDiagnostic(Diagnostic.Create(RuleViewStateEncryptionMode, loc));
                 }
             }
 

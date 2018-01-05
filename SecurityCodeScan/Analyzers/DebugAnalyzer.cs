@@ -23,9 +23,7 @@ namespace SecurityCodeScan.Analyzers
 
         private static void VisitMethods(SyntaxNodeAnalysisContext ctx)
         {
-            var node = ctx.Node as MethodDeclarationSyntax;
-
-            if (node == null)
+            if (!(ctx.Node is MethodDeclarationSyntax node))
                 return;
 
             //This analyzer will trace the node only if it is in debug mode.

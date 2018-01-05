@@ -108,7 +108,7 @@ class PathTraversal
 {
     public static void Run(string input)
     {
-        File.WriteAllText(input,""ouput.."");
+        File.WriteAllText(input,""output.."");
     }
 }
 ";

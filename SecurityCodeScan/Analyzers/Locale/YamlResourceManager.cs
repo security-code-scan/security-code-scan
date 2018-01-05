@@ -55,8 +55,7 @@ namespace SecurityCodeScan.Analyzers.Locale
 
         public override string GetString(string name, CultureInfo culture)
         {
-            string val;
-            if (!LocaleString.TryGetValue(name, out val))
+            if (!LocaleString.TryGetValue(name, out string val))
                 return "??" + name + "??";
 
             return val;

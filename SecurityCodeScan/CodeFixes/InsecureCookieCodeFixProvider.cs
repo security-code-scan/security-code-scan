@@ -80,12 +80,10 @@ namespace SecurityCodeScan.CodeFixes
             if (variableDeclarator == null)
                 return document; //Abort!
 
-            var variableDeclaration = variableDeclarator.Parent as VariableDeclarationSyntax;
-            if (variableDeclaration == null)
+            if (!(variableDeclarator.Parent is VariableDeclarationSyntax variableDeclaration))
                 return document; //Abort!
 
-            var parentDeclaration   = variableDeclaration.Parent as LocalDeclarationStatementSyntax;
-            if (parentDeclaration == null)
+            if (!(variableDeclaration.Parent is LocalDeclarationStatementSyntax parentDeclaration))
                 return document; //Abort!
 
             var identifierCookie = variableDeclaration.Variables[0];
@@ -121,8 +119,7 @@ namespace SecurityCodeScan.CodeFixes
         {
             while (node != null)
             {
-                var syntax = node as VariableDeclaratorSyntax;
-                if (syntax != null)
+                if (node is VariableDeclaratorSyntax syntax)
                 {
                     return syntax;
                 }

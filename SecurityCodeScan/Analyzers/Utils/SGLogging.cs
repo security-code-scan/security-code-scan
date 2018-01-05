@@ -10,7 +10,7 @@ namespace SecurityCodeScan.Analyzers.Utils
         public static Action<string> LoggerHandler { get; set; }
 
         /// <summary>
-        /// An action is set to handle the log to print to the console, redirect to the filesystem or anything else..
+        /// An action is set to handle the log to print to the console, redirect to the file system or anything else..
         /// </summary>
         /// <returns></returns>
         public static bool IsConfigured()

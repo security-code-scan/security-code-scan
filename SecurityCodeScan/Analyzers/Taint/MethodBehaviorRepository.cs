@@ -51,7 +51,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     bool beInjectableField = bool.Parse(GetField(entry, "injectableField", defaultValue: "false"));
                     bool bePasswordField   = bool.Parse(GetField(entry, "passwordField",   defaultValue: "false"));
 
-                    //--Localisation
+                    //--Localization
                     string beLocale     = GetField(entry, "locale");
                     string beLocalePass = GetField(entry, "localePass");
 
@@ -106,9 +106,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                                 bool                             mandatory    = false,
                                 string                           defaultValue = null)
         {
-            var      nodeValue = (YamlMappingNode)node.Value;
-            YamlNode yamlNode;
-            if (nodeValue.Children.TryGetValue(new YamlScalarNode(field), out yamlNode))
+            var nodeValue = (YamlMappingNode)node.Value;
+            if (nodeValue.Children.TryGetValue(new YamlScalarNode(field), out var yamlNode))
             {
                 return ((YamlScalarNode)yamlNode).Value;
             }
@@ -162,14 +161,13 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             string key = symbol.ContainingType + "|" + symbol.Name;
 
-            MethodBehavior behavior;
-            if (MethodInjectableArguments.TryGetValue(key, out behavior))
+            if (MethodInjectableArguments.TryGetValue(key, out var behavior))
                 return behavior;
 
             if (!symbol.ToString().Contains("("))
                 return null;
 
-            //Find a signature with parameter type discrimator
+            //Find a signature with parameter type discriminator
             string keyExtended = symbol.ContainingType.ContainingNamespace + "." +
                                  symbol.ContainingType.Name +
                                  "|" +
@@ -268,10 +266,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                         result += ", ";
                     }
 
-                    var typeParameterSymbol = typeArg as ITypeParameterSymbol;
-
                     string strToAdd;
-                    if (typeParameterSymbol != null)
+                    if (typeArg is ITypeParameterSymbol typeParameterSymbol)
                     {
                         // this is a generic argument
                         strToAdd = typeParameterSymbol.Name;

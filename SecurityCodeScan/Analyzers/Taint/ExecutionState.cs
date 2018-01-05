@@ -68,9 +68,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         public VariableState GetValueByIdentifier(string identifier)
         {
-            VariableState value;
-            return Variables.TryGetValue(identifier, out value) ? value :
-                                                                  new VariableState(value.Node, VariableTaint.Unknown);
+            return Variables.TryGetValue(identifier, out var value) ? value : new VariableState(value.Node, VariableTaint.Unknown);
         }
 
         /// <summary>
@@ -88,8 +86,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (DebugMode)
                 Logger.Log($"Adding tag '{httpCookieSecure}' to  {variableAccess}");
 
-            VariableState variable;
-            if (Variables.TryGetValue(variableAccess, out variable))
+            if (Variables.TryGetValue(variableAccess, out var variable))
                 variable.AddTag(httpCookieSecure);
         }
     }

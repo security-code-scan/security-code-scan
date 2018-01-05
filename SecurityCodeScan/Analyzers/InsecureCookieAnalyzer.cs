@@ -34,7 +34,7 @@ namespace SecurityCodeScan.Analyzers
                                              ISymbol                                 symbol,
                                              VariableState                           variableRightState)
         {
-            //Looking for Assigment to Secure or HttpOnly property
+            //Looking for Assignment to Secure or HttpOnly property
 
             if (AnalyzerUtil.SymbolMatch(symbol, "HttpCookie", "Secure"))
             {

@@ -175,7 +175,7 @@ class WeakCipherMode
             aesAlg.IV = IV;
             aesAlg.Mode = CipherMode.CBC;
             aesAlg.Padding = PaddingMode.PKCS7;
-            // Create a decrytor to perform the stream transform.
+            // Create a decryptor to perform the stream transform.
             ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
 
             // Create the streams used for encryption.

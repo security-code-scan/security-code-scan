@@ -3,7 +3,7 @@
 # Visual studio supported naming convention syntax https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-naming-conventions
 # Undocumented https://kent-boogaart.com/blog/editorconfig-reference-for-c-developers
 # Undocumented CS options https://github.com/dotnet/roslyn/blob/master/src/Workspaces/CSharp/Portable/Formatting/CSharpFormattingOptions.cs
-# Undocumented .NET optons https://github.com/dotnet/roslyn/blob/master/src/Workspaces/Core/Portable/CodeStyle/CodeStyleOptions.cs
+# Undocumented .NET options https://github.com/dotnet/roslyn/blob/master/src/Workspaces/Core/Portable/CodeStyle/CodeStyleOptions.cs
 # Resharper syntax https://www.jetbrains.com/help/resharper/EditorConfig_Index.html
 
 root = true
@@ -23,7 +23,7 @@ indent_brace_style = Allman
 [*.{cs,csx,vb,vbx}]
 indent_size = 4
 #tab_width is not really necessary
-max_line_length = 200
+max_line_length = 150
 insert_final_newline = true
 #charset = utf-8-bom
 
@@ -183,3 +183,94 @@ dotnet_naming_rule.variables_must_be_camel_style.style     = camel_style
 dotnet_naming_rule.members_must_be_pascal_style.severity  = warning
 dotnet_naming_rule.members_must_be_pascal_style.symbols   = all_types
 dotnet_naming_rule.members_must_be_pascal_style.style     = pascal_style
+
+# Resharper
+
+# Blank lines
+# General
+csharp_blank_lines_around_region = 1
+csharp_blank_lines_inside_region = 1
+csharp_blank_lines_before_single_line_comment = 0
+csharp_keep_blank_lines_in_declarations = 1
+# Blank Lines in Declarations
+csharp_remove_blank_lines_near_braces_in_declarations =  = true
+csharp_blank_lines_after_start_comment = 1
+csharp_blank_lines_between_using_groups = 0
+csharp_blank_lines_after_using_list = 1
+csharp_blank_lines_around_namespace = 1
+csharp_blank_lines_inside_namespace = 0
+csharp_blank_lines_around_type = 1
+csharp_blank_lines_inside_type = 0
+csharp_blank_lines_around_field = 0
+csharp_blank_lines_around_single_line_field = 0
+csharp_blank_lines_around_property = 1
+csharp_blank_lines_around_single_line_property = 0
+csharp_blank_lines_around_auto_property = 0
+csharp_blank_lines_around_single_line_auto_property = 0
+csharp_blank_lines_around_invocable = 1
+csharp_blank_lines_around_single_line_invocable = 0
+# Blank Lines in Code
+csharp_keep_blank_lines_in_code = 1
+csharp_remove_blank_lines_near_braces_in_code = true
+csharp_blank_lines_around_local_method = 1
+csharp_blank_lines_around_single_line_local_method = 1
+csharp_blank_lines_before_control_transfer_statements = 0
+csharp_blank_lines_after_control_transfer_statements = 1
+csharp_blank_lines_before_block_statements = 0
+csharp_blank_lines_after_block_statements = 1
+csharp_blank_lines_before_multiline_statements = 0
+csharp_blank_lines_after_multiline_statements = 1
+
+# Tabs, Indents, Alignment
+# Align Multiline Constructs
+csharp_alignment_tab_fill_style = use_spaces
+csharp_align_multiline_parameter = true
+csharp_align_multiline_extends_list = true
+csharp_align_linq_query = true
+csharp_align_multiline_binary_expressions_chain = true
+csharp_outdent_binary_ops = false
+csharp_align_multiline_calls_chain = true
+csharp_outdent_dots = false
+csharp_align_multiline_array_and_object_initializer = false
+csharp_indent_anonymous_method_block = true
+csharp_align_first_arg_by_paren = false
+csharp_align_multiline_argument = true
+csharp_align_multiline_expression = true
+csharp_align_multiline_for_stmt = true
+csharp_align_multiple_declaration = true
+csharp_align_multline_type_parameter_list = true
+csharp_align_multline_type_parameter_constrains = true
+csharp_outdent_commas = false
+# Align Similar Code in Columns
+csharp_int_align_fields = true
+csharp_int_align_properties = true
+csharp_int_align_methods = true
+csharp_int_align_parameters = true
+csharp_int_align_variables = true
+csharp_int_align_assignments = true
+csharp_int_align_nested_ternary = true
+csharp_int_align_invocations = true
+csharp_int_align_binary_expressions = true
+csharp_int_align_comments = true
+csharp_int_align_switch_sections = true
+
+# Line Breaks
+# Arrangement of Method Signatures
+csharp_wrap_parameters_style = chop_if_long
+csharp_wrap_before_declaration_lpar = false
+csharp_wrap_after_declaration_lpar = false
+csharp_place_constructor_initializer_on_same_line = true
+# Arrangement of Type Parameters, Constraints and Base Types
+csharp_place_type_constraints_on_same_line = true
+csharp_wrap_before_first_type_parameter_constraint = false
+csharp_wrap_multiple_type_parameter_constraints_style = chop_if_long
+csharp_wrap_before_type_parameter_langle = false
+csharp_wrap_before_extends_colon = false
+csharp_wrap_extends_list_style = chop_if_long
+
+# Braces Layout
+csharp_empty_block_style = together_same_line
+
+# Spaces
+# Around Braces
+csharp_space_within_single_line_array_initializer_braces = true

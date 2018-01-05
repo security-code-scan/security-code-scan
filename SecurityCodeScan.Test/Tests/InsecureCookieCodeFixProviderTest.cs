@@ -7,9 +7,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
-using TestHelper;
+using SecurityCodeScan.CodeFixes;
+using CodeFixVerifier = SecurityCodeScan.Test.Helpers.CodeFixVerifier;
 
-namespace SecurityCodeScan.Test.Tests
+namespace SecurityCodeScan.Test.InsecureCookie
 {
     [TestClass]
     public class InsecureCookieCodeFixProviderTest : CodeFixVerifier

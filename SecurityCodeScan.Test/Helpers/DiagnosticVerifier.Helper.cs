@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 
-namespace TestHelper
+namespace SecurityCodeScan.Test.Helpers
 {
     /// <summary>
     /// Class for turning strings into documents and getting the diagnostics on them

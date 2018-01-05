@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
-using TestHelper;
+using SecurityCodeScan.Test.Helpers;
 
 namespace SecurityCodeScan.Test.AntiCsrf
 {

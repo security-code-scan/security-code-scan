@@ -2,7 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers.Taint;
 
-namespace SecurityCodeScan.Tests
+namespace SecurityCodeScan.Test.Taint
 {
     [TestClass]
     public class ExecutionStateTest

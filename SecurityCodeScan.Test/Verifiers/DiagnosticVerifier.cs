@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Utils;
 
-namespace TestHelper
+namespace SecurityCodeScan.Test.Helpers
 {
     /// <summary>
     /// Superclass of all Unit Tests for DiagnosticAnalyzers

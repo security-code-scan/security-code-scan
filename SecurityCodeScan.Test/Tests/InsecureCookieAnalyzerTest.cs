@@ -6,9 +6,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
-using TestHelper;
+using SecurityCodeScan.Test.Helpers;
+using DiagnosticVerifier = SecurityCodeScan.Test.Helpers.DiagnosticVerifier;
 
-namespace SecurityCodeScan.Test.Tests
+namespace SecurityCodeScan.Test.InsecureCookie
 {
     [TestClass]
     public class InsecureCookieAnalyzerTest : DiagnosticVerifier

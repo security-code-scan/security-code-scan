@@ -13,7 +13,7 @@ using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Utils;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace SecurityCodeScan
+namespace SecurityCodeScan.CodeFixes
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(InsecureCookieCodeFixProvider)), Shared]
     public class InsecureCookieCodeFixProvider : CodeFixProvider

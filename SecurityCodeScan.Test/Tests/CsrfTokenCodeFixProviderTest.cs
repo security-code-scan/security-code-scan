@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.CodeFixes;
-using TestHelper;
+using CodeFixVerifier = SecurityCodeScan.Test.Helpers.CodeFixVerifier;
 
 namespace SecurityCodeScan.Test.AntiCsrf
 {

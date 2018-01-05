@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
 
-namespace TestHelper
+namespace SecurityCodeScan.Test.Helpers
 {
     /// <summary>
     /// Superclass of all Unit tests made for diagnostics with codefixes.

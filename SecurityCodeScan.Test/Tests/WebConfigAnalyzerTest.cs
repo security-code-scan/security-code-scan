@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SecurityCodeScan.Analyzers;
 
-namespace SecurityCodeScan.Test.Tests
+namespace SecurityCodeScan.Test
 {
     [TestClass]
     public class WebConfigAnalyzerTest

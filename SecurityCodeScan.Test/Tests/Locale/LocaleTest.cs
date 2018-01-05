@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers.Locale;
 
-namespace SecurityCodeScan.Tests.Locale
+namespace SecurityCodeScan.Test.Locale
 {
     [TestClass]
     public class LocaleTest

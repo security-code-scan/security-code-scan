@@ -224,7 +224,7 @@ Diagnostic:
  ");
                 }
 
-                if (actual.Severity != expected.Severity)
+                if (actual.Severity != expected.Severity && expected.Severity.HasValue)
                 {
                     Assert.IsTrue(false,
                                   $@"Expected diagnostic severity to be ""{expected.Severity}"" was ""{actual.Severity}""

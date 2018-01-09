@@ -43,7 +43,7 @@ namespace SecurityCodeScan.Test.Helpers
             set { LocationsField = value; }
         }
 
-        public DiagnosticSeverity Severity { get; set; }
+        public DiagnosticSeverity? Severity { get; set; }
 
         public string Id { get; set; }
 

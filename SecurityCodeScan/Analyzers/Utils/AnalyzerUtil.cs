@@ -10,6 +10,14 @@ namespace SecurityCodeScan.Analyzers.Utils
 {
     internal static class SymbolExtensions
     {
+        private static readonly SymbolDisplayFormat SymbolDisplayFormat =
+            new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+
+        public static bool IsType(this ISymbol symbol, string type)
+        {
+            return symbol != null && symbol.ToDisplayString(SymbolDisplayFormat) == type;
+        }
+
         private static bool HasAttribute(this ISymbol symbol, Func<AttributeData, bool> condition)
         {
             var attributes = symbol.GetAttributes();
@@ -55,7 +63,7 @@ namespace SecurityCodeScan.Analyzers.Utils
         }
     }
 
-    public class AnalyzerUtil
+    internal class AnalyzerUtil
     {
         public static bool SymbolMatch(ISymbol symbol, string type = null, string name = null)
         {

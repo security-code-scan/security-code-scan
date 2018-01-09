@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
+using SecurityCodeScan.Analyzers.Utils;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
@@ -48,8 +49,12 @@ namespace SecurityCodeScan.Analyzers
             var methodsWithParameters = node.DescendantNodesAndSelf()
                                             .OfType<CSharpSyntax.MethodDeclarationSyntax>()
                                             .Where(method => method.ParameterList.Parameters.Any())
-                                            .Where(method => method.Modifiers.ToString().Equals("public"))
-                                            .Where(method => method.ReturnType.ToString().Equals("string"));
+                                            .Where(method => method.Modifiers
+                                                                   .Any(x => x.IsKind(CSharp.SyntaxKind.PublicKeyword)))
+                                            .Where(method => ctx.SemanticModel
+                                                                .GetSymbolInfo(method.ReturnType)
+                                                                .Symbol
+                                                                .IsType("System.String"));
 
             foreach (CSharpSyntax.MethodDeclarationSyntax method in methodsWithParameters)
             {
@@ -122,14 +127,18 @@ namespace SecurityCodeScan.Analyzers
                                                        method.SubOrFunctionStatement.ParameterList.Parameters.Any())
                                             .Where(method => method
                                                              .SubOrFunctionStatement
-                                                             .Modifiers
-                                                             .ToString()
-                                                             .Equals("Public"))
-                                            .Where(method => method.SubOrFunctionStatement
-                                                                   .AsClause
-                                                                   ?.Type
-                                                                   .ToString()
-                                                                   .Equals("String") ?? false);
+                                                             .Modifiers.Any(x => x.IsKind(VB.SyntaxKind.PublicKeyword)))
+                                            .Where(method =>
+                                                   {
+                                                       var retType = method.SubOrFunctionStatement.AsClause?.Type;
+                                                       if (retType == null)
+                                                           return false;
+
+                                                       return ctx.SemanticModel
+                                                                 .GetSymbolInfo(retType)
+                                                                 .Symbol
+                                                                 .IsType("System.String");
+                                                   });
 
             foreach (VBSyntax.MethodBlockSyntax method in methodsWithParameters)
             {

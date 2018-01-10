@@ -1,5 +1,5 @@
 ﻿# This is the list of sinks
-# The api are susceptible to attack if value passed are not properly sanitize.
+# The API is susceptible to attack if value passed is not properly sanitized.
 #
 # File format:
 # <<<

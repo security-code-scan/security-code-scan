@@ -18,6 +18,19 @@ namespace SecurityCodeScan.Analyzers.Utils
             return symbol != null && symbol.ToDisplayString(SymbolDisplayFormat) == type;
         }
 
+        public static bool IsDerivedFrom(this INamedTypeSymbol symbol, string type)
+        {
+            while (symbol.BaseType != null)
+            {
+                symbol = symbol.BaseType;
+
+                if (symbol.IsType(type))
+                    return true;
+            }
+
+            return false;
+        }
+
         private static bool HasAttribute(this ISymbol symbol, Func<AttributeData, bool> condition)
         {
             var attributes = symbol.GetAttributes();

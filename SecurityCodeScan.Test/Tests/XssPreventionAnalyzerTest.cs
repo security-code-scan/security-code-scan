@@ -25,9 +25,11 @@ namespace SecurityCodeScan.Test
         {
             return new[]
             {
-                MetadataReference.CreateFromFile(typeof(HttpGetAttribute).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.HttpGetAttribute).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(System.Web.Mvc.HttpGetAttribute).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(HtmlEncoder).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Controller).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.Controller).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(AllowAnonymousAttribute).Assembly.Location),
                 MetadataReference.CreateFromFile(Assembly.Load("System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")
                                                          .Location),
@@ -37,7 +39,93 @@ namespace SecurityCodeScan.Test
         #region Tests that are producing diagnostics
 
         [TestMethod]
-        public async Task UnencodedSensibleData()
+        public async Task UnencodedInputDataSystemWebMvc()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestController : Controller
+    {
+        [HttpGet]
+        public string Get(int sensibleData)
+        {
+            return ""value "" + sensibleData;
+        }
+    }
+}
+            ";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace VulnerableApp
+    Public Class TestController
+        Inherits Controller
+        <HttpGet> _
+        Public Function [Get](sensibleData As Integer) As String
+            Return ""value "" & sensibleData.ToString()
+        End Function
+    End Class
+End Namespace
+            ";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0029",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+        }
+
+        [TestMethod]
+        public async Task UnencodedInputData()
+        {
+            var cSharpTest = @"
+using Microsoft.AspNetCore.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestController : Controller
+    {
+        [HttpGet(""{sensibleData}"")]
+        public string Get(int sensibleData)
+        {
+            return ""value "" + sensibleData;
+        }
+    }
+}
+            ";
+
+            var visualBasicTest = @"
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace VulnerableApp
+    Public Class TestController
+        Inherits Controller
+        <HttpGet(""{sensibleData}"")> _
+        Public Function [Get](sensibleData As Integer) As String
+            Return ""value "" & sensibleData.ToString()
+        End Function
+    End Class
+End Namespace
+            ";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0029",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+        }
+
+        [TestMethod]
+        public async Task UnencodedInputData2()
         {
             var cSharpTest = @"
 using Microsoft.AspNetCore.Mvc;
@@ -52,12 +140,6 @@ namespace VulnerableApp
         public virtual System.String Get(int sensibleData)
         {
             return ""value "" + sensibleData;
-        }
-
-        // see if 'void' is handled
-        [HttpGet(""{sensibleData}"")]
-        public void Get2(int sensibleData)
-        {
         }
     }
 }
@@ -75,11 +157,6 @@ Namespace VulnerableApp
         Public Overridable Function [Get](sensibleData As Integer) As System.String
             Return ""value "" & sensibleData.ToString()
         End Function
-
-        ' see if Void is handled
-        <HttpGet(""{sensibleData}"")> _
-        Public Function [Get2](sensibleData As Integer)
-        End Function
     End Class
 End Namespace
             ";
@@ -91,12 +168,93 @@ End Namespace
             };
 
             await VerifyCSharpDiagnostic(cSharpTest, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected, new DiagnosticResult { Id = "BC42105" } });
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
         #endregion
 
         #region Tests that are not producing diagnostics
+
+        [TestMethod]
+        public async Task BaseNotController()
+        {
+            var cSharpTest = @"
+using Microsoft.AspNetCore.Mvc;
+
+namespace VulnerableApp
+{
+    public class Controller
+    {
+    }
+
+    public class TestController : Controller
+    {
+        [HttpGet(""{sensibleData}"")]
+        public string Get(int sensibleData)
+        {
+            return ""value "" + sensibleData;
+        }
+    }
+}
+            ";
+
+            var visualBasicTest = @"
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace VulnerableApp
+    Public Class Controller
+    End Class
+
+    Public Class TestController
+        Inherits Controller
+        <HttpGet(""{sensibleData}"")> _
+        Public Function [Get](sensibleData As Integer) As String
+            Return ""value "" & sensibleData.ToString()
+        End Function
+    End Class
+End Namespace
+            ";
+
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
+        }
+
+        [TestMethod]
+        public async Task Void()
+        {
+            var cSharpTest = @"
+using Microsoft.AspNetCore.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestController : Controller
+    {
+        // see if 'void' is handled
+        [HttpGet(""{sensibleData}"")]
+        public void Get(int sensibleData)
+        {
+        }
+    }
+}
+            ";
+
+            var visualBasicTest = @"
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace VulnerableApp
+    Public Class TestController
+        Inherits Controller
+        ' see if Void is handled
+        <HttpGet(""{sensibleData}"")> _
+        Public Function [Get](sensibleData As Integer)
+        End Function
+    End Class
+End Namespace
+            ";
+
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new DiagnosticResult { Id = "BC42105" });
+        }
 
         [TestMethod]
         public async Task EncodedSensibleDataWithTemporaryVariable()

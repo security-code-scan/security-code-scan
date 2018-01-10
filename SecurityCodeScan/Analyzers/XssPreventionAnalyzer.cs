@@ -38,10 +38,10 @@ namespace SecurityCodeScan.Analyzers
             if (!(ctx.Node is CSharpSyntax.ClassDeclarationSyntax node))
                 return;
 
-            // Ensures that the analyzed class has a dependency to Controller
-            if (!node.DescendantNodesAndSelf()
-                     .OfType<CSharpSyntax.BaseListSyntax>()
-                     .Any(childrenNode => childrenNode.ToString().Contains("Controller")))
+            var classSymbol = CSharp.CSharpExtensions.GetDeclaredSymbol(ctx.SemanticModel, node);
+            if (classSymbol == null ||
+                (!classSymbol.IsDerivedFrom("Microsoft.AspNetCore.Mvc.Controller") &&
+                 !classSymbol.IsDerivedFrom("System.Web.Mvc.Controller")))
             {
                 return;
             }
@@ -113,10 +113,10 @@ namespace SecurityCodeScan.Analyzers
             if (!(ctx.Node is VBSyntax.ClassBlockSyntax node))
                 return;
 
-            // Ensures that the analyzed class has a dependency to Controller
-            if (!node.DescendantNodesAndSelf()
-                     .OfType<VBSyntax.InheritsOrImplementsStatementSyntax>()
-                     .Any(childrenNode => childrenNode.ToString().Contains("Controller")))
+            var classSymbol = VB.VisualBasicExtensions.GetDeclaredSymbol(ctx.SemanticModel, node);
+            if (classSymbol == null ||
+                (!classSymbol.IsDerivedFrom("Microsoft.AspNetCore.Mvc.Controller") &&
+                 !classSymbol.IsDerivedFrom("System.Web.Mvc.Controller")))
             {
                 return;
             }

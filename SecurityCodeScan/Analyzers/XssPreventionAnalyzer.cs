@@ -54,7 +54,7 @@ namespace SecurityCodeScan.Analyzers
                                             .Where(method => ctx.SemanticModel
                                                                 .GetSymbolInfo(method.ReturnType)
                                                                 .Symbol
-                                                                .IsType("System.String"));
+                                                                ?.IsType("System.String") == true);
 
             foreach (CSharpSyntax.MethodDeclarationSyntax method in methodsWithParameters)
             {
@@ -137,7 +137,7 @@ namespace SecurityCodeScan.Analyzers
                                                        return ctx.SemanticModel
                                                                  .GetSymbolInfo(retType)
                                                                  .Symbol
-                                                                 .IsType("System.String");
+                                                                 ?.IsType("System.String") == true;
                                                    });
 
             foreach (VBSyntax.MethodBlockSyntax method in methodsWithParameters)

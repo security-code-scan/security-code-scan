@@ -15,7 +15,7 @@ namespace SecurityCodeScan.Analyzers.Utils
 
         public static bool IsType(this ISymbol symbol, string type)
         {
-            return symbol != null && symbol.ToDisplayString(SymbolDisplayFormat) == type;
+            return symbol.ToDisplayString(SymbolDisplayFormat) == type;
         }
 
         public static bool IsDerivedFrom(this INamedTypeSymbol symbol, string type)
@@ -24,7 +24,7 @@ namespace SecurityCodeScan.Analyzers.Utils
             {
                 symbol = symbol.BaseType;
 
-                if (symbol.IsType(type))
+                if (symbol?.IsType(type) == true)
                     return true;
             }
 

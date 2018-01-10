@@ -220,6 +220,49 @@ End Namespace
         }
 
         [TestMethod]
+        public async Task NoSymbolReturnType()
+        {
+            var cSharpTest = @"
+using Microsoft.AspNetCore.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestController : Controller
+    {
+        [HttpGet(""{sensibleData}"")]
+        public xxx Get(int sensibleData)
+        {
+        }
+    }
+}
+            ";
+
+            var visualBasicTest = @"
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace VulnerableApp
+    Public Class TestController
+        Inherits Controller
+        <HttpGet(""{sensibleData}"")> _
+        Public Function [Get](sensibleData As Integer) As XXX
+        End Function
+    End Class
+End Namespace
+            ";
+
+            await VerifyCSharpDiagnostic(cSharpTest, new[]
+                                                        {
+                                                            new DiagnosticResult { Id = "CS0246" },
+                                                            new DiagnosticResult { Id = "CS0161" }
+                                                        });
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[]
+                                                        {
+                                                            new DiagnosticResult { Id = "BC30002" },
+                                                            new DiagnosticResult { Id = "BC42105" }
+                                                        });
+        }
+
+        [TestMethod]
         public async Task Void()
         {
             var cSharpTest = @"

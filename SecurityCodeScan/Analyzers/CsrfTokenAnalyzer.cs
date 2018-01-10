@@ -5,9 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
-using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
-using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
@@ -67,20 +65,6 @@ namespace SecurityCodeScan.Analyzers
 
         private void VisitMethods(SyntaxNodeAnalysisContext ctx)
         {
-            SyntaxNode node;
-            if (ctx.Node.Language == LanguageNames.CSharp)
-            {
-                node = ctx.Node as CSharpSyntax.MethodDeclarationSyntax;
-                if (node == null)
-                    return;
-            }
-            else
-            {
-                node = ctx.Node as VBSyntax.MethodBlockSyntax;
-                if (node == null)
-                    return;
-            }
-
             var symbol = (IMethodSymbol)ctx.SemanticModel.GetDeclaredSymbol(ctx.Node);
 
             if (!symbol.HasDerivedMethodAttribute(attributeData =>
@@ -99,7 +83,7 @@ namespace SecurityCodeScan.Analyzers
             if (symbol.HasDerivedMethodAttribute(HasAntiForgeryToken))
                 return;
 
-            ctx.ReportDiagnostic(Diagnostic.Create(Rule, node.GetLocation()));
+            ctx.ReportDiagnostic(Diagnostic.Create(Rule, ctx.Node.GetLocation()));
         }
     }
 }

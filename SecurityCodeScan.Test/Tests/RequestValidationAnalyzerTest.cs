@@ -65,11 +65,5 @@ End Namespace
             await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
-
-        [ValidateInput(false)]
-        public ActionResult ControllerMethod(string input)
-        {
-            return null;
-        }
     }
 }

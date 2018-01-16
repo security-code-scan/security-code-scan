@@ -18,48 +18,26 @@ namespace SecurityCodeScan.Test
         }
 
         [TestMethod]
-        public async Task WeakHashingFalsePositive()
+        public async Task SHA256Create()
         {
             var cSharpTest = @"
-using System;
-using System.Text;
 using System.Security.Cryptography;
 
-class Sha256OK
+class Test
 {
-    static String generateSecureHashing()
+    static void foo()
     {
-        string source = ""Hello World!"";
-        SHA256 sha256 = SHA256.Create();
-        byte[] data = sha256.ComputeHash(Encoding.UTF8.GetBytes(source));
-
-        StringBuilder sBuilder = new StringBuilder();
-        for (int i = 0; i < data.Length; i++)
-        {
-            sBuilder.Append(data[i].ToString(""x2""));
-        }
-
-        // Return the hexadecimal string. 
-        return sBuilder.ToString();
+        var hash = SHA256.Create();
     }
 }";
 
             var visualBasicTest = @"
-Imports System.Text
 Imports System.Security.Cryptography
 
-Class Sha256OK
-	Private Shared Function generateSecureHashing() As String
-		Dim source As String = ""Hello World!""
-        Dim sha256__1 As SHA256 = SHA256.Create()
-        Dim data As Byte() = sha256__1.ComputeHash(Encoding.UTF8.GetBytes(source))
-        Dim sBuilder As New StringBuilder()
-        For i As Integer = 0 To data.Length - 1
-            sBuilder.Append(data(i).ToString(""x2""))
-        Next
-        ' Return the hexadecimal string. 
-        Return sBuilder.ToString()
-    End Function
+Class Test
+    Private Shared Sub foo()
+        Dim hash As SHA256 = SHA256.Create()
+    End Sub
 End Class
 ";
 
@@ -68,49 +46,84 @@ End Class
         }
 
         [TestMethod]
-        public async Task WeakHashingVulnerableMd5()
+        public async Task NotSHA1Create()
         {
             var cSharpTest = @"
-using System;
-using System.Text;
-using System.Security.Cryptography;
+class SHA1
+{
+    public static void Create()
+    {
+    }
+}
 
 class WeakHashing
 {
-    static String generateWeakHashingMD5()
+    static void generateWeakHashingSHA1()
     {
-        string source = ""Hello World!"";
-        MD5 md5 = MD5.Create();
-        byte[] data = md5.ComputeHash(Encoding.UTF8.GetBytes(source));
-
-        StringBuilder sBuilder = new StringBuilder();
-        for (int i = 0; i < data.Length; i++)
-        {
-            sBuilder.Append(data[i].ToString(""x2""));
-        }
-
-        // Return the hexadecimal string. 
-        return sBuilder.ToString();
+        SHA1.Create();
     }
 }
 ";
 
             var visualBasicTest = @"
-Imports System.Text
+Class SHA1
+    Public Shared Sub Create()
+    End Sub
+End Class
+
+Class WeakHashing
+    Private Shared Sub generateWeakHashingSHA1()
+        SHA1.Create()
+    End Sub
+End Class
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
+        }
+
+        [DataRow("MD5.Create()")]
+        [DataRow("new MD5CryptoServiceProvider()")]
+        [DataRow("new MD5Cng()")]
+        [DataRow("SHA1.Create()")]
+        [DataRow("new SHA1CryptoServiceProvider()")]
+        [DataRow("new SHA1Managed()")]
+        [DataRow("new SHA1Cng()")]
+        [DataRow("CryptoConfig.CreateFromName(\"MD5\")")]
+        [DataRow("CryptoConfig.CreateFromName(\"System.Security.Cryptography.MD5\")")]
+        [DataRow("CryptoConfig.CreateFromName(\"System.Security.Cryptography.SHA1\")")]
+        [DataRow("CryptoConfig.CreateFromName(\"SHA\")")]
+        [DataRow("CryptoConfig.CreateFromName(\"SHA1\")")]
+        [DataRow("CryptoConfig.CreateFromName(\"System.Security.Cryptography.HashAlgorithm\")")]
+        [DataRow("HashAlgorithm.Create(\"MD5\")")]
+        [DataRow("HashAlgorithm.Create(\"System.Security.Cryptography.MD5\")")]
+        [DataRow("HashAlgorithm.Create(\"System.Security.Cryptography.SHA1\")")]
+        [DataRow("HashAlgorithm.Create(\"SHA\")")]
+        [DataRow("HashAlgorithm.Create(\"SHA1\")")]
+        [DataRow("HashAlgorithm.Create(\"System.Security.Cryptography.HashAlgorithm\")")]
+        [DataRow("HashAlgorithm.Create()")] // the default is sha1 https://msdn.microsoft.com/en-us/library/b0ky3sbb(v=vs.110).aspx
+        [DataTestMethod]
+        public async Task Create(string create)
+        {
+            var cSharpTest = $@"
+using System.Security.Cryptography;
+
+class WeakHashing
+{{
+    static void Foo()
+    {{
+        var hash = {create};
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
 Imports System.Security.Cryptography
 
 Class WeakHashing
-	Private Shared Function generateWeakHashingMD5() As String
-		Dim source As String = ""Hello World!""
-        Dim md5__1 As MD5 = MD5.Create()
-        Dim data As Byte() = md5__1.ComputeHash(Encoding.UTF8.GetBytes(source))
-        Dim sBuilder As New StringBuilder()
-        For i As Integer = 0 To data.Length - 1
-            sBuilder.Append(data(i).ToString(""x2""))
-        Next
-        ' Return the hexadecimal string. 
-        Return sBuilder.ToString()
-    End Function
+    Private Shared Sub Foo()
+        Dim hash As System.Object = {create}
+    End Sub
 End Class
 ";
 
@@ -125,61 +138,32 @@ End Class
         }
 
         [TestMethod]
-        public async Task WeakHashingVulnerableSha1()
+        public async Task CreateByNameSha256()
         {
             var cSharpTest = @"
-using System;
-using System.Text;
 using System.Security.Cryptography;
 
 class WeakHashing
 {
-
-    static String generateWeakHashingSHA1()
+    static void Foo()
     {
-        string source = ""Hello World!"";
-        SHA1 sha1 = SHA1.Create();
-        byte[] data = sha1.ComputeHash(Encoding.UTF8.GetBytes(source));
-
-        StringBuilder sBuilder = new StringBuilder();
-        for (int i = 0; i < data.Length; i++)
-        {
-            sBuilder.Append(data[i].ToString(""x2""));
-        }
-
-        // Return the hexadecimal string. 
-        return sBuilder.ToString();
+        var sha = HashAlgorithm.Create(""System.Security.Cryptography.SHA256"");
     }
 }
 ";
 
             var visualBasicTest = @"
-Imports System.Text
 Imports System.Security.Cryptography
 
 Class WeakHashing
-	Private Shared Function generateWeakHashingSHA1() As String
-		Dim source As String = ""Hello World!""
-        Dim sha1__1 As SHA1 = SHA1.Create()
-        Dim data As Byte() = sha1__1.ComputeHash(Encoding.UTF8.GetBytes(source))
-        Dim sBuilder As New StringBuilder()
-        For i As Integer = 0 To data.Length - 1
-            sBuilder.Append(data(i).ToString(""x2""))
-        Next
-        ' Return the hexadecimal string. 
-        Return sBuilder.ToString()
-    End Function
+    Private Shared Sub Foo()
+        Dim sha As HashAlgorithm = HashAlgorithm.Create(""System.Security.Cryptography.SHA256"")
+    End Sub
 End Class
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0006",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
     }
 }

@@ -10,21 +10,21 @@ namespace SecurityCodeScan.Analyzers.Utils
 {
     internal static class SymbolExtensions
     {
-        private static readonly SymbolDisplayFormat SymbolDisplayFormat =
-            new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+        public static readonly SymbolDisplayFormat SymbolDisplayFormat =
+            new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeContainingType, typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
         public static bool IsType(this ISymbol symbol, string type)
         {
             return symbol.ToDisplayString(SymbolDisplayFormat) == type;
         }
 
-        public static bool IsDerivedFrom(this INamedTypeSymbol symbol, string type)
+        public static bool IsDerivedFrom(this ITypeSymbol symbol, string type)
         {
             while (symbol.BaseType != null)
             {
                 symbol = symbol.BaseType;
 
-                if (symbol?.IsType(type) == true)
+                if (symbol.IsType(type))
                     return true;
             }
 

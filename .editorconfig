@@ -13,14 +13,17 @@ root = true
 indent_style = space
 # (Please don't specify an indent_size here; that has too many unintended consequences.)
 
-trim_trailing_whitespace = true
 #end_of_line = crlf
 
 curly_bracket_next_line = true
 indent_brace_style = Allman
 
+[*.md]
+trim_trailing_whitespace = false
+
 # Code files
 [*.{cs,csx,vb,vbx}]
+trim_trailing_whitespace = true
 indent_size = 4
 #tab_width is not really necessary
 max_line_length = 150

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
@@ -48,6 +50,24 @@ namespace SecurityCodeScan.Analyzers.Taint
             }
         }
 
+        private VariableState VisitBlock(BlockSyntax node, ExecutionState state)
+        {
+            var lastState = new VariableState(node, VariableTaint.Unknown);
+
+            foreach (StatementSyntax statement in node.Statements)
+            {
+                var statementState = VisitNode(statement, state);
+                lastState = statementState;
+
+                foreach (var ext in Extensions)
+                {
+                    ext.VisitStatement(statement, state);
+                }
+            }
+
+            return lastState;
+        }
+
         /// <summary>
         /// Entry point that visit the method statements.
         /// </summary>
@@ -65,18 +85,13 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (node.Body == null)
                 return new VariableState(node, VariableTaint.Unknown);
 
-            foreach (StatementSyntax statement in node.Body.Statements)
-            {
-                VisitNode(statement, state);
+            return VisitBlock(node.Body, state);
+        }
 
-                foreach (var ext in Extensions)
-                {
-                    ext.VisitStatement(statement, state);
-                }
-            }
-
-            //The state return is irrelevant because it is not use.
-            return new VariableState(node, VariableTaint.Unknown);
+        private VariableState VisitForEach(ForEachStatementSyntax node, ExecutionState state)
+        {
+            state.AddNewValue(ResolveIdentifier(node.Identifier), VisitExpression(node.Expression, state));
+            return VisitNode(node.Statement, state);
         }
 
         /// <summary>
@@ -100,6 +115,12 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitExpression(expressionSyntax, state);
                 case MethodDeclarationSyntax methodDeclarationSyntax:
                     return VisitMethodDeclaration(methodDeclarationSyntax, state);
+                case ReturnStatementSyntax returnStatementSyntax:
+                    return VisitExpression(returnStatementSyntax.Expression, state);
+                case ForEachStatementSyntax forEachSyntax:
+                    return VisitForEach(forEachSyntax, state);
+                case BlockSyntax blockSyntax:
+                    return VisitBlock(blockSyntax, state);
             }
 
             foreach (var n in node.ChildNodes())
@@ -107,9 +128,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 VisitNode(n, state);
             }
 
-            var isBlockStatement = node is BlockSyntax ||
-                                   node is IfStatementSyntax ||
-                                   node is ForEachStatementSyntax ||
+            var isBlockStatement = node is IfStatementSyntax ||
                                    node is ForStatementSyntax;
 
             if (!isBlockStatement)
@@ -186,8 +205,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 case AssignmentExpressionSyntax assignmentExpressionSyntax:
                     return VisitAssignment(assignmentExpressionSyntax, state);
                 case MemberAccessExpressionSyntax memberAccessExpressionSyntax:
-                    var leftExpression = memberAccessExpressionSyntax.Expression;
-                    return VisitExpression(leftExpression, state);
+                    return VisitExpression(memberAccessExpressionSyntax.Name, state);
                 case ElementAccessExpressionSyntax elementAccessExpressionSyntax:
                     return VisitElementAccess(elementAccessExpressionSyntax, elementAccessExpressionSyntax.ArgumentList, state);
                 case ArrayCreationExpressionSyntax arrayCreationExpressionSyntax:
@@ -445,7 +463,70 @@ namespace SecurityCodeScan.Analyzers.Taint
         private VariableState VisitIdentifierName(IdentifierNameSyntax expression, ExecutionState state)
         {
             var value = ResolveIdentifier(expression.Identifier);
-            return state.GetValueByIdentifier(value);
+            if (state.VariableStates.TryGetValue(value, out var varState))
+                return varState;
+
+            // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
+            state.AddNewValue(value, new VariableState(expression, VariableTaint.Unknown));
+
+            var symbol = state.GetSymbol(expression);
+            if (symbol == null)
+                return new VariableState(expression, VariableTaint.Unknown);
+
+            if (symbol is IFieldSymbol field)
+            {
+                if (field.IsConst)
+                    return new VariableState(expression, VariableTaint.Constant);
+
+                if (!field.IsReadOnly)
+                    return new VariableState(expression, VariableTaint.Unknown);
+
+                if (field.IsType("System.String.Empty"))
+                    return new VariableState(expression, VariableTaint.Constant);
+
+                // TODO: Use public API
+                var syntaxNodeProperty = field.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("SyntaxNode");
+                if (syntaxNodeProperty == null)
+                    return new VariableState(expression, VariableTaint.Unknown);
+
+                var syntaxNode         = (CSharpSyntaxNode)syntaxNodeProperty.GetValue(field);
+                if (syntaxNode is VariableDeclaratorSyntax variableDeclaratorSyntax)
+                    return VisitNode(variableDeclaratorSyntax.Parent, state);
+
+                throw new NotImplementedException();
+                //return new VariableState(expression, VariableTaint.Unknown);
+            }
+
+            if (symbol is IPropertySymbol prop)
+            {
+                if (prop.IsVirtual || prop.IsOverride || prop.IsAbstract)
+                    return new VariableState(expression, VariableTaint.Unknown);
+
+                // TODO: Use public API
+                var syntaxNodeProperty = prop.GetMethod.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("BodySyntax");
+                if (syntaxNodeProperty == null)
+                    return new VariableState(expression, VariableTaint.Unknown);
+
+                var syntaxNode         = (CSharpSyntaxNode)syntaxNodeProperty.GetValue(prop.GetMethod);
+                if (syntaxNode == null)
+                {
+                    var csSyntaxNodeProperty = prop.GetType().GetTypeInfo().GetDeclaredProperty("CSharpSyntaxNode");
+                    var csSyntaxNode = (PropertyDeclarationSyntax)csSyntaxNodeProperty.GetValue(prop);
+                    if (csSyntaxNode.Initializer == null)
+                        return new VariableState(expression, VariableTaint.Unknown);
+
+                    return VisitExpression(csSyntaxNode.Initializer.Value, state);
+                }
+                else if (syntaxNode is BlockSyntax blockSyntax)
+                    return VisitBlock(blockSyntax, state);
+                else if (syntaxNode is ArrowExpressionClauseSyntax arrowSyntax)
+                    return VisitExpression(arrowSyntax.Expression, state);
+                else
+                    throw new NotImplementedException();
+            }
+
+            throw new NotImplementedException();
+            //return new VariableState(expression, VariableTaint.Unknown);
         }
 
         /// <summary>

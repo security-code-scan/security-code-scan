@@ -39,9 +39,8 @@ namespace SecurityCodeScan.Analyzers
                 var diagnostic = Diagnostic.Create(Sha1Rule, ctx.Node.GetLocation());
                 ctx.ReportDiagnostic(diagnostic);
             }
-
-            if (symbol.IsType("System.Security.Cryptography.MD5") ||
-                symbol.ContainingType.IsDerivedFrom("System.Security.Cryptography.MD5"))
+            else if (symbol.IsType("System.Security.Cryptography.MD5") ||
+                     symbol.ContainingType.IsDerivedFrom("System.Security.Cryptography.MD5"))
             {
                 var diagnostic = Diagnostic.Create(Md5Rule, ctx.Node.GetLocation());
                 ctx.ReportDiagnostic(diagnostic);

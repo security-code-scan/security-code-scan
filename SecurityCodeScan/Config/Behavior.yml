@@ -13,6 +13,14 @@
 #   taintFromArguments: [Index of the argument that will influence the state of the return value.]
 # <<<
 
+StringConstructor_1:
+  namespace: System
+  className: String
+  member: method
+  name: .ctor
+  argTypes: (System.Char, System.Int32)
+  taintFromArguments: 0,1
+
 #string.Format
 #https://msdn.microsoft.com/en-us/library/system.string.format(v=vs.110).aspx
 
@@ -77,6 +85,6 @@ StringFormat_8:
   className: String
   member: method
   name: Format
-  argTypes: (System.String, System.Object, System.Object, object)
+  argTypes: (System.String, System.Object, System.Object, System.Object)
   taintFromArguments: 0,1,2,3
 

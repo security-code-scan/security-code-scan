@@ -16,8 +16,9 @@ namespace SecurityCodeScan.Analyzers.Taint
     {
         private bool DebugMode = true;
 
-        public SyntaxNodeAnalysisContext          AnalysisContext { get; }
-        public IDictionary<string, VariableState> Variables       { get; }
+        public SyntaxNodeAnalysisContext                  AnalysisContext { get; }
+        public IReadOnlyDictionary<string, VariableState> VariableStates  => Variables;
+        private Dictionary<string, VariableState>         Variables       { get; }
 
         /// <summary>
         /// Initialize the state with no variable recorded yet.
@@ -31,7 +32,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         public void AddNewValue(string identifier, VariableState value)
         {
-            if (Variables.ContainsKey(identifier)) //New variable in a different scope
+            if (VariableStates.ContainsKey(identifier)) //New variable in a different scope
             {
                 if (DebugMode)
                     Logger.Log("Removing existing state for " + identifier);
@@ -47,9 +48,9 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         public void MergeValue(string identifier, VariableState value)
         {
-            if (Variables.ContainsKey(identifier)) //Override existing value
+            if (VariableStates.ContainsKey(identifier)) //Override existing value
             {
-                var state    = Variables[identifier];
+                var state    = VariableStates[identifier];
                 var newState = state.Merge(value);
                 Variables.Remove(identifier);
                 Variables.Add(identifier, newState);
@@ -64,11 +65,6 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                 Variables.Add(identifier, value);
             }
-        }
-
-        public VariableState GetValueByIdentifier(string identifier)
-        {
-            return Variables.TryGetValue(identifier, out var value) ? value : new VariableState(value.Node, VariableTaint.Unknown);
         }
 
         /// <summary>
@@ -86,7 +82,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (DebugMode)
                 Logger.Log($"Adding tag '{httpCookieSecure}' to  {variableAccess}");
 
-            if (Variables.TryGetValue(variableAccess, out var variable))
+            if (VariableStates.TryGetValue(variableAccess, out var variable))
                 variable.AddTag(httpCookieSecure);
         }
     }

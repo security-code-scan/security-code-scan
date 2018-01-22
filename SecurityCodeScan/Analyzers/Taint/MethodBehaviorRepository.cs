@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using SecurityCodeScan.Analyzers.Locale;
+using SecurityCodeScan.Analyzers.Utils;
 using YamlDotNet.RepresentationModel;
 
 namespace SecurityCodeScan.Analyzers.Taint
@@ -159,7 +160,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 return null;
             }
 
-            string key = symbol.ContainingType + "|" + symbol.Name;
+            string key = symbol.ContainingType.ToDisplayString(SymbolExtensions.SymbolDisplayFormat) + "|" + symbol.Name;
 
             if (MethodInjectableArguments.TryGetValue(key, out var behavior))
                 return behavior;
@@ -190,8 +191,6 @@ namespace SecurityCodeScan.Analyzers.Taint
             var    methodSymbol        = (IMethodSymbol)symbol;
             string result              = "(";
             bool   isFirstParameter    = true;
-            var symbolDisplayFormat =
-                new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
             foreach (IParameterSymbol parameter in methodSymbol.Parameters)
             {
@@ -217,11 +216,11 @@ namespace SecurityCodeScan.Analyzers.Taint
                 if (parameter.IsParams) // variable num arguments case
                 {
                     result += "params ";
-                    result += parameter.Type.ToDisplayString(symbolDisplayFormat).Replace("()", "[]");
+                    result += parameter.Type.ToDisplayString(SymbolExtensions.SymbolDisplayFormat).Replace("()", "[]");
                 }
                 else
                 {
-                    parameterTypeString = parameter.Type.ToDisplayString(symbolDisplayFormat);
+                    parameterTypeString = parameter.Type.ToDisplayString(SymbolExtensions.SymbolDisplayFormat);
                 }
 
                 result += parameterTypeString;

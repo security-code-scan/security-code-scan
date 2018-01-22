@@ -119,7 +119,7 @@ namespace SecurityCodeScan.Analyzers
         private void CheckState(ExecutionState state)
         {
             // For every variables registered in state
-            foreach (var variableState in state.Variables)
+            foreach (var variableState in state.VariableStates)
             {
                 var st = variableState.Value;
 

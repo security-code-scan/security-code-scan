@@ -13,6 +13,8 @@
 #   taintFromArguments: [Index of the argument that will influence the state of the return value.]
 # <<<
 
+#string constructors
+#https://msdn.microsoft.com/en-us/library/system.string.string(v=vs.110).aspx
 StringConstructor_1:
   namespace: System
   className: String
@@ -21,7 +23,23 @@ StringConstructor_1:
   argTypes: (System.Char, System.Int32)
   taintFromArguments: 0,1
 
-#string.Format
+StringConstructor_2:
+  namespace: System
+  className: String
+  member: method
+  name: .ctor
+  argTypes: (System.Char[])
+  taintFromArguments: 0
+
+StringConstructor_3:
+  namespace: System
+  className: String
+  member: method
+  name: .ctor
+  argTypes: (System.Char[], System.Int32, System.Int32)
+  taintFromArguments: 0
+
+#String.Format
 #https://msdn.microsoft.com/en-us/library/system.string.format(v=vs.110).aspx
 
 StringFormat_1:
@@ -29,7 +47,7 @@ StringFormat_1:
   className: String
   member: method
   name: Format
-  argTypes: (IFormatProvider, System.String, params System.Object[])
+  argTypes: (System.IFormatProvider, System.String, params System.Object[])
   taintFromArguments: 1,2
 
 StringFormat_2:
@@ -37,7 +55,7 @@ StringFormat_2:
   className: String
   member: method
   name: Format
-  argTypes: (IFormatProvider, System.String, System.Object)
+  argTypes: (System.IFormatProvider, System.String, System.Object)
   taintFromArguments: 1,2
 
 StringFormat_3:
@@ -45,7 +63,7 @@ StringFormat_3:
   className: String
   member: method
   name: Format
-  argTypes: (IFormatProvider, System.String, System.Object, System.Object)
+  argTypes: (System.IFormatProvider, System.String, System.Object, System.Object)
   taintFromArguments: 1,2,3
 
 StringFormat_4:
@@ -53,7 +71,7 @@ StringFormat_4:
   className: String
   member: method
   name: Format
-  argTypes: (IFormatProvider, System.String, System.Object, System.Object, System.Object)
+  argTypes: (System.IFormatProvider, System.String, System.Object, System.Object, System.Object)
   taintFromArguments: 1,2,3,4
 
 StringFormat_5:

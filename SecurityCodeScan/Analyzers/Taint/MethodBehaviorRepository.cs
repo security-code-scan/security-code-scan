@@ -27,6 +27,8 @@ namespace SecurityCodeScan.Analyzers.Taint
             {
                 var yaml = new YamlStream();
                 yaml.Load(reader);
+                if (!yaml.Documents.Any())
+                    return;
 
                 var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
 
@@ -221,6 +223,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                 else
                 {
                     parameterTypeString = parameter.Type.ToDisplayString(SymbolExtensions.SymbolDisplayFormat);
+                    if (parameter.Type.Kind == SymbolKind.ArrayType)
+                        parameterTypeString = parameterTypeString.Replace("()", "[]");
                 }
 
                 result += parameterTypeString;

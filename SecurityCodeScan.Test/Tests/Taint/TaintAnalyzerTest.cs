@@ -69,7 +69,7 @@ End Namespace
         }
 
         [TestMethod]
-        public async Task VariableNoPropertyBody()
+        public async Task VariablePropertyNoBody()
         {
             var cSharpTest = @"
 namespace sample
@@ -99,7 +99,7 @@ Namespace sample
             Dim array As String() = Nothing
             Dim num As Integer = array.Length
         End Sub
-        Private Property Length As Integer ' todo = 5
+        Private Property Length As Integer
         Public Sub Run2()
             Dim num As Integer = Length
         End Sub
@@ -201,10 +201,13 @@ End Namespace
         [DataRow("new string('x', 3)",        "stringConst")]
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
-        [DataTestMethod, Ignore] // todo: methods are not expanded yet
+        [DataTestMethod]
         public async Task VariableConcatenationMethod(string initializer, string accessor)
         {
             var cSharpTest = $@"
+#pragma warning disable 8019
+    using System;
+#pragma warning restore 8019
 using System.Data.SqlClient;
 
 namespace sample
@@ -225,6 +228,9 @@ namespace sample
 ";
 
             var visualBasicTest = $@"
+#Disable Warning BC50001
+    Imports System
+#Enable Warning BC50001
 Imports System.Data.SqlClient
 
 Namespace sample
@@ -240,13 +246,18 @@ Namespace sample
     End Class
 End Namespace
 ";
-
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            // todo: methods are not expanded yet
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
         [TestMethod]
-        public async Task VariableConcatenationReadonlyFieldBackReference()
+        public async Task VariableConcatenationFieldReadonlyBackReference()
         {
             var cSharpTest = @"
 namespace sample
@@ -279,7 +290,7 @@ End Namespace
         }
 
         [TestMethod]
-        public async Task VariableConcatenationReadonlyPropertyBackReference()
+        public async Task VariableConcatenationPropertyReadonlyBackReference()
         {
             var cSharpTest = @"
 namespace sample
@@ -321,6 +332,50 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
+        [DataRow("\"\"", "stringConst")]
+        [DataRow("\"\"", "MyFoo.stringConst")]
+        [DataRow("\"\"", "sample.MyFoo.stringConst")]
+        [DataTestMethod]
+        public async Task VariableConcatenationFieldConst(string initializer, string accessor)
+        {
+            var cSharpTest = $@"
+using System.Data.SqlClient;
+
+namespace sample
+{{
+    class MyFoo
+    {{
+        private const string stringConst = {initializer};
+
+        void Foo()
+        {{
+            var s          = ""select * from Products"";
+            var sqlCommand = new SqlCommand(s + {accessor});
+        }}
+    }}
+}}
+";
+
+            initializer = initializer.Replace("new ", "New ").Replace("'", "\"");
+            var visualBasicTest = $@"
+Imports System.Data.SqlClient
+
+Namespace sample
+    Class MyFoo
+        Private Const stringConst As String = {initializer}
+        Private Sub Foo()
+            Dim s As String = ""select * from Products""
+
+            Dim com As New SqlCommand(s + {accessor})
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
+        }
+
         [DataRow("\"\"",                      "stringConst")]
         [DataRow("\"\"",                      "MyFoo.stringConst")]
         [DataRow("\"\"",                      "sample.MyFoo.stringConst")]
@@ -332,7 +387,7 @@ End Namespace
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
-        public async Task VariableConcatenationField(string initializer, string accessor)
+        public async Task VariableConcatenationFieldReadonly(string initializer, string accessor)
         {
             var cSharpTest = $@"
 using System.Data.SqlClient;
@@ -374,63 +429,75 @@ Namespace sample
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            // todo: readonly fields aren't assumed const because no check for assignments in constructors is implemented
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
-        [TestMethod]
-        public async Task VariableConcatenationReadonlyFieldInContructor()
+        [DataRow("\"\"",                      "stringConst")]
+        [DataRow("\"\"",                      "this.stringConst")]
+        [DataRow("String.Empty",              "stringConst")]
+        [DataRow("String.Empty",              "this.stringConst")]
+        [DataRow("new string('x', 3)",        "stringConst")]
+        [DataRow("new String('x', 3)",        "stringConst")]
+        [DataRow("new System.String('x', 3)", "stringConst")]
+        [DataTestMethod]
+        public async Task VariableConcatenationFieldReadonlyContructor(string initializer, string accessor)
         {
-            var cSharpTest = @"
+            var cSharpTest = $@"
 using System.Data.SqlClient;
+#pragma warning disable 8019
+    using System;
+#pragma warning restore 8019
 
 namespace sample
-{
+{{
     class MyFoo
-    {
-        readonly string stringConst;
+    {{
+        readonly string stringConst = {initializer};
 
-        public MyFoo()
-        {
-            stringConst = ""1"";
-        }
-
-        public MyFoo(bool b)
-        {
+        public MyFoo(string x)
+        {{
             stringConst = ""2"";
-        }
+        }}
 
         void Foo()
-        {
+        {{
             var s          = ""select * from Products"";
-            var sqlCommand = new SqlCommand(s + stringConst);
-        }
-    }
-}
+            var sqlCommand = new SqlCommand(s + {accessor});
+        }}
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
+            initializer = initializer.Replace("new ", "New ").Replace("'", "\"");
+            accessor    = accessor.Replace("this.", "Me.");
+            var visualBasicTest = $@"
 Imports System.Data.SqlClient
+#Disable Warning BC50001
+    Imports System
+#Enable Warning BC50001
 
 Namespace sample
     Class MyFoo
-        Private ReadOnly stringConst As String
-        Public Sub New()
-            Me.stringConst = ""1""
-        End Sub
-        Public Sub New(b as Boolean)
-            Me.stringConst = ""2""
+        Private ReadOnly stringConst As String = {initializer}
+        Public Sub New(ByVal x as String)
+            stringConst = x
         End Sub
         Private Sub Foo()
             Dim s As String = ""select * from Products""
 
-            Dim com As New SqlCommand(s + stringConst)
+            Dim com As New SqlCommand(s + {accessor})
         End Sub
     End Class
 End Namespace
 ";
 
-            // todo: Although it is readonly and assigned to a const i constructor, it is not implemented yet
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0026",
@@ -507,7 +574,7 @@ End Namespace
         [DataRow("\"\"", "MyFoo.stringConst")]
         [DataRow("\"\"", "sample.MyFoo.stringConst")]
         [DataTestMethod]
-        public async Task VariableConcatenationConstPropertyBackingField(string initializer, string accessor)
+        public async Task VariableConcatenationPropertyConstBackingField(string initializer, string accessor)
         {
             var cSharpTest = $@"
 using System.Data.SqlClient;
@@ -571,7 +638,7 @@ End Namespace
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
-        public async Task VariableConcatenationPropertyBackingField(string initializer, string accessor)
+        public async Task VariableConcatenationPropertyReadonlyBackingField(string initializer, string accessor)
         {
             var cSharpTest = $@"
 using System.Data.SqlClient;
@@ -621,8 +688,14 @@ Namespace sample
     End Class
 End Namespace
 ";
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            // todo: readonly fields aren't assumed const because no check for assignments in constructors is implemented
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
         [DataRow("\"\"",                      "stringConst")]
@@ -632,8 +705,8 @@ End Namespace
         [DataRow("new string('x', 3)",        "stringConst")]
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
-        [DataTestMethod, Ignore]
-        public async Task VariableConcatenationReadonlyContructorPropertyBackingField(string initializer, string accessor)
+        [DataTestMethod]
+        public async Task VariableConcatenationPropertyReadonlyContructorBackingField(string initializer, string accessor)
         {
             var cSharpTest = $@"
 using System.Data.SqlClient;
@@ -681,6 +754,9 @@ Namespace sample
                 Return StringConstField
             End Get
         End Property
+        Public Sub New(ByVal x as String)
+            StringConstField = x
+        End Sub
         Private Sub Foo()
             Dim s As String = ""select * from Products""
 
@@ -689,6 +765,7 @@ Namespace sample
     End Class
 End Namespace
 ";
+
             var expected = new DiagnosticResult
             {
                 Id = "SCS0026",
@@ -708,7 +785,7 @@ End Namespace
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
-        public async Task VariableConcatenationProperty2CSharp(string initializer, string accessor)
+        public async Task VariableConcatenationPropertyGetWithInitializer(string initializer, string accessor)
         {
             var cSharpTest = $@"
 using System.Data.SqlClient;
@@ -730,7 +807,33 @@ namespace sample
     }}
 }}
 ";
-            await VerifyCSharpDiagnostic(cSharpTest);
+
+            initializer = initializer.Replace("new ", "New ").Replace("'", "\"");
+            var visualBasicTest = $@"
+Imports System.Data.SqlClient
+#Disable Warning BC50001
+    Imports System
+#Enable Warning BC50001
+
+Namespace sample
+    Friend Class MyFoo
+        Public Shared Property stringConst As String = {initializer}
+        Public Sub Foo()
+            Dim s As String = ""select * from Products""
+            Dim sqlCommand As New SqlCommand(s + {accessor})
+        End Sub
+    End Class
+End Namespace
+";
+
+            // todo: readonly fields aren't assumed const because no check for assignments in constructors is implemented
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
         [DataRow("\"\"",                      "stringConst")]
@@ -743,7 +846,7 @@ namespace sample
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
-        public async Task VariableConcatenationProperty3CSharp(string initializer, string accessor)
+        public async Task VariableConcatenationPropertyGetPrivateSetWithInitializerCSharp(string initializer, string accessor)
         {
             var cSharpTest = $@"
 using System.Data.SqlClient;
@@ -765,7 +868,13 @@ namespace sample
     }}
 }}
 ";
-            await VerifyCSharpDiagnostic(cSharpTest);
+            // todo: readonly fields aren't assumed const because no check for assignments in constructors is implemented
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
         }
 
         [DataRow("\"\"",                      "stringConst")]
@@ -778,7 +887,7 @@ namespace sample
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
-        public async Task VariableConcatenationProperty4CSharp(string initializer, string accessor)
+        public async Task VariableConcatenationPropertyExpressionBodyCSharp(string initializer, string accessor)
         {
             var cSharpTest = $@"
 using System.Data.SqlClient;
@@ -791,6 +900,44 @@ namespace sample
     class MyFoo
     {{
         public static string stringConst => {initializer};
+
+        void Foo()
+        {{
+            var s          = ""select * from Products"";
+            var sqlCommand = new SqlCommand(s + {accessor});
+        }}
+    }}
+}}
+";
+            await VerifyCSharpDiagnostic(cSharpTest);
+        }
+
+        [DataRow("\"\"",                      "stringConst")]
+        [DataRow("\"\"",                      "MyFoo.stringConst")]
+        [DataRow("\"\"",                      "sample.MyFoo.stringConst")]
+        [DataRow("String.Empty",              "stringConst")]
+        [DataRow("String.Empty",              "MyFoo.stringConst")]
+        [DataRow("String.Empty",              "sample.MyFoo.stringConst")]
+        [DataRow("new string('x', 3)",        "stringConst")]
+        [DataRow("new String('x', 3)",        "stringConst")]
+        [DataRow("new System.String('x', 3)", "stringConst")]
+        [DataTestMethod, Ignore] // todo: add C# 7.0 support
+        public async Task VariableConcatenationPropertyExpressionBodyGetCSharp(string initializer, string accessor)
+        {
+            var cSharpTest = $@"
+using System.Data.SqlClient;
+#pragma warning disable 8019
+    using System;
+#pragma warning restore 8019
+
+namespace sample
+{{
+    class MyFoo
+    {{
+        public static string stringConst
+        {{
+            get => """";
+        }}
 
         void Foo()
         {{

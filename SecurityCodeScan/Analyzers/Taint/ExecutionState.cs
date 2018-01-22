@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Utils;
@@ -74,7 +75,14 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <returns>The resolved symbol with the complete class name and method name.</returns>
         public ISymbol GetSymbol(SyntaxNode node)
         {
-            return node != null ? AnalysisContext.SemanticModel.GetSymbolInfo(node).Symbol : null;
+            try
+            {
+                return node != null ? AnalysisContext.SemanticModel.GetSymbolInfo(node).Symbol : null;
+            }
+            catch (ArgumentException) // todo: find better way to skip or load symbols outside the syntax tree
+            {
+                return null; // Syntax node is not within syntax tree
+            }
         }
 
         public void AddTag(string variableAccess, VariableTag httpCookieSecure)

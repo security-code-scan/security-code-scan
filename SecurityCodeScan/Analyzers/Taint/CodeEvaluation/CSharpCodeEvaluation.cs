@@ -116,6 +116,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                 case MethodDeclarationSyntax methodDeclarationSyntax:
                     return VisitMethodDeclaration(methodDeclarationSyntax, state);
                 case ReturnStatementSyntax returnStatementSyntax:
+                    if (returnStatementSyntax.Expression == null)
+                        return new VariableState(node, VariableTaint.Unknown);
+
                     return VisitExpression(returnStatementSyntax.Expression, state);
                 case ForEachStatementSyntax forEachSyntax:
                     return VisitForEach(forEachSyntax, state);
@@ -209,7 +212,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                 case ElementAccessExpressionSyntax elementAccessExpressionSyntax:
                     return VisitElementAccess(elementAccessExpressionSyntax, elementAccessExpressionSyntax.ArgumentList, state);
                 case ArrayCreationExpressionSyntax arrayCreationExpressionSyntax:
-                    return VisitArrayCreation(arrayCreationExpressionSyntax, state);
+                    return VisitArrayCreation(arrayCreationExpressionSyntax, arrayCreationExpressionSyntax.Initializer, state);
+                case ImplicitArrayCreationExpressionSyntax implicitArrayCreationExpressionSyntax:
+                    return VisitArrayCreation(implicitArrayCreationExpressionSyntax, implicitArrayCreationExpressionSyntax.Initializer, state);
                 case TypeOfExpressionSyntax typeOfExpressionSyntax:
                     return new VariableState(typeOfExpressionSyntax, VariableTaint.Safe);
                 case ConditionalExpressionSyntax conditionalExpressionSyntax:
@@ -297,10 +302,8 @@ namespace SecurityCodeScan.Analyzers.Taint
             return finalState;
         }
 
-        private VariableState VisitArrayCreation(ArrayCreationExpressionSyntax node, ExecutionState state)
+        private VariableState VisitArrayCreation(SyntaxNode node, InitializerExpressionSyntax arrayInit, ExecutionState state)
         {
-            var arrayInit = node.Initializer;
-
             var finalState = new VariableState(node, VariableTaint.Safe);
             if (arrayInit == null)
                 return finalState;
@@ -327,19 +330,18 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                          ArgumentListSyntax argList,
                                                          ExecutionState     state)
         {
-            var            symbol   = state.GetSymbol(node);
-            MethodBehavior behavior = BehaviorRepo.GetMethodBehavior(symbol);
-
-            int i = 0;
             if (argList == null)
             {
                 return new VariableState(node, VariableTaint.Unknown);
             }
 
+            var symbol      = state.GetSymbol(node);
+            var behavior    = BehaviorRepo.GetMethodBehavior(symbol);
             var returnState = new VariableState(node, VariableTaint.Safe);
 
-            foreach (var argument in argList.Arguments)
+            for (var i = 0; i < argList.Arguments.Count; i++)
             {
+                var argument      = argList.Arguments[i];
                 var argumentState = VisitExpression(argument.Expression, state);
 
                 if (symbol != null)
@@ -374,8 +376,6 @@ namespace SecurityCodeScan.Analyzers.Taint
                 }
 
                 //TODO: tainted all object passed in argument
-
-                i++;
             }
 
             //Additional analysis by extension
@@ -484,17 +484,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 if (field.IsType("System.String.Empty"))
                     return new VariableState(expression, VariableTaint.Constant);
 
-                // TODO: Use public API
-                var syntaxNodeProperty = field.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("SyntaxNode");
-                if (syntaxNodeProperty == null)
-                    return new VariableState(expression, VariableTaint.Unknown);
-
-                var syntaxNode         = (CSharpSyntaxNode)syntaxNodeProperty.GetValue(field);
-                if (syntaxNode is VariableDeclaratorSyntax variableDeclaratorSyntax)
-                    return VisitNode(variableDeclaratorSyntax.Parent, state);
-
-                throw new NotImplementedException();
-                //return new VariableState(expression, VariableTaint.Unknown);
+                return new VariableState(expression, VariableTaint.Unknown);
             }
 
             if (symbol is IPropertySymbol prop)
@@ -507,26 +497,17 @@ namespace SecurityCodeScan.Analyzers.Taint
                 if (syntaxNodeProperty == null)
                     return new VariableState(expression, VariableTaint.Unknown);
 
-                var syntaxNode         = (CSharpSyntaxNode)syntaxNodeProperty.GetValue(prop.GetMethod);
-                if (syntaxNode == null)
-                {
-                    var csSyntaxNodeProperty = prop.GetType().GetTypeInfo().GetDeclaredProperty("CSharpSyntaxNode");
-                    var csSyntaxNode = (PropertyDeclarationSyntax)csSyntaxNodeProperty.GetValue(prop);
-                    if (csSyntaxNode.Initializer == null)
-                        return new VariableState(expression, VariableTaint.Unknown);
-
-                    return VisitExpression(csSyntaxNode.Initializer.Value, state);
-                }
-                else if (syntaxNode is BlockSyntax blockSyntax)
+                var syntaxNode = (CSharpSyntaxNode)syntaxNodeProperty.GetValue(prop.GetMethod);
+                if (syntaxNode is BlockSyntax blockSyntax)
                     return VisitBlock(blockSyntax, state);
-                else if (syntaxNode is ArrowExpressionClauseSyntax arrowSyntax)
+
+                if (syntaxNode is ArrowExpressionClauseSyntax arrowSyntax)
                     return VisitExpression(arrowSyntax.Expression, state);
-                else
-                    throw new NotImplementedException();
+
+                return new VariableState(expression, VariableTaint.Unknown);
             }
 
-            throw new NotImplementedException();
-            //return new VariableState(expression, VariableTaint.Unknown);
+            return new VariableState(expression, VariableTaint.Unknown);
         }
 
         /// <summary>

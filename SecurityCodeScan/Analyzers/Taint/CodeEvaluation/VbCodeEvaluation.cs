@@ -208,10 +208,13 @@ namespace SecurityCodeScan.Analyzers.Taint
                 case MemberAccessExpressionSyntax memberAccessExpressionSyntax:
                     return VisitExpression(memberAccessExpressionSyntax.Name, state);
                 case ArrayCreationExpressionSyntax arrayCreationExpressionSyntax:
-                    return VisitArrayCreation(arrayCreationExpressionSyntax, state);
+                    return VisitArrayCreation(arrayCreationExpressionSyntax, arrayCreationExpressionSyntax.Initializer, state);
+                case CollectionInitializerSyntax collectionInitializerSyntax:
+                    return VisitArrayCreation(collectionInitializerSyntax, collectionInitializerSyntax, state);
                 case TypeOfExpressionSyntax typeOfExpressionSyntax:
                     return new VariableState(typeOfExpressionSyntax, VariableTaint.Safe);
                 case TernaryConditionalExpressionSyntax ternaryConditionalExpressionSyntax:
+                {
                     VisitExpression(ternaryConditionalExpressionSyntax.Condition, state);
                     var finalState = new VariableState(ternaryConditionalExpressionSyntax, VariableTaint.Safe);
 
@@ -221,6 +224,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     finalState         = finalState.Merge(whenFalseState);
 
                     return finalState;
+                }
                 case QueryExpressionSyntax queryExpressionSyntax:
                     return new VariableState(queryExpressionSyntax, VariableTaint.Unknown);
             }
@@ -247,19 +251,18 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                          ArgumentListSyntax argList,
                                                          ExecutionState state)
         {
-            var            symbol   = state.GetSymbol(node);
-            MethodBehavior behavior = BehaviorRepo.GetMethodBehavior(symbol);
-
-            int i = 0;
             if (argList == null)
             {
                 return new VariableState(node, VariableTaint.Unknown);
             }
 
-            var returnState = new VariableState(node, VariableTaint.Safe);
+            var            symbol      = state.GetSymbol(node);
+            MethodBehavior behavior    = BehaviorRepo.GetMethodBehavior(symbol);
+            var            returnState = new VariableState(node, VariableTaint.Safe);
 
-            foreach (var argument in argList.Arguments)
+            for (var i = 0; i < argList.Arguments.Count; i++)
             {
+                var argument      = argList.Arguments[i];
                 var argumentState = VisitExpression(argument.GetExpression(), state);
 
                 if (symbol != null)
@@ -271,7 +274,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 {
                     //If the API is at risk
                     if ((argumentState.Taint == VariableTaint.Tainted ||
-                         argumentState.Taint == VariableTaint.Unknown) &&   //Tainted values
+                         argumentState.Taint == VariableTaint.Unknown) && //Tainted values
                         //If the current parameter can be injected.
                         Array.Exists(behavior.InjectablesArguments, element => element == i))
                     {
@@ -279,7 +282,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                         var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
                         state.AnalysisContext.ReportDiagnostic(diagnostic);
                     }
-                    else if (argumentState.Taint == VariableTaint.Constant &&                   //Hard coded value
+                    else if (argumentState.Taint == VariableTaint.Constant && //Hard coded value
                              //If the current parameter is a password
                              Array.Exists(behavior.PasswordArguments, element => element == i))
                     {
@@ -294,8 +297,6 @@ namespace SecurityCodeScan.Analyzers.Taint
                 }
 
                 //TODO: tainted all object passed in argument
-
-                i++;
             }
 
             //Additional analysis by extension
@@ -426,40 +427,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 if (field.IsType("System.String.Empty"))
                     return new VariableState(expression, VariableTaint.Constant);
 
-                // TODO: Use public API
-                PropertyInfo syntaxNodeProperty;
-                var          fieldType = field.GetType();
-                switch (fieldType.FullName)
-                {
-                    case "Microsoft.CodeAnalysis.VisualBasic.Symbols.SourceMemberFieldSymbol+SourceFieldSymbolWithInitializer":
-                        syntaxNodeProperty = fieldType.GetTypeInfo()
-                                                      .BaseType
-                                                      .GetTypeInfo()
-                                                      .BaseType
-                                                      .GetTypeInfo()
-                                                      .GetDeclaredProperty("Syntax");
-
-                        break;
-                    case "Microsoft.CodeAnalysis.VisualBasic.Symbols.SourceMemberFieldSymbol":
-                        syntaxNodeProperty = fieldType.GetTypeInfo()
-                                                      .BaseType
-                                                      .GetTypeInfo()
-                                                      .GetDeclaredProperty("Syntax");
-
-                        break;
-                    case "Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.PEFieldSymbol":
-                        return new VariableState(expression, VariableTaint.Unknown);
-
-                    default:
-                        throw new NotImplementedException();
-                }
-
-                var syntaxNode = (VisualBasicSyntaxNode)syntaxNodeProperty.GetValue(field);
-                if (syntaxNode is ModifiedIdentifierSyntax variableDeclaratorSyntax)
-                    return VisitNode(variableDeclaratorSyntax.Parent, state);
-
-                //return new VariableState(expression, VariableTaint.Unknown);
-                throw new NotImplementedException();
+                return new VariableState(expression, VariableTaint.Unknown);
             }
 
             if (symbol is IPropertySymbol prop)
@@ -476,19 +444,10 @@ namespace SecurityCodeScan.Analyzers.Taint
                 if (syntaxNode is AccessorBlockSyntax blockSyntax)
                     return VisitBlock(blockSyntax, state);
 
-                if (syntaxNode is PropertyStatementSyntax propertySyntax)
-                {
-                    if (propertySyntax.Initializer == null)
-                        return new VariableState(expression, VariableTaint.Unknown);
-
-                    return VisitExpression(propertySyntax.Initializer.Value, state);
-                }
-
-                throw new NotImplementedException();
+                return new VariableState(expression, VariableTaint.Unknown);
             }
 
-            throw new NotImplementedException();
-            //return new VariableState(expression, VariableTaint.Unknown);
+            return new VariableState(expression, VariableTaint.Unknown);
         }
 
         private VariableState VisitExpressionStatement(ExpressionStatementSyntax node, ExecutionState state)
@@ -496,10 +455,8 @@ namespace SecurityCodeScan.Analyzers.Taint
             return VisitExpression(node.Expression, state); //Simply unwrap the expression
         }
 
-        private VariableState VisitArrayCreation(ArrayCreationExpressionSyntax node, ExecutionState state)
+        private VariableState VisitArrayCreation(SyntaxNode node, CollectionInitializerSyntax arrayInit, ExecutionState state)
         {
-            var arrayInit = node.Initializer;
-
             var finalState = new VariableState(node, VariableTaint.Safe);
             if (arrayInit == null)
                 return finalState;

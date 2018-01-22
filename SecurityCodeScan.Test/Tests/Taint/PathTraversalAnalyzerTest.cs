@@ -32,13 +32,13 @@ namespace SecurityCodeScan.Test.Taint
         public async Task PathTraversalFound1()
         {
             var cSharpTest = @"
-using System.IO;
+using static System.IO.File;
 
 class PathTraversal
 {
     public static void Run(string input)
     {
-        File.ReadAllText(input);
+        ReadAllText(input);
     }
 }
 ";
@@ -47,9 +47,9 @@ class PathTraversal
 Imports System.IO
 
 Class PathTraversal
-	Public Shared Sub Run(input As String)
-		File.ReadAllText(input)
-	End Sub
+    Public Shared Sub Run(input As String)
+        File.ReadAllText(input)
+    End Sub
 End Class
 ";
 
@@ -82,9 +82,9 @@ class PathTraversal
 Imports System.IO
 
 Class PathTraversal
-	Public Shared Sub Run(input As String)
-		File.OpenRead(input)
-	End Sub
+    Public Shared Sub Run(input As String)
+        File.OpenRead(input)
+    End Sub
 End Class
 ";
 
@@ -117,9 +117,9 @@ class PathTraversal
 Imports System.IO
 
 Class PathTraversal
-	Public Shared Sub Run(input As String)
-		File.WriteAllText(input,""ouput.."")
-	End Sub
+    Public Shared Sub Run(input As String)
+        File.WriteAllText(input,""ouput.."")
+    End Sub
 End Class
 ";
 
@@ -152,9 +152,9 @@ class PathTraversal
 Imports System.IO
 
 Class PathTraversal
-	Public Shared Sub Run(input As String)
-		Dim sr As New StreamReader(input)
-	End Sub
+    Public Shared Sub Run(input As String)
+        Dim sr As New StreamReader(input)
+    End Sub
 End Class
 ";
 
@@ -163,10 +163,10 @@ End Class
 Imports System.IO
 
 Class PathTraversal
-	Public Shared Sub Run(input As String)
-		Using sr As New StreamReader(input)
+    Public Shared Sub Run(input As String)
+        Using sr As New StreamReader(input)
         End Using
-	End Sub
+    End Sub
 End Class
 ";
 
@@ -200,9 +200,9 @@ class PathTraversal
 Imports System.IO
 
 Class PathTraversal
-	Public Shared Sub Run(input As String)
-		Dim sr As New StreamReader(input, System.Text.Encoding.ASCII, False, 0)
-	End Sub
+    Public Shared Sub Run(input As String)
+        Dim sr As New StreamReader(input, System.Text.Encoding.ASCII, False, 0)
+    End Sub
 End Class
 ";
 
@@ -236,10 +236,10 @@ class PathTraversal
 Imports System.Xml
 
 Class PathTraversal
-	Public Shared Sub Run(input As String)
+    Public Shared Sub Run(input As String)
         Dim settings As New XmlReaderSettings()
         Dim reader As XMLReader = XMLReader.Create(input, settings, Nothing)
-	End Sub
+    End Sub
 End Class
 ";
 
@@ -272,9 +272,9 @@ class PathTraversal
 Imports System.IO
 
 Class PathTraversal
-	Public Shared Sub Run(input As String)
-		File.OpenRead(""C:/static/fsociety.dat"")
-	End Sub
+    Public Shared Sub Run(input As String)
+        File.OpenRead(""C:/static/fsociety.dat"")
+    End Sub
 End Class
 ";
 

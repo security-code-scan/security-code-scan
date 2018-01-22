@@ -4,9 +4,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
-using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
-using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
@@ -23,47 +21,39 @@ namespace SecurityCodeScan.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(VisitSyntaxNode, CSharp.SyntaxKind.SimpleMemberAccessExpression);
-            context.RegisterSyntaxNodeAction(VisitSyntaxNode, VB.SyntaxKind.SimpleMemberAccessExpression);
+            context.RegisterSyntaxNodeAction(VisitSyntaxNode, CSharp.SyntaxKind.IdentifierName);
+            context.RegisterSyntaxNodeAction(VisitSyntaxNode, VB.SyntaxKind.IdentifierName);
         }
 
         private static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx)
         {
-            SyntaxNode node, expression;
-
-            if (ctx.Node.Language == LanguageNames.CSharp)
-            {
-                node       = ctx.Node as CSharpSyntax.MemberAccessExpressionSyntax;
-                expression = ((CSharpSyntax.MemberAccessExpressionSyntax)node)?.Expression;
-            }
-            else
-            {
-                node       = ctx.Node as VBSyntax.MemberAccessExpressionSyntax;
-                expression = ((VBSyntax.MemberAccessExpressionSyntax)node)?.Expression;
-            }
-
-            if (node == null)
+            var symbol = ctx.SemanticModel.GetSymbolInfo(ctx.Node).Symbol;
+            if (symbol == null)
                 return;
 
-            var symbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
-
-            //DES.Create()
-            if (AnalyzerUtil.SymbolMatch(symbol, "CipherMode", "ECB"))
+            var type = symbol.ToDisplayString(SymbolExtensions.SymbolDisplayFormat);
+            switch (type)
             {
-                var diagnostic = Diagnostic.Create(RuleECB, expression.GetLocation(), "ECB");
-                ctx.ReportDiagnostic(diagnostic);
-            }
-            else if (AnalyzerUtil.SymbolMatch(symbol, "CipherMode", "CBC"))
-            {
-                var diagnostic = Diagnostic.Create(RuleCBC, expression.GetLocation(), "CBC");
-                ctx.ReportDiagnostic(diagnostic);
-            }
-            else if (AnalyzerUtil.SymbolMatch(symbol, "CipherMode", "OFB") ||
-                     AnalyzerUtil.SymbolMatch(symbol, "CipherMode", "CFB") ||
-                     AnalyzerUtil.SymbolMatch(symbol, "CipherMode", "CTS"))
-            {
-                var diagnostic = Diagnostic.Create(RuleGeneric, expression.GetLocation(), "OFB");
-                ctx.ReportDiagnostic(diagnostic);
+                case "System.Security.Cryptography.CipherMode.ECB":
+                {
+                    var diagnostic = Diagnostic.Create(RuleECB, ctx.Node.GetLocation(), "ECB");
+                    ctx.ReportDiagnostic(diagnostic);
+                    break;
+                }
+                case "System.Security.Cryptography.CipherMode.CBC":
+                {
+                    var diagnostic = Diagnostic.Create(RuleCBC, ctx.Node.GetLocation(), "CBC");
+                    ctx.ReportDiagnostic(diagnostic);
+                    break;
+                }
+                case "System.Security.Cryptography.CipherMode.OFB":
+                case "System.Security.Cryptography.CipherMode.CFB":
+                case "System.Security.Cryptography.CipherMode.CTS":
+                {
+                    var diagnostic = Diagnostic.Create(RuleGeneric, ctx.Node.GetLocation(), "OFB");
+                    ctx.ReportDiagnostic(diagnostic);
+                    break;
+                }
             }
         }
     }

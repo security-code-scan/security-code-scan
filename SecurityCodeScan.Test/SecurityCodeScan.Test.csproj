@@ -288,6 +288,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Tests\Password\HardcodedPasswordFieldTest.cs" />
+    <Compile Include="Tests\Taint\OpenRedirectAnalyzerTest.cs" />
     <Compile Include="Tests\Taint\TaintTransferTest.cs" />
     <Compile Include="Tests\WeakPasswordValidatorPropertyAnalyzerTest.cs" />
     <Compile Include="Tests\XssPreventionAnalyzerTest.cs" />

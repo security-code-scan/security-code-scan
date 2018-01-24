@@ -41,6 +41,11 @@ SCS0026:
   title: Potential SQL injection with MsSQL Data Provider
   description: The dynamic value passed in the SQL query should be validated.
 
+SCS0027:
+  class: TaintAnalyzer
+  title: Potential OpenRedirect
+  description: The dynamic value passed to the redirect should be validated
+
 SCS0003:
   class: TaintAnalyzer
   title: Potential XPath injection with XmlDocument

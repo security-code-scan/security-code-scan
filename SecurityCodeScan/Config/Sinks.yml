@@ -595,3 +595,114 @@ FileStream_Constructor15:
   argTypes: (System.String, System.IO.FileMode, System.Security.AccessControl.FileSystemRights, System.IO.FileShare, System.Int32, System.IO.FileOptions, System.Security.AccessControl.FileSecurity)
   injectableArguments: 0, 1, 2, 3, 5, 6
   locale: SCS0018
+
+# Open Redirects
+
+System.Web.HttpResponse_Redirect_string:
+   namespace: System.Web
+   className: HttpResponse
+   member: method
+   name: Redirect
+   argTypes: (System.String)
+   injectableArguments: 0
+   locale: SCS0027
+
+System.Web.HttpResponse_Redirect_string_bool:
+   namespace: System.Web
+   className: HttpResponse
+   member: method
+   name: Redirect
+   argTypes: (System.String, System.Boolean)
+   injectableArguments: 0
+   locale: SCS0027
+
+System.Web.HttpResponse_RedirectPermanent_string:
+   namespace: System.Web
+   className: HttpResponse
+   member: method
+   name: RedirectPermanent
+   argTypes: (System.String)
+   injectableArguments: 0
+   locale: SCS0027
+
+System.Web.HttpResponse_RedirectPermanent_string_bool:
+   namespace: System.Web
+   className: HttpResponse
+   member: method
+   name: RedirectPermanent
+   argTypes: (System.String, System.Boolean)
+   injectableArguments: 0
+   locale: SCS0027
+
+Microsoft.AspNetCore.Http.HttpResponse_Redirect_string:
+   namespace: Microsoft.AspNetCore.Http
+   className: HttpResponse
+   member: method
+   name: Redirect
+   argTypes: (System.String)
+   injectableArguments: 0
+   locale: SCS0027
+
+Microsoft.AspNetCore.Http.HttpResponse_Redirect_string_bool:
+   namespace: Microsoft.AspNetCore.Http
+   className: HttpResponse
+   member: method
+   name: Redirect
+   argTypes: (System.String, System.Boolean)
+   injectableArguments: 0
+   locale: SCS0027
+
+
+Controller_Redirect_string:
+    namespace: System.Web.Mvc
+    className: Controller
+    member: method
+    name: Redirect
+    argTypes: (System.String)
+    injectableArguments: 0
+    locale: SCS0027
+
+Controller_RedirectPermanent_string:
+    namespace: System.Web.Mvc
+    className: Controller
+    member: method
+    name: RedirectPermanent
+    argTypes: (System.String)
+    injectableArguments: 0
+    locale: SCS0027
+
+AspNetCore_Controller_Redirect_string:
+    namespace: Microsoft.AspNetCore.Mvc
+    className: ControllerBase
+    member: method
+    name: Redirect
+    argTypes: (System.String)
+    injectableArguments: 0
+    locale: SCS0027
+
+AspNetCore_Controller_RedirectPermanent_string:
+    namespace: Microsoft.AspNetCore.Mvc
+    className: ControllerBase
+    member: method
+    name: RedirectPermanent
+    argTypes: (System.String)
+    injectableArguments: 0
+    locale: SCS0027
+
+AspNetCore_Controller_RedirectPreserveMethod_string:
+    namespace: Microsoft.AspNetCore.Mvc
+    className: ControllerBase
+    member: method
+    name: RedirectPreserveMethod
+    argTypes: (System.String)
+    injectableArguments: 0
+    locale: SCS0027
+
+AspNetCore_Controller_RedirectPermanentPreserveMethod_string:
+    namespace: Microsoft.AspNetCore.Mvc
+    className: ControllerBase
+    member: method
+    name: RedirectPermanentPreserveMethod
+    argTypes: (System.String)
+    injectableArguments: 0
+    locale: SCS0027

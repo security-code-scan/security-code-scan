@@ -79,7 +79,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                         && passwordIndexes.Length           == 0
                         && taintFromArgumentsIndexes.Length == 0)
                     {
-                        throw new Exception($"The method behavior {key} is not missing injectableArguments or passwordArguments property");
+                        throw new Exception($"The method behavior {key} is missing injectableArguments or passwordArguments property");
                     }
 
                     //Injection based vulnerability

@@ -227,6 +227,10 @@ namespace SecurityCodeScan.Analyzers.Taint
                 }
                 case QueryExpressionSyntax queryExpressionSyntax:
                     return new VariableState(queryExpressionSyntax, VariableTaint.Unknown);
+                case DirectCastExpressionSyntax directCastExpressionSyntax:
+                    return VisitExpression(directCastExpressionSyntax.Expression, state);
+                case CTypeExpressionSyntax cTypeExpressionSyntax:
+                    return VisitExpression(cTypeExpressionSyntax.Expression, state);
             }
 
             Logger.Log("Unsupported expression " + expression.GetType() + " (" + expression.ToString() + ")");
@@ -409,9 +413,6 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (state.VariableStates.TryGetValue(value, out var varState))
                 return varState;
 
-            // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
-            state.AddNewValue(value, new VariableState(expression, VariableTaint.Unknown));
-
             var symbol = state.GetSymbol(expression);
             if (symbol == null)
                 return new VariableState(expression, VariableTaint.Unknown);
@@ -424,8 +425,12 @@ namespace SecurityCodeScan.Analyzers.Taint
                 if (!field.IsReadOnly)
                     return new VariableState(expression, VariableTaint.Unknown);
 
-                if (field.IsType("System.String.Empty"))
-                    return new VariableState(expression, VariableTaint.Constant);
+                switch (field.ToDisplayString(SymbolExtensions.SymbolDisplayFormat))
+                {
+                    case "System.String.Empty":
+                    case "System.IntPtr.Zero":
+                        return new VariableState(expression, VariableTaint.Constant);
+                }
 
                 return new VariableState(expression, VariableTaint.Unknown);
             }
@@ -442,7 +447,11 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return new VariableState(expression, VariableTaint.Unknown);
 
                 if (syntaxNode is AccessorBlockSyntax blockSyntax)
+                {
+                    // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
+                    state.AddNewValue(value, new VariableState(expression, VariableTaint.Unknown));
                     return VisitBlock(blockSyntax, state);
+                }
 
                 return new VariableState(expression, VariableTaint.Unknown);
             }

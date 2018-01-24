@@ -53,17 +53,17 @@ namespace sample
 Imports System.Data.SqlClient
 
 Namespace sample
-	Class SqlConstant
-		Public Shared Sub Run(input As String)
-			Dim username As String = input
-			Dim variable1 = username
-			Dim variable2 = variable1
+    Class SqlConstant
+        Public Shared Sub Run(input As String)
+            Dim username As String = input
+            Dim variable1 = username
+            Dim variable2 = variable1
 
-			If variable2 <> """" Then
-				Dim com As New SqlCommand(variable2)
-			End If
-		End Sub
-	End Class
+            If variable2 <> """" Then
+                Dim com As New SqlCommand(variable2)
+            End If
+        End Sub
+    End Class
 End Namespace
 ";
 
@@ -105,16 +105,16 @@ namespace sample
 Imports System.Data.SqlClient
 
 Namespace sample
-	Class SqlConstant
-		Public Shared Sub Run(input As String)
-			Dim username As String = input
-			Dim variable1 = username
-			Dim variable2 = variable1
+    Class SqlConstant
+        Public Shared Sub Run(input As String)
+            Dim username As String = input
+            Dim variable1 = username
+            Dim variable2 = variable1
 
             Dim com As SqlCommand
-			If (variable2 <> """") Then com = New SqlCommand(variable2)
-		End Sub
-	End Class
+            If (variable2 <> """") Then com = New SqlCommand(variable2)
+        End Sub
+    End Class
 End Namespace
 ";
 
@@ -157,17 +157,17 @@ namespace sample
 Imports System.Data.SqlClient
 
 Namespace sample
-	Class SqlConstant
-		Public Shared Sub Run(input As String)
-			Dim username As String = input
-			Dim variable1 = username
-			Dim variable2 = variable1
+    Class SqlConstant
+        Public Shared Sub Run(input As String)
+            Dim username As String = input
+            Dim variable1 = username
+            Dim variable2 = variable1
 
-			For i As Integer = 0 To 9
-				Dim com As New SqlCommand(variable2)
-			Next
-		End Sub
-	End Class
+            For i As Integer = 0 To 9
+                Dim com As New SqlCommand(variable2)
+            Next
+        End Sub
+    End Class
 End Namespace
 ";
 
@@ -208,17 +208,17 @@ namespace sample
 Imports System.Data.SqlClient
 
 Namespace sample
-	Class SqlConstant
-		Public Shared Sub Run(input As String)
-			Dim username As String = input
-			Dim variable1 = username
-			Dim variable2 = variable1
+    Class SqlConstant
+        Public Shared Sub Run(input As String)
+            Dim username As String = input
+            Dim variable1 = username
+            Dim variable2 = variable1
 
-			For i As Integer = 0 To 9
-				Dim com As New SqlCommand(variable2)
-			Next
-		End Sub
-	End Class
+            For i As Integer = 0 To 9
+                Dim com As New SqlCommand(variable2)
+            Next
+        End Sub
+    End Class
 End Namespace
 ";
 
@@ -230,6 +230,82 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest, expected);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+        }
+
+        [TestMethod]
+        public async Task ConditionIsCSharp()
+        {
+            var cSharpTest = @"
+using System;
+using System.Data.SqlClient;
+
+namespace sample
+{
+    class Test
+    {
+        public static void Foo(object o)
+        {
+#pragma warning disable 219
+        if (o is String)
+            new SqlCommand((string)null);
+#pragma warning restore 219
+        }
+    }
+}
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest);
+        }
+
+        [TestMethod]
+        public async Task Cast()
+        {
+            var cSharpTest = @"
+//using System;
+using System.Data.SqlClient;
+
+namespace sample
+{
+    class Test
+    {
+        public static void Foo(/*object o*/)
+        {
+#pragma warning disable 219
+        new SqlCommand((string)null);
+        new SqlCommand(null as string);
+        new SqlCommand(default(string));
+
+        // todo: add C# 7.0 support
+        //switch(o)
+        //{
+        //case String s:
+        //    new SqlCommand(s);
+        //    break;
+        //}
+#pragma warning restore 219
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+    Class Test
+        Public Shared Sub Foo()
+#Disable Warning BC42024
+            Dim a As New SqlCommand(DirectCast(Nothing, String))
+            Dim b As New SqlCommand(CType(Nothing, String))
+            Dim c As New SqlCommand(Nothing)
+#Enable Warning BC42024
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
     }
 }

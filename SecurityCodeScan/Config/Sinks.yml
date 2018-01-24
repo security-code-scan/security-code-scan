@@ -177,13 +177,12 @@ XmlNode_SelectSingleNode:
 
 #File API
 
-#Append
 File_AppendAllLines:
   namespace: System.IO
   className: File
   member: method
   name: AppendAllLines
-  injectableArguments: 0
+  injectableArguments: 0, 1
   locale: SCS0018
 
 File_AppendAllText:
@@ -191,7 +190,7 @@ File_AppendAllText:
   className: File
   member: method
   name: AppendAllText
-  injectableArguments: 0
+  injectableArguments: 0, 1
   locale: SCS0018
 
 File_AppendText:
@@ -207,7 +206,7 @@ File_Copy:
   className: File
   member: method
   name: Copy
-  injectableArguments: 0,1
+  injectableArguments: 0, 1, 2
   locale: SCS0018
 
 File_Create:
@@ -215,6 +214,14 @@ File_Create:
   className: File
   member: method
   name: Create
+  injectableArguments: 0, 2
+  locale: SCS0018
+
+File_CreateText:
+  namespace: System.IO
+  className: File
+  member: method
+  name: CreateText
   injectableArguments: 0
   locale: SCS0018
 
@@ -226,13 +233,20 @@ File_Delete:
   injectableArguments: 0
   locale: SCS0018
 
-#Open
+File_Move:
+  namespace: System.IO
+  className: File
+  member: method
+  name: Move
+  injectableArguments: 0, 1
+  locale: SCS0018
+
 File_Open:
   namespace: System.IO
   className: File
   member: method
   name: Open
-  injectableArguments: 0
+  injectableArguments: 0, 1, 2, 3
   locale: SCS0018
 
 File_OpenRead:
@@ -259,7 +273,6 @@ File_OpenWrite:
   injectableArguments: 0
   locale: SCS0018
 
-#Read
 File_ReadAllText:
   namespace: System.IO
   className: File
@@ -297,16 +310,23 @@ File_Replace:
   className: File
   member: method
   name: Replace
-  injectableArguments: 0,1
+  injectableArguments: 0, 1, 2
   locale: SCS0018
 
-#Write
+File_SetAccessControl:
+  namespace: System.IO
+  className: File
+  member: method
+  name: SetAccessControl
+  injectableArguments: 0, 1
+  locale: SCS0018
+
 File_WriteAllBytes:
   namespace: System.IO
   className: File
   member: method
   name: WriteAllBytes
-  injectableArguments: 0
+  injectableArguments: 0, 1
   locale: SCS0018
 
 File_WriteAllLines:
@@ -314,7 +334,7 @@ File_WriteAllLines:
   className: File
   member: method
   name: WriteAllLines
-  injectableArguments: 0
+  injectableArguments: 0, 1
   locale: SCS0018
 
 File_WriteAllText:
@@ -322,7 +342,7 @@ File_WriteAllText:
   className: File
   member: method
   name: WriteAllText
-  injectableArguments: 0
+  injectableArguments: 0, 1
   locale: SCS0018
 
 #XmlReader
@@ -353,6 +373,8 @@ XmlReader_Create_uri_settings_context:
   argTypes: (System.String, System.Xml.XmlReaderSettings, System.Xml.XmlParserContext)
   injectableArguments: 0
   locale: SCS0018
+
+#StreamReader
 
 StreamReader_Create_path:
   namespace: System.IO
@@ -397,4 +419,179 @@ StreamReader_Create_path_encoding_bool_int:
   name: .ctor
   argTypes: (System.String, System.Text.Encoding, System.Boolean, System.Int32)
   injectableArguments: 0
+  locale: SCS0018
+
+#StreamWriter
+
+StreamWriter1:
+  namespace: System.IO
+  className: StreamWriter
+  member: method
+  name: .ctor
+  argTypes: (System.String)
+  injectableArguments: 0
+  locale: SCS0018
+
+StreamWriter2:
+  namespace: System.IO
+  className: StreamWriter
+  member: method
+  name: .ctor
+  argTypes: (System.String, System.Boolean)
+  injectableArguments: 0, 1
+  locale: SCS0018
+
+StreamWriter3:
+  namespace: System.IO
+  className: StreamWriter
+  member: method
+  name: .ctor
+  argTypes: (System.String, System.Boolean, System.Text.Encoding)
+  injectableArguments: 0, 1
+  locale: SCS0018
+
+StreamWriter4:
+  namespace: System.IO
+  className: StreamWriter
+  member: method
+  name: .ctor
+  argTypes: (System.String, System.Boolean, System.Text.Encoding, System.Int32)
+  injectableArguments: 0, 1
+  locale: SCS0018
+
+#FileStream
+
+FileStream_Constructor1:
+  namespace: System.IO
+  className: FileStream
+  member: method
+  name: .ctor
+  argTypes: (System.IntPtr, System.IO.FileAccess)
+  injectableArguments: 0, 1
+  locale: SCS0018
+
+FileStream_Constructor2:
+  namespace: System.IO
+  className: FileStream
+  member: method
+  name: .ctor
+  argTypes: (System.IntPtr, System.IO.FileAccess, System.Boolean)
+  injectableArguments: 0, 1
+  locale: SCS0018
+
+FileStream_Constructor3:
+  namespace: System.IO
+  className: FileStream
+  member: method
+  name: .ctor
+  argTypes: (System.IntPtr, System.IO.FileAccess, System.Boolean, System.Int32)
+  injectableArguments: 0, 1
+  locale: SCS0018
+
+FileStream_Constructor4:
+  namespace: System.IO
+  className: FileStream
+  member: method
+  name: .ctor
+  argTypes: (System.IntPtr, System.IO.FileAccess, System.Boolean, System.Int32, System.Boolean)
+  injectableArguments: 0, 1
+  locale: SCS0018
+
+FileStream_Constructor5:
+  namespace: System.IO
+  className: FileStream
+  member: method
+  name: .ctor
+  argTypes: (Microsoft.Win32.SafeHandles.SafeFileHandle, System.IO.FileAccess)
+  injectableArguments: 0, 1
+  locale: SCS0018
+
+FileStream_Constructor6:
+  namespace: System.IO
+  className: FileStream
+  member: method
+  name: .ctor
+  argTypes: (Microsoft.Win32.SafeHandles.SafeFileHandle, System.IO.FileAccess, System.Int32)
+  injectableArguments: 0, 1
+  locale: SCS0018
+
+FileStream_Constructor7:
+  namespace: System.IO
+  className: FileStream
+  member: method
+  name: .ctor
+  argTypes: (Microsoft.Win32.SafeHandles.SafeFileHandle, System.IO.FileAccess, System.Int32, System.Boolean)
+  injectableArguments: 0, 1
+  locale: SCS0018
+
+FileStream_Constructor8:
+  namespace: System.IO
+  className: FileStream
+  member: method
+  name: .ctor
+  argTypes: (System.String, System.IO.FileMode)
+  injectableArguments: 0, 1
+  locale: SCS0018
+
+FileStream_Constructor9:
+  namespace: System.IO
+  className: FileStream
+  member: method
+  name: .ctor
+  argTypes: (System.String, System.IO.FileMode, System.IO.FileAccess)
+  injectableArguments: 0, 1, 2
+  locale: SCS0018
+
+FileStream_Constructor10:
+  namespace: System.IO
+  className: FileStream
+  member: method
+  name: .ctor
+  argTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare)
+  injectableArguments: 0, 1, 2, 3
+  locale: SCS0018
+
+FileStream_Constructor11:
+  namespace: System.IO
+  className: FileStream
+  member: method
+  name: .ctor
+  argTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare, System.Int32)
+  injectableArguments: 0, 1, 2, 3
+  locale: SCS0018
+
+FileStream_Constructor12:
+  namespace: System.IO
+  className: FileStream
+  member: method
+  name: .ctor
+  argTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare, System.Int32, System.Boolean)
+  injectableArguments: 0, 1, 2, 3
+  locale: SCS0018
+
+FileStream_Constructor13:
+  namespace: System.IO
+  className: FileStream
+  member: method
+  name: .ctor
+  argTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare, System.Int32, System.IO.FileOptions)
+  injectableArguments: 0, 1, 2, 3, 5
+  locale: SCS0018
+
+FileStream_Constructor14:
+  namespace: System.IO
+  className: FileStream
+  member: method
+  name: .ctor
+  argTypes: (System.String, System.IO.FileMode, System.Security.AccessControl.FileSystemRights, System.IO.FileShare, System.Int32, System.IO.FileOptions)
+  injectableArguments: 0, 1, 2, 3, 5
+  locale: SCS0018
+
+FileStream_Constructor15:
+  namespace: System.IO
+  className: FileStream
+  member: method
+  name: .ctor
+  argTypes: (System.String, System.IO.FileMode, System.Security.AccessControl.FileSystemRights, System.IO.FileShare, System.Int32, System.IO.FileOptions, System.Security.AccessControl.FileSecurity)
+  injectableArguments: 0, 1, 2, 3, 5, 6
   locale: SCS0018

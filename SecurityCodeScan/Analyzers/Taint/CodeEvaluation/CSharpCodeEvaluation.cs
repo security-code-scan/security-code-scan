@@ -204,7 +204,16 @@ namespace SecurityCodeScan.Analyzers.Taint
                 case IdentifierNameSyntax identifierNameSyntax:
                     return VisitIdentifierName(identifierNameSyntax, state);
                 case BinaryExpressionSyntax binaryExpressionSyntax:
+                {
+                    switch (binaryExpressionSyntax.Kind())
+                    {
+                        case SyntaxKind.AsExpression:
+                        case SyntaxKind.IsExpression:
+                            return VisitNode(binaryExpressionSyntax.Left, state);
+                    }
+
                     return VisitBinaryExpression(binaryExpressionSyntax, state);
+                }
                 case AssignmentExpressionSyntax assignmentExpressionSyntax:
                     return VisitAssignment(assignmentExpressionSyntax, state);
                 case MemberAccessExpressionSyntax memberAccessExpressionSyntax:
@@ -233,6 +242,10 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return new VariableState(queryExpressionSyntax, VariableTaint.Unknown);
                 case InterpolatedStringExpressionSyntax interpolatedStringExpressionSyntax:
                     return VisitInterpolatedString(interpolatedStringExpressionSyntax, state);
+                case CastExpressionSyntax castExpressionSyntax:
+                    return VisitExpression(castExpressionSyntax.Expression, state);
+                case DefaultExpressionSyntax defaultExpressionSyntax:
+                    return new VariableState(defaultExpressionSyntax, VariableTaint.Constant);
             }
 
             Logger.Log("Unsupported expression " + expression.GetType() + " (" + expression.ToString() + ")");
@@ -466,9 +479,6 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (state.VariableStates.TryGetValue(value, out var varState))
                 return varState;
 
-            // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
-            state.AddNewValue(value, new VariableState(expression, VariableTaint.Unknown));
-
             var symbol = state.GetSymbol(expression);
             if (symbol == null)
                 return new VariableState(expression, VariableTaint.Unknown);
@@ -481,8 +491,12 @@ namespace SecurityCodeScan.Analyzers.Taint
                 if (!field.IsReadOnly)
                     return new VariableState(expression, VariableTaint.Unknown);
 
-                if (field.IsType("System.String.Empty"))
-                    return new VariableState(expression, VariableTaint.Constant);
+                switch (field.ToDisplayString(SymbolExtensions.SymbolDisplayFormat))
+                {
+                    case "System.String.Empty":
+                    case "System.IntPtr.Zero":
+                        return new VariableState(expression, VariableTaint.Constant);
+                }
 
                 return new VariableState(expression, VariableTaint.Unknown);
             }
@@ -499,10 +513,18 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                 var syntaxNode = (CSharpSyntaxNode)syntaxNodeProperty.GetValue(prop.GetMethod);
                 if (syntaxNode is BlockSyntax blockSyntax)
+                {
+                    // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
+                    state.AddNewValue(value, new VariableState(expression, VariableTaint.Unknown));
                     return VisitBlock(blockSyntax, state);
+                }
 
                 if (syntaxNode is ArrowExpressionClauseSyntax arrowSyntax)
+                {
+                    // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
+                    state.AddNewValue(value, new VariableState(expression, VariableTaint.Unknown));
                     return VisitExpression(arrowSyntax.Expression, state);
+                }
 
                 return new VariableState(expression, VariableTaint.Unknown);
             }

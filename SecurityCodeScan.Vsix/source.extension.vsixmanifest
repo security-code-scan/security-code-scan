@@ -1,11 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="EA274E2A-E5EB-433B-9847-4CD27BE874EF" Version="2.4.1" Language="en-US" Publisher="JaroslavLobacevski"/>
+        <Identity Id="EA274E2A-E5EB-433B-9847-4CD27BE874EF" Version="2.5.0" Language="en-US" Publisher="JaroslavLobacevski"/>
         <DisplayName>Security Code Scan</DisplayName>
         <Description xml:space="preserve">Security static code analyzer for .NET</Description>
         <MoreInfo>https://security-code-scan.github.io</MoreInfo>
         <License>LICENSE-LGPL.txt</License>
+        <GettingStartedGuide>https://security-code-scan.github.io/#Installation</GettingStartedGuide>
+        <ReleaseNotes>https://security-code-scan.github.io/#ReleaseNotes</ReleaseNotes>
         <Icon>icon.png</Icon>
         <PreviewImage>preview.png</PreviewImage>
         <Tags>SecurityCodeScan,Security.Code.Scan,Security Code Scan,Static Code Analysis,Security,Vulnerability,Analyzer,Analyzers,.NET,Roslyn,OWASP,Injection,XSS,CSRF,XXE,SQLi</Tags>

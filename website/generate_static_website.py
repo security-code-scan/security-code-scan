@@ -42,4 +42,6 @@ writeGroup(outFile, rulesDir, "requestvalidation.md", requestValidationGroup)
 writeGroup(outFile, rulesDir, "password.md", passwordGroup)
 writeGroup(outFile, rulesDir, "misc.md", miscGroup)
 
+appendFile(outFile, os.path.join(THIS_DIR, "releasenotes.md"))
+
 outFile.close()

@@ -18,34 +18,6 @@ namespace SecurityCodeScan.Test
         }
 
         [TestMethod]
-        public async Task SHA256Create()
-        {
-            var cSharpTest = @"
-using System.Security.Cryptography;
-
-class Test
-{
-    static void foo()
-    {
-        var hash = SHA256.Create();
-    }
-}";
-
-            var visualBasicTest = @"
-Imports System.Security.Cryptography
-
-Class Test
-    Private Shared Sub foo()
-        Dim hash As SHA256 = SHA256.Create()
-    End Sub
-End Class
-";
-
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
-        }
-
-        [TestMethod]
         public async Task NotSHA1Create()
         {
             var cSharpTest = @"
@@ -137,27 +109,46 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
-        [TestMethod]
-        public async Task CreateByNameSha256()
+        [DataRow("HashAlgorithm.Create(\"System.Security.Cryptography.SHA256\")")]
+        [DataRow("SHA256.Create()")]
+        [DataRow("CryptoConfig.CreateFromName(name)")] // todo: introduce configuration setting to show questionable findings
+        [DataRow("HashAlgorithm.Create(name)")]
+        [DataRow("HashAlgorithm.Create(Sha1Name)")]
+        // [DataRow("HashAlgorithm.Create(Sha256Name)")] todo: property check not implemented
+        [DataTestMethod]
+        public async Task HashCreateSafe(string create)
         {
-            var cSharpTest = @"
+            var cSharpTest = $@"
 using System.Security.Cryptography;
 
 class WeakHashing
-{
-    static void Foo()
-    {
-        var sha = HashAlgorithm.Create(""System.Security.Cryptography.SHA256"");
-    }
-}
+{{
+    static string Sha256Name {{ get {{ return ""System.Security.Cryptography.SHA256""; }} }}
+    static string Sha1Name   {{ get {{ return ""System.Security.Cryptography.SHA1""; }} }}
+
+    static void Foo(string name)
+    {{
+        var sha = {create};
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
+            var visualBasicTest = $@"
 Imports System.Security.Cryptography
 
 Class WeakHashing
-    Private Shared Sub Foo()
-        Dim sha As HashAlgorithm = HashAlgorithm.Create(""System.Security.Cryptography.SHA256"")
+    Private Shared ReadOnly Property Sha256Name() As String
+        Get
+            Return ""System.Security.Cryptography.SHA256""
+        End Get
+    End Property
+    Private Shared ReadOnly Property Sha1Name() As String
+        Get
+            Return ""System.Security.Cryptography.SHA1""
+        End Get
+    End Property
+    Private Shared Sub Foo(name As System.String)
+        Dim sha As HashAlgorithm = {create}
     End Sub
 End Class
 ";

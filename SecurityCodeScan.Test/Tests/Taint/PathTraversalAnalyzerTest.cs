@@ -15,19 +15,18 @@ namespace SecurityCodeScan.Test.Taint
     [TestClass]
     public class PathTraversalAnalyzerTest : DiagnosticVerifier
     {
+        private static readonly PortableExecutableReference[] References =
+        {
+            MetadataReference.CreateFromFile(typeof(File).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(XmlReader).Assembly.Location)
+        };
+
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
             return new[] { new TaintAnalyzer() };
         }
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
-        {
-            return new[]
-            {
-                MetadataReference.CreateFromFile(typeof(File).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(XmlReader).Assembly.Location)
-            };
-        }
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
 
         [DataRow("File.AppendAllLines(path, null)")]
         [DataRow("AppendAllLines(path, null)")]

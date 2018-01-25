@@ -18,14 +18,13 @@ namespace SecurityCodeScan.Test.Taint
             return new[] { new TaintAnalyzer() };
         }
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
+        private static readonly PortableExecutableReference[] References =
         {
-            return new[]
-            {
-                MetadataReference.CreateFromFile(typeof(DataContext).Assembly.Location), //Main assembly for Linq
-                MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location)
-            }; //Seems to be needed so that invoke symbol gets build
-        }
+            MetadataReference.CreateFromFile(typeof(DataContext).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location)
+        };
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
 
         [TestMethod]
         public async Task LinqInjectionFalsePositiveWithGeneric()

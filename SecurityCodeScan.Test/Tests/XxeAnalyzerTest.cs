@@ -19,10 +19,12 @@ namespace SecurityCodeScan.Test.Xxe
             return new[] { new XxeAnalyzer() };
         }
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
+        private static readonly PortableExecutableReference[] References =
         {
-            return new[] { MetadataReference.CreateFromFile(typeof(XmlNode).Assembly.Location) };
-        }
+            MetadataReference.CreateFromFile(typeof(XmlNode).Assembly.Location)
+        };
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
 
         [TestMethod]
         public async Task XxeFalsePositive1()
@@ -254,10 +256,12 @@ End Class
             return new DiagnosticAnalyzer[] { new XxeAnalyzer(), new TaintAnalyzer() };
         }
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
+        private static readonly PortableExecutableReference[] References =
         {
-            return new[] { MetadataReference.CreateFromFile(typeof(XmlNode).Assembly.Location) };
-        }
+            MetadataReference.CreateFromFile(typeof(XmlNode).Assembly.Location)
+        };
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
 
         [TestMethod]
         public async Task FalsePositive1()

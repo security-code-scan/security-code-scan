@@ -15,10 +15,12 @@ namespace SecurityCodeScan.Test.InsecureCookie
     [TestClass]
     public class InsecureCookieCodeFixProviderTest : CodeFixVerifier
     {
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
+        private static readonly PortableExecutableReference[] References =
         {
-            return new[] { MetadataReference.CreateFromFile(typeof(HttpCookie).Assembly.Location) };
-        }
+            MetadataReference.CreateFromFile(typeof(HttpCookie).Assembly.Location)
+        };
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {

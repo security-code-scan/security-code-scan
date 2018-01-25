@@ -18,10 +18,12 @@ namespace SecurityCodeScan.Test
             return new[] { new RequestValidationAnalyzer() };
         }
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
+        private static readonly PortableExecutableReference[] References =
         {
-            return new[] { MetadataReference.CreateFromFile(typeof(ValidateInputAttribute).Assembly.Location) };
-        }
+            MetadataReference.CreateFromFile(typeof(ValidateInputAttribute).Assembly.Location)
+        };
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
 
         [TestMethod]
         public async Task DetectAnnotationValidateInput()

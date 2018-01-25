@@ -335,15 +335,14 @@ End Namespace
 
         protected override string AllowAnonymousNamespace => "System.Web.Mvc";
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
+        private static readonly PortableExecutableReference[] References =
         {
-            return new[]
-            {
-                MetadataReference.CreateFromFile(typeof(System.Web.Mvc.ValidateAntiForgeryTokenAttribute).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(System.Web.Mvc.HttpPostAttribute).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(System.Web.Mvc.AllowAnonymousAttribute).Assembly.Location)
-            };
-        }
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.ValidateAntiForgeryTokenAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.HttpPostAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.AllowAnonymousAttribute).Assembly.Location)
+        };
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
@@ -358,15 +357,14 @@ End Namespace
 
         protected override string AllowAnonymousNamespace => "Microsoft.AspNetCore.Authorization";
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
+        private static readonly PortableExecutableReference[] References =
         {
-            return new[]
-            {
-                MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.HttpPostAttribute).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute).Assembly.Location)
-            };
-        }
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.HttpPostAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute).Assembly.Location)
+        };
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
@@ -466,15 +464,14 @@ End Namespace
             };
         }
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
+        private static readonly PortableExecutableReference[] References =
         {
-            return new[]
-            {
-                MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.HttpPostAttribute).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(System.Web.Mvc.ValidateAntiForgeryTokenAttribute).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(System.Web.Mvc.HttpPostAttribute).Assembly.Location)
-            };
-        }
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.HttpPostAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.ValidateAntiForgeryTokenAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.HttpPostAttribute).Assembly.Location)
+        };
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
     }
 }

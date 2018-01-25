@@ -18,10 +18,12 @@ namespace SecurityCodeScan.Test.Taint
             return new[] { new TaintAnalyzer() };
         }
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
+        private static readonly PortableExecutableReference[] References =
         {
-            return new[] { MetadataReference.CreateFromFile(typeof(XmlNode).Assembly.Location) };
-        }
+            MetadataReference.CreateFromFile(typeof(XmlNode).Assembly.Location)
+        };
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
 
         //No diagnostics expected to show up
         [TestMethod]

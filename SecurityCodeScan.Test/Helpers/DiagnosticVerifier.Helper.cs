@@ -27,10 +27,10 @@ namespace SecurityCodeScan.Test.Helpers
         private static readonly CompilationOptions CSharpDefaultOptions      = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
         private static readonly CompilationOptions VisualBasicDefaultOptions = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
-        internal static string DefaultFilePathPrefix = "Test";
-        internal static string CSharpDefaultFileExt  = "cs";
-        internal static string VisualBasicDefaultExt = "vb";
-        internal static string TestProjectName       = "TestProject";
+        internal const string DefaultFilePathPrefix = "Test";
+        internal const string CSharpDefaultFileExt  = "cs";
+        internal const string VisualBasicDefaultExt = "vb";
+        internal const string TestProjectName       = "TestProject";
 
         #region  Get Diagnostics
 

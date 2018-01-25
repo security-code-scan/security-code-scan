@@ -17,17 +17,16 @@ namespace SecurityCodeScan.Test.Taint
             return new[] { new TaintAnalyzer() };
         }
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
+        private static readonly PortableExecutableReference[] References =
         {
-            return new[]
-            {
-                MetadataReference.CreateFromFile(typeof(System.Web.HttpResponse).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Http.HttpResponse).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.Controller).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ControllerBase).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(System.Web.Mvc.ActionResult).Assembly.Location),
-            };
-        }
+            MetadataReference.CreateFromFile(typeof(System.Web.HttpResponse).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Http.HttpResponse).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.Controller).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ControllerBase).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.ActionResult).Assembly.Location),
+        };
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
 
         [DataRow("System.Web",                "Response.Redirect(input)")]
         [DataRow("System.Web",                "Response.Redirect(input, true)")]

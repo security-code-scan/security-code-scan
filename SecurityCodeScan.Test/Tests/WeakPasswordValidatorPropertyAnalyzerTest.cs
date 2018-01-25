@@ -20,19 +20,14 @@ namespace SecurityCodeScan.Test
             return new DiagnosticAnalyzer[] { new WeakPasswordValidatorPropertyAnalyzer(), new TaintAnalyzer() };
         }
 
-        /// <summary>
-        /// Indicates which references are needed for the code segments to compile
-        /// </summary>
-        /// <returns>An array containing the different references required for the code segments to compile</returns>
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
+        private static readonly PortableExecutableReference[] References =
         {
-            return new[]
-            {
-                MetadataReference.CreateFromFile(typeof(Controller).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(PasswordValidator).Assembly.Location)
-            };
-        }
+            MetadataReference.CreateFromFile(typeof(Controller).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(PasswordValidator).Assembly.Location)
+        };
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
 
         /// <summary>
         /// Test case where the RequiredLength field has an accepted value.

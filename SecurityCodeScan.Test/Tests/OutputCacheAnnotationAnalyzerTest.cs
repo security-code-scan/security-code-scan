@@ -18,10 +18,12 @@ namespace SecurityCodeScan.Test
             return new[] { new OutputCacheAnnotationAnalyzer() };
         }
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences()
+        private static readonly PortableExecutableReference[] References =
         {
-            return new[] { MetadataReference.CreateFromFile(typeof(OutputCacheAttribute).Assembly.Location) };
-        }
+            MetadataReference.CreateFromFile(typeof(OutputCacheAttribute).Assembly.Location)
+        };
+
+        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
 
         [TestMethod]
         public async Task DetectAnnotation1()

@@ -652,7 +652,6 @@ Microsoft.AspNetCore.Http.HttpResponse_Redirect_string_bool:
    injectableArguments: 0
    locale: SCS0027
 
-
 Controller_Redirect_string:
     namespace: System.Web.Mvc
     className: Controller
@@ -705,4 +704,57 @@ AspNetCore_Controller_RedirectPermanentPreserveMethod_string:
     name: RedirectPermanentPreserveMethod
     argTypes: (System.String)
     injectableArguments: 0
+    locale: SCS0027
+
+Controller_RedirectResult_string:
+    namespace: System.Web.Mvc
+    className: RedirectResult
+    member: method
+    name: .ctor
+    argTypes: (System.String)
+    injectableArguments: 0
+    locale: SCS0027
+
+Controller_RedirectResult_string_bool:
+    namespace: System.Web.Mvc
+    className: RedirectResult
+    member: method
+    name: .ctor
+    argTypes: (System.String, System.Boolean)
+    injectableArguments: 0
+    locale: SCS0027
+
+AspNetCore_RedirectResult_string:
+    namespace: Microsoft.AspNetCore.Mvc
+    className: RedirectResult
+    member: method
+    name: .ctor
+    argTypes: (System.String)
+    injectableArguments: 0
+    locale: SCS0027
+
+AspNetCore_RedirectResult_string_bool:
+    namespace: Microsoft.AspNetCore.Mvc
+    className: RedirectResult
+    member: method
+    name: .ctor
+    argTypes: (System.String, System.Boolean)
+    injectableArguments: 0
+    locale: SCS0027
+
+AspNetCore_RedirectResult_string_bool_bool:
+    namespace: Microsoft.AspNetCore.Mvc
+    className: RedirectResult
+    member: method
+    name: .ctor
+    argTypes: (System.String, System.Boolean, System.Boolean)
+    injectableArguments: 0
+    locale: SCS0027
+
+AspNetCore_RedirectResult_Url:
+    namespace: Microsoft.AspNetCore.Mvc
+    className: RedirectResult
+    member: field
+    name: Url
+    injectableField: true
     locale: SCS0027

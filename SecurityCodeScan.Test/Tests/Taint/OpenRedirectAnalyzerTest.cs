@@ -116,7 +116,12 @@ End Class
         [DataRow("System.Web.Mvc",           "RedirectPermanent(input)")]
         [DataRow("Microsoft.AspNetCore.Mvc", "Redirect(input)")]
         [DataRow("Microsoft.AspNetCore.Mvc", "RedirectPermanent(input)")]
+        [DataRow("System.Web.Mvc",           "new RedirectResult(input)")]
+        [DataRow("System.Web.Mvc",           "new RedirectResult(input, true)")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "new RedirectResult(input)")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "new RedirectResult(input, true)")]
         // todo: AspNetCore 2.0
+        //[DataRow("Microsoft.AspNetCore.Mvc", "new RedirectResult(input, true, true)")]
         //[DataRow("Microsoft.AspNetCore.Mvc", "RedirectPreserveMethod(input)")]
         //[DataRow("Microsoft.AspNetCore.Mvc", "RedirectPermanentPreserveMethod(input)")]
         [DataTestMethod]
@@ -160,7 +165,12 @@ End Class
         [DataRow("System.Web.Mvc",           "RedirectPermanent(\"\")")]
         [DataRow("Microsoft.AspNetCore.Mvc", "Redirect(\"\")")]
         [DataRow("Microsoft.AspNetCore.Mvc", "RedirectPermanent(\"\")")]
+        [DataRow("System.Web.Mvc",           "new RedirectResult(\"\")")]
+        [DataRow("System.Web.Mvc",           "new RedirectResult(\"\", flag)")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "new RedirectResult(\"\")")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "new RedirectResult(\"\", flag)")]
         // todo: AspNetCore 2.0
+        //[DataRow("Microsoft.AspNetCore.Mvc", "new RedirectResult(\"\", flag, flag)")]
         //[DataRow("Microsoft.AspNetCore.Mvc", "RedirectPreserveMethod(\"\")")]
         //[DataRow("Microsoft.AspNetCore.Mvc", "RedirectPermanentPreserveMethod(\"\")")]
         [DataTestMethod]
@@ -171,7 +181,7 @@ using {@namespace};
 
 class OpenRedirect : Controller
 {{
-    public ActionResult Run()
+    public ActionResult Run(bool flag)
     {{
         return {sink};
     }}
@@ -184,13 +194,117 @@ Imports {@namespace}
 Public Class OpenRedirect
     Inherits Controller
 
-    Public Function Run() as ActionResult
+    Public Function Run(flag As Boolean) as ActionResult
         Return {sink}
     End Function
 End Class
 ";
 
             await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
+        }
+
+        [DataRow("Microsoft.AspNetCore.Mvc")]
+        [DataTestMethod]
+        public async Task OpenRedirectController2(string @namespace)
+        {
+            var cSharpTest1 = $@"
+using {@namespace};
+
+class OpenRedirect : Controller
+{{
+    public ActionResult Run(string input)
+    {{
+        var a = new RedirectResult("""");
+        a.Url = input;
+        return a;
+    }}
+}}
+";
+
+            var cSharpTest2 = $@"
+using {@namespace};
+
+class OpenRedirect : Controller
+{{
+    public ActionResult Run(string input)
+    {{
+        return new RedirectResult("""") {{Url = input}};
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports {@namespace}
+
+Public Class OpenRedirect
+    Inherits Controller
+
+    Public Function Run(input As String) as ActionResult
+        Dim a As New RedirectResult("""")
+        a.Url = input
+        Return a
+    End Function
+End Class
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0027",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest1, expected);
+            await VerifyCSharpDiagnostic(cSharpTest2, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+        }
+
+        [DataRow("Microsoft.AspNetCore.Mvc")]
+        [DataTestMethod]
+        public async Task OpenRedirectController2Const(string @namespace)
+        {
+            var cSharpTest1 = $@"
+using {@namespace};
+
+class OpenRedirect : Controller
+{{
+    public ActionResult Run()
+    {{
+        var a = new RedirectResult("""");
+        a.Url = """";
+        return a;
+    }}
+}}
+";
+
+            var cSharpTest2 = $@"
+using {@namespace};
+
+class OpenRedirect : Controller
+{{
+    public ActionResult Run(string input)
+    {{
+        return new RedirectResult("""") {{Url = """"}};
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports {@namespace}
+
+Public Class OpenRedirect
+    Inherits Controller
+
+    Public Function Run() as ActionResult
+        Dim a As New RedirectResult("""")
+        a.Url = """"
+        Return a
+    End Function
+End Class
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest1);
+            await VerifyCSharpDiagnostic(cSharpTest2);
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
     }

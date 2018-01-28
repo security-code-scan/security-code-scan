@@ -54,6 +54,125 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
+        [DataRow("MD5",  "MD5.Create")]
+        [DataRow("SHA1", "SHA1.Create")]
+        [DataTestMethod]
+        public async Task Delegate(string type, string create)
+        {
+            var cSharpTest = $@"
+using System.Security.Cryptography;
+
+class WeakHashing
+{{
+    public delegate {type} Del();
+
+    static void foo()
+    {{
+        Del a = {create};
+        var h = a();
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports System.Security.Cryptography
+
+Class WeakHashing
+    Public Delegate Function Del() As {type}
+    Private Shared Sub foo()
+        Dim a As Del = AddressOf {create}
+        Dim h = a()
+    End Sub
+End Class
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0006",
+                Severity = DiagnosticSeverity.Warning
+            };
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+        }
+
+        [DataRow("MD5",                          "MD5.Create",                  "")]
+        [DataRow("SHA1",                         "SHA1.Create",                 "")]
+        [DataRow("System.String, System.Object", "CryptoConfig.CreateFromName", "\"SHA\""), Ignore] // todo: not implemented
+        [DataTestMethod]
+        public async Task Func(string type, string create, string arguments)
+        {
+            var cSharpTest = $@"
+using System;
+using System.Security.Cryptography;
+
+class WeakHashing
+{{
+    static void foo()
+    {{
+        new Func<{type}>({create})({arguments});
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports System
+Imports System.Security.Cryptography
+
+Class WeakHashing
+    Private Shared Sub foo()
+        Dim func As Func(Of {type}) = AddressOf {create}
+        Dim mD As {type} = func({arguments})
+    End Sub
+End Class
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0006",
+                Severity = DiagnosticSeverity.Warning
+            };
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+        }
+
+        [DataRow("MD5", "MD5.Create")]
+        [DataRow("SHA1", "SHA1.Create")]
+        [DataTestMethod]
+        public async Task Lazy(string type, string create)
+        {
+            var cSharpTest = $@"
+using System;
+using System.Security.Cryptography;
+
+class WeakHashing
+{{
+    static void foo()
+    {{
+        var l = new Lazy<{type}>({create}).Value;
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports System
+Imports System.Security.Cryptography
+
+Class WeakHashing
+    Private Shared Sub foo()
+        Dim a = New Lazy(Of {type}) (AddressOf {create}).Value
+    End Sub
+End Class
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0006",
+                Severity = DiagnosticSeverity.Warning
+            };
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+        }
+
         [DataRow("MD5.Create()")]
         [DataRow("new MD5CryptoServiceProvider()")]
         [DataRow("new MD5Cng()")]

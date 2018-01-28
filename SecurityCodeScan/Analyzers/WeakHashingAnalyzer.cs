@@ -23,6 +23,8 @@ namespace SecurityCodeScan.Analyzers
         {
             context.RegisterSyntaxNodeAction(VisitInvocationSyntaxNode, CSharp.SyntaxKind.InvocationExpression);
             context.RegisterSyntaxNodeAction(VisitInvocationSyntaxNode, VB.SyntaxKind.InvocationExpression);
+            context.RegisterSyntaxNodeAction(VisitMemberAccessSyntaxNode, CSharp.SyntaxKind.SimpleMemberAccessExpression);
+            context.RegisterSyntaxNodeAction(VisitMemberAccessSyntaxNode, VB.SyntaxKind.SimpleMemberAccessExpression);
             context.RegisterSyntaxNodeAction(VisitObjectCreationSyntaxNode, CSharp.SyntaxKind.ObjectCreationExpression);
             context.RegisterSyntaxNodeAction(VisitObjectCreationSyntaxNode, VB.SyntaxKind.ObjectCreationExpression);
         }
@@ -47,6 +49,30 @@ namespace SecurityCodeScan.Analyzers
             }
         }
 
+        private static void VisitMemberAccessSyntaxNode(SyntaxNodeAnalysisContext ctx)
+        {
+            var symbol = ctx.SemanticModel.GetSymbolInfo(ctx.Node).Symbol;
+            if (symbol == null)
+                return;
+
+            var symbolString = symbol.ToDisplayString(SymbolExtensions.SymbolDisplayFormat);
+            switch (symbolString)
+            {
+                case "System.Security.Cryptography.MD5.Create":
+                {
+                    var diagnostic = Diagnostic.Create(Md5Rule, ctx.Node.GetLocation());
+                    ctx.ReportDiagnostic(diagnostic);
+                    break;
+                }
+                case "System.Security.Cryptography.SHA1.Create":
+                {
+                    var diagnostic = Diagnostic.Create(Sha1Rule, ctx.Node.GetLocation());
+                    ctx.ReportDiagnostic(diagnostic);
+                    break;
+                }
+            }
+        }
+
         private static void VisitInvocationSyntaxNode(SyntaxNodeAnalysisContext ctx)
         {
             SyntaxNode expression;
@@ -66,43 +92,31 @@ namespace SecurityCodeScan.Analyzers
             var symbolString = symbol.ToDisplayString(SymbolExtensions.SymbolDisplayFormat);
             switch (symbolString)
             {
-                case "System.Security.Cryptography.MD5.Create":
-                {
-                    var diagnostic = Diagnostic.Create(Md5Rule, expression.GetLocation());
-                    ctx.ReportDiagnostic(diagnostic);
-                    break;
-                }
-                case "System.Security.Cryptography.SHA1.Create":
-                {
-                    var diagnostic = Diagnostic.Create(Sha1Rule, expression.GetLocation());
-                    ctx.ReportDiagnostic(diagnostic);
-                    break;
-                }
                 case "System.Security.Cryptography.CryptoConfig.CreateFromName":
-                {
-                    var methodSymbol = (IMethodSymbol)symbol;
-                    DiagnosticDescriptor rule;
-                    if (methodSymbol.Parameters.Length == 1 && (rule = CheckParameter(ctx)) != null)
                     {
-                        var diagnostic = Diagnostic.Create(rule, expression.GetLocation());
-                        ctx.ReportDiagnostic(diagnostic);
-                    }
+                        var methodSymbol = (IMethodSymbol)symbol;
+                        DiagnosticDescriptor rule;
+                        if (methodSymbol.Parameters.Length == 1 && (rule = CheckParameter(ctx)) != null)
+                        {
+                            var diagnostic = Diagnostic.Create(rule, expression.GetLocation());
+                            ctx.ReportDiagnostic(diagnostic);
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case "System.Security.Cryptography.HashAlgorithm.Create":
-                {
-                    var methodSymbol = (IMethodSymbol)symbol;
-                    DiagnosticDescriptor rule = Sha1Rule; // default if no parameters
-                    if (methodSymbol.Parameters.Length == 0 ||
-                        (methodSymbol.Parameters.Length == 1 && (rule = CheckParameter(ctx)) != null))
                     {
-                        var diagnostic = Diagnostic.Create(rule, expression.GetLocation());
-                        ctx.ReportDiagnostic(diagnostic);
-                    }
+                        var methodSymbol = (IMethodSymbol)symbol;
+                        DiagnosticDescriptor rule = Sha1Rule; // default if no parameters
+                        if (methodSymbol.Parameters.Length == 0 ||
+                            (methodSymbol.Parameters.Length == 1 && (rule = CheckParameter(ctx)) != null))
+                        {
+                            var diagnostic = Diagnostic.Create(rule, expression.GetLocation());
+                            ctx.ReportDiagnostic(diagnostic);
+                        }
 
-                    break;
-                }
+                        break;
+                    }
             }
         }
 

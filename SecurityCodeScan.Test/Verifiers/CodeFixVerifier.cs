@@ -93,7 +93,7 @@ namespace SecurityCodeScan.Test.Helpers
                                      int?                     codeFixIndex,
                                      bool                     allowNewCompilerDiagnostics)
         {
-            var document            = CreateDocument(oldSource, language, GetAdditionnalReferences());
+            var document            = CreateDocument(oldSource, language, GetAdditionalReferences());
             var analyzerDiagnostics = await GetSortedDiagnosticsFromDocuments(analyzers, new[] { document });
             var compilerDiagnostics = await GetCompilerDiagnostics(document);
             foreach (Diagnostic diag in compilerDiagnostics)

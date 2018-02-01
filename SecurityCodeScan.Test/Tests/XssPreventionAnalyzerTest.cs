@@ -33,7 +33,7 @@ namespace SecurityCodeScan.Test
                                                      .Location),
         };
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
+        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         #region Tests that are producing diagnostics
 

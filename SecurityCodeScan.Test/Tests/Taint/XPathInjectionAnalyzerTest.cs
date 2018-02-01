@@ -23,7 +23,7 @@ namespace SecurityCodeScan.Test.Taint
             MetadataReference.CreateFromFile(typeof(XmlNode).Assembly.Location)
         };
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
+        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         //No diagnostics expected to show up
         [TestMethod]

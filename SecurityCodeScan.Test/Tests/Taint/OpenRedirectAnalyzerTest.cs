@@ -26,7 +26,7 @@ namespace SecurityCodeScan.Test.Taint
             MetadataReference.CreateFromFile(typeof(System.Web.Mvc.ActionResult).Assembly.Location),
         };
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
+        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [DataRow("System.Web",                "Response.Redirect(input)")]
         [DataRow("System.Web",                "Response.Redirect(input, true)")]

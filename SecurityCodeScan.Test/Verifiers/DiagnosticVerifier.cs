@@ -23,7 +23,7 @@ namespace SecurityCodeScan.Test.Helpers
         /// </summary>
         protected abstract IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers();
 
-        protected virtual IEnumerable<MetadataReference> GetAdditionnalReferences()
+        protected virtual IEnumerable<MetadataReference> GetAdditionalReferences()
         {
             return null;
         }
@@ -120,7 +120,7 @@ namespace SecurityCodeScan.Test.Helpers
             var diagnostics = await GetSortedDiagnostics(sources,
                                                          language,
                                                          analyzers,
-                                                         GetAdditionnalReferences(),
+                                                         GetAdditionalReferences(),
                                                          includeCompilerDiagnostics);
             VerifyDiagnosticResults(diagnostics, analyzers, language, expected);
         }

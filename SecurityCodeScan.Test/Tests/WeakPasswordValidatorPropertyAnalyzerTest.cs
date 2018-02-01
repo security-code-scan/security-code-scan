@@ -27,7 +27,7 @@ namespace SecurityCodeScan.Test
             MetadataReference.CreateFromFile(typeof(PasswordValidator).Assembly.Location)
         };
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
+        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         /// <summary>
         /// Test case where the RequiredLength field has an accepted value.

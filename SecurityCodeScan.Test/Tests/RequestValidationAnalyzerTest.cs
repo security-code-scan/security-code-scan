@@ -23,7 +23,7 @@ namespace SecurityCodeScan.Test
             MetadataReference.CreateFromFile(typeof(ValidateInputAttribute).Assembly.Location)
         };
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
+        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [TestMethod]
         public async Task DetectAnnotationValidateInput()

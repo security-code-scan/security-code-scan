@@ -23,7 +23,7 @@ namespace SecurityCodeScan.Test.Password
             MetadataReference.CreateFromFile(typeof(PasswordDeriveBytes).Assembly.Location)
         };
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
+        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [TestMethod]
         public async Task HardCodePasswordDerivedBytes()

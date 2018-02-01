@@ -24,7 +24,7 @@ namespace SecurityCodeScan.Test.Xxe
             MetadataReference.CreateFromFile(typeof(XmlNode).Assembly.Location)
         };
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
+        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [TestMethod]
         public async Task XxeFalsePositive1()
@@ -261,7 +261,7 @@ End Class
             MetadataReference.CreateFromFile(typeof(XmlNode).Assembly.Location)
         };
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
+        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [TestMethod]
         public async Task FalsePositive1()

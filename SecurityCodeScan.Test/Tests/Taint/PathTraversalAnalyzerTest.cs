@@ -26,7 +26,7 @@ namespace SecurityCodeScan.Test.Taint
             return new[] { new TaintAnalyzer() };
         }
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
+        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [DataRow("File.AppendAllLines(path, null)")]
         [DataRow("AppendAllLines(path, null)")]

@@ -24,7 +24,7 @@ namespace SecurityCodeScan.Test.InsecureCookie
             MetadataReference.CreateFromFile(typeof(HttpCookie).Assembly.Location)
         };
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
+        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [TestMethod]
         public async Task CookieWithoutFlags()

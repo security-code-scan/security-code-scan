@@ -20,7 +20,7 @@ namespace SecurityCodeScan.Test.InsecureCookie
             MetadataReference.CreateFromFile(typeof(HttpCookie).Assembly.Location)
         };
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
+        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {

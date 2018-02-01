@@ -24,7 +24,7 @@ namespace SecurityCodeScan.Test.Taint
             MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location)
         };
 
-        protected override IEnumerable<MetadataReference> GetAdditionnalReferences() => References;
+        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [TestMethod]
         public async Task LinqInjectionFalsePositiveWithGeneric()

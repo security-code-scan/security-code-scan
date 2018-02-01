@@ -130,7 +130,7 @@ SCS0019:
 SCS0021:
   class: ValidateRequestFalse
   title: "Request validation has been disabled in {0}({1}): {2}"
-  description: Request validation, which provided additionnal protection against Cross-Site Scripting (XSS), has been disabled. 
+  description: Request validation, which provided additional protection against Cross-Site Scripting (XSS), has been disabled. 
 
 SCS0022:
   class: EnableEventValidationFalse

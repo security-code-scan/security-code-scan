@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,7 +62,7 @@ namespace SecurityCodeScan.Test.Helpers
             a.Add(new DebugAnalyzer());
 
             await VerifyFix(LanguageNames.CSharp,
-                            a,
+                            a.ToImmutableArray(),
                             GetCSharpCodeFixProvider(),
                             normalizeOld,
                             normalizeNew,
@@ -85,13 +86,13 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="codeFixIndex">Index determining which codefix to apply if there are multiple</param>
         /// <param name="allowNewCompilerDiagnostics">A bool controlling whether or not the test will fail if
         /// the CodeFix introduces other warnings after being applied</param>
-        private async Task VerifyFix(string                   language,
-                                     List<DiagnosticAnalyzer> analyzers,
-                                     CodeFixProvider          codeFixProvider,
-                                     string                   oldSource,
-                                     string                   newSource,
-                                     int?                     codeFixIndex,
-                                     bool                     allowNewCompilerDiagnostics)
+        private async Task VerifyFix(string                             language,
+                                     ImmutableArray<DiagnosticAnalyzer> analyzers,
+                                     CodeFixProvider                    codeFixProvider,
+                                     string                             oldSource,
+                                     string                             newSource,
+                                     int?                               codeFixIndex,
+                                     bool                               allowNewCompilerDiagnostics)
         {
             var document            = CreateDocument(oldSource, language, GetAdditionalReferences());
             var analyzerDiagnostics = await GetSortedDiagnosticsFromDocuments(analyzers, new[] { document });

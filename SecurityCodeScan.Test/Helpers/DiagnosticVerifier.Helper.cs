@@ -45,11 +45,11 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="includeCompilerDiagnostics">Get compiler diagnostics too</param>
         /// <returns>An IEnumerable of Diagnostics that surfaced in the source code, sorted by Location</returns>
         private static async Task<Diagnostic[]> GetSortedDiagnostics(
-            string[]                       sources,
-            string                         language,
-            List<DiagnosticAnalyzer>       analyzers,
-            IEnumerable<MetadataReference> references                 = null,
-            bool                           includeCompilerDiagnostics = false)
+            string[]                           sources,
+            string                             language,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            IEnumerable<MetadataReference>     references                 = null,
+            bool                               includeCompilerDiagnostics = false)
         {
             return await GetSortedDiagnosticsFromDocuments(analyzers,
                                                            GetDocuments(sources, language, references),
@@ -66,9 +66,9 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="includeCompilerDiagnostics">Get compiler diagnostics too</param>
         /// <returns>An IEnumerable of Diagnostics that surfaced in the source code, sorted by Location</returns>
         protected static async Task<Diagnostic[]> GetSortedDiagnosticsFromDocuments(
-            List<DiagnosticAnalyzer> analyzers,
-            Document[]               documents,
-            bool                     includeCompilerDiagnostics = false)
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            IEnumerable<Document>              documents,
+            bool                               includeCompilerDiagnostics = false)
         {
             var projects = new HashSet<Project>();
             foreach (var document in documents)
@@ -80,7 +80,7 @@ namespace SecurityCodeScan.Test.Helpers
             foreach (var project in projects)
             {
                 var compilation              = await project.GetCompilationAsync();
-                var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create(analyzers.ToArray()));
+                var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
                 var diags                    = includeCompilerDiagnostics
                                                    ? await compilationWithAnalyzers.GetAllDiagnosticsAsync()
                                                    : await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
@@ -131,9 +131,9 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="language">The language the source code is in</param>
         /// <returns>A Tuple containing the Documents
         ///  produced from the sources and their TextSpans if relevant</returns>
-        private static Document[] GetDocuments(string[]                       sources,
-                                               string                         language,
-                                               IEnumerable<MetadataReference> references = null)
+        private static IEnumerable<Document> GetDocuments(string[]                       sources,
+                                                          string                         language,
+                                                          IEnumerable<MetadataReference> references = null)
         {
             if (language != LanguageNames.CSharp && language != LanguageNames.VisualBasic)
             {
@@ -141,14 +141,7 @@ namespace SecurityCodeScan.Test.Helpers
             }
 
             var project   = CreateProject(sources, language, references);
-            var documents = project.Documents.ToArray();
-
-            if (sources.Length != documents.Length)
-            {
-                throw new SystemException("Amount of sources did not match amount of Documents created");
-            }
-
-            return documents;
+            return project.Documents;
         }
 
         /// <summary>
@@ -170,9 +163,9 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="sources">Classes in the form of strings</param>
         /// <param name="language">The language the source code is in</param>
         /// <returns>A Project created out of the Documents created from the source strings</returns>
-        private static Project CreateProject(string[]                       sources,
-                                             string                         language   = LanguageNames.CSharp,
-                                             IEnumerable<MetadataReference> references = null)
+        private static Project CreateProject(string[]                           sources,
+                                             string                             language        = LanguageNames.CSharp,
+                                             IEnumerable<MetadataReference>     references      = null)
         {
             string fileNamePrefix = DefaultFilePathPrefix;
             string fileExt        = language == LanguageNames.CSharp ? CSharpDefaultFileExt : VisualBasicDefaultExt;

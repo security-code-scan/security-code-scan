@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,7 +48,7 @@ namespace SecurityCodeScan.Test.Helpers
             a.Add(new DebugAnalyzer());
             await VerifyDiagnostics(new[] { source },
                                     LanguageNames.CSharp,
-                                    a,
+                                    a.ToImmutableArray(),
                                     expected ?? new DiagnosticResult[0],
                                     verifyIfCompiles);
         }
@@ -67,7 +68,7 @@ namespace SecurityCodeScan.Test.Helpers
             a.Add(new DebugAnalyzer());
             await VerifyDiagnostics(new[] { source },
                                     LanguageNames.VisualBasic,
-                                    a,
+                                    a.ToImmutableArray(),
                                     expected ?? new DiagnosticResult[0],
                                     verifyIfCompiles);
         }
@@ -111,11 +112,11 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="analyzers">The analyzers to be run on the source code</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
         /// <param name="includeCompilerDiagnostics">Verify built-in compile diagnostics</param>
-        private async Task VerifyDiagnostics(string[]                 sources,
-                                             string                   language,
-                                             List<DiagnosticAnalyzer> analyzers,
-                                             DiagnosticResult[]       expected,
-                                             bool                     includeCompilerDiagnostics = true)
+        private async Task VerifyDiagnostics(string[]                           sources,
+                                             string                             language,
+                                             ImmutableArray<DiagnosticAnalyzer> analyzers,
+                                             DiagnosticResult[]                 expected,
+                                             bool                               includeCompilerDiagnostics = true)
         {
             var diagnostics = await GetSortedDiagnostics(sources,
                                                          language,
@@ -139,10 +140,10 @@ namespace SecurityCodeScan.Test.Helpers
         /// running the analyzer on the source code</param>
         /// <param name="analyzers">The analyzers that was being run on the sources</param>
         /// <param name="expectedResults">Diagnostic Results that should have appeared in the code</param>
-        private static void VerifyDiagnosticResults(ICollection<Diagnostic>   actualResults,
-                                                    List<DiagnosticAnalyzer>  analyzers,
-                                                    string                    language,
-                                                    params DiagnosticResult[] expectedResults)
+        private static void VerifyDiagnosticResults(ICollection<Diagnostic>            actualResults,
+                                                    ImmutableArray<DiagnosticAnalyzer> analyzers,
+                                                    string                             language,
+                                                    params DiagnosticResult[]          expectedResults)
         {
             int expectedCount = expectedResults.Length;
             int actualCount   = actualResults.Count;

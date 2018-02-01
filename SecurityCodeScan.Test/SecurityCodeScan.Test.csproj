@@ -287,6 +287,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Tests\AspxAnalyzerTest.cs" />
+    <Compile Include="Tests\ExternalFileAnalyzerTest.cs" />
     <Compile Include="Tests\Password\HardcodedPasswordFieldTest.cs" />
     <Compile Include="Tests\Taint\OpenRedirectAnalyzerTest.cs" />
     <Compile Include="Tests\Taint\TaintTransferTest.cs" />

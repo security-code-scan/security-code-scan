@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,6 +8,15 @@ using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers.Utils
 {
+    internal static class XElementExtensions
+    {
+        public static string ToStringStartElement(this XElement e)
+        {
+            var element = e.ToString();
+            return element.Substring(0, element.IndexOf('>') + 1);
+        }
+    }
+
     internal static class SymbolExtensions
     {
         public static readonly SymbolDisplayFormat SymbolDisplayFormat =

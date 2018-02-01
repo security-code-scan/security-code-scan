@@ -64,18 +64,37 @@ namespace SecurityCodeScan.Analyzers
                 return;
 
             var lineInfo   = (IXmlLineInfo)element;
-            int lineNumber = lineInfo.HasLineInfo() ? lineInfo.LineNumber : 1;
+            int lineNumber = element != null && lineInfo.HasLineInfo() ? lineInfo.LineNumber : 1;
             context.ReportDiagnostic(ExternalDiagnostic.Create(diagnosticDescriptor,
                                                                file.Path,
                                                                lineNumber,
-                                                               element.ToStringStartElement()));
+                                                               element != null ? element.ToStringStartElement() : String.Empty));
+        }
+
+        private void CheckRequestValidationMode(XElement element, XDocument doc, AdditionalText file, CompilationAnalysisContext context)
+        {
+            CheckAttribute(element,
+                           "requestValidationMode",
+                           "4.0",
+                           value =>
+                           {
+                               if (!decimal.TryParse(value, out var version))
+                                   return true;
+
+                               return version >= 4.0M;
+                           },
+                           RuleValidateRequest,
+                           file,
+                           context);
         }
 
         public void AnalyzeConfigurationFile(AdditionalText file, CompilationAnalysisContext context)
         {
             var doc = XDocument.Load(file.Path, LoadOptions.SetLineInfo);
 
-            CheckAttribute(doc.Element("configuration")?.Element("system.web")?.Element("pages"),
+            var systemWebElement = doc.Element("configuration")?.Element("system.web");
+
+            CheckAttribute(systemWebElement?.Element("pages"),
                            "validateRequest",
                            "True",
                            value => 0 == String.Compare("true", value, StringComparison.OrdinalIgnoreCase),
@@ -83,7 +102,13 @@ namespace SecurityCodeScan.Analyzers
                            file,
                            context);
 
-            CheckAttribute(doc.Element("configuration")?.Element("system.web")?.Element("pages"),
+            CheckRequestValidationMode(systemWebElement?.Element("httpRuntime"), doc, file, context);
+            CheckRequestValidationMode(doc.Element("configuration")?.Element("location")?.Element("system.web")?.Element("httpRuntime"),
+                                       doc,
+                                       file,
+                                       context);
+
+            CheckAttribute(systemWebElement?.Element("pages"),
                            "enableEventValidation",
                            "True",
                            value => 0 == String.Compare("true", value, StringComparison.OrdinalIgnoreCase),
@@ -91,7 +116,7 @@ namespace SecurityCodeScan.Analyzers
                            file,
                            context);
 
-            CheckAttribute(doc.Element("configuration")?.Element("system.web")?.Element("pages"),
+            CheckAttribute(systemWebElement?.Element("pages"),
                            "viewStateEncryptionMode",
                            "Auto",
                            value => 0 == String.Compare("Always", value, StringComparison.OrdinalIgnoreCase),
@@ -100,7 +125,7 @@ namespace SecurityCodeScan.Analyzers
                            context);
 
             // https://blogs.msdn.microsoft.com/webdev/2014/09/09/farewell-enableviewstatemac/
-            CheckAttribute(doc.Element("configuration")?.Element("system.web")?.Element("pages"),
+            CheckAttribute(systemWebElement?.Element("pages"),
                            "enableViewStateMac",
                            "True",
                            value => 0 == String.Compare("true", value, StringComparison.OrdinalIgnoreCase),

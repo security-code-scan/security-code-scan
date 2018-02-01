@@ -129,22 +129,22 @@ SCS0019:
 
 SCS0021:
   class: ValidateRequestFalse
-  title: Request validation has been disabled
+  title: "Request validation has been disabled in {0}({1}): {2}"
   description: Request validation, which provided additionnal protection against Cross-Site Scripting (XSS), has been disabled. 
 
 SCS0022:
   class: EnableEventValidationFalse
-  title: Event validation is disabled
+  title: "Event validation is disabled in {0}({1}): {2}"
   description: Event validation is disabled. The integrity of client-side control will not be validated on postback.
 
 SCS0023:
   class: ViewStateEncryptionModeFalse
-  title: View state is not encrypted
+  title: "View state is not encrypted in {0}({1}): {2}"
   description: View state is not encrypted. Controls may leak sensitive data that could be read client-side.
   
 SCS0024:
   class: EnableViewStateMac
-  title: View state mac is disabled
+  title: "View state mac is disabled in {0}({1}): {2}"
   description: View state mac is disabled. The view state could be altered by an attacker. (This feature cannot be disabled in the recent version of ASP.net)
 
 # XSS

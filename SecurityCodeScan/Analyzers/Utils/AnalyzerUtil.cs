@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
@@ -73,6 +72,14 @@ namespace SecurityCodeScan.Analyzers.Utils
             }
 
             return false;
+        }
+    }
+
+    internal static class ExternalDiagnostic
+    {
+        public static Diagnostic Create(DiagnosticDescriptor descriptor, string path, int line, string source)
+        {
+            return Diagnostic.Create(descriptor, Location.None, path, line, source);
         }
     }
 
@@ -212,14 +219,6 @@ namespace SecurityCodeScan.Analyzers.Utils
         {
             return expression.Kind() == CSharp.SyntaxKind.StringLiteralExpression &&
                    expression is CSharpSyntax.LiteralExpressionSyntax;
-        }
-
-        public static Location CreateLocation(string path, int lineStart, int linePosition = -1)
-        {
-            return Location.Create(path,
-                                   TextSpan.FromBounds(1, 2),
-                                   new LinePositionSpan(new LinePosition(lineStart, 0),
-                                                        new LinePosition(lineStart, 0)));
         }
     }
 }

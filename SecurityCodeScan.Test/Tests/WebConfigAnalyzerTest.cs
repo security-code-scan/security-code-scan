@@ -135,6 +135,11 @@ namespace SecurityCodeScan.Test
             {element}
         </system.web>
     </location>
+    <location path=""contact"">
+        <system.web>
+            {element}
+        </system.web>
+    </location>
 </configuration>
 ";
 
@@ -147,10 +152,20 @@ namespace SecurityCodeScan.Test
                                         5,
                                         expectedNode)
             };
+            var expected2 = new
+            {
+                Id      = WebConfigAnalyzer.RuleValidateRequest.Id,
+                Message = String.Format(WebConfigAnalyzer.RuleValidateRequest.MessageFormat.ToString(),
+                                        path,
+                                        10,
+                                        expectedNode)
+            };
 
             var diagnostics = await Analyze(config, path);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == expected.Id
                                                                    && d.GetMessage(null) == expected.Message)), Times.Once);
+            diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected2.Id
+                                                                   && d.GetMessage(null) == expected2.Message)), Times.Once);
         }
 
         [DataRow("<httpRuntime requestValidationMode=\"4.0\"></httpRuntime>")]

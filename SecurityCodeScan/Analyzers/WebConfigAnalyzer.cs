@@ -38,19 +38,20 @@ namespace SecurityCodeScan.Analyzers
             }
         }
 
-        private void CheckAttribute(XElement                   element,
-                                    string                     attributeName,
-                                    string                     defaultValue,
-                                    Func<string, bool>         isGoodValue,
-                                    DiagnosticDescriptor       diagnosticDescriptor,
-                                    AdditionalText             file,
-                                    CompilationAnalysisContext context)
+        private string CheckAttribute(XElement                   element,
+                                      string                     attributeName,
+                                      string                     defaultValue,
+                                      Func<string, bool>         isGoodValue,
+                                      DiagnosticDescriptor       diagnosticDescriptor,
+                                      AdditionalText             file,
+                                      CompilationAnalysisContext context)
         {
             var attributeValue = element?.Attribute(attributeName);
             var value = attributeValue?.Value ?? defaultValue;
 
-            if (isGoodValue(value.Trim()))
-                return;
+            var v = value.Trim();
+            if (isGoodValue(v))
+                return v;
 
             var lineInfo   = (IXmlLineInfo)element;
             int lineNumber = element != null && lineInfo.HasLineInfo() ? lineInfo.LineNumber : 1;
@@ -58,69 +59,106 @@ namespace SecurityCodeScan.Analyzers
                                                                file.Path,
                                                                lineNumber,
                                                                element != null ? element.ToStringStartElement() : String.Empty));
+
+            return v;
         }
 
-        private void CheckRequestValidationMode(XElement element, XDocument doc, AdditionalText file, CompilationAnalysisContext context)
+        private void CheckMainConfigAndLocations(string                     attribute,
+                                                 string                     defaultValue,
+                                                 Func<string, bool>         isGoodValue,
+                                                 DiagnosticDescriptor       diagnosticDescriptor,
+                                                 XElement                   systemWeb,
+                                                 string                     subElement,
+                                                 XDocument                  doc,
+                                                 AdditionalText             file,
+                                                 CompilationAnalysisContext context)
         {
-            CheckAttribute(element,
-                           "requestValidationMode",
-                           "4.0",
-                           value =>
-                           {
-                               if (!decimal.TryParse(value, out var version))
-                                   return true;
+            var value = CheckAttribute(systemWeb?.Element(subElement),
+                                       attribute,
+                                       defaultValue,
+                                       isGoodValue,
+                                       diagnosticDescriptor,
+                                       file,
+                                       context);
 
-                               return version >= 4.0M;
-                           },
-                           RuleValidateRequest,
-                           file,
-                           context);
+            var locations = doc.Element("configuration")?.Elements("location");
+            if (locations != null)
+            {
+                foreach (var location in locations)
+                {
+                    var pages = location.Element("system.web")?.Element(subElement);
+                    CheckAttribute(pages,
+                                   attribute,
+                                   value,
+                                   isGoodValue,
+                                   diagnosticDescriptor,
+                                   file,
+                                   context);
+                }
+            }
         }
 
         public void AnalyzeFile(AdditionalText file, CompilationAnalysisContext context)
         {
             var doc = XDocument.Load(file.Path, LoadOptions.SetLineInfo);
+            var systemWeb = doc.Element("configuration")?.Element("system.web");
 
-            var systemWebElement = doc.Element("configuration")?.Element("system.web");
+            CheckMainConfigAndLocations("validateRequest",
+                                        "True",
+                                        v => 0 == String.Compare("true", v, StringComparison.OrdinalIgnoreCase),
+                                        RuleValidateRequest,
+                                        systemWeb,
+                                        "pages",
+                                        doc,
+                                        file,
+                                        context);
 
-            CheckAttribute(systemWebElement?.Element("pages"),
-                           "validateRequest",
-                           "True",
-                           value => 0 == String.Compare("true", value, StringComparison.OrdinalIgnoreCase),
-                           RuleValidateRequest,
-                           file,
-                           context);
+            CheckMainConfigAndLocations("requestValidationMode",
+                                        "4.0",
+                                        v =>
+                                        {
+                                            if (!decimal.TryParse(v, out var version))
+                                                return true;
 
-            CheckRequestValidationMode(systemWebElement?.Element("httpRuntime"), doc, file, context);
-            CheckRequestValidationMode(doc.Element("configuration")?.Element("location")?.Element("system.web")?.Element("httpRuntime"),
-                                       doc,
-                                       file,
-                                       context);
+                                            return version >= 4.0M;
+                                        },
+                                        RuleValidateRequest,
+                                        systemWeb,
+                                        "httpRuntime",
+                                        doc,
+                                        file,
+                                        context);
 
-            CheckAttribute(systemWebElement?.Element("pages"),
-                           "enableEventValidation",
-                           "True",
-                           value => 0 == String.Compare("true", value, StringComparison.OrdinalIgnoreCase),
-                           RuleEnableEventValidation,
-                           file,
-                           context);
+            CheckMainConfigAndLocations("enableEventValidation",
+                                        "True",
+                                        v => 0 == String.Compare("true", v, StringComparison.OrdinalIgnoreCase),
+                                        RuleEnableEventValidation,
+                                        systemWeb,
+                                        "pages",
+                                        doc,
+                                        file,
+                                        context);
 
-            CheckAttribute(systemWebElement?.Element("pages"),
-                           "viewStateEncryptionMode",
-                           "Auto",
-                           value => 0 == String.Compare("Always", value, StringComparison.OrdinalIgnoreCase),
-                           RuleViewStateEncryptionMode,
-                           file,
-                           context);
+            CheckMainConfigAndLocations("viewStateEncryptionMode",
+                                        "Auto",
+                                        v => 0 == String.Compare("Always", v, StringComparison.OrdinalIgnoreCase),
+                                        RuleViewStateEncryptionMode,
+                                        systemWeb,
+                                        "pages",
+                                        doc,
+                                        file,
+                                        context);
 
             // https://blogs.msdn.microsoft.com/webdev/2014/09/09/farewell-enableviewstatemac/
-            CheckAttribute(systemWebElement?.Element("pages"),
-                           "enableViewStateMac",
-                           "True",
-                           value => 0 == String.Compare("true", value, StringComparison.OrdinalIgnoreCase),
-                           RuleEnableViewStateMac,
-                           file,
-                           context);
+            CheckMainConfigAndLocations("enableViewStateMac",
+                                        "True",
+                                        v => 0 == String.Compare("true", v, StringComparison.OrdinalIgnoreCase),
+                                        RuleEnableViewStateMac,
+                                        systemWeb,
+                                        "pages",
+                                        doc,
+                                        file,
+                                        context);
         }
     }
 }

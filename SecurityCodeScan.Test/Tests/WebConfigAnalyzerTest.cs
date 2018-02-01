@@ -12,8 +12,12 @@ using SecurityCodeScan.Analyzers;
 namespace SecurityCodeScan.Test
 {
     [TestClass]
-    public class WebConfigAnalyzerTest
+    public class WebConfigAnalyzerTest : ExternalFileAnalyzerTest
     {
+        public WebConfigAnalyzerTest() : base(new WebConfigAnalyzer())
+        {
+        }
+
         [DataRow("<pages validateRequest=\"false\"></pages>", "<pages validateRequest=\"false\">")]
         [DataRow("<pages validateRequest=\"False\"></pages>", "<pages validateRequest=\"False\">")]
         [DataRow("<pages validateRequest=\"false\" />",       "<pages validateRequest=\"false\" />")]
@@ -331,19 +335,66 @@ namespace SecurityCodeScan.Test
             var diagnostics = await AnalyzeConfiguration(config, Path.GetTempFileName());
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleEnableViewStateMac.Id)), Times.Never);
         }
+    }
 
-        private async Task<Mock<Action<Diagnostic>>> AnalyzeConfiguration(string config, string path)
+    [TestClass, Ignore] // todo: mock AdditionalText
+    public class AspxAnalyzerTest : ExternalFileAnalyzerTest
+    {
+        public AspxAnalyzerTest() : base(new HtmlValidateRequestAnalyzer())
         {
-            var analyzer = new WebConfigAnalyzer();
+        }
+
+        [DataRow("<%@page VAlidateRequest=\"  FAlse  \"")]
+        [DataTestMethod]
+        public async Task HtmlValidateRequestVulnerable(string element)
+        {
+            string html = $@"
+{element} Title=""About"" Language=""C#"" %>
+
+<asp:Content ID=""BodyContent"" ContentPlaceHolderID=""MainContent"" runat=""server"">
+    <h2><%: Title %>.</h2>
+    <h3>Your application description page.</h3>
+    <p>Use this area to provide additional information.</p>
+</asp:Content>
+              ";
+
+            var path     = Path.GetTempFileName();
+            var expected = new
+            {
+                Id      = WebConfigAnalyzer.RuleEnableViewStateMac.Id,
+                Message = String.Format(WebConfigAnalyzer.RuleEnableViewStateMac.MessageFormat.ToString(),
+                                        path,
+                                        2,
+                                        element)
+            };
+
+            var diagnostics = await AnalyzeConfiguration(html, path);
+            diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id
+                                                                   && d.GetMessage(null) == expected.Message)), Times.Once);
+        }
+    }
+
+    public class ExternalFileAnalyzerTest
+    {
+        private IExternalFileAnalyzer Analyzer;
+
+        public ExternalFileAnalyzerTest(IExternalFileAnalyzer analyzer)
+        {
+            Analyzer = analyzer;
+        }
+
+        protected async Task<Mock<Action<Diagnostic>>> AnalyzeConfiguration(string config, string path)
+        {
             var additionalTextMock = new Mock<AdditionalText>();
             additionalTextMock.Setup(text => text.Path).Returns(path); //The path is read when the diagnostic is report
 
-            var        diagnosticReportMock = new Mock<Action<Diagnostic>>(MockBehavior.Loose); //Will record the reported diagnostic...
-            diagnosticReportMock.Setup(x => x(It.IsAny<Diagnostic>())).Callback<Diagnostic>(diagnostic =>
-                                                                                            {
-                                                                                                if (diagnostic != null)
-                                                                                                    Logger.LogMessage($"Was: \"{diagnostic.GetMessage()}\"");
-                                                                                            });
+            var diagnosticReportMock = new Mock<Action<Diagnostic>>(MockBehavior.Loose); //Will record the reported diagnostic...
+            diagnosticReportMock.Setup(x => x(It.IsAny<Diagnostic>()))
+                                .Callback<Diagnostic>(diagnostic =>
+                                                      {
+                                                          if (diagnostic != null)
+                                                              Logger.LogMessage($"Was: \"{diagnostic.GetMessage()}\"");
+                                                      });
 
             var compilation = new CompilationAnalysisContext(null,
                                                              null,
@@ -357,7 +408,7 @@ namespace SecurityCodeScan.Test
                 await file.WriteAsync(config);
                 file.Close();
 
-                analyzer.AnalyzeConfigurationFile(additionalTextMock.Object, compilation);
+                Analyzer.AnalyzeFile(additionalTextMock.Object, compilation);
             }
             finally
             {

@@ -50,15 +50,15 @@ namespace SecurityCodeScan.Analyzers
         }
 
         private void CheckAttribute(XElement                   element,
-                                    string                     attribute,
+                                    string                     attributeName,
                                     string                     defaultValue,
                                     Func<string, bool>         isGoodValue,
                                     DiagnosticDescriptor       diagnosticDescriptor,
                                     AdditionalText             file,
                                     CompilationAnalysisContext context)
         {
-            var validateRequest = element?.Attribute(attribute);
-            var value = validateRequest?.Value ?? defaultValue;
+            var attributeValue = element?.Attribute(attributeName);
+            var value = attributeValue?.Value ?? defaultValue;
 
             if (isGoodValue(value))
                 return;

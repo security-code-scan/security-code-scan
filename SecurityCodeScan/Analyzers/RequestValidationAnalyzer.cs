@@ -33,7 +33,7 @@ namespace SecurityCodeScan.Analyzers
             foreach (var attribute in node.AttributeLists)
             {
                 if (attribute.Attributes.Count == 0)
-                    continue; //Bound check .. Unlikely to happens
+                    continue; //Bound check .. Unlikely to happen
 
                 var att = attribute.Attributes[0];
 
@@ -72,7 +72,7 @@ namespace SecurityCodeScan.Analyzers
             foreach (var attribute in node.BlockStatement.AttributeLists)
             {
                 if (attribute.Attributes.Count == 0)
-                    continue; //Bound check .. Unlikely to happens
+                    continue; //Bound check .. Unlikely to happen
 
                 var att = attribute.Attributes[0];
 

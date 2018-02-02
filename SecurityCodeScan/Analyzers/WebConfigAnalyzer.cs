@@ -43,6 +43,7 @@ namespace SecurityCodeScan.Analyzers
                                       string                     defaultValue,
                                       Func<string, bool>         isGoodValue,
                                       DiagnosticDescriptor       diagnosticDescriptor,
+                                      XElement                   lastFoundElement,
                                       AdditionalText             file,
                                       CompilationAnalysisContext context)
         {
@@ -53,12 +54,12 @@ namespace SecurityCodeScan.Analyzers
             if (isGoodValue(v))
                 return v;
 
-            var lineInfo   = (IXmlLineInfo)element;
-            int lineNumber = element != null && lineInfo.HasLineInfo() ? lineInfo.LineNumber : 1;
+            var lineInfo   = (IXmlLineInfo)lastFoundElement;
+            int lineNumber = lastFoundElement != null && lineInfo.HasLineInfo() ? lineInfo.LineNumber : 1;
             context.ReportDiagnostic(ExternalDiagnostic.Create(diagnosticDescriptor,
                                                                file.Path,
                                                                lineNumber,
-                                                               element != null ? element.ToStringStartElement() : String.Empty));
+                                                               lastFoundElement.ToStringStartElement()));
 
             return v;
         }
@@ -68,46 +69,79 @@ namespace SecurityCodeScan.Analyzers
                                                  Func<string, bool>         isGoodValue,
                                                  DiagnosticDescriptor       diagnosticDescriptor,
                                                  XElement                   systemWeb,
+                                                 XElement                   lastFoundElement,
                                                  string                     subElement,
                                                  XDocument                  doc,
                                                  AdditionalText             file,
                                                  CompilationAnalysisContext context)
         {
-            var value = CheckAttribute(systemWeb?.Element(subElement),
+            var subElementNode = GetElement(systemWeb, ref lastFoundElement, subElement);
+            var value = CheckAttribute(subElementNode,
                                        attribute,
                                        defaultValue,
                                        isGoodValue,
                                        diagnosticDescriptor,
+                                       lastFoundElement,
                                        file,
                                        context);
+
+            // if the value is bad in the main config element, don't report it if is set to bad again in every location
+            if (!isGoodValue(value))
+                return;
 
             var locations = doc.Element("configuration")?.Elements("location");
             if (locations != null)
             {
                 foreach (var location in locations)
                 {
-                    var pages = location.Element("system.web")?.Element(subElement);
+                    lastFoundElement = location;
+                    var pages = GetElement(location, ref lastFoundElement, "system.web", subElement);
                     CheckAttribute(pages,
                                    attribute,
                                    value,
                                    isGoodValue,
                                    diagnosticDescriptor,
+                                   lastFoundElement,
                                    file,
                                    context);
                 }
             }
         }
 
+        private XElement GetElement(XElement element, ref XElement lastFoundElement, params string[] elements)
+        {
+            if (element == null)
+                return null;
+
+            foreach (var e in elements)
+            {
+                var el = element.Element(e);
+                if (el == null)
+                    return null;
+
+                lastFoundElement = el;
+                element = lastFoundElement;
+            }
+
+            return lastFoundElement;
+        }
+
         public void AnalyzeFile(AdditionalText file, CompilationAnalysisContext context)
         {
             var doc = XDocument.Load(file.Path, LoadOptions.SetLineInfo);
-            var systemWeb = doc.Element("configuration")?.Element("system.web");
+            var config = doc.Element("configuration");
+            if (config == null)
+                return;
+
+            var lastFoundElement = config;
+            var systemWeb = GetElement(config, ref lastFoundElement, "system.web");
 
             CheckMainConfigAndLocations("validateRequest",
                                         "True",
                                         v => 0 == String.Compare("true", v, StringComparison.OrdinalIgnoreCase),
                                         RuleValidateRequest,
                                         systemWeb,
+                                        lastFoundElement,
                                         "pages",
                                         doc,
                                         file,
@@ -124,6 +158,7 @@ namespace SecurityCodeScan.Analyzers
                                         },
                                         RuleValidateRequest,
                                         systemWeb,
+                                        lastFoundElement,
                                         "httpRuntime",
                                         doc,
                                         file,
@@ -134,6 +169,7 @@ namespace SecurityCodeScan.Analyzers
                                         v => 0 == String.Compare("true", v, StringComparison.OrdinalIgnoreCase),
                                         RuleEnableEventValidation,
                                         systemWeb,
+                                        lastFoundElement,
                                         "pages",
                                         doc,
                                         file,
@@ -144,6 +180,7 @@ namespace SecurityCodeScan.Analyzers
                                         v => 0 == String.Compare("Always", v, StringComparison.OrdinalIgnoreCase),
                                         RuleViewStateEncryptionMode,
                                         systemWeb,
+                                        lastFoundElement,
                                         "pages",
                                         doc,
                                         file,
@@ -155,6 +192,7 @@ namespace SecurityCodeScan.Analyzers
                                         v => 0 == String.Compare("true", v, StringComparison.OrdinalIgnoreCase),
                                         RuleEnableViewStateMac,
                                         systemWeb,
+                                        lastFoundElement,
                                         "pages",
                                         doc,
                                         file,

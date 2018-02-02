@@ -162,7 +162,8 @@ namespace SecurityCodeScan.Test
             };
 
             var diagnostics = await Analyze(config, path);
-            diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == expected.Id
+            diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id)), Times.Exactly(2));
+            diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id
                                                                    && d.GetMessage(null) == expected.Message)), Times.Once);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected2.Id
                                                                    && d.GetMessage(null) == expected2.Message)), Times.Once);
@@ -217,7 +218,8 @@ namespace SecurityCodeScan.Test
             };
 
             var diagnostics = await Analyze(config, path);
-            diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == expected.Id
+            diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id)), Times.Once);
+            diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id
                                                                    && d.GetMessage(null) == expected.Message)), Times.Once);
         }
 
@@ -242,22 +244,39 @@ namespace SecurityCodeScan.Test
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleEnableEventValidation.Id)), Times.Never);
         }
 
-        [DataRow("<pages viewStateEncryptionMode=\"Auto\"></pages>",  "<pages viewStateEncryptionMode=\"Auto\">")]
-        [DataRow("<pages viewStateEncryptionMode=\" auto \"></pages>",  "<pages viewStateEncryptionMode=\" auto \">")]
-        [DataRow("<pages viewStateEncryptionMode=\"Auto\" />",        "<pages viewStateEncryptionMode=\"Auto\" />")]
-        [DataRow("<pages viewStateEncryptionMode=\"auto\" />",        "<pages viewStateEncryptionMode=\"auto\" />")]
-        [DataRow("<pages viewStateEncryptionMode=\"Never\"></pages>", "<pages viewStateEncryptionMode=\"Never\">")]
-        [DataRow("<pages viewStateEncryptionMode=\"never\"></pages>", "<pages viewStateEncryptionMode=\"never\">")]
-        [DataRow("<pages viewStateEncryptionMode=\"Never\" />",       "<pages viewStateEncryptionMode=\"Never\" />")]
-        [DataRow("<pages viewStateEncryptionMode=\" never \" />",       "<pages viewStateEncryptionMode=\" never \" />")]
-        [DataRow("<pages></pages>",                                   "<pages>")]
+        [DataRow("<pages viewStateEncryptionMode=\"Auto\"></pages>", "<pages viewStateEncryptionMode=\"Auto\"></pages>",
+            "<pages viewStateEncryptionMode=\"Auto\">", 9)]
+        [DataRow("<pages viewStateEncryptionMode=\" auto \"></pages>", "<pages viewStateEncryptionMode=\" auto \"></pages>",
+            "<pages viewStateEncryptionMode=\" auto \">", 9)]
+        [DataRow("<pages viewStateEncryptionMode=\"Auto\" />", "<pages viewStateEncryptionMode=\"Auto\" />",
+            "<pages viewStateEncryptionMode=\"Auto\" />", 9)]
+        [DataRow("<pages viewStateEncryptionMode=\"auto\" />", "<pages viewStateEncryptionMode=\"auto\" />",
+            "<pages viewStateEncryptionMode=\"auto\" />", 9)]
+        [DataRow("<pages viewStateEncryptionMode=\"Never\"></pages>", "<pages viewStateEncryptionMode=\"Never\"></pages>",
+            "<pages viewStateEncryptionMode=\"Never\">", 9)]
+        [DataRow("<pages viewStateEncryptionMode=\"never\"></pages>", "<pages viewStateEncryptionMode=\"never\"></pages>",
+            "<pages viewStateEncryptionMode=\"never\">", 9)]
+        [DataRow("<pages viewStateEncryptionMode=\"Never\" />", "<pages viewStateEncryptionMode=\"Never\" />",
+            "<pages viewStateEncryptionMode=\"Never\" />", 9)]
+        [DataRow("<pages viewStateEncryptionMode=\" never \" />", "<pages viewStateEncryptionMode=\" never \" />",
+            "<pages viewStateEncryptionMode=\" never \" />", 9)]
+        [DataRow("<pages></pages>", "<pages></pages>", "<pages>", 9)]
+        [DataRow("", "<pages></pages>", "<system.web>", 8)]
+        [DataRow("<pages viewStateEncryptionMode=\"Always\"></pages>",
+            "<pages viewStateEncryptionMode=\"Auto\"></pages>",
+            "<pages viewStateEncryptionMode=\"Auto\">", 5)]
         [DataTestMethod]
-        public async Task ViewStateEncryptionModeVulnerable(string element, string expectedNode)
+        public async Task ViewStateEncryptionModeVulnerable(string mainElement, string locationElement, string expectedNode, int line)
         {
             string config = $@"
 <configuration>
+    <location path=""about"">
+        <system.web>
+            {locationElement}
+        </system.web>
+    </location>
     <system.web>
-        {element}
+        {mainElement}
     </system.web>
 </configuration>
 ";
@@ -268,12 +287,13 @@ namespace SecurityCodeScan.Test
                 Id = WebConfigAnalyzer.RuleViewStateEncryptionMode.Id,
                 Message = String.Format(WebConfigAnalyzer.RuleViewStateEncryptionMode.MessageFormat.ToString(),
                                         path,
-                                        4,
+                                        line,
                                         expectedNode)
             };
 
             var diagnostics = await Analyze(config, path);
-            diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == expected.Id
+            diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id)), Times.Once);
+            diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id
                                                                    && d.GetMessage(null) == expected.Message)), Times.Once);
         }
 
@@ -323,7 +343,8 @@ namespace SecurityCodeScan.Test
             };
 
             var diagnostics = await Analyze(config, path);
-            diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == expected.Id
+            diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id)), Times.Once);
+            diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id
                                                                    && d.GetMessage(null) == expected.Message)), Times.Once);
         }
 

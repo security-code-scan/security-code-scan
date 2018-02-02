@@ -14,6 +14,10 @@ namespace SecurityCodeScan.Test
         public AspxAnalyzerTest() : base(new HtmlValidateRequestAnalyzer()) { }
 
         [DataRow("<%@page validateRequest=\"false\"")]
+        [DataRow("<%  @page validateRequest=\"false\"")]
+        [DataRow("<% @   page validateRequest=\"false\"")]
+        [DataRow("<% @   page validateRequest  =\"false\"")]
+        [DataRow("<% @   page validateRequest  =  \"false\"")]
         [DataRow("<%@page VAlidateRequest=\"  FAlse  \"")]
         [DataTestMethod]
         public async Task HtmlValidateRequestVulnerable(string element)

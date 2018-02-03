@@ -18,8 +18,79 @@ namespace SecurityCodeScan.Test.Password
             return new DiagnosticAnalyzer[] { new TaintAnalyzer(), new UnknownPasswordApiAnalyzer() };
         }
 
+        [DataRow("null")]
+        [DataRow("String.Empty")]
+        [DataRow("\"\"")]
+        [DataTestMethod]
+        public async Task HardCodePasswordFalsePositive(string value)
+        {
+            var vbValue = value.Replace("null", "Nothing");
+
+            var cSharpTest = $@"
+using System;
+
+namespace VulnerableApp
+{{
+    class HardCodedPassword
+    {{
+        static void TestCookie()
+        {{
+            var uri = new UriBuilder();
+            uri.Password = {value};
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports System
+
+Namespace VulnerableApp
+    Class HardCodedPassword
+        Private Shared Sub TestCookie()
+            Dim uri = New UriBuilder()
+            uri.Password = {vbValue}
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
+
+            cSharpTest = $@"
+using System;
+
+namespace VulnerableApp
+{{
+    class HardCodedPassword
+    {{
+        static void TestCookie()
+        {{
+            var uri = new UriBuilder {{Password = {value}}};
+        }}
+    }}
+}}
+";
+
+            visualBasicTest = $@"
+Imports System
+
+Namespace VulnerableApp
+    Class HardCodedPassword
+        Private Shared Sub TestCookie()
+            Dim uri = New UriBuilder With {{.Password = {vbValue}}}
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
+        }
+
         [TestMethod]
-        public async Task HardCodePasswordDerivedBytes()
+        public async Task HardCodePasswordAssignment()
         {
             var cSharpTest = @"
 using System;
@@ -41,10 +112,10 @@ namespace VulnerableApp
 Imports System
 
 Namespace VulnerableApp
-	Class HardCodedPassword
-		Private Shared Sub TestCookie()
-			Dim uri = New UriBuilder()
-			uri.Password = ""t0ps3cr3t""
+    Class HardCodedPassword
+        Private Shared Sub TestCookie()
+            Dim uri = New UriBuilder()
+            uri.Password = ""t0ps3cr3t""
         End Sub
     End Class
 End Namespace
@@ -60,10 +131,44 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
         }
 
-        //public void sandbox()
-        //{
-        //    var uri = new UriBuilder();
-        //    uri.Password = "t0ps3cr3t";
-        //}
+        [TestMethod]
+        public async Task HardCodePasswordInitializer()
+        {
+            var cSharpTest = @"
+using System;
+
+namespace VulnerableApp
+{
+    class HardCodedPassword
+    {
+        static void TestCookie()
+        {
+            var uri = new UriBuilder {Password = ""t0ps3cr3t""};
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System
+
+Namespace VulnerableApp
+    Class HardCodedPassword
+        Private Shared Sub TestCookie()
+            Dim uri = New UriBuilder With {.Password = ""t0ps3cr3t""}
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0015",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+        }
     }
 }

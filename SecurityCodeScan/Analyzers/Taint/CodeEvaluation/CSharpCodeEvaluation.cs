@@ -439,7 +439,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 state.AnalysisContext.ReportDiagnostic(diagnostic);
             }
 
-            //TODO: tainted the variable being assign.
+            //TODO: tainted the variable being assigned.
 
             return variableState;
         }

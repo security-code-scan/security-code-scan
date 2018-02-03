@@ -5,7 +5,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.VisualBasic;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Taint;
+using SecurityCodeScan.Analyzers.Utils;
 using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
+using SyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
 namespace SecurityCodeScan.Analyzers
 {
@@ -46,11 +48,20 @@ namespace SecurityCodeScan.Analyzers
                                              ISymbol                                 symbol,
                                              VariableState                           variableRightState)
         {
-            if (behavior                 == null && //Unknown API
-                symbol                   != null && IsPasswordField(symbol) &&
-                variableRightState.Taint == VariableTaint.Constant //Only constant
-            )
+            if (behavior == null        && //Unknown API
+                symbol   != null        &&
+                variableRightState.Taint == VariableTaint.Constant &&
+                Microsoft.CodeAnalysis.CSharp.CSharpExtensions.Kind(variableRightState.Node) == SyntaxKind.StringLiteralExpression &&
+                IsPasswordField(symbol))
             {
+                var constValue = state.AnalysisContext.SemanticModel.GetConstantValue(variableRightState.Node);
+                if (constValue.HasValue && constValue.Value.Equals(""))
+                    return;
+
+                var varSymbol = state.GetSymbol(variableRightState.Node);
+                if (varSymbol != null && varSymbol.ToDisplayString(SymbolExtensions.SymbolDisplayFormat) == "System.String.Empty")
+                    return;
+
                 var diagnostic = Diagnostic.Create(Rule, node.GetLocation());
                 state.AnalysisContext.ReportDiagnostic(diagnostic);
             }
@@ -62,10 +73,21 @@ namespace SecurityCodeScan.Analyzers
                                              ISymbol               symbol,
                                              VariableState         variableRightState)
         {
-            if (behavior                 == null && //Unknown API
-                symbol                   != null && IsPasswordField(symbol) &&
-                variableRightState.Taint == VariableTaint.Constant) //Only constant
+            if (behavior == null        && //Unknown API
+                symbol   != null        &&
+                variableRightState.Taint == VariableTaint.Constant &&
+                Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.Kind(variableRightState.Node) ==
+                    Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.StringLiteralExpression &&
+                IsPasswordField(symbol))
             {
+                var constValue = state.AnalysisContext.SemanticModel.GetConstantValue(variableRightState.Node);
+                if (constValue.HasValue && constValue.Value.Equals(""))
+                    return;
+
+                var varSymbol = state.GetSymbol(variableRightState.Node);
+                if (varSymbol != null && varSymbol.ToDisplayString(SymbolExtensions.SymbolDisplayFormat) == "System.String.Empty")
+                    return;
+
                 var diagnostic = Diagnostic.Create(Rule, node.GetLocation());
                 state.AnalysisContext.ReportDiagnostic(diagnostic);
             }
@@ -74,7 +96,6 @@ namespace SecurityCodeScan.Analyzers
         private bool IsPasswordField(ISymbol symbol)
         {
             return PasswordKeywords.Contains(symbol.MetadataName.ToLower());
-            //return symbol.MetadataName.ToLower().Contains("password");
         }
     }
 }

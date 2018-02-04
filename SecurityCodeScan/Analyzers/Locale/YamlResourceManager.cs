@@ -35,11 +35,10 @@ namespace SecurityCodeScan.Analyzers.Locale
                     var key   = (YamlScalarNode)entry.Key;
                     var value = (YamlMappingNode)entry.Value;
 
-                    string messTitle       = ((YamlScalarNode)value.Children[new YamlScalarNode("title")]).Value;
-                    string messDescription = ((YamlScalarNode)value.Children[new YamlScalarNode("description")]).Value;
-
-                    LocaleString[key.Value + "_Title"]       = messTitle;
-                    LocaleString[key.Value + "_Description"] = messDescription;
+                    foreach (var child in value.Children)
+                    {
+                        LocaleString[$"{key.Value}_{child.Key}"] = ((YamlScalarNode)child.Value).Value;
+                    }
 
                     //Logger.Log(key.Value);
                 }

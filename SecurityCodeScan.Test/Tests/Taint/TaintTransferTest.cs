@@ -104,6 +104,290 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest);
         }
 
+        [DataRow("static")]
+        [DataRow("")]
+        [DataTestMethod]
+        public async Task MemberFunction(string modifier)
+        {
+            var cSharpTest = $@"
+using System.IO;
+
+class PathTraversal
+{{
+    private {modifier} byte[] GetBytes()
+    {{
+        return new byte[1];
+    }}
+
+    public {modifier} void Run()
+    {{
+        File.WriteAllBytes(""a.txt"", GetBytes());
+    }}
+}}
+";
+
+            modifier = modifier.Replace("static", "Shared");
+            var visualBasicTest = $@"
+Imports System.IO
+
+Class PathTraversal
+    Private {modifier} Function GetBytes() As System.Byte()
+        return New System.Byte(1) {{}}
+    End Function
+    Public {modifier} Sub Run()
+        File.WriteAllBytes(""a.txt"", GetBytes())
+    End Sub
+End Class
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0018",
+                Severity = DiagnosticSeverity.Warning,
+            };
+            // Methods are not expanded and taint of 'this' doesn't affect a member call without arguments
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+        }
+
+        [TestMethod]
+        [Ignore] // todo: stream passed to Foo should be tainted
+        public async Task TaintPassedArgument()
+        {
+            var cSharpTest = @"
+using System.IO;
+
+class Test
+{
+    private byte[] _bytes;
+
+    public Test(byte[] bytes)
+    {
+        _bytes = bytes;
+    }
+
+    public void Foo(MemoryStream s)
+    {
+        s.Write(_bytes, 0, _bytes.Length);
+    }
+}
+
+class PathTraversal
+{
+    public static void Run(byte[] bytes)
+    {
+        var stream = new MemoryStream();
+        var t = new Test((byte[])(object)bytes);
+        t.Foo((MemoryStream)(object)stream);
+        File.WriteAllBytes(""a.txt"", stream.ToArray());
+    }
+}
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0018",
+                Severity = DiagnosticSeverity.Warning,
+            };
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+        }
+
+        [TestMethod]
+        public async Task TransferSqlInitializerSafe()
+        {
+            var cSharpTest = @"
+using System.Data.SqlClient;
+
+namespace sample
+{
+    class MyFoo
+    {
+        public static void Run()
+        {
+            var sqlCommand = new SqlCommand {CommandText = ""select * from Products""};
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+    Class MyFoo
+        Public Shared Sub Run()
+            Dim com As New SqlCommand With {.CommandText = ""select * from Products""}
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
+        }
+
+        [TestMethod]
+        public async Task TransferSqlInitializerUnSafe()
+        {
+            var cSharpTest = @"
+using System.Data.SqlClient;
+
+namespace sample
+{
+    class MyFoo
+    {
+        public static void Run(string sql)
+        {
+            var sqlCommand = new SqlCommand {CommandText = sql};
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+    Class MyFoo
+        Public Shared Sub Run(sql As System.String)
+            Dim com As New SqlCommand With {.CommandText = sql}
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+        }
+
+        [TestMethod]
+        public async Task TransferPathInitializerSafe()
+        {
+            var cSharpTest = @"
+using System.IO;
+
+class PathTraversal
+{
+    public static void Run()
+    {
+        File.WriteAllBytes(""a.txt"", new MemoryStream {Capacity = 10}.ToArray());
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.IO
+
+Class PathTraversal
+    Public Shared Sub Run()
+        File.WriteAllBytes(""a.txt"", new MemoryStream With {.Capacity = 10}.ToArray())
+    End Sub
+End Class
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
+        }
+
+        [DataRow("File.OpenRead(Directory.GetCurrentDirectory() + \"aaa.txt\")")]
+        [DataRow("File.OpenRead(Path.ChangeExtension(\"c:\\aaa.txt\", \".bin\"))")]
+        [DataRow("File.OpenRead(Path.Combine(\"c:\\temp\", \"aaa.txt\"))")]
+        [DataRow("File.OpenRead(Path.Combine(\"c:\\temp\", \"sub\", \"aaa.txt\"))")]
+        [DataRow("File.OpenRead(Path.Combine(\"c:\\temp\", \"sub\", \"sub\", \"aaa.txt\"))")]
+        [DataRow("File.OpenRead(Path.Combine(\"c:\\temp\", \"sub\", \"sub\", \"sub\", \"aaa.txt\"))")]
+        [DataRow("File.OpenRead(Path.Combine(new [] {\"aaa\"}))")]
+        [DataRow("File.OpenRead(Path.GetDirectoryName(\"c:\\aaa.txt\") + \"b.txt\")")]
+        [DataRow("File.OpenRead(\"b\" + Path.GetExtension(\"c:\\aaa.txt\"))")]
+        [DataRow("File.OpenRead(Path.GetFileName(\"c:\\aaa.txt\"))")]
+        [DataRow("File.OpenRead(Path.GetFileNameWithoutExtension(\"c:\\aaa.txt\") + \".txt\")")]
+        [DataRow("File.OpenRead(Path.GetFullPath(\"c:\\aaa.txt\"))")]
+        [DataRow("File.OpenRead(Path.GetInvalidFileNameChars() + \".txt\")")]
+        [DataRow("File.OpenRead(Path.GetInvalidPathChars() + \".txt\")")]
+        [DataRow("File.OpenRead(Path.GetPathRoot(\"c:\\aaa.txt\") + \"b.txt\")")]
+        [DataRow("File.OpenRead(Path.GetRandomFileName())")]
+        [DataRow("File.OpenRead(Path.GetTempFileName())")]
+        [DataRow("File.OpenRead(Path.GetTempPath() + \"b.txt\")")]
+        [DataRow("File.OpenRead(Path.HasExtension(\"c:\\aaa.txt\").ToString())")]
+        [DataRow("File.OpenRead(Path.IsPathRooted(\"c:\\aaa.txt\").ToString())")]
+        [DataRow("File.OpenRead(1.ToString())")]
+        [DataRow("File.OpenRead(Path.AltDirectorySeparatorChar.ToString())")]
+        [DataRow("File.OpenRead(Path.DirectorySeparatorChar.ToString())")]
+        [DataRow("File.OpenRead(Path.InvalidPathChars.ToString())")]
+        [DataRow("File.OpenRead(Path.PathSeparator.ToString())")]
+        [DataRow("File.OpenRead(Path.VolumeSeparatorChar.ToString())")]
+        [DataTestMethod]
+        public async Task TransferPathSafe(string method)
+        {
+            var cSharpTest = $@"
+using System.IO;
+
+class PathTraversal
+{{
+    public static void Run()
+    {{
+#pragma warning disable 618
+        {method};
+#pragma warning restore 618
+    }}
+}}
+";
+            method = method.Replace("new []", "");
+            var visualBasicTest = $@"
+Imports System.IO
+
+Class PathTraversal
+    Public Shared Sub Run()
+#Disable Warning BC40000
+        {method}
+#Enable Warning BC40000
+    End Sub
+End Class
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest);
+        }
+
+        [TestMethod]
+        public async Task MemberCallWithoutArguments()
+        {
+            var cSharpTest = @"
+using System.IO;
+
+class PathTraversal
+{
+    public static void Run(int input)
+    {
+        File.OpenRead(input.ToString());
+    }
+}
+";
+
+            var visualBasicTest = $@"
+Imports System.IO
+
+Class PathTraversal
+    Public Shared Sub Run(input As System.Int32)
+        File.OpenRead(input.ToString())
+    End Sub
+End Class
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0018",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+        }
+
         [TestMethod]
         public async Task TransferStringConstructorSafe()
         {

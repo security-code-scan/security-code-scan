@@ -93,6 +93,21 @@ namespace SecurityCodeScan.Analyzers.Utils
         }
     }
 
+    internal static class IntExtensions
+    {
+        public static string ToNthString(this int i)
+        {
+            if (i == 1)
+                return $"{i}st";
+            if (i == 2)
+                return $"{i}nd";
+            if (i == 3)
+                return $"{i}rd";
+
+            return $"{i}th";
+        }
+    }
+
     internal class AnalyzerUtil
     {
         public static bool SymbolMatch(ISymbol symbol, string type = null, string name = null)

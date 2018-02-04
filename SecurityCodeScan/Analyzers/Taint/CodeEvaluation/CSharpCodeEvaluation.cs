@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -41,7 +42,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             }
             catch (Exception e)
             {
-                //Intercept the exception for logging. Otherwise, the analyzer will failed silently.
+                //Intercept the exception for logging. Otherwise, the analyzer fails silently.
                 string methodName = node != null ? node.Identifier.Text : string.Empty;
                 string errorMsg   = $"Unhandled exception while visiting method {methodName} : {e.Message}";
                 Logger.Log(errorMsg);
@@ -69,7 +70,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         }
 
         /// <summary>
-        /// Entry point that visit the method statements.
+        /// Entry point that visits the method statements.
         /// </summary>
         /// <param name="node"></param>
         /// <param name="state"></param>
@@ -293,7 +294,13 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         private VariableState VisitMethodInvocation(InvocationExpressionSyntax node, ExecutionState state)
         {
-            return VisitInvocationAndCreation(node, node.ArgumentList, state);
+            VariableState? memberVariableState = null;
+            if (node.Expression is MemberAccessExpressionSyntax memberAccessExpression)
+            {
+                memberVariableState = VisitExpression(memberAccessExpression.Expression, state);
+            }
+
+            return VisitInvocationAndCreation(node, node.ArgumentList, state, memberVariableState);
         }
 
         private VariableState VisitObjectCreation(ObjectCreationExpressionSyntax node, ExecutionState state)
@@ -330,6 +337,19 @@ namespace SecurityCodeScan.Analyzers.Taint
             return finalState;
         }
 
+        private string GetMethodName(ExpressionSyntax node)
+        {
+            string methodName;
+            if (node is ObjectCreationExpressionSyntax objectCreationExpressionSyntax)
+                methodName = $"{objectCreationExpressionSyntax.NewKeyword} {objectCreationExpressionSyntax.Type}";
+            else if (node is InvocationExpressionSyntax invocationExpressionSyntax)
+                methodName = invocationExpressionSyntax.Expression.ToString();
+            else
+                methodName = node.ToString();
+
+            return methodName;
+        }
+
         /// <summary>
         /// Logic for each method invocation (including constructor)
         /// The argument list is required because <code>InvocationExpressionSyntax</code> and 
@@ -341,26 +361,26 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <returns></returns>
         private VariableState VisitInvocationAndCreation(ExpressionSyntax   node,
                                                          ArgumentListSyntax argList,
-                                                         ExecutionState     state)
+                                                         ExecutionState     state,
+                                                         VariableState?     initialVariableState = null)
         {
-            if (argList == null)
-            {
+            var symbol = state.GetSymbol(node);
+            if (symbol == null)
                 return new VariableState(node, VariableTaint.Unknown);
-            }
 
-            var symbol      = state.GetSymbol(node);
             var behavior    = BehaviorRepo.GetMethodBehavior(symbol);
-            var returnState = new VariableState(node, VariableTaint.Safe);
+            var returnState = initialVariableState.HasValue && !symbol.IsStatic
+                                  ? initialVariableState.Value
+                                  : new VariableState(node,
+                                                      behavior?.TaintFromArguments?.Any() == true ? VariableTaint.Safe
+                                                                                                  : VariableTaint.Unknown);
 
-            for (var i = 0; i < argList.Arguments.Count; i++)
+            for (var i = 0; i < argList?.Arguments.Count; i++)
             {
                 var argument      = argList.Arguments[i];
                 var argumentState = VisitExpression(argument.Expression, state);
 
-                if (symbol != null)
-                {
-                    Logger.Log(symbol.ContainingType + "." + symbol.Name + " -> " + argumentState);
-                }
+                Logger.Log(symbol.ContainingType + "." + symbol.Name + " -> " + argumentState);
 
                 if (behavior != null)
                 {
@@ -370,8 +390,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                         //If the current parameter can be injected.
                         Array.Exists(behavior.InjectablesArguments, element => element == i))
                     {
-                        var newRule    = LocaleUtil.GetDescriptor(behavior.LocaleInjection);
-                        var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
+                        var newRule = LocaleUtil.GetDescriptor(behavior.LocaleInjection);
+                        var diagnostic = Diagnostic.Create(newRule, node.GetLocation(), GetMethodName(node), (i + 1).ToNthString());
                         state.AnalysisContext.ReportDiagnostic(diagnostic);
                     }
                     else if (argumentState.Taint == VariableTaint.Constant && //Hard coded value
@@ -379,7 +399,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                              Array.Exists(behavior.PasswordArguments, element => element == i))
                     {
                         var newRule    = LocaleUtil.GetDescriptor(behavior.LocalePassword);
-                        var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
+                        var diagnostic = Diagnostic.Create(newRule, node.GetLocation(), GetMethodName(node), (i + 1).ToNthString());
                         state.AnalysisContext.ReportDiagnostic(diagnostic);
                     }
                     else if (Array.Exists(behavior.TaintFromArguments, element => element == i))
@@ -388,7 +408,18 @@ namespace SecurityCodeScan.Analyzers.Taint
                     }
                 }
 
-                //TODO: tainted all object passed in argument
+                //TODO: taint all objects passed as arguments
+                //if (argument.Expression is IdentifierNameSyntax identifierNameSyntax)
+                //{
+                //    var argumentType = state.AnalysisContext.SemanticModel.GetTypeInfo(argument.Expression).Type;
+                //    if (argumentType.IsReferenceType &&
+                //        argumentType.ToDisplayString(SymbolExtensions.SymbolDisplayFormat) != "System.String") // string is immutable
+                //    {
+                //        state.MergeValue(ResolveIdentifier(identifierNameSyntax.Identifier),
+                //                         argumentState.Merge(new VariableState(argument, VariableTaint.Unknown)));
+                //    }
+                //}
+
             }
 
             //Additional analysis by extension
@@ -397,8 +428,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 ext.VisitInvocationAndCreation(node, argList, state);
             }
 
-            var hasTaintFromArguments = behavior?.TaintFromArguments?.Length > 0;
-            return hasTaintFromArguments ? returnState : new VariableState(node, VariableTaint.Unknown);
+            return returnState;
         }
 
         private VariableState VisitAssignment(AssignmentExpressionSyntax node, ExecutionState state)
@@ -425,7 +455,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 variableState.Taint != VariableTaint.Constant && //Skip safe values
                 variableState.Taint != VariableTaint.Safe)
             {
-                var newRule    = LocaleUtil.GetDescriptor(behavior.LocaleInjection);
+                var newRule    = LocaleUtil.GetDescriptor(behavior.LocaleInjection, "title_assignment");
                 var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
                 state.AnalysisContext.ReportDiagnostic(diagnostic);
             }
@@ -434,12 +464,12 @@ namespace SecurityCodeScan.Analyzers.Taint
                 behavior.IsPasswordField &&
                 variableState.Taint == VariableTaint.Constant) //Only constant
             {
-                var newRule    = LocaleUtil.GetDescriptor(behavior.LocalePassword);
+                var newRule    = LocaleUtil.GetDescriptor(behavior.LocalePassword, "title_assignment");
                 var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
                 state.AnalysisContext.ReportDiagnostic(diagnostic);
             }
 
-            //TODO: tainted the variable being assigned.
+            //TODO: taint the variable being assigned.
 
             return variableState;
         }
@@ -495,6 +525,11 @@ namespace SecurityCodeScan.Analyzers.Taint
                 {
                     case "System.String.Empty":
                     case "System.IntPtr.Zero":
+                    case "System.IO.Path.AltDirectorySeparatorChar":
+                    case "System.IO.Path.DirectorySeparatorChar":
+                    case "System.IO.Path.InvalidPathChars":
+                    case "System.IO.Path.PathSeparator":
+                    case "System.IO.Path.VolumeSeparatorChar":
                         return new VariableState(expression, VariableTaint.Constant);
                 }
 

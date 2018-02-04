@@ -7,10 +7,10 @@ namespace SecurityCodeScan.Analyzers.Locale
     {
         private static YamlResourceManager ResourceManager;
 
-        public static DiagnosticDescriptor GetDescriptor(string id, string[] args = null)
+        public static DiagnosticDescriptor GetDescriptor(string id, string titleId = "title", string[] args = null)
         {
-            var localTitle = GetLocalString(id + "_Title");
-            var localDesc  = GetLocalString(id + "_Description");
+            var localTitle = GetLocalString($"{id}_{titleId}");
+            var localDesc  = GetLocalString($"{id}_description");
             return new DiagnosticDescriptor(id,
                                             localTitle,
                                             localTitle,
@@ -27,7 +27,6 @@ namespace SecurityCodeScan.Analyzers.Locale
         private static LocalizableString GetLocalString(string id)
         {
             return new LocalizableResourceString(id, GetResourceManager(), typeof(LocaleUtil));
-            //return new LocalizableResourceString(id, Messages.ResourceManager, typeof(Messages));
         }
 
         private static ResourceManager GetResourceManager()

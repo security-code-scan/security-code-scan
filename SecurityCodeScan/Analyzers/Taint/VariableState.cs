@@ -8,7 +8,7 @@ namespace SecurityCodeScan.Analyzers.Taint
     /// <summary>
     /// Define the state of variable regarding can it be trust, where does it come from.
     /// 
-    /// <code>struct</code> was chosen because the execution of the taint analysis will visited a lot.
+    /// <code>struct</code> was chosen because the execution of the taint analysis will be visited a lot.
     /// This may allow less heap allocation and less garbage collection.
     /// 
     /// <a href="https://msdn.microsoft.com/en-us/library/ms229017.aspx">Choosing Between Class and Struct</a>

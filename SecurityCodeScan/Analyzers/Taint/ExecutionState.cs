@@ -7,7 +7,7 @@ using SecurityCodeScan.Analyzers.Utils;
 namespace SecurityCodeScan.Analyzers.Taint
 {
     /// <summary>
-    /// Execution state at a given statement. It will be alter after each statement are evaluated.
+    /// Execution state at a given statement. It is altered after each statement are evaluated.
     /// 
     /// Objectives of this class:
     ///  * Keep the state of each variable

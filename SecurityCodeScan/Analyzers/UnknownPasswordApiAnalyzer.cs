@@ -14,7 +14,7 @@ namespace SecurityCodeScan.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class UnknownPasswordApiAnalyzer : TaintAnalyzerExtension
     {
-        private static readonly DiagnosticDescriptor                 Rule = LocaleUtil.GetDescriptor("SCS0015");
+        private static readonly DiagnosticDescriptor                 Rule = LocaleUtil.GetDescriptor("SCS0015", "title_assignment");
         public override         ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         private readonly List<string> PasswordKeywords = new List<string>

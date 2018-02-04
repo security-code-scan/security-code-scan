@@ -69,8 +69,13 @@ namespace SecurityCodeScan.Analyzers.Taint
         public override void Initialize(AnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(CsharpCodeEval.VisitMethods, CSharp.SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(CsharpCodeEval.VisitMethods, CSharp.SyntaxKind.ConstructorDeclaration);
+            context.RegisterSyntaxNodeAction(CsharpCodeEval.VisitMethods, CSharp.SyntaxKind.DestructorDeclaration);
+            context.RegisterSyntaxNodeAction(CsharpCodeEval.VisitMethods, CSharp.SyntaxKind.PropertyDeclaration);
             context.RegisterSyntaxNodeAction(VbCodeEval.VisitMethods,     VB.SyntaxKind.SubBlock);
             context.RegisterSyntaxNodeAction(VbCodeEval.VisitMethods,     VB.SyntaxKind.FunctionBlock);
+            context.RegisterSyntaxNodeAction(VbCodeEval.VisitMethods,     VB.SyntaxKind.ConstructorBlock);
+            context.RegisterSyntaxNodeAction(VbCodeEval.VisitMethods,     VB.SyntaxKind.PropertyBlock);
         }
 
         public static void RegisterExtension(TaintAnalyzerExtension extension)

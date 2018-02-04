@@ -114,6 +114,149 @@ End Namespace
         }
 
         [TestMethod]
+        public async Task Constructor()
+        {
+            var cSharpTest = @"
+using System.Data.SqlClient;
+
+namespace sample
+{
+    class Test
+    {
+        public Test(string sql)
+        {
+            new SqlCommand(sql);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+    Class Test
+        Public Sub New(sql As String)
+            Dim com As New SqlCommand(sql)
+        End Sub
+
+    End Class
+End Namespace
+";
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+        }
+
+        [TestMethod]
+        public async Task Property()
+        {
+            var cSharpTest = @"
+using System.Data.SqlClient;
+
+namespace sample
+{
+    class Test
+    {
+        private string sql;
+
+        public Test(string s)
+        {
+            sql = s;
+        }
+
+        public SqlCommand Command
+        {
+            get
+            {
+                return new SqlCommand(sql);
+            }
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+    Class Test
+        Private sql As String
+        Public Sub New(s As String)
+            sql = s
+        End Sub
+        Public ReadOnly Property Command() As SqlCommand
+            Get
+                Return New SqlCommand(sql)
+            End Get
+        End Property
+    End Class
+End Namespace
+";
+            var expected        = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+        }
+
+        [TestMethod]
+        public async Task Destructor()
+        {
+            var cSharpTest = @"
+using System.Data.SqlClient;
+
+namespace sample
+{
+    class Test
+    {
+        private string sql;
+
+        public Test(string s)
+        {
+            sql = s;
+        }
+
+        ~Test()
+        {
+            new SqlCommand(sql);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+    Class Test
+        Private sql As String
+        Public Sub New(s As String)
+            sql = s
+        End Sub
+        Protected Overrides Sub Finalize()
+            Dim com As New SqlCommand(sql)
+        End Sub
+
+    End Class
+End Namespace
+";
+            var expected        = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+        }
+
+        [TestMethod]
         public async Task VariableTransferSimple()
         {
             var cSharpTest = @"

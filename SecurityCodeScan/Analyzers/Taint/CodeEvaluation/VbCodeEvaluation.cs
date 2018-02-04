@@ -17,31 +17,28 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         public void VisitMethods(SyntaxNodeAnalysisContext ctx)
         {
-            var node = ctx.Node as MethodBlockSyntax;
             try
             {
-                if (node == null)
-                    return;
-
                 var state = new ExecutionState(ctx);
 
                 foreach (var ext in Extensions)
                 {
-                    ext.VisitBeginMethodDeclaration(node, state);
+                    ext.VisitBegin(ctx.Node, state);
                 }
 
-                VisitMethodDeclaration(node, state);
+                VisitNode(ctx.Node, state);
 
                 foreach (var ext in Extensions)
                 {
-                    ext.VisitEndMethodDeclaration(node, state);
+                    ext.VisitEnd(ctx.Node, state);
                 }
             }
             catch (Exception e)
             {
                 //Intercept the exception for logging. Otherwise, the analyzer fails silently.
-                string errorMsg   = $"Unhandled exception while visiting method: {e.Message}";
+                string errorMsg = $"Unhandled exception while visiting method {ctx.Node} : {e.Message}";
                 Logger.Log(errorMsg);
+                Logger.Log(e.StackTrace, false);
                 throw new Exception(errorMsg, e);
             }
         }
@@ -70,9 +67,9 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <param name="node"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        private VariableState VisitMethodDeclaration(MethodBlockSyntax node, ExecutionState state)
+        private VariableState VisitMethodDeclaration(MethodBlockBaseSyntax node, ParameterListSyntax parameterList, ExecutionState state)
         {
-            foreach (ParameterSyntax parameter in node.SubOrFunctionStatement.ParameterList.Parameters)
+            foreach (ParameterSyntax parameter in parameterList.Parameters)
             {
                 state.AddNewValue(ResolveIdentifier(parameter.Identifier.Identifier),
                                   new VariableState(parameter, VariableTaint.Tainted));
@@ -115,7 +112,18 @@ namespace SecurityCodeScan.Analyzers.Taint
                 case ExpressionSyntax expression:
                     return VisitExpression(expression, state);
                 case MethodBlockSyntax methodBlock:
-                    return VisitMethodDeclaration(methodBlock, state);
+                    return VisitMethodDeclaration(methodBlock, methodBlock.SubOrFunctionStatement.ParameterList, state);
+                case ConstructorBlockSyntax constructorBlockSyntax:
+                    return VisitMethodDeclaration(constructorBlockSyntax, constructorBlockSyntax.SubNewStatement.ParameterList, state);
+                case PropertyBlockSyntax propertyBlockSyntax:
+                {
+                    foreach (var accessor in propertyBlockSyntax.Accessors)
+                    {
+                        VisitBlock(accessor, state);
+                    }
+
+                    return new VariableState(node, VariableTaint.Unknown);
+                }
                 case ReturnStatementSyntax returnStatementSyntax:
                     return VisitExpression(returnStatementSyntax.Expression, state);
                 case ForEachStatementSyntax forEachSyntax:

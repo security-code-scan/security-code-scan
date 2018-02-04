@@ -96,7 +96,7 @@ namespace SecurityCodeScan.Analyzers
                 TagVariables(symbol, variableRightState);
         }
 
-        public override void VisitEndMethodDeclaration(CSharpSyntax.MethodDeclarationSyntax node, ExecutionState state)
+        public override void VisitEnd(SyntaxNode node, ExecutionState state)
         {
             CheckState(state);
         }
@@ -109,11 +109,6 @@ namespace SecurityCodeScan.Analyzers
         {
             if (node is VBSyntax.AssignmentStatementSyntax || node is VBSyntax.NamedFieldInitializerSyntax)
                 TagVariables(symbol, variableRightState);
-        }
-
-        public override void VisitEndMethodDeclaration(VBSyntax.MethodBlockSyntax node, ExecutionState state)
-        {
-            CheckState(state);
         }
 
         private void CheckState(ExecutionState state)

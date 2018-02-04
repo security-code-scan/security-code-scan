@@ -27,10 +27,8 @@ namespace SecurityCodeScan.Analyzers.Utils
                                [System.Runtime.CompilerServices.CallerLineNumber]
                                int sourceLineNumber = 0)
         {
-            //CompilerServices annotations are needed because
-
             if (!IsConfigured())
-                return; //No logger set, leave ship!
+                return;
 
             if (includeCallerInfo) //Display the filename of the class calling the logging API
             {

@@ -46,7 +46,7 @@ namespace SecurityCodeScan.Analyzers
             }
         }
 
-        public override void VisitEndMethodDeclaration(CSharpSyntax.MethodDeclarationSyntax node, ExecutionState state)
+        public override void VisitEnd(SyntaxNode node, ExecutionState state)
         {
             CheckState(state);
         }
@@ -65,11 +65,6 @@ namespace SecurityCodeScan.Analyzers
             {
                 variableRightState.AddTag(VariableTag.HttpCookieHttpOnly);
             }
-        }
-
-        public override void VisitEndMethodDeclaration(VBSyntax.MethodBlockSyntax node, ExecutionState state)
-        {
-            CheckState(state);
         }
 
         private void CheckState(ExecutionState state)

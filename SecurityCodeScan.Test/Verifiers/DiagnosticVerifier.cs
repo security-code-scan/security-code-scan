@@ -167,8 +167,8 @@ Diagnostics:
             //For debug purpose
             foreach (var actual in actualResults)
             {
-                var line = actual.Location.GetLineSpan().StartLinePosition;
-                Console.WriteLine($"Bug : {actual.Id} ({actual.Severity}) {line}");
+                var lineSpan = actual.Location.GetLineSpan();
+                Console.WriteLine($"{actual.Id} ({actual.Severity}): {lineSpan.Path} {lineSpan.StartLinePosition}");
             }
 
             for (int i = 0; i < expectedResults.Length; i++)

@@ -91,8 +91,8 @@ End Class
                 Id       = "SCS0006",
                 Severity = DiagnosticSeverity.Warning
             };
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+            await VerifyCSharpDiagnostic     (cSharpTest,      new[] {expected, expected});
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected, expected });
         }
 
         [DataRow("MD5",                          "MD5.Create",                  "")]
@@ -160,6 +160,54 @@ Imports System.Security.Cryptography
 Class WeakHashing
     Private Shared Sub foo()
         Dim a = New Lazy(Of {type}) (AddressOf {create}).Value
+    End Sub
+End Class
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0006",
+                Severity = DiagnosticSeverity.Warning
+            };
+            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+        }
+
+        [DataRow("MD5")]
+        [DataRow("SHA1")]
+        [DataRow("MD5Cng")]
+        [DataRow("MD5CryptoServiceProvider")]
+        [DataRow("SHA1CryptoServiceProvider")]
+        [DataRow("SHA1Managed")]
+        [DataRow("SHA1Cng")]
+        [DataTestMethod]
+        public async Task ExternalFunction(string type)
+        {
+            var cSharpTest = $@"
+using System.Security.Cryptography;
+
+class WeakHashing
+{{
+    static {type} GetHash()
+    {{
+        return null;
+    }}
+    static void foo()
+    {{
+        {type} a = GetHash();
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports System.Security.Cryptography
+
+Class WeakHashing
+    Private Shared Function GetHash() As {type}
+        return Nothing
+    End Function
+    Private Shared Sub foo()
+        Dim mD As {type} = GetHash()
     End Sub
 End Class
 ";

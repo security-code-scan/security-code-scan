@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
@@ -13,67 +15,111 @@ namespace SecurityCodeScan.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class WeakHashingAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly DiagnosticDescriptor Md5Rule  = LocaleUtil.GetDescriptor("SCS0006", args: new[] { "MD5" });
-        private static readonly DiagnosticDescriptor Sha1Rule = LocaleUtil.GetDescriptor("SCS0006", args: new[] { "SHA1" });
+        public static readonly DiagnosticDescriptor Md5Rule  = LocaleUtil.GetDescriptor("SCS0006", args: new[] { "MD5" });
+        public static readonly DiagnosticDescriptor Sha1Rule = LocaleUtil.GetDescriptor("SCS0006", args: new[] { "SHA1" });
+        public const string Sha1TypeName = "System.Security.Cryptography.SHA1";
+        public const string Md5TypeName = "System.Security.Cryptography.MD5";
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Md5Rule,
                                                                                                            Sha1Rule);
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(VisitInvocationSyntaxNode, CSharp.SyntaxKind.InvocationExpression);
-            context.RegisterSyntaxNodeAction(VisitInvocationSyntaxNode, VB.SyntaxKind.InvocationExpression);
-            context.RegisterSyntaxNodeAction(VisitMemberAccessSyntaxNode, CSharp.SyntaxKind.SimpleMemberAccessExpression);
-            context.RegisterSyntaxNodeAction(VisitMemberAccessSyntaxNode, VB.SyntaxKind.SimpleMemberAccessExpression);
-            context.RegisterSyntaxNodeAction(VisitObjectCreationSyntaxNode, CSharp.SyntaxKind.ObjectCreationExpression);
-            context.RegisterSyntaxNodeAction(VisitObjectCreationSyntaxNode, VB.SyntaxKind.ObjectCreationExpression);
+            context.RegisterCompilationStartAction(ctx =>
+                                                   {
+                                                       var analyzer = new WeakHashingCompilationAnalyzer();
+                                                       ctx.RegisterSyntaxNodeAction(analyzer.VisitInvocationSyntaxNode,
+                                                                                    CSharp.SyntaxKind.InvocationExpression);
+
+                                                       ctx.RegisterSyntaxNodeAction(analyzer.VisitInvocationSyntaxNode,
+                                                                                    VB.SyntaxKind.InvocationExpression);
+
+                                                       ctx.RegisterSyntaxNodeAction(analyzer.VisitMemberAccessSyntaxNode,
+                                                                                    CSharp.SyntaxKind.SimpleMemberAccessExpression);
+
+                                                       ctx.RegisterSyntaxNodeAction(analyzer.VisitMemberAccessSyntaxNode,
+                                                                                    VB.SyntaxKind.SimpleMemberAccessExpression);
+
+                                                       ctx.RegisterSyntaxNodeAction(analyzer.VisitObjectCreationSyntaxNode,
+                                                                                    CSharp.SyntaxKind.ObjectCreationExpression);
+
+                                                       ctx.RegisterSyntaxNodeAction(analyzer.VisitObjectCreationSyntaxNode,
+                                                                                    VB.SyntaxKind.ObjectCreationExpression);
+                                                   });
+        }
+    }
+
+    internal class WeakHashingCompilationAnalyzer
+    {
+        private readonly List<Diagnostic> ReportedDiagnostics = new List<Diagnostic>();
+
+        private void Report(Diagnostic diagnostic, SyntaxNodeAnalysisContext ctx)
+        {
+            var diagLineSpan = diagnostic.Location.GetLineSpan();
+
+            lock (ReportedDiagnostics)
+            {
+                if (ReportedDiagnostics.FirstOrDefault(x =>
+                                                        {
+                                                            if (x.Id != diagnostic.Id)
+                                                                return false;
+
+                                                            var xLineSpan = x.Location.GetLineSpan();
+
+                                                            if (xLineSpan.Path != diagLineSpan.Path)
+                                                                return false;
+
+                                                            if (xLineSpan.StartLinePosition != diagLineSpan.StartLinePosition)
+                                                                return false;
+
+                                                            return true;
+                                                        }) != null)
+                {
+                    return;
+                }
+
+                ReportedDiagnostics.Add(diagnostic);
+            }
+
+            ctx.ReportDiagnostic(diagnostic);
         }
 
-        private static void VisitObjectCreationSyntaxNode(SyntaxNodeAnalysisContext ctx)
+        public void VisitObjectCreationSyntaxNode(SyntaxNodeAnalysisContext ctx)
         {
             var symbol = ctx.SemanticModel.GetSymbolInfo(ctx.Node).Symbol;
             if (symbol == null)
                 return;
 
-            if (symbol.IsType("System.Security.Cryptography.SHA1") ||
-                symbol.ContainingType.IsDerivedFrom("System.Security.Cryptography.SHA1"))
-            {
-                var diagnostic = Diagnostic.Create(Sha1Rule, ctx.Node.GetLocation());
-                ctx.ReportDiagnostic(diagnostic);
-            }
-            else if (symbol.IsType("System.Security.Cryptography.MD5") ||
-                     symbol.ContainingType.IsDerivedFrom("System.Security.Cryptography.MD5"))
-            {
-                var diagnostic = Diagnostic.Create(Md5Rule, ctx.Node.GetLocation());
-                ctx.ReportDiagnostic(diagnostic);
-            }
+            CheckType(WeakHashingAnalyzer.Sha1TypeName, symbol.ContainingType, ctx);
+            CheckType(WeakHashingAnalyzer.Md5TypeName,  symbol.ContainingType, ctx);
         }
 
-        private static void VisitMemberAccessSyntaxNode(SyntaxNodeAnalysisContext ctx)
+        private bool CheckType(string type, ITypeSymbol symbol, SyntaxNodeAnalysisContext ctx)
+        {
+            if (symbol.IsType(type) || symbol.IsDerivedFrom(type))
+            {
+                var diagnostic = Diagnostic.Create(WeakHashingAnalyzer.Sha1Rule, ctx.Node.GetLocation());
+                Report(diagnostic, ctx);
+                return true;
+            }
+
+            return false;
+        }
+
+        public void VisitMemberAccessSyntaxNode(SyntaxNodeAnalysisContext ctx)
         {
             var symbol = ctx.SemanticModel.GetSymbolInfo(ctx.Node).Symbol;
             if (symbol == null)
                 return;
 
-            var symbolString = symbol.ToDisplayString(SymbolExtensions.SymbolDisplayFormat);
-            switch (symbolString)
+            if (symbol is IMethodSymbol methodSymbol)
             {
-                case "System.Security.Cryptography.MD5.Create":
-                {
-                    var diagnostic = Diagnostic.Create(Md5Rule, ctx.Node.GetLocation());
-                    ctx.ReportDiagnostic(diagnostic);
-                    break;
-                }
-                case "System.Security.Cryptography.SHA1.Create":
-                {
-                    var diagnostic = Diagnostic.Create(Sha1Rule, ctx.Node.GetLocation());
-                    ctx.ReportDiagnostic(diagnostic);
-                    break;
-                }
+                CheckType(WeakHashingAnalyzer.Sha1TypeName, methodSymbol.ReturnType, ctx);
+                CheckType(WeakHashingAnalyzer.Md5TypeName, methodSymbol.ReturnType, ctx);
             }
         }
 
-        private static void VisitInvocationSyntaxNode(SyntaxNodeAnalysisContext ctx)
+        public void VisitInvocationSyntaxNode(SyntaxNodeAnalysisContext ctx)
         {
             SyntaxNode expression;
             if (ctx.Node.Language == LanguageNames.CSharp)
@@ -89,34 +135,42 @@ namespace SecurityCodeScan.Analyzers
             if (symbol == null)
                 return;
 
+            if (symbol is IMethodSymbol method)
+            {
+                bool ret = CheckType(WeakHashingAnalyzer.Sha1TypeName, method.ReturnType, ctx);
+                ret |= CheckType(WeakHashingAnalyzer.Md5TypeName, method.ReturnType, ctx);
+                if (ret)
+                    return;
+            }
+
             var symbolString = symbol.ToDisplayString(SymbolExtensions.SymbolDisplayFormat);
             switch (symbolString)
             {
                 case "System.Security.Cryptography.CryptoConfig.CreateFromName":
+                {
+                    var                  methodSymbol = (IMethodSymbol)symbol;
+                    DiagnosticDescriptor rule;
+                    if (methodSymbol.Parameters.Length == 1 && (rule = CheckParameter(ctx)) != null)
                     {
-                        var methodSymbol = (IMethodSymbol)symbol;
-                        DiagnosticDescriptor rule;
-                        if (methodSymbol.Parameters.Length == 1 && (rule = CheckParameter(ctx)) != null)
-                        {
-                            var diagnostic = Diagnostic.Create(rule, expression.GetLocation());
-                            ctx.ReportDiagnostic(diagnostic);
-                        }
-
-                        break;
+                        var diagnostic = Diagnostic.Create(rule, expression.GetLocation());
+                        Report(diagnostic, ctx);
                     }
+
+                    break;
+                }
                 case "System.Security.Cryptography.HashAlgorithm.Create":
+                {
+                    var                  methodSymbol = (IMethodSymbol)symbol;
+                    DiagnosticDescriptor rule         = WeakHashingAnalyzer.Sha1Rule; // default if no parameters
+                    if (methodSymbol.Parameters.Length  == 0 ||
+                        (methodSymbol.Parameters.Length == 1 && (rule = CheckParameter(ctx)) != null))
                     {
-                        var methodSymbol = (IMethodSymbol)symbol;
-                        DiagnosticDescriptor rule = Sha1Rule; // default if no parameters
-                        if (methodSymbol.Parameters.Length == 0 ||
-                            (methodSymbol.Parameters.Length == 1 && (rule = CheckParameter(ctx)) != null))
-                        {
-                            var diagnostic = Diagnostic.Create(rule, expression.GetLocation());
-                            ctx.ReportDiagnostic(diagnostic);
-                        }
-
-                        break;
+                        var diagnostic = Diagnostic.Create(rule, expression.GetLocation());
+                        Report(diagnostic, ctx);
                     }
+
+                    break;
+                }
             }
         }
 
@@ -142,18 +196,18 @@ namespace SecurityCodeScan.Analyzers
                 return null;
 
             var value = (string)argValue.Value;
-            if (value == "System.Security.Cryptography.SHA1" ||
+            if (value == WeakHashingAnalyzer.Sha1TypeName ||
                 value == "SHA"                               ||
                 value == "SHA1"                              ||
                 value == "System.Security.Cryptography.HashAlgorithm")
             {
-                return Sha1Rule;
+                return WeakHashingAnalyzer.Sha1Rule;
             }
 
-            if (value == "System.Security.Cryptography.MD5" ||
+            if (value == WeakHashingAnalyzer.Md5TypeName ||
                 value == "MD5")
             {
-                return Md5Rule;
+                return WeakHashingAnalyzer.Md5Rule;
             }
 
             return null;

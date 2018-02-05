@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -48,12 +49,14 @@ namespace SecurityCodeScan.Test.Helpers
             string[]                           sources,
             string                             language,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
+            CancellationToken                  cancellationToken,
             IEnumerable<MetadataReference>     references                 = null,
             bool                               includeCompilerDiagnostics = false)
         {
             return await GetSortedDiagnosticsFromDocuments(analyzers,
                                                            GetDocuments(sources, language, references),
-                                                           includeCompilerDiagnostics);
+                                                           cancellationToken,
+                                                           includeCompilerDiagnostics).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -68,6 +71,7 @@ namespace SecurityCodeScan.Test.Helpers
         protected static async Task<Diagnostic[]> GetSortedDiagnosticsFromDocuments(
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             IEnumerable<Document>              documents,
+            CancellationToken                  cancellationToken,
             bool                               includeCompilerDiagnostics = false)
         {
             var projects = new HashSet<Project>();
@@ -79,11 +83,11 @@ namespace SecurityCodeScan.Test.Helpers
             var diagnostics = new List<Diagnostic>();
             foreach (var project in projects)
             {
-                var compilation              = await project.GetCompilationAsync();
+                var compilation              = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
                 var diags                    = includeCompilerDiagnostics
-                                                   ? await compilationWithAnalyzers.GetAllDiagnosticsAsync()
-                                                   : await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
+                                                   ? await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false)
+                                                   : await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false);
 
                 foreach (var diag in diags)
                 {
@@ -95,7 +99,7 @@ namespace SecurityCodeScan.Test.Helpers
                     {
                         foreach (var document in documents)
                         {
-                            var tree = await document.GetSyntaxTreeAsync();
+                            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                             if (tree == diag.Location.SourceTree)
                             {
                                 diagnostics.Add(diag);

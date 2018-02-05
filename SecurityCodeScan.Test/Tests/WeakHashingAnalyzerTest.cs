@@ -50,8 +50,8 @@ Class WeakHashing
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [DataRow("MD5",  "MD5.Create")]
@@ -91,8 +91,8 @@ End Class
                 Id       = "SCS0006",
                 Severity = DiagnosticSeverity.Warning
             };
-            await VerifyCSharpDiagnostic     (cSharpTest,      new[] {expected, expected});
-            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected, expected });
+            await VerifyCSharpDiagnostic     (cSharpTest,      new[] { expected, expected }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected, expected }).ConfigureAwait(false);
         }
 
         [DataRow("MD5",                          "MD5.Create",                  "")]
@@ -131,8 +131,8 @@ End Class
                 Id       = "SCS0006",
                 Severity = DiagnosticSeverity.Warning
             };
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
         [DataRow("MD5", "MD5.Create")]
@@ -169,8 +169,8 @@ End Class
                 Id       = "SCS0006",
                 Severity = DiagnosticSeverity.Warning
             };
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
         [DataRow("MD5")]
@@ -217,8 +217,8 @@ End Class
                 Id       = "SCS0006",
                 Severity = DiagnosticSeverity.Warning
             };
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
         [DataRow("MD5.Create()")]
@@ -272,8 +272,8 @@ End Class
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
         [DataRow("HashAlgorithm.Create(\"System.Security.Cryptography.SHA256\")")]
@@ -320,8 +320,8 @@ Class WeakHashing
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
     }
 }

@@ -76,8 +76,8 @@ End Namespace
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -119,8 +119,8 @@ End Namespace
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -166,8 +166,8 @@ End Namespace
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
         #endregion
@@ -214,8 +214,8 @@ Namespace VulnerableApp
 End Namespace
             ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -253,12 +253,12 @@ End Namespace
                                                         {
                                                             new DiagnosticResult { Id = "CS0246" },
                                                             new DiagnosticResult { Id = "CS0161" }
-                                                        });
+                                                        }).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, new[]
                                                         {
                                                             new DiagnosticResult { Id = "BC30002" },
                                                             new DiagnosticResult { Id = "BC42105" }
-                                                        });
+                                                        }).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -294,8 +294,8 @@ Namespace VulnerableApp
 End Namespace
             ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, new DiagnosticResult { Id = "BC42105" });
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new DiagnosticResult { Id = "BC42105" }).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -335,8 +335,8 @@ Namespace VulnerableApp
 End Namespace
             ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -374,8 +374,8 @@ Namespace VulnerableApp
 End Namespace
             ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -413,8 +413,8 @@ Namespace VulnerableApp
 End Namespace
             ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -454,8 +454,8 @@ Namespace VulnerableApp
 End Namespace
             ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -495,8 +495,8 @@ Namespace VulnerableApp
 End Namespace
             ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -532,8 +532,8 @@ Namespace VulnerableApp
 End Namespace
             ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         #endregion

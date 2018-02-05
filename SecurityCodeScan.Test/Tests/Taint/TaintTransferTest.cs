@@ -100,8 +100,8 @@ Class SqlTransferTesting
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [DataRow("static")]
@@ -146,8 +146,8 @@ End Class
                 Severity = DiagnosticSeverity.Warning,
             };
             // Methods are not expanded and taint of 'this' doesn't affect a member call without arguments
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -189,7 +189,7 @@ class PathTraversal
                 Id       = "SCS0018",
                 Severity = DiagnosticSeverity.Warning,
             };
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -222,8 +222,8 @@ Namespace sample
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -261,8 +261,8 @@ End Namespace
                 Id       = "SCS0026",
                 Severity = DiagnosticSeverity.Warning,
             };
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -290,8 +290,8 @@ Class PathTraversal
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [DataRow("File.OpenRead(Directory.GetCurrentDirectory() + \"aaa.txt\")")]
@@ -349,8 +349,8 @@ Class PathTraversal
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -384,8 +384,8 @@ End Class
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -419,8 +419,8 @@ Class SqlTransferTesting
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -461,8 +461,8 @@ End Class
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -503,8 +503,8 @@ End Class
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -538,8 +538,8 @@ Class SqlTransferTesting
 End Class
 ";
 
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
-            await VerifyCSharpDiagnostic(cSharpTest);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -566,7 +566,7 @@ class SqlTransferTesting
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
         }
     }
 }

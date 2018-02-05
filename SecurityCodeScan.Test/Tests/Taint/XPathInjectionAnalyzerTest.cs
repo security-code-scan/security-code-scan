@@ -57,8 +57,8 @@ Class XPathInjectionTP
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -107,8 +107,8 @@ End Class
                 }
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
     }
 }

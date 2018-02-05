@@ -51,7 +51,8 @@ public class TestController
 }}
 ";
 
-            await VerifyCSharpFix(before, after);
+            await VerifyCSharpFix(before, after).ConfigureAwait(false);
+            // todo: vb?
         }
     }
 

@@ -24,11 +24,11 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="document">The Document to apply the fix on</param>
         /// <param name="codeAction">A CodeAction that will be applied to the Document.</param>
         /// <returns>A Document with the changes from the CodeAction</returns>
-        private static async Task<Document> ApplyFix(Document document, CodeAction codeAction)
+        private static async Task<Document> ApplyFix(Document document, CodeAction codeAction, CancellationToken cancellationToken)
         {
             try
             {
-                var operations = await codeAction.GetOperationsAsync(CancellationToken.None);
+                var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
                 var solution   = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution;
                 return solution.GetDocument(document.Id);
             }
@@ -85,9 +85,9 @@ namespace SecurityCodeScan.Test.Helpers
         /// </summary>
         /// <param name="document">The Document to run the compiler diagnostic analyzers on</param>
         /// <returns>The compiler diagnostics that were found in the code</returns>
-        private static async Task<ImmutableArray<Diagnostic>> GetCompilerDiagnostics(Document document)
+        private static async Task<ImmutableArray<Diagnostic>> GetCompilerDiagnostics(Document document, CancellationToken cancellationToken)
         {
-            return (await document.GetSemanticModelAsync()).GetDiagnostics();
+            return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false)).GetDiagnostics();
         }
 
         /// <summary>
@@ -95,10 +95,13 @@ namespace SecurityCodeScan.Test.Helpers
         /// </summary>
         /// <param name="document">The Document to be converted to a string</param>
         /// <returns>A string containing the syntax of the Document after formatting</returns>
-        private static async Task<string> GetStringFromDocument(Document document)
+        private static async Task<string> GetStringFromDocument(Document document, CancellationToken cancellationToken)
         {
-            var simplifiedDoc = await Simplifier.ReduceAsync(document, Simplifier.Annotation);
-            var root          = await simplifiedDoc.GetSyntaxRootAsync();
+            var simplifiedDoc = await Simplifier.ReduceAsync(document,
+                                                             Simplifier.Annotation,
+                                                             cancellationToken: cancellationToken)
+                                                .ConfigureAwait(false);
+            var root          = await simplifiedDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             root              = Formatter.Format(root, Formatter.Annotation, simplifiedDoc.Project.Solution.Workspace);
             return root.GetText().ToString();
         }

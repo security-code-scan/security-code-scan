@@ -42,7 +42,7 @@ namespace SecurityCodeScan.Test
                                         element)
             };
 
-            var diagnostics = await Analyze(html, path);
+            var diagnostics = await Analyze(html, path).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id
                                                                    && d.GetMessage(null) == expected.Message)), Times.Once);
         }
@@ -62,7 +62,7 @@ namespace SecurityCodeScan.Test
 </asp:Content>
               ";
 
-            var diagnostics = await Analyze(html, Path.GetTempFileName());
+            var diagnostics = await Analyze(html, Path.GetTempFileName()).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleValidateRequest.Id)), Times.Never);
         }
     }

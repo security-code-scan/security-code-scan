@@ -69,8 +69,8 @@ End Class
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
         [DataRow("System.Web",                "Response.Redirect(\"\")")]
@@ -108,8 +108,8 @@ Class OpenRedirect
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [DataRow("System.Web.Mvc",           "Redirect(input)")]
@@ -157,8 +157,8 @@ End Class
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
         [DataRow("System.Web.Mvc",           "Redirect(\"\")")]
@@ -200,8 +200,8 @@ Public Class OpenRedirect
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [DataRow("Microsoft.AspNetCore.Mvc")]
@@ -254,9 +254,9 @@ End Class
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest1, expected);
-            await VerifyCSharpDiagnostic(cSharpTest2, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected);
+            await VerifyCSharpDiagnostic(cSharpTest1, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest2, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
         [DataRow("Microsoft.AspNetCore.Mvc")]
@@ -303,9 +303,9 @@ Public Class OpenRedirect
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest1);
-            await VerifyCSharpDiagnostic(cSharpTest2);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest1).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest2).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
     }
 }

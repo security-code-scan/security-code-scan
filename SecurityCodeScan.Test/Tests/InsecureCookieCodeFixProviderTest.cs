@@ -69,7 +69,8 @@ namespace VulnerableApp
 }
 ";
 
-            await VerifyCSharpFix(before, after);
+            await VerifyCSharpFix(before, after).ConfigureAwait(false);
+            // todo: vb?
         }
 
         [TestMethod]
@@ -110,7 +111,8 @@ namespace VulnerableApp
 }
 ";
 
-            await VerifyCSharpFix(before, after);
+            await VerifyCSharpFix(before, after).ConfigureAwait(false);
+            // todo: vb?
         }
 
         [TestMethod]
@@ -151,7 +153,8 @@ namespace VulnerableApp
 }
 ";
 
-            await VerifyCSharpFix(before, after);
+            await VerifyCSharpFix(before, after).ConfigureAwait(false);
+            // todo: vb?
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -42,7 +43,8 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
         protected async Task VerifyCSharpDiagnostic(string             source,
                                                     DiagnosticResult[] expected         = null,
-                                                    bool               verifyIfCompiles = true)
+                                                    bool               verifyIfCompiles = true,
+                                                    CancellationToken cancellationToken = default(CancellationToken))
         {
             var a = GetDiagnosticAnalyzers().ToList();
             a.Add(new DebugAnalyzer());
@@ -50,7 +52,8 @@ namespace SecurityCodeScan.Test.Helpers
                                     LanguageNames.CSharp,
                                     a.ToImmutableArray(),
                                     expected ?? new DiagnosticResult[0],
-                                    verifyIfCompiles);
+                                    cancellationToken,
+                                    verifyIfCompiles).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -62,7 +65,8 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
         protected async Task VerifyVisualBasicDiagnostic(string             source,
                                                          DiagnosticResult[] expected         = null,
-                                                         bool               verifyIfCompiles = true)
+                                                         bool               verifyIfCompiles = true,
+                                                         CancellationToken  cancellationToken = default(CancellationToken))
         {
             var a = GetDiagnosticAnalyzers().ToList();
             a.Add(new DebugAnalyzer());
@@ -70,7 +74,8 @@ namespace SecurityCodeScan.Test.Helpers
                                     LanguageNames.VisualBasic,
                                     a.ToImmutableArray(),
                                     expected ?? new DiagnosticResult[0],
-                                    verifyIfCompiles);
+                                    cancellationToken,
+                                    verifyIfCompiles).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -82,7 +87,7 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
         protected async Task VerifyCSharpDiagnostic(string source, DiagnosticResult expected, bool verifyIfCompiles = true)
         {
-            await VerifyCSharpDiagnostic(source, new[] { expected }, verifyIfCompiles);
+            await VerifyCSharpDiagnostic(source, new[] { expected }, verifyIfCompiles).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -94,7 +99,7 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
         protected async Task VerifyVisualBasicDiagnostic(string source, DiagnosticResult expected, bool verifyIfCompiles = true)
         {
-            await VerifyVisualBasicDiagnostic(source, new[] { expected }, verifyIfCompiles);
+            await VerifyVisualBasicDiagnostic(source, new[] { expected }, verifyIfCompiles).ConfigureAwait(false);
         }
 
         [TestInitialize]
@@ -116,13 +121,15 @@ namespace SecurityCodeScan.Test.Helpers
                                              string                             language,
                                              ImmutableArray<DiagnosticAnalyzer> analyzers,
                                              DiagnosticResult[]                 expected,
+                                             CancellationToken                  cancellationToken,
                                              bool                               includeCompilerDiagnostics = true)
         {
             var diagnostics = await GetSortedDiagnostics(sources,
                                                          language,
                                                          analyzers,
+                                                         cancellationToken,
                                                          GetAdditionalReferences(),
-                                                         includeCompilerDiagnostics);
+                                                         includeCompilerDiagnostics).ConfigureAwait(false);
             VerifyDiagnosticResults(diagnostics, analyzers, language, expected);
         }
 

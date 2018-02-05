@@ -40,7 +40,7 @@ namespace SecurityCodeScan.Test
                                         expectedNode)
             };
 
-            var diagnostics = await Analyze(config, path);
+            var diagnostics = await Analyze(config, path).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id
                                                                    && d.GetMessage(null) == expected.Message)));
         }
@@ -62,7 +62,7 @@ namespace SecurityCodeScan.Test
 </configuration>
 ";
 
-            var diagnostics = await Analyze(config, Path.GetTempFileName());
+            var diagnostics = await Analyze(config, Path.GetTempFileName()).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleValidateRequest.Id)), Times.Never);
         }
 
@@ -93,7 +93,7 @@ namespace SecurityCodeScan.Test
                                         expectedNode)
             };
 
-            var diagnostics = await Analyze(config, path);
+            var diagnostics = await Analyze(config, path).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id
                                                                    && d.GetMessage(null) == expected.Message)));
         }
@@ -115,7 +115,7 @@ namespace SecurityCodeScan.Test
 </configuration>
 ";
 
-            var diagnostics = await Analyze(config, Path.GetTempFileName());
+            var diagnostics = await Analyze(config, Path.GetTempFileName()).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleValidateRequest.Id)), Times.Never);
         }
 
@@ -161,7 +161,7 @@ namespace SecurityCodeScan.Test
                                         expectedNode)
             };
 
-            var diagnostics = await Analyze(config, path);
+            var diagnostics = await Analyze(config, path).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id)), Times.Exactly(2));
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id
                                                                    && d.GetMessage(null) == expected.Message)), Times.Once);
@@ -188,7 +188,7 @@ namespace SecurityCodeScan.Test
 </configuration>
 ";
 
-            var diagnostics = await Analyze(config, Path.GetTempFileName());
+            var diagnostics = await Analyze(config, Path.GetTempFileName()).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleValidateRequest.Id)), Times.Never);
         }
 
@@ -217,7 +217,7 @@ namespace SecurityCodeScan.Test
                                         expectedNode)
             };
 
-            var diagnostics = await Analyze(config, path);
+            var diagnostics = await Analyze(config, path).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id)), Times.Once);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id
                                                                    && d.GetMessage(null) == expected.Message)), Times.Once);
@@ -240,7 +240,7 @@ namespace SecurityCodeScan.Test
 </configuration>
 ";
 
-            var diagnostics = await Analyze(config, Path.GetTempFileName());
+            var diagnostics = await Analyze(config, Path.GetTempFileName()).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleEnableEventValidation.Id)), Times.Never);
         }
 
@@ -291,7 +291,7 @@ namespace SecurityCodeScan.Test
                                         expectedNode)
             };
 
-            var diagnostics = await Analyze(config, path);
+            var diagnostics = await Analyze(config, path).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id)), Times.Once);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id
                                                                    && d.GetMessage(null) == expected.Message)), Times.Once);
@@ -313,7 +313,7 @@ namespace SecurityCodeScan.Test
 </configuration>
 ";
 
-            var diagnostics = await Analyze(config, Path.GetTempFileName());
+            var diagnostics = await Analyze(config, Path.GetTempFileName()).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleViewStateEncryptionMode.Id)), Times.Never);
         }
 
@@ -342,7 +342,7 @@ namespace SecurityCodeScan.Test
                                         expectedNode)
             };
 
-            var diagnostics = await Analyze(config, path);
+            var diagnostics = await Analyze(config, path).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id)), Times.Once);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id                  == expected.Id
                                                                    && d.GetMessage(null) == expected.Message)), Times.Once);
@@ -365,7 +365,7 @@ namespace SecurityCodeScan.Test
 </configuration>
 ";
 
-            var diagnostics = await Analyze(config, Path.GetTempFileName());
+            var diagnostics = await Analyze(config, Path.GetTempFileName()).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleEnableViewStateMac.Id)), Times.Never);
         }
     }

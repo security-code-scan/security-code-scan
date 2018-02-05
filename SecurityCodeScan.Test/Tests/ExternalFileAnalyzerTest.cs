@@ -18,11 +18,11 @@ public class ExternalFileAnalyzerTest
         Analyzer = analyzer;
     }
 
-    protected async Task<Mock<Action<Diagnostic>>> Analyze(string source, string path)
+    protected async Task<Mock<Action<Diagnostic>>> Analyze(string source, string path, CancellationToken cancellationToken = default(CancellationToken))
     {
         var additionalTextMock = new Mock<AdditionalText>();
         additionalTextMock.Setup(text => text.Path).Returns(path); //The path is read when the diagnostic is report
-        additionalTextMock.Setup(text => text.GetText(CancellationToken.None)).Returns(SourceText.From(source));
+        additionalTextMock.Setup(text => text.GetText(cancellationToken)).Returns(SourceText.From(source));
 
         var diagnosticReportMock = new Mock<Action<Diagnostic>>(MockBehavior.Loose); //Will record the reported diagnostic...
         diagnosticReportMock.Setup(x => x(It.IsAny<Diagnostic>()))
@@ -36,12 +36,12 @@ public class ExternalFileAnalyzerTest
                                                          null,
                                                          diagnosticReportMock.Object,
                                                          d => true,
-                                                         CancellationToken.None);
+                                                         cancellationToken);
 
         var file = File.CreateText(path);
         try
         {
-            await file.WriteAsync(source);
+            await file.WriteAsync(source).ConfigureAwait(false);
             file.Close();
 
             Analyzer.AnalyzeFile(additionalTextMock.Object, compilation);

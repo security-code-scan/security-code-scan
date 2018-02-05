@@ -52,8 +52,8 @@ Class WeakRandom
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -89,8 +89,8 @@ End Class
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(9, -1));
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 7));
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(9, -1)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 7)).ConfigureAwait(false);
         }
     }
 }

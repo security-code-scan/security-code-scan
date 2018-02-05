@@ -47,8 +47,8 @@ Class OkCert
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBsicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBsicTest).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -90,8 +90,8 @@ End Class
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(7));
-            await VerifyVisualBasicDiagnostic(visualBsicTest, expected.WithLocation("Test0.vb", 6));
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(7)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBsicTest, expected.WithLocation("Test0.vb", 6)).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -135,8 +135,8 @@ End Class
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(7));
-            await VerifyVisualBasicDiagnostic(visualBsicTest, expected.WithLocation("Test0.vb", 6));
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(7)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBsicTest, expected.WithLocation("Test0.vb", 6)).ConfigureAwait(false);
         }
     }
 }

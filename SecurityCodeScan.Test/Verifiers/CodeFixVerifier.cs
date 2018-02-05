@@ -67,7 +67,8 @@ namespace SecurityCodeScan.Test.Helpers
                             normalizeOld,
                             normalizeNew,
                             codeFixIndex,
-                            allowNewCompilerDiagnostics);
+                            allowNewCompilerDiagnostics,
+                            CancellationToken.None).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -92,11 +93,14 @@ namespace SecurityCodeScan.Test.Helpers
                                      string                             oldSource,
                                      string                             newSource,
                                      int?                               codeFixIndex,
-                                     bool                               allowNewCompilerDiagnostics)
+                                     bool                               allowNewCompilerDiagnostics,
+                                     CancellationToken                  cancellationToken)
         {
             var document            = CreateDocument(oldSource, language, GetAdditionalReferences());
-            var analyzerDiagnostics = await GetSortedDiagnosticsFromDocuments(analyzers, new[] { document });
-            var compilerDiagnostics = await GetCompilerDiagnostics(document);
+            var analyzerDiagnostics = await GetSortedDiagnosticsFromDocuments(analyzers,
+                                                                              new[] { document },
+                                                                              cancellationToken).ConfigureAwait(false);
+            var compilerDiagnostics = await GetCompilerDiagnostics(document, cancellationToken).ConfigureAwait(false);
             foreach (Diagnostic diag in compilerDiagnostics)
             {
                 Console.WriteLine("/!\\: " + diag.ToString());
@@ -109,8 +113,8 @@ namespace SecurityCodeScan.Test.Helpers
             for (int i = 0; i < attempts; ++i)
             {
                 var actions = new List<CodeAction>();
-                var context = new CodeFixContext(document, analyzerDiagnostics[0], (a, d) => actions.Add(a), CancellationToken.None);
-                await codeFixProvider.RegisterCodeFixesAsync(context);
+                var context = new CodeFixContext(document, analyzerDiagnostics[0], (a, d) => actions.Add(a), cancellationToken);
+                await codeFixProvider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
 
                 if (!actions.Any())
                 {
@@ -119,24 +123,36 @@ namespace SecurityCodeScan.Test.Helpers
 
                 if (codeFixIndex != null)
                 {
-                    document = await ApplyFix(document, actions.ElementAt((int)codeFixIndex));
+                    document = await ApplyFix(document, actions.ElementAt((int)codeFixIndex), cancellationToken).ConfigureAwait(false);
                     break;
                 }
 
-                document            = await ApplyFix(document, actions.ElementAt(0));
-                analyzerDiagnostics = await GetSortedDiagnosticsFromDocuments(analyzers, new[] { document });
+                document            = await ApplyFix(document, actions.ElementAt(0), cancellationToken).ConfigureAwait(false);
+                analyzerDiagnostics = await GetSortedDiagnosticsFromDocuments(analyzers,
+                                                                              new[] { document },
+                                                                              cancellationToken).ConfigureAwait(false);
 
-                var newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics, await GetCompilerDiagnostics(document));
+                var newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics,
+                                                               await GetCompilerDiagnostics(document,
+                                                                                            cancellationToken).ConfigureAwait(false));
 
                 //check if applying the code fix introduced any new compiler diagnostics
                 if (!allowNewCompilerDiagnostics && newCompilerDiagnostics.Any())
                 {
                     // Format and get the compiler diagnostics again so that the locations make sense in the output
-                    document               = document.WithSyntaxRoot(Formatter.Format(await document.GetSyntaxRootAsync(), Formatter.Annotation, document.Project.Solution.Workspace));
-                    newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics, await GetCompilerDiagnostics(document));
+                    document = document.WithSyntaxRoot(Formatter.Format(await document.GetSyntaxRootAsync(cancellationToken)
+                                                                                      .ConfigureAwait(false),
+                                                                        Formatter.Annotation,
+                                                                        document.Project.Solution.Workspace));
 
+                    newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics,
+                                                               await GetCompilerDiagnostics(document,
+                                                                                            cancellationToken).ConfigureAwait(false));
+
+                    var diagnostics = string.Join("\r\n", newCompilerDiagnostics.Select(d => d.ToString()));
+                    var doc = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false)).ToFullString();
                     Assert.IsTrue(false,
-                                  $"Fix introduced new compiler diagnostics:\r\n{string.Join("\r\n", newCompilerDiagnostics.Select(d => d.ToString()))}\r\n\r\nNew document:\r\n{(await document.GetSyntaxRootAsync()).ToFullString()}\r\n");
+                                  $"Fix introduced new compiler diagnostics:\r\n{diagnostics}\r\n\r\nNew document:\r\n{doc}\r\n");
                 }
 
                 //check if there are analyzer diagnostics left after the code fix
@@ -147,7 +163,7 @@ namespace SecurityCodeScan.Test.Helpers
             }
 
             //after applying all of the code fixes, compare the resulting string to the inputted one
-            var actual = await GetStringFromDocument(document);
+            var actual = await GetStringFromDocument(document, cancellationToken).ConfigureAwait(false);
             Assert.AreEqual(newSource, actual);
         }
     }

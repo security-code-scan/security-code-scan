@@ -94,10 +94,10 @@ End Namespace
 
             DiagnosticResult[] expected = { expected08, expected09 };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest1, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest2, expected);
-            await VerifyVisualBasicDiagnostic(visualBasicTest3, expected);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest1, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest2, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest3, expected).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -134,8 +134,8 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -172,17 +172,8 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest);
-            await VerifyVisualBasicDiagnostic(visualBasicTest);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
-
-        /*
-                static void TestCookie()
-                {
-                    var cookie = new HttpCookie("test");
-                    cookie.Secure = true;
-                    cookie.HttpOnly = true;
-                }
-        */
     }
 }

@@ -40,9 +40,9 @@ namespace VulnerableApp
 Imports System.Diagnostics
 
 Namespace VulnerableApp
-	Class ProcessExec
-		Private Shared Sub TestCommandInject(input As String)
-			Process.Start(""dir"")
+    Class ProcessExec
+        Private Shared Sub TestCommandInject(input As String)
+            Process.Start(""dir"")
         End Sub
 
     End Class
@@ -76,10 +76,10 @@ namespace VulnerableApp
 Imports System.Diagnostics
 
 Namespace VulnerableApp
-	Class ProcessExec
-		Private Shared Sub TestCommandInject(input As String)
-			Dim p As New ProcessStartInfo()
-			p.FileName = ""1234""
+    Class ProcessExec
+        Private Shared Sub TestCommandInject(input As String)
+            Dim p As New ProcessStartInfo()
+            p.FileName = ""1234""
         End Sub
     End Class
 End Namespace
@@ -111,9 +111,9 @@ namespace VulnerableApp
 Imports System.Diagnostics
 
 Namespace VulnerableApp
-	Class ProcessExec
-		Private Shared Sub TestCommandInject(input As String)
-			Process.Start(input)
+    Class ProcessExec
+        Private Shared Sub TestCommandInject(input As String)
+            Process.Start(input)
         End Sub
     End Class
 End Namespace
@@ -152,10 +152,10 @@ namespace VulnerableApp
 Imports System.Diagnostics
 
 Namespace VulnerableApp
-	Class ProcessExec
-		Private Shared Sub TestCommandInject(input As String)
-			Dim p As New ProcessStartInfo()
-			p.FileName = input
+    Class ProcessExec
+        Private Shared Sub TestCommandInject(input As String)
+            Dim p As New ProcessStartInfo()
+            p.FileName = input
         End Sub
     End Class
 End Namespace

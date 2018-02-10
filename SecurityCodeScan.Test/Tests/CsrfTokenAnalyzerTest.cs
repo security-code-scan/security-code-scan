@@ -314,12 +314,12 @@ namespace VulnerableApp
 Imports {Namespace}
 
 Namespace VulnerableApp
-	Public Class TestController
-		<HttpPost, ValidateAntiForgeryToken> _
-		Public Function ControllerMethod(input As String) As ActionResult
-			Return Nothing
-		End Function
-	End Class
+    Public Class TestController
+        <HttpPost, ValidateAntiForgeryToken> _
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
 End Namespace
 ";
 

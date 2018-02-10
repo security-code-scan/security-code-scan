@@ -43,12 +43,12 @@ Imports System
 Imports System.Security.Cryptography
 
 Class WeakRandom
-	Private Shared Function generateSecureToken() As String
-		Dim rnd As RandomNumberGenerator = RandomNumberGenerator.Create()
-		Dim buffer As Byte() = New Byte(15) {}
-		rnd.GetBytes(buffer)
-		Return BitConverter.ToString(buffer)
-	End Function
+    Private Shared Function generateSecureToken() As String
+        Dim rnd As RandomNumberGenerator = RandomNumberGenerator.Create()
+        Dim buffer As Byte() = New Byte(15) {}
+        rnd.GetBytes(buffer)
+        Return BitConverter.ToString(buffer)
+    End Function
 End Class
 ";
 
@@ -76,10 +76,10 @@ class WeakRandom
 Imports System
 
 Class WeakRandom
-	Private Shared Function generateWeakToken() As String
-		Dim rnd As New Random()
-		Return rnd.Next().ToString()
-	End Function
+    Private Shared Function generateWeakToken() As String
+        Dim rnd As New Random()
+        Return rnd.Next().ToString()
+    End Function
 End Class
 ";
 

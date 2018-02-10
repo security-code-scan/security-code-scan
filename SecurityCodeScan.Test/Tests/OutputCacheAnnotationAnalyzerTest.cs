@@ -47,11 +47,11 @@ Imports System.Web.Mvc
 
 <Authorize> _
 Public Class HomeController
-	Inherits Controller
-	<OutputCache> _
-	Public Function Index() As ActionResult
-		Return View()
-	End Function
+    Inherits Controller
+    <OutputCache> _
+    Public Function Index() As ActionResult
+        Return View()
+    End Function
 End Class
 ";
 
@@ -86,12 +86,12 @@ public class HomeController : Controller
 Imports System.Web.Mvc
 
 Public Class HomeController
-	Inherits Controller
-	<Authorize> _
-	<OutputCache> _
-	Public Function Index() As ActionResult
-		Return View()
-	End Function
+    Inherits Controller
+    <Authorize> _
+    <OutputCache> _
+    Public Function Index() As ActionResult
+        Return View()
+    End Function
 End Class
 ";
 
@@ -128,10 +128,10 @@ Imports System.Web.Mvc
 <Authorize> _
 <OutputCache> _
 Public Class HomeController
-	Inherits Controller
-	Public Function Index() As ActionResult
-		Return View()
-	End Function
+    Inherits Controller
+    Public Function Index() As ActionResult
+        Return View()
+    End Function
 End Class
 ";
 
@@ -171,15 +171,15 @@ Imports System.Web.Mvc
 
 <Authorize> _
 Public Class MyController
-	Inherits Controller
+    Inherits Controller
 End Class
 
 <OutputCache> _
 Public Class HomeController
-	Inherits MyController
-	Public Function Index() As ActionResult
-		Return View()
-	End Function
+    Inherits MyController
+    Public Function Index() As ActionResult
+        Return View()
+    End Function
 End Class
 ";
 
@@ -222,19 +222,19 @@ public class HomeController : MyController
 Imports System.Web.Mvc
 
 Public Class MyController
-	Inherits Controller
-	<Authorize> _
-	Public Overridable Function Index() As ActionResult
-		Return Nothing
-	End Function
+    Inherits Controller
+    <Authorize> _
+    Public Overridable Function Index() As ActionResult
+        Return Nothing
+    End Function
 End Class
 
 <OutputCache> _
 Public Class HomeController
-	Inherits MyController
-	Public Overrides Function Index() As ActionResult
-		Return View()
-	End Function
+    Inherits MyController
+    Public Overrides Function Index() As ActionResult
+        Return View()
+    End Function
 End Class
 ";
 
@@ -274,17 +274,17 @@ public class HomeController : MyController
 Imports System.Web.Mvc
 
 Public MustInherit Class MyController
-	Inherits Controller
-	<Authorize> _
-	Public MustOverride Function Index() As ActionResult
+    Inherits Controller
+    <Authorize> _
+    Public MustOverride Function Index() As ActionResult
 End Class
 
 <OutputCache> _
 Public Class HomeController
-	Inherits MyController
-	Public Overrides Function Index() As ActionResult
-		Return View()
-	End Function
+    Inherits MyController
+    Public Overrides Function Index() As ActionResult
+        Return View()
+    End Function
 End Class
 ";
 
@@ -327,19 +327,19 @@ public class HomeController : MyController
 Imports System.Web.Mvc
 
 Public Class MyController
-	Inherits Controller
-	<Authorize> _
-	Public Overridable Function Index() As ActionResult
-		Return Nothing
-	End Function
+    Inherits Controller
+    <Authorize> _
+    Public Overridable Function Index() As ActionResult
+        Return Nothing
+    End Function
 End Class
 
 Public Class HomeController
-	Inherits MyController
-	<OutputCache> _
-	Public Overrides Function Index() As ActionResult
-		Return View()
-	End Function
+    Inherits MyController
+    <OutputCache> _
+    Public Overrides Function Index() As ActionResult
+        Return View()
+    End Function
 End Class
 ";
 
@@ -380,16 +380,16 @@ Imports System.Web.Mvc
 
 <OutputCache(NoStore := True, Duration := 0, VaryByParam := "" * "")> _
 Public Class MyController
-	Inherits Controller
+    Inherits Controller
 End Class
 
 <OutputCache(NoStore := True, Duration := Integer.MaxValue, VaryByParam := "" * "")> _
 Public Class HomeController
-	Inherits MyController
-	<Authorize> _
-	Public Function Index() As ActionResult
-		Return View()
-	End Function
+    Inherits MyController
+    <Authorize> _
+    Public Function Index() As ActionResult
+        Return View()
+    End Function
 End Class
 ";
 
@@ -485,11 +485,11 @@ public class HomeController : Controller
 Imports System.Web.Mvc
 
 Public Class HomeController
-	Inherits Controller
-	<OutputCache> _
-	Public Function Index() As ActionResult
-		Return View()
-	End Function
+    Inherits Controller
+    <OutputCache> _
+    Public Function Index() As ActionResult
+        Return View()
+    End Function
 End Class
 ";
 
@@ -519,11 +519,11 @@ Imports System.Web.Mvc
 
 <OutputCache(NoStore := True, Duration := 0, VaryByParam := "" * "")> _
 Public Class HomeController
-	Inherits Controller
-	<Authorize> _
-	Public Function Index() As ActionResult
-		Return View()
-	End Function
+    Inherits Controller
+    <Authorize> _
+    Public Function Index() As ActionResult
+        Return View()
+    End Function
 End Class
 ";
 
@@ -558,16 +558,16 @@ Imports System.Web.Mvc
 
 <OutputCache(NoStore := True, Duration := Integer.MaxValue, VaryByParam := "" * "")> _
 Public Class MyController
-	Inherits Controller
+    Inherits Controller
 End Class
 
 <OutputCache(NoStore := True, Duration := 0, VaryByParam := "" * "")> _
 Public Class HomeController
-	Inherits MyController
-	<Authorize> _
-	Public Function Index() As ActionResult
-		Return View()
-	End Function
+    Inherits MyController
+    <Authorize> _
+    Public Function Index() As ActionResult
+        Return View()
+    End Function
 End Class
 ";
 
@@ -602,16 +602,16 @@ Imports System.Web.Mvc
 
 <OutputCache(NoStore := True, Duration := 3600, VaryByParam := "" * "")> _
 Public Class MyController
-	Inherits Controller
+    Inherits Controller
 End Class
 
 Public Class HomeController
-	Inherits MyController
-	<Authorize> _
-	<OutputCache(NoStore := True, Duration := 0, VaryByParam := "" * "")> _
-	Public Function Index() As ActionResult
-		Return View()
-	End Function
+    Inherits MyController
+    <Authorize> _
+    <OutputCache(NoStore := True, Duration := 0, VaryByParam := "" * "")> _
+    Public Function Index() As ActionResult
+        Return View()
+    End Function
 End Class
 ";
 
@@ -642,10 +642,10 @@ Imports System.Web.Mvc
 <Authorize> _
 <OutputCache> _
 Public Class HomeController
-	Inherits Controller
-	Protected Function Index() As ActionResult
-		Return View()
-	End Function
+    Inherits Controller
+    Protected Function Index() As ActionResult
+        Return View()
+    End Function
 End Class
 ";
 
@@ -684,20 +684,20 @@ Imports System
 Imports System.Web.Mvc
 
 Class AuthorizeAttribute
-	Inherits Attribute
+    Inherits Attribute
 End Class
 
 Class OutputCacheAttribute
-	Inherits Attribute
+    Inherits Attribute
 End Class
 
 <Authorize> _
 <OutputCache> _
 Public Class HomeController
-	Inherits Controller
-	Public Function Index() As ActionResult
-		Return View()
-	End Function
+    Inherits Controller
+    Public Function Index() As ActionResult
+        Return View()
+    End Function
 End Class
 ";
 

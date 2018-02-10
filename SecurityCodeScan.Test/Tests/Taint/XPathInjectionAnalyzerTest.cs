@@ -48,9 +48,9 @@ class XPathInjectionTP
 Imports System.Xml
 
 Class XPathInjectionTP
-	Public Sub vulnerableCases(input As String)
-		Dim doc As New XmlDocument()
-		doc.Load("" / secret_config.xml"")
+    Public Sub vulnerableCases(input As String)
+        Dim doc As New XmlDocument()
+        doc.Load("" / secret_config.xml"")
         doc.SelectNodes(""/Config/Devices/Device[id='1337']"")
         doc.SelectSingleNode(""/Config/Devices/Device[type='2600']"")
     End Sub
@@ -83,9 +83,9 @@ class XPathInjectionTP
 Imports System.Xml
 
 Class XPathInjectionTP
-	Public Sub vulnerableCases(input As String)
-		Dim doc As New XmlDocument()
-		doc.Load("" / secret_config.xml"")
+    Public Sub vulnerableCases(input As String)
+        Dim doc As New XmlDocument()
+        doc.Load("" / secret_config.xml"")
         doc.SelectNodes(""/Config/Devices/Device[id='"" & input & ""']"")
         doc.SelectSingleNode(""/Config/Devices/Device[type='"" & input & ""']"")
     End Sub

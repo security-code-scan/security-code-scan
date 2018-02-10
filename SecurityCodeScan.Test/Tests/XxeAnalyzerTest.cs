@@ -46,10 +46,10 @@ class Xxe
 Imports System.Xml
 
 Class Xxe
-	Public Shared Sub parseUpload(inputXml As String)
-		Dim settings As New XmlReaderSettings()
-		Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
-	End Sub
+    Public Shared Sub parseUpload(inputXml As String)
+        Dim settings As New XmlReaderSettings()
+        Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
+    End Sub
 End Class
 ";
 
@@ -79,13 +79,13 @@ class Xxe
 Imports System.Xml
 
 Class Xxe
-	Public Shared Sub parseUpload(inputXml As String)
-		Dim settings As New XmlReaderSettings()
+    Public Shared Sub parseUpload(inputXml As String)
+        Dim settings As New XmlReaderSettings()
 #Disable Warning BC40000
-		settings.ProhibitDtd = True
+        settings.ProhibitDtd = True
 #Enable Warning BC40000
-		Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
-	End Sub
+        Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
+    End Sub
 End Class
 ";
 
@@ -114,11 +114,11 @@ class Xxe
 Imports System.Xml
 
 Class Xxe
-	Public Shared Sub parseUpload(inputXml As String)
-		Dim settings As New XmlReaderSettings()
-		settings.DtdProcessing = DtdProcessing.Prohibit
-		Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
-	End Sub
+    Public Shared Sub parseUpload(inputXml As String)
+        Dim settings As New XmlReaderSettings()
+        settings.DtdProcessing = DtdProcessing.Prohibit
+        Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
+    End Sub
 End Class
 ";
 
@@ -147,11 +147,11 @@ class Xxe
 Imports System.Xml
 
 Class Xxe
-	Public Shared Sub parseUpload(inputXml As String)
-		Dim settings As New XmlReaderSettings()
-		settings.DtdProcessing = DtdProcessing.Ignore
-		Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
-	End Sub
+    Public Shared Sub parseUpload(inputXml As String)
+        Dim settings As New XmlReaderSettings()
+        settings.DtdProcessing = DtdProcessing.Ignore
+        Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
+    End Sub
 End Class
 ";
 
@@ -182,13 +182,13 @@ class Xxe
 Imports System.Xml
 
 Class Xxe
-	Public Shared Sub parseUpload(inputXml As String)
-		Dim settings As New XmlReaderSettings()
+    Public Shared Sub parseUpload(inputXml As String)
+        Dim settings As New XmlReaderSettings()
 #Disable Warning BC40000
-		settings.ProhibitDtd = False
+        settings.ProhibitDtd = False
 #Enable Warning BC40000
-		Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
-	End Sub
+        Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
+    End Sub
 End Class
 ";
 
@@ -226,11 +226,11 @@ class Xxe
 Imports System.Xml
 
 Class Xxe
-	Public Shared Sub parseUpload(inputXml As String)
-		Dim settings As New XmlReaderSettings()
-		settings.DtdProcessing = DtdProcessing.Parse
-		Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
-	End Sub
+    Public Shared Sub parseUpload(inputXml As String)
+        Dim settings As New XmlReaderSettings()
+        settings.DtdProcessing = DtdProcessing.Parse
+        Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
+    End Sub
 End Class
 ";
 
@@ -287,11 +287,11 @@ Imports System.IO
 Imports System.Xml
 
 Class PathTraversal
-	Public Shared Sub Run(strText As String)
-		Using reader = XmlReader.Create(New StringReader(strText))
-			reader.Read()
-		End Using
-	End Sub
+    Public Shared Sub Run(strText As String)
+        Using reader = XmlReader.Create(New StringReader(strText))
+            reader.Read()
+        End Using
+    End Sub
 End Class
 ";
 

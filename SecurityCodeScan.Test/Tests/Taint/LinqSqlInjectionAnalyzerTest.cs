@@ -56,9 +56,9 @@ namespace VulnerableApp
 Imports System.Data.Linq
 
 Namespace VulnerableApp
-	Public Class LyncInjectionFP
-		Public Shared Function Run(ctx As DataContext, city As String) As Integer
-			Dim users = ctx.ExecuteQuery(Of UserEntity)(""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
+    Public Class LyncInjectionFP
+        Public Shared Function Run(ctx As DataContext, city As String) As Integer
+            Dim users = ctx.ExecuteQuery(Of UserEntity)(""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
                                                           Address, City, Region, PostalCode, Country, Phone, Fax
                                                           FROM dbo.Users"")
             Return 0
@@ -105,9 +105,9 @@ namespace VulnerableApp
 Imports System.Data.Linq
 
 Namespace VulnerableApp
-	Public Class LyncInjectionTP
-		Public Shared Function Run(ctx As DataContext, city As String) As Integer
-			Dim users = ctx.ExecuteQuery(Of UserEntity)(""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
+    Public Class LyncInjectionTP
+        Public Shared Function Run(ctx As DataContext, city As String) As Integer
+            Dim users = ctx.ExecuteQuery(Of UserEntity)(""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
                                                           Address, City, Region, PostalCode, Country, Phone, Fax
                                                           FROM dbo.Users
                                                           WHERE City = '"" & city & ""'"")
@@ -157,9 +157,9 @@ namespace VulnerableApp
 Imports System.Data.Linq
 
 Namespace VulnerableApp
-	Public Class LyncInjectionTP
-		Public Shared Function Run(ctx As DataContext, city As String) As Integer
-			Dim users = ctx.ExecuteQuery(GetType(String), ""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
+    Public Class LyncInjectionTP
+        Public Shared Function Run(ctx As DataContext, city As String) As Integer
+            Dim users = ctx.ExecuteQuery(GetType(String), ""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
                                                             Address, City, Region, PostalCode, Country, Phone, Fax
                                                             FROM dbo.Users
                                                             WHERE City = 'Montreal'"")
@@ -200,9 +200,9 @@ namespace VulnerableApp
 Imports System.Data.Linq
 
 Namespace VulnerableApp
-	Public Class LyncInjectionTP
-		Public Shared Function Run(ctx As DataContext, city As String) As Integer
-			Dim users = ctx.ExecuteQuery(GetType(String), ""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
+    Public Class LyncInjectionTP
+        Public Shared Function Run(ctx As DataContext, city As String) As Integer
+            Dim users = ctx.ExecuteQuery(GetType(String), ""SELECT CustomerID, CompanyName, ContactName, ContactTitle,
                                                             Address, City, Region, PostalCode, Country, Phone, Fax
                                                             FROM dbo.Users
                                                             WHERE City = '"" & city & ""'"")

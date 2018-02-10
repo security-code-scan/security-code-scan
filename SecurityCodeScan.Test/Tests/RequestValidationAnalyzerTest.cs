@@ -48,13 +48,13 @@ namespace VulnerableApp
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
-	Public Class TestController
-		<HttpPost> _
-		<ValidateInput(False)> _
-		Public Function ControllerMethod(input As String) As ActionResult
-			Return Nothing
-		End Function
-	End Class
+    Public Class TestController
+        <HttpPost> _
+        <ValidateInput(False)> _
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
 End Namespace
 ";
 

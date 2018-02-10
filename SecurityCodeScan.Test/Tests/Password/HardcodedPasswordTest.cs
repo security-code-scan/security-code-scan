@@ -47,9 +47,9 @@ namespace VulnerableApp
 Imports System.Security.Cryptography
 
 Namespace VulnerableApp
-	Class HardCodedPassword
-		Private Shared Sub TestHardcodedValue()
-			Dim test = New PasswordDeriveBytes(""hardcode"", New Byte() {0, 1, 2, 3})
+    Class HardCodedPassword
+        Private Shared Sub TestHardcodedValue()
+            Dim test = New PasswordDeriveBytes(""hardcode"", New Byte() {0, 1, 2, 3})
         End Sub
     End Class
 End Namespace
@@ -87,11 +87,11 @@ namespace VulnerableApp
 Imports System.Security.Cryptography
 
 Namespace VulnerableApp
-	Class HardCodedPassword
-		Private Shared Sub TestHardcodedValue(input As String)
-			Dim test = New PasswordDeriveBytes(input, New Byte() {0, 1, 2, 3})
-		End Sub
-	End Class
+    Class HardCodedPassword
+        Private Shared Sub TestHardcodedValue(input As String)
+            Dim test = New PasswordDeriveBytes(input, New Byte() {0, 1, 2, 3})
+        End Sub
+    End Class
 End Namespace
 ";
 

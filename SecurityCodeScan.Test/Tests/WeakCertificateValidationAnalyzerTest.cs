@@ -38,8 +38,8 @@ class OkCert {
 Imports System.Net
 
 Class OkCert
-	Public Sub DoGetRequest1()
-		Dim url As String = ""https://hack.me/""
+    Public Sub DoGetRequest1()
+        Dim url As String = ""https://hack.me/""
         Dim request As HttpWebRequest = DirectCast(WebRequest.Create(url), HttpWebRequest)
         Dim response As HttpWebResponse = DirectCast(request.GetResponse(), HttpWebResponse)
         response.GetResponseStream()
@@ -124,7 +124,7 @@ Class weakCert
         Dim url As String = ""https://hack.me/""
         Dim request As HttpWebRequest = DirectCast(WebRequest.Create(url), HttpWebRequest)
         Dim response As HttpWebResponse = DirectCast(request.GetResponse(), HttpWebResponse)
-		response.GetResponseStream()
+        response.GetResponseStream()
     End Sub
 End Class
 ";

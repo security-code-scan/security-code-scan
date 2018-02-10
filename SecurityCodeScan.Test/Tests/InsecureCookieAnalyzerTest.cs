@@ -48,9 +48,9 @@ namespace VulnerableApp
 Imports System.Web
 
 Namespace VulnerableApp
-	Class CookieCreation
-		Private Shared Sub TestCookie()
-			Dim cookie = New HttpCookie(""test"")
+    Class CookieCreation
+        Private Shared Sub TestCookie()
+            Dim cookie = New HttpCookie(""test"")
         End Sub
     End Class
 End Namespace
@@ -60,9 +60,9 @@ End Namespace
 Imports System.Web
 
 Namespace VulnerableApp
-	Class CookieCreation
-		Private Shared Sub TestCookie()
-			Dim cookie As New HttpCookie(""test"")
+    Class CookieCreation
+        Private Shared Sub TestCookie()
+            Dim cookie As New HttpCookie(""test"")
         End Sub
     End Class
 End Namespace
@@ -72,9 +72,9 @@ End Namespace
 Imports System.Web
 
 Namespace VulnerableApp
-	Class CookieCreation
-		Private Shared Sub TestCookie()
-			Dim cookie As HttpCookie = New HttpCookie(""test"")
+    Class CookieCreation
+        Private Shared Sub TestCookie()
+            Dim cookie As HttpCookie = New HttpCookie(""test"")
         End Sub
     End Class
 End Namespace
@@ -124,9 +124,9 @@ namespace VulnerableApp
 Imports System.Web
 
 Namespace VulnerableApp
-	Class CookieCreation
-		Private Shared Sub TestCookie()
-			Dim cookie = New HttpCookie(""test"")
+    Class CookieCreation
+        Private Shared Sub TestCookie()
+            Dim cookie = New HttpCookie(""test"")
             cookie.Secure = True
             cookie.HttpOnly = True
         End Sub

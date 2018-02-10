@@ -27,7 +27,7 @@ namespace SecurityCodeScan.Test.Xxe
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [TestMethod]
-        public async Task XxeFalsePositive1()
+        public async Task XxeXmlReaderSettingsDefault()
         {
             var cSharpTest = @"
 using System.Xml;
@@ -57,141 +57,116 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestMethod]
-        public async Task XxeFalsePositive2()
+        [DataRow("ProhibitDtd   = true")]
+        [DataRow("DtdProcessing = DtdProcessing.Ignore")]
+        [DataRow("DtdProcessing = DtdProcessing.Prohibit")]
+        [DataTestMethod]
+        public async Task XxeDtdProcessingSafeAssignment(string dtdPolicy)
         {
-            var cSharpTest = @"
+            var cSharpTest = $@"
 using System.Xml;
 
 class Xxe
-{
+{{
     public static void parseUpload(string inputXml)
-    {
+    {{
         XmlReaderSettings settings = new XmlReaderSettings();
 #pragma warning disable 618
-        settings.ProhibitDtd = true;
+        settings.{dtdPolicy};
 #pragma warning restore 618
         XmlReader reader = XmlReader.Create(inputXml, settings);
-    }
-}";
+    }}
+}}
+";
 
-            var visualBasicTest = @"
+            var visualBasicTest = $@"
 Imports System.Xml
 
 Class Xxe
     Public Shared Sub parseUpload(inputXml As String)
         Dim settings As New XmlReaderSettings()
 #Disable Warning BC40000
-        settings.ProhibitDtd = True
+        settings.{dtdPolicy}
 #Enable Warning BC40000
         Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
     End Sub
 End Class
 ";
-
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestMethod]
-        public async Task XxeFalsePositive3()
+        [DataRow("ProhibitDtd   = true")]
+        [DataRow("DtdProcessing = DtdProcessing.Ignore")]
+        [DataRow("DtdProcessing = DtdProcessing.Prohibit")]
+        [DataTestMethod]
+        public async Task XxeDtdProcessingSafeInitializer(string dtdPolicy)
         {
-            var cSharpTest = @"
+            var cSharpTest = $@"
 using System.Xml;
 
 class Xxe
-{
+{{
     public static void parseUpload(string inputXml)
-    {
-        XmlReaderSettings settings = new XmlReaderSettings();
-        settings.DtdProcessing = DtdProcessing.Prohibit;
-        XmlReader reader = XmlReader.Create(inputXml, settings);
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports System.Xml
-
-Class Xxe
-    Public Shared Sub parseUpload(inputXml As String)
-        Dim settings As New XmlReaderSettings()
-        settings.DtdProcessing = DtdProcessing.Prohibit
-        Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
-    End Sub
-End Class
-";
-
-            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task XxeFalsePositive4()
-        {
-            var cSharpTest = @"
-using System.Xml;
-
-class Xxe
-{
-    public static void parseUpload(string inputXml)
-    {
-        XmlReaderSettings settings = new XmlReaderSettings();
-        settings.DtdProcessing = DtdProcessing.Ignore;
-        XmlReader reader = XmlReader.Create(inputXml, settings);
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports System.Xml
-
-Class Xxe
-    Public Shared Sub parseUpload(inputXml As String)
-        Dim settings As New XmlReaderSettings()
-        settings.DtdProcessing = DtdProcessing.Ignore
-        Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
-    End Sub
-End Class
-";
-
-            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task XxeVulnerable1()
-        {
-            var cSharpTest = @"
-using System.Xml;
-
-class Xxe
-{
-    public static void parseUpload(string inputXml)
-    {
-        XmlReaderSettings settings = new XmlReaderSettings();
+    {{
 #pragma warning disable 618
-        settings.ProhibitDtd = false;
+        XmlReaderSettings settings = new XmlReaderSettings {{{dtdPolicy}}};
 #pragma warning restore 618
         XmlReader reader = XmlReader.Create(inputXml, settings);
-    }
-}
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
+            var visualBasicTest = $@"
+Imports System.Xml
+
+Class Xxe
+    Public Shared Sub parseUpload(inputXml As String)
+#Disable Warning BC40000
+        Dim settings As New XmlReaderSettings With {{.{dtdPolicy}}}
+#Enable Warning BC40000
+        Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
+    End Sub
+End Class
+";
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [DataRow("ProhibitDtd   = false")]
+        [DataRow("DtdProcessing = DtdProcessing.Parse")]
+        [DataTestMethod]
+        public async Task XxeDtdProcessingUnsafeAssignment(string dtdPolicy)
+        {
+            var cSharpTest = $@"
+using System.Xml;
+
+class Xxe
+{{
+    public static void parseUpload(string inputXml)
+    {{
+        XmlReaderSettings settings = new XmlReaderSettings();
+#pragma warning disable 618
+        settings.{dtdPolicy};
+#pragma warning restore 618
+        XmlReader reader = XmlReader.Create(inputXml, settings);
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
 Imports System.Xml
 
 Class Xxe
     Public Shared Sub parseUpload(inputXml As String)
         Dim settings As New XmlReaderSettings()
 #Disable Warning BC40000
-        settings.ProhibitDtd = False
+        settings.{dtdPolicy}
 #Enable Warning BC40000
         Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
     End Sub
 End Class
 ";
-
             var expected = new[]
             {
                 new DiagnosticResult
@@ -205,35 +180,38 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
-        [TestMethod]
-        public async Task XxeVulnerable2()
+        [DataRow("ProhibitDtd   = false")]
+        [DataRow("DtdProcessing = DtdProcessing.Parse")]
+        [TestMethod, Ignore] // todo: not implemented
+        public async Task XxeDtdProcessingUnsafeInitializer(string dtdPolicy)
         {
-            var cSharpTest = @"
+            var cSharpTest = $@"
 using System.Xml;
 
 class Xxe
-{
+{{
     public static void parseUpload(string inputXml)
-    {
-        XmlReaderSettings settings = new XmlReaderSettings();
-        settings.DtdProcessing = DtdProcessing.Parse;
+    {{
+#pragma warning disable 618
+        XmlReaderSettings settings = new XmlReaderSettings {{{dtdPolicy}}};
+#pragma warning restore 618
         XmlReader reader = XmlReader.Create(inputXml, settings);
-    }
-}
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
+            var visualBasicTest = $@"
 Imports System.Xml
 
 Class Xxe
     Public Shared Sub parseUpload(inputXml As String)
-        Dim settings As New XmlReaderSettings()
-        settings.DtdProcessing = DtdProcessing.Parse
+#Disable Warning BC40000
+        Dim settings As New XmlReaderSettings With {{.{dtdPolicy}}}
+#Enable Warning BC40000
         Dim reader As XmlReader = XmlReader.Create(inputXml, settings)
     End Sub
 End Class
 ";
-
             var expected = new[]
             {
                 new DiagnosticResult
@@ -249,7 +227,7 @@ End Class
     }
 
     [TestClass]
-    public class XxeAnalyzerTest2 : DiagnosticVerifier
+    public class XxeAnalyzerTaintTest : DiagnosticVerifier
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
@@ -263,8 +241,10 @@ End Class
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        // although the input is untrusted
+        // there is not xxe or path injection
         [TestMethod]
-        public async Task FalsePositive1()
+        public async Task StringReader()
         {
             var cSharpTest = @"
 using System.IO;
@@ -298,5 +278,17 @@ End Class
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
+
+        // todo: introduce configuration setting to show questionable findings
+        // add tests where ProhibitDtd, DtdProcessing or entire XmlReaderSettings comes from untrusted source
+        //[DataRow("XmlReader.Create(default(Stream))")]
+        //[DataRow("XmlReader.Create(default(Stream), xmlReaderSettingsInput)")]
+        //[DataRow("XmlReader.Create(default(Stream), xmlReaderSettingsInput, default(string))")]
+        //[DataRow("XmlReader.Create(default(Stream), xmlReaderSettingsInput, default(XmlParserContext))")]
+        //[DataRow("XmlReader.Create(default(TextReader))")]
+        //[DataRow("XmlReader.Create(default(TextReader), xmlReaderSettingsInput)")]
+        //[DataRow("XmlReader.Create(default(TextReader), xmlReaderSettingsInput, default(string))")]
+        //[DataRow("XmlReader.Create(default(TextReader), xmlReaderSettingsInput, default(XmlParserContext))")]
+        //[DataRow("XmlReader.Create(default(TextReader), xmlReaderSettingsInput)")]
     }
 }

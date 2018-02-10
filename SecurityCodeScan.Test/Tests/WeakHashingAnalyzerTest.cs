@@ -135,6 +135,49 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
+        [DataRow("MD5",  "MD5.Create")]
+        [DataRow("SHA1", "SHA1.Create")]
+        [DataTestMethod]
+        public async Task SameLine(string type, string create)
+        {
+            var cSharpTest = $@"
+using System.Security.Cryptography;
+
+class WeakHashing
+{{
+    static void f({type} a, {type} b)
+    {{
+    }}
+
+    static void foo()
+    {{
+        f({create}(), {create}());
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports System.Security.Cryptography
+
+Class WeakHashing
+    Private Shared Sub f(a As {type}, b As {type})
+    End Sub
+    Private Shared Sub foo()
+        f({create}(), {create}())
+    End Sub
+End Class
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0006",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, new[] { expected, expected }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected, expected }).ConfigureAwait(false);
+        }
+
         [DataRow("MD5", "MD5.Create")]
         [DataRow("SHA1", "SHA1.Create")]
         [DataTestMethod]

@@ -149,7 +149,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             if (!isBlockStatement)
             {
-                Logger.Log("Unsupported statement " + node.GetType() + " (" + node.ToString() + ")");
+                Logger.Log("Unsupported statement " + node.GetType() + " (" + node + ")");
             }
 
             return new VariableState(node, VariableTaint.Unknown);
@@ -261,7 +261,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return new VariableState(defaultExpressionSyntax, VariableTaint.Constant);
             }
 
-            Logger.Log("Unsupported expression " + expression.GetType() + " (" + expression.ToString() + ")");
+            Logger.Log("Unsupported expression " + expression.GetType() + " (" + expression + ")");
             return new VariableState(expression, VariableTaint.Unknown);
         }
 
@@ -352,12 +352,18 @@ namespace SecurityCodeScan.Analyzers.Taint
         private string GetMethodName(ExpressionSyntax node)
         {
             string methodName;
-            if (node is ObjectCreationExpressionSyntax objectCreationExpressionSyntax)
-                methodName = $"{objectCreationExpressionSyntax.NewKeyword} {objectCreationExpressionSyntax.Type}";
-            else if (node is InvocationExpressionSyntax invocationExpressionSyntax)
-                methodName = invocationExpressionSyntax.Expression.ToString();
-            else
-                methodName = node.ToString();
+            switch (node)
+            {
+                case ObjectCreationExpressionSyntax objectCreationExpressionSyntax:
+                    methodName = $"{objectCreationExpressionSyntax.NewKeyword} {objectCreationExpressionSyntax.Type}";
+                    break;
+                case InvocationExpressionSyntax invocationExpressionSyntax:
+                    methodName = invocationExpressionSyntax.Expression.ToString();
+                    break;
+                default:
+                    methodName = node.ToString();
+                    break;
+            }
 
             return methodName;
         }
@@ -394,30 +400,30 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                 Logger.Log(symbol.ContainingType + "." + symbol.Name + " -> " + argumentState);
 
-                if (behavior != null)
+                if (behavior == null)
+                    continue;
+
+                //If the API is at risk
+                if ((argumentState.Taint == VariableTaint.Tainted ||
+                     argumentState.Taint == VariableTaint.Unknown) && //Tainted values
+                    //If the current parameter can be injected.
+                    Array.Exists(behavior.InjectablesArguments, element => element == i))
                 {
-                    //If the API is at risk
-                    if ((argumentState.Taint == VariableTaint.Tainted ||
-                         argumentState.Taint == VariableTaint.Unknown) && //Tainted values
-                        //If the current parameter can be injected.
-                        Array.Exists(behavior.InjectablesArguments, element => element == i))
-                    {
-                        var newRule = LocaleUtil.GetDescriptor(behavior.LocaleInjection);
-                        var diagnostic = Diagnostic.Create(newRule, node.GetLocation(), GetMethodName(node), (i + 1).ToNthString());
-                        state.AnalysisContext.ReportDiagnostic(diagnostic);
-                    }
-                    else if (argumentState.Taint == VariableTaint.Constant && //Hard coded value
-                             //If the current parameter is a password
-                             Array.Exists(behavior.PasswordArguments, element => element == i))
-                    {
-                        var newRule    = LocaleUtil.GetDescriptor(behavior.LocalePassword);
-                        var diagnostic = Diagnostic.Create(newRule, node.GetLocation(), GetMethodName(node), (i + 1).ToNthString());
-                        state.AnalysisContext.ReportDiagnostic(diagnostic);
-                    }
-                    else if (Array.Exists(behavior.TaintFromArguments, element => element == i))
-                    {
-                        returnState = returnState.Merge(argumentState);
-                    }
+                    var newRule    = LocaleUtil.GetDescriptor(behavior.LocaleInjection);
+                    var diagnostic = Diagnostic.Create(newRule, node.GetLocation(), GetMethodName(node), (i + 1).ToNthString());
+                    state.AnalysisContext.ReportDiagnostic(diagnostic);
+                }
+                else if (argumentState.Taint == VariableTaint.Constant && //Hard coded value
+                         //If the current parameter is a password
+                         Array.Exists(behavior.PasswordArguments, element => element == i))
+                {
+                    var newRule    = LocaleUtil.GetDescriptor(behavior.LocalePassword);
+                    var diagnostic = Diagnostic.Create(newRule, node.GetLocation(), GetMethodName(node), (i + 1).ToNthString());
+                    state.AnalysisContext.ReportDiagnostic(diagnostic);
+                }
+                else if (Array.Exists(behavior.TaintFromArguments, element => element == i))
+                {
+                    returnState = returnState.Merge(argumentState);
                 }
 
                 //TODO: taint all objects passed as arguments
@@ -425,7 +431,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 //{
                 //    var argumentType = state.AnalysisContext.SemanticModel.GetTypeInfo(argument.Expression).Type;
                 //    if (argumentType.IsReferenceType &&
-                //        argumentType.ToDisplayString(SymbolExtensions.SymbolDisplayFormat) != "System.String") // string is immutable
+                //        argumentType.IsType("System.String")) // string is immutable
                 //    {
                 //        state.MergeValue(ResolveIdentifier(identifierNameSyntax.Identifier),
                 //                         argumentState.Merge(new VariableState(argument, VariableTaint.Unknown)));
@@ -522,58 +528,53 @@ namespace SecurityCodeScan.Analyzers.Taint
                 return varState;
 
             var symbol = state.GetSymbol(expression);
-            if (symbol == null)
-                return new VariableState(expression, VariableTaint.Unknown);
-
-            if (symbol is IFieldSymbol field)
+            switch (symbol)
             {
-                if (field.IsConst)
-                    return new VariableState(expression, VariableTaint.Constant);
-
-                if (!field.IsReadOnly)
+                case null:
                     return new VariableState(expression, VariableTaint.Unknown);
-
-                switch (field.ToDisplayString(SymbolExtensions.SymbolDisplayFormat))
-                {
-                    case "System.String.Empty":
-                    case "System.IntPtr.Zero":
-                    case "System.IO.Path.AltDirectorySeparatorChar":
-                    case "System.IO.Path.DirectorySeparatorChar":
-                    case "System.IO.Path.InvalidPathChars":
-                    case "System.IO.Path.PathSeparator":
-                    case "System.IO.Path.VolumeSeparatorChar":
+                case IFieldSymbol field:
+                    if (field.IsConst)
                         return new VariableState(expression, VariableTaint.Constant);
-                }
 
-                return new VariableState(expression, VariableTaint.Unknown);
-            }
+                    if (!field.IsReadOnly)
+                        return new VariableState(expression, VariableTaint.Unknown);
 
-            if (symbol is IPropertySymbol prop)
-            {
-                if (prop.IsVirtual || prop.IsOverride || prop.IsAbstract)
+                    switch (field.GetTypeName()) // todo: move out to config of readonly values, that are constant in fact
+                    {
+                        case "System.String.Empty":
+                        case "System.IntPtr.Zero":
+                        case "System.IO.Path.AltDirectorySeparatorChar":
+                        case "System.IO.Path.DirectorySeparatorChar":
+                        case "System.IO.Path.InvalidPathChars":
+                        case "System.IO.Path.PathSeparator":
+                        case "System.IO.Path.VolumeSeparatorChar":
+                            return new VariableState(expression, VariableTaint.Constant);
+                    }
+
                     return new VariableState(expression, VariableTaint.Unknown);
+                case IPropertySymbol prop:
+                    if (prop.IsVirtual || prop.IsOverride || prop.IsAbstract)
+                        return new VariableState(expression, VariableTaint.Unknown);
 
-                // TODO: Use public API
-                var syntaxNodeProperty = prop.GetMethod.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("BodySyntax");
-                if (syntaxNodeProperty == null)
+                    // TODO: Use public API
+                    var syntaxNodeProperty = prop.GetMethod.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("BodySyntax");
+                    if (syntaxNodeProperty == null)
+                        return new VariableState(expression, VariableTaint.Unknown);
+
+                    var syntaxNode = (CSharpSyntaxNode)syntaxNodeProperty.GetValue(prop.GetMethod);
+                    switch (syntaxNode)
+                    {
+                        case BlockSyntax blockSyntax:
+                            // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
+                            state.AddNewValue(value, new VariableState(expression, VariableTaint.Unknown));
+                            return VisitBlock(blockSyntax, state);
+                        case ArrowExpressionClauseSyntax arrowSyntax:
+                            // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
+                            state.AddNewValue(value, new VariableState(expression, VariableTaint.Unknown));
+                            return VisitExpression(arrowSyntax.Expression, state);
+                    }
+
                     return new VariableState(expression, VariableTaint.Unknown);
-
-                var syntaxNode = (CSharpSyntaxNode)syntaxNodeProperty.GetValue(prop.GetMethod);
-                if (syntaxNode is BlockSyntax blockSyntax)
-                {
-                    // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
-                    state.AddNewValue(value, new VariableState(expression, VariableTaint.Unknown));
-                    return VisitBlock(blockSyntax, state);
-                }
-
-                if (syntaxNode is ArrowExpressionClauseSyntax arrowSyntax)
-                {
-                    // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
-                    state.AddNewValue(value, new VariableState(expression, VariableTaint.Unknown));
-                    return VisitExpression(arrowSyntax.Expression, state);
-                }
-
-                return new VariableState(expression, VariableTaint.Unknown);
             }
 
             return new VariableState(expression, VariableTaint.Unknown);

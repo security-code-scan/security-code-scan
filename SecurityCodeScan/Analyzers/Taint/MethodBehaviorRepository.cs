@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
@@ -22,7 +22,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             var assembly = typeof(MethodBehaviorRepository).GetTypeInfo().Assembly;
 
-            using (Stream stream = assembly.GetManifestResourceStream("SecurityCodeScan.Config." + configurationFile))
+            using (Stream stream = assembly.GetManifestResourceStream($"SecurityCodeScan.Config.{configurationFile}"))
             using (var reader = new StreamReader(stream))
             {
                 var yaml = new YamlStream();
@@ -84,9 +84,9 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                     //Injection based vulnerability
                     string globalKey = beArgTypes != null
-                                           ? beNamespace + "." + beClassName + "|" + beName + "|" + beArgTypes
-                                           :                                               //With arguments types discriminator
-                                           beNamespace + "." + beClassName + "|" + beName; //Minimalist configuration
+                                           ? $"{beNamespace}.{beClassName}|{beName}|{beArgTypes}"
+                                           :                                        //With arguments types discriminator
+                                           $"{beNamespace}.{beClassName}|{beName}"; //Minimalist configuration
 
                     MethodInjectableArguments.Add(globalKey,
                                                   new MethodBehavior(argumentsIndexes,
@@ -162,7 +162,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 return null;
             }
 
-            string key = symbol.ContainingType.ToDisplayString(SymbolExtensions.SymbolDisplayFormat) + "|" + symbol.Name;
+            string key = $"{symbol.ContainingType.GetTypeName()}|{symbol.Name}";
 
             if (MethodInjectableArguments.TryGetValue(key, out var behavior))
                 return behavior;
@@ -171,12 +171,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                 return null;
 
             //Find a signature with parameter type discriminator
-            string keyExtended = symbol.ContainingType.ContainingNamespace + "." +
-                                 symbol.ContainingType.Name +
-                                 "|" +
-                                 symbol.Name +
-                                 "|" +
-                                 ExtractGenericParameterSignature(symbol);
+            string keyExtended =
+                $"{symbol.ContainingType.ContainingNamespace}.{symbol.ContainingType.Name}|{symbol.Name}|{ExtractGenericParameterSignature(symbol)}";
             return MethodInjectableArguments.TryGetValue(keyExtended, out behavior) ? behavior : null;
         }
 
@@ -185,13 +181,13 @@ namespace SecurityCodeScan.Analyzers.Taint
             // If not a method revert to the old method, just in case!
             if (symbol.Kind != SymbolKind.Method || !(symbol is IMethodSymbol))
             {
-                Debug.WriteLine("Unexpected symbol type. " + symbol.ToString());
+                Debug.WriteLine($"Unexpected symbol type. {symbol}");
                 var firstParenthese = symbol.ToString().IndexOf("(", StringComparison.Ordinal);
                 return symbol.ToString().Substring(firstParenthese);
             }
 
             var    methodSymbol        = (IMethodSymbol)symbol;
-            string result              = "(";
+            var result = new StringBuilder("(", 200);
             bool   isFirstParameter    = true;
 
             foreach (IParameterSymbol parameter in methodSymbol.Parameters)
@@ -202,96 +198,42 @@ namespace SecurityCodeScan.Analyzers.Taint
                 }
                 else
                 {
-                    result += ", ";
+                    result.Append(", ");
                 }
 
-                if (parameter.RefKind == RefKind.Out)
+                switch (parameter.RefKind)
                 {
-                    result += "out ";
-                }
-                else if (parameter.RefKind == RefKind.Ref)
-                {
-                    result += "ref ";
+                    case RefKind.Out:
+                        result.Append("out ");
+                        break;
+                    case RefKind.Ref:
+                        result.Append("ref ");
+                        break;
                 }
 
                 string parameterTypeString = null;
                 if (parameter.IsParams) // variable num arguments case
                 {
-                    result += "params ";
-                    result += parameter.Type.ToDisplayString(SymbolExtensions.SymbolDisplayFormat).Replace("()", "[]");
+                    result.Append("params ");
+                    result.Append(parameter.Type.GetTypeName().Replace("()", "[]"));
                 }
                 else
                 {
-                    parameterTypeString = parameter.Type.ToDisplayString(SymbolExtensions.SymbolDisplayFormat);
+                    parameterTypeString = parameter.Type.GetTypeName();
                     if (parameter.Type.Kind == SymbolKind.ArrayType)
                         parameterTypeString = parameterTypeString.Replace("()", "[]");
                 }
 
-                result += parameterTypeString;
+                result.Append(parameterTypeString);
 
                 if (parameter.HasExplicitDefaultValue && parameter.ExplicitDefaultValue != null)
-                    result += " = " + parameter.ExplicitDefaultValue.ToString();
+                    result.Append(" = ").Append(parameter.ExplicitDefaultValue);
             }
 
-            result += ")";
+            result.Append(")");
             Debug.WriteLine(symbol.ToString());
             Debug.WriteLine(result);
-            return result;
-        }
-
-        private string GetFullTypeString(INamedTypeSymbol type)
-        {
-            string result = type.Name + GetTypeArgsStr(type, symbol => ((INamedTypeSymbol)symbol).TypeArguments);
-            return result;
-        }
-
-        private string GetTypeArgsStr(ISymbol                                    symbol,
-                                      Func<ISymbol, ImmutableArray<ITypeSymbol>> typeArgGetter)
-        {
-            IEnumerable<ITypeSymbol> typeArgs = typeArgGetter(symbol);
-
-            string result = "";
-
-            if (typeArgs.Any())
-            {
-                result += "<";
-
-                bool isFirstIteration = true;
-                foreach (ITypeSymbol typeArg in typeArgs)
-                {
-                    // insert comma if not first iteration
-                    if (isFirstIteration)
-                    {
-                        isFirstIteration = false;
-                    }
-                    else
-                    {
-                        result += ", ";
-                    }
-
-                    string strToAdd;
-                    if (typeArg is ITypeParameterSymbol typeParameterSymbol)
-                    {
-                        // this is a generic argument
-                        strToAdd = typeParameterSymbol.Name;
-                    }
-                    else
-                    {
-                        // this is a generic argument value. 
-                        var namedTypeSymbol = typeArg as INamedTypeSymbol;
-
-                        strToAdd = GetFullTypeString(namedTypeSymbol);
-                    }
-
-                    result += strToAdd;
-                }
-
-                result += ">";
-            }
-
-            Debug.WriteLine(symbol.ToString());
-            Debug.WriteLine(result);
-            return result;
+            return result.ToString();
         }
     }
 }

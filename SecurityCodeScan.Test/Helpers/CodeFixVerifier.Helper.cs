@@ -40,7 +40,7 @@ namespace SecurityCodeScan.Test.Helpers
                 foreach (var ex in e.InnerExceptions)
                 {
                     Console.WriteLine("Exception thrown during code fix: " + ex.Message);
-                    Console.WriteLine(ex.StackTrace.ToString());
+                    Console.WriteLine(ex.StackTrace);
                 }
 
                 throw;

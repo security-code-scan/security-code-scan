@@ -4,8 +4,8 @@
     <id>SecurityCodeScan</id>
     <version>2.5.0</version>
     <title>Security Code Scan</title>
-    <authors>Philippe Arteau, Jaroslav Lobacevski</authors>
-    <owners>Jaroslav Lobacevski</owners>
+    <authors>Jaroslav Lobačevski, Philippe Arteau</authors>
+    <owners>Jaroslav Lobačevski</owners>
     <licenseUrl>https://opensource.org/licenses/lgpl-3.0.html</licenseUrl>
     <projectUrl>https://security-code-scan.github.io</projectUrl>
     <iconUrl>https://security-code-scan.github.io/images/scs230.png</iconUrl>

@@ -368,7 +368,7 @@ class PathTraversal
 }
 ";
 
-            var visualBasicTest = $@"
+            var visualBasicTest = @"
 Imports System.IO
 
 Class PathTraversal

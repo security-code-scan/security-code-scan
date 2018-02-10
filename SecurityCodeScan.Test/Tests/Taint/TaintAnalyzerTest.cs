@@ -372,7 +372,7 @@ namespace sample
 }}
 ";
 
-            var visualBasicTest = $@"
+            var visualBasicTest = @"
 #Disable Warning BC50001
     Imports System
 #Enable Warning BC50001

@@ -90,21 +90,21 @@ namespace SecurityCodeScan.Analyzers
                 return;
 
             var locations = doc.Element("configuration")?.Elements("location");
-            if (locations != null)
+            if (locations == null)
+                return;
+
+            foreach (var location in locations)
             {
-                foreach (var location in locations)
-                {
-                    lastFoundElement = location;
-                    var pages = GetElement(location, ref lastFoundElement, "system.web", subElement);
-                    CheckAttribute(pages,
-                                   attribute,
-                                   value,
-                                   isGoodValue,
-                                   diagnosticDescriptor,
-                                   lastFoundElement,
-                                   file,
-                                   context);
-                }
+                lastFoundElement = location;
+                var pages = GetElement(location, ref lastFoundElement, "system.web", subElement);
+                CheckAttribute(pages,
+                               attribute,
+                               value,
+                               isGoodValue,
+                               diagnosticDescriptor,
+                               lastFoundElement,
+                               file,
+                               context);
             }
         }
 

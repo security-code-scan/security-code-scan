@@ -69,10 +69,7 @@ namespace SecurityCodeScan.Analyzers
                                                             if (xLineSpan.Path != diagLineSpan.Path)
                                                                 return false;
 
-                                                            if (xLineSpan.StartLinePosition != diagLineSpan.StartLinePosition)
-                                                                return false;
-
-                                                            return true;
+                                                            return xLineSpan.StartLinePosition == diagLineSpan.StartLinePosition;
                                                         }) != null)
                 {
                     return;
@@ -96,26 +93,25 @@ namespace SecurityCodeScan.Analyzers
 
         private bool CheckType(string type, ITypeSymbol symbol, SyntaxNodeAnalysisContext ctx)
         {
-            if (symbol.IsType(type) || symbol.IsDerivedFrom(type))
-            {
-                var diagnostic = Diagnostic.Create(WeakHashingAnalyzer.Sha1Rule, ctx.Node.GetLocation());
-                Report(diagnostic, ctx);
-                return true;
-            }
+            if (!symbol.IsTypeOrDerivedFrom(type))
+                return false;
 
-            return false;
+            var diagnostic = Diagnostic.Create(WeakHashingAnalyzer.Sha1Rule, ctx.Node.GetLocation());
+            Report(diagnostic, ctx);
+            return true;
         }
 
         public void VisitMemberAccessSyntaxNode(SyntaxNodeAnalysisContext ctx)
         {
             var symbol = ctx.SemanticModel.GetSymbolInfo(ctx.Node).Symbol;
-            if (symbol == null)
-                return;
-
-            if (symbol is IMethodSymbol methodSymbol)
+            switch (symbol)
             {
-                CheckType(WeakHashingAnalyzer.Sha1TypeName, methodSymbol.ReturnType, ctx);
-                CheckType(WeakHashingAnalyzer.Md5TypeName, methodSymbol.ReturnType, ctx);
+                case null:
+                    return;
+                case IMethodSymbol methodSymbol:
+                    CheckType(WeakHashingAnalyzer.Sha1TypeName, methodSymbol.ReturnType, ctx);
+                    CheckType(WeakHashingAnalyzer.Md5TypeName,  methodSymbol.ReturnType, ctx);
+                    break;
             }
         }
 
@@ -132,25 +128,30 @@ namespace SecurityCodeScan.Analyzers
             }
 
             var symbol = ctx.SemanticModel.GetSymbolInfo(ctx.Node).Symbol;
-            if (symbol == null)
-                return;
-
-            if (symbol is IMethodSymbol method)
+            switch (symbol)
             {
-                bool ret = CheckType(WeakHashingAnalyzer.Sha1TypeName, method.ReturnType, ctx);
-                ret |= CheckType(WeakHashingAnalyzer.Md5TypeName, method.ReturnType, ctx);
-                if (ret)
+                case null:
                     return;
+                case IMethodSymbol method:
+                    bool ret = CheckType(WeakHashingAnalyzer.Sha1TypeName, method.ReturnType, ctx);
+                    ret |= CheckType(WeakHashingAnalyzer.Md5TypeName, method.ReturnType, ctx);
+                    if (ret)
+                        return;
+
+                    break;
             }
 
-            var symbolString = symbol.ToDisplayString(SymbolExtensions.SymbolDisplayFormat);
+            var symbolString = symbol.GetTypeName();
             switch (symbolString)
             {
                 case "System.Security.Cryptography.CryptoConfig.CreateFromName":
                 {
-                    var                  methodSymbol = (IMethodSymbol)symbol;
+                    var methodSymbol = (IMethodSymbol)symbol;
+                    if (methodSymbol.Parameters.Length != 1)
+                        break;
+
                     DiagnosticDescriptor rule;
-                    if (methodSymbol.Parameters.Length == 1 && (rule = CheckParameter(ctx)) != null)
+                    if ((rule = CheckParameter(ctx)) != null)
                     {
                         var diagnostic = Diagnostic.Create(rule, expression.GetLocation());
                         Report(diagnostic, ctx);
@@ -162,7 +163,7 @@ namespace SecurityCodeScan.Analyzers
                 {
                     var                  methodSymbol = (IMethodSymbol)symbol;
                     DiagnosticDescriptor rule         = WeakHashingAnalyzer.Sha1Rule; // default if no parameters
-                    if (methodSymbol.Parameters.Length  == 0 ||
+                    if (methodSymbol.Parameters.Length == 0 ||
                         (methodSymbol.Parameters.Length == 1 && (rule = CheckParameter(ctx)) != null))
                     {
                         var diagnostic = Diagnostic.Create(rule, expression.GetLocation());
@@ -196,18 +197,16 @@ namespace SecurityCodeScan.Analyzers
                 return null;
 
             var value = (string)argValue.Value;
-            if (value == WeakHashingAnalyzer.Sha1TypeName ||
-                value == "SHA"                               ||
-                value == "SHA1"                              ||
-                value == "System.Security.Cryptography.HashAlgorithm")
+            switch (value)
             {
-                return WeakHashingAnalyzer.Sha1Rule;
-            }
-
-            if (value == WeakHashingAnalyzer.Md5TypeName ||
-                value == "MD5")
-            {
-                return WeakHashingAnalyzer.Md5Rule;
+                case WeakHashingAnalyzer.Sha1TypeName:
+                case "SHA":
+                case "SHA1":
+                case "System.Security.Cryptography.HashAlgorithm":
+                    return WeakHashingAnalyzer.Sha1Rule;
+                case WeakHashingAnalyzer.Md5TypeName:
+                case "MD5":
+                    return WeakHashingAnalyzer.Md5Rule;
             }
 
             return null;

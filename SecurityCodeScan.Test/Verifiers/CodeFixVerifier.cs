@@ -103,7 +103,7 @@ namespace SecurityCodeScan.Test.Helpers
             var compilerDiagnostics = await GetCompilerDiagnostics(document, cancellationToken).ConfigureAwait(false);
             foreach (Diagnostic diag in compilerDiagnostics)
             {
-                Console.WriteLine("/!\\: " + diag.ToString());
+                Console.WriteLine("/!\\: " + diag);
             }
 
             //Some compiler diagnostic are simply warnings, we can not fail once a warning is present..

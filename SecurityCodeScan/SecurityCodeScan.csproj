@@ -41,7 +41,6 @@
     <Compile Include="Analyzers\HtmlValidateRequestAnalyzer.cs" />
     <Compile Include="Analyzers\IExternalFileAnalyzer.cs" />
     <Compile Include="Analyzers\InsecureCookieAnalyzer.cs" />
-    <Compile Include="Analyzers\Locale\LocaleDiagnostic.cs" />
     <Compile Include="Analyzers\RequestValidationAnalyzer.cs" />
     <Compile Include="Analyzers\OutputCacheAnnotationAnalyzer.cs" />
     <Compile Include="Analyzers\Taint\CodeEvaluation\BaseCodeEvaluation.cs" />

@@ -40,8 +40,7 @@ namespace SecurityCodeScan.Analyzers
 
             var classSymbol = CSharp.CSharpExtensions.GetDeclaredSymbol(ctx.SemanticModel, node);
             if (classSymbol == null ||
-                (!classSymbol.IsDerivedFrom("Microsoft.AspNetCore.Mvc.Controller") &&
-                 !classSymbol.IsDerivedFrom("System.Web.Mvc.Controller")))
+                !classSymbol.IsDerivedFrom("Microsoft.AspNetCore.Mvc.Controller", "System.Web.Mvc.Controller"))
             {
                 return;
             }
@@ -115,8 +114,7 @@ namespace SecurityCodeScan.Analyzers
 
             var classSymbol = VB.VisualBasicExtensions.GetDeclaredSymbol(ctx.SemanticModel, node);
             if (classSymbol == null ||
-                (!classSymbol.IsDerivedFrom("Microsoft.AspNetCore.Mvc.Controller") &&
-                 !classSymbol.IsDerivedFrom("System.Web.Mvc.Controller")))
+                !classSymbol.IsDerivedFrom("Microsoft.AspNetCore.Mvc.Controller", "System.Web.Mvc.Controller"))
             {
                 return;
             }

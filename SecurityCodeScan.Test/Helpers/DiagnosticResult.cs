@@ -39,8 +39,8 @@ namespace SecurityCodeScan.Test.Helpers
 
         public DiagnosticResultLocation[] Locations
         {
-            get { return LocationsField ?? (LocationsField = new DiagnosticResultLocation[] { }); }
-            set { LocationsField = value; }
+            get => LocationsField ?? (LocationsField = new DiagnosticResultLocation[] { });
+            set => LocationsField = value;
         }
 
         public DiagnosticSeverity? Severity { get; set; }
@@ -48,8 +48,6 @@ namespace SecurityCodeScan.Test.Helpers
         public string Id { get; set; }
 
         public string Message { get; set; }
-
-        public string Path => Locations.Length > 0 ? Locations[0].Path : "";
 
         public int Line => Locations.Length > 0 ? Locations[0].Line : -1;
 

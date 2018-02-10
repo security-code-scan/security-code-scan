@@ -31,7 +31,7 @@ namespace SecurityCodeScan.Analyzers
             if (symbol == null)
                 return;
 
-            var type = symbol.ToDisplayString(SymbolExtensions.SymbolDisplayFormat);
+            var type = symbol.GetTypeName();
             switch (type)
             {
                 case "System.Security.Cryptography.CipherMode.ECB":

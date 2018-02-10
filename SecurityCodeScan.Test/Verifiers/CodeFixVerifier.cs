@@ -46,10 +46,11 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="codeFixIndex">Index determining which codefix to apply if there are multiple</param>
         /// <param name="allowNewCompilerDiagnostics">A bool controlling whether or not the test will fail if
         /// the CodeFix introduces other warnings after being applied</param>
-        protected async Task VerifyCSharpFix(string oldSource,
-                                             string newSource,
-                                             int?   codeFixIndex                = null,
-                                             bool   allowNewCompilerDiagnostics = false)
+        protected async Task VerifyCSharpFix(string  oldSource,
+                                             string  newSource,
+                                             int?    codeFixIndex                = null,
+                                             bool    allowNewCompilerDiagnostics = false,
+                                             Version dotNetVersion               = null)
         {
             //This fix avoid new line problems when comparing the generated source code with the one hard coded in the test.
             var normalizeOld = oldSource.Replace("\r\n", "\n").Replace("\r", "\n").Replace("\n", "\r\n");
@@ -68,6 +69,7 @@ namespace SecurityCodeScan.Test.Helpers
                             normalizeNew,
                             codeFixIndex,
                             allowNewCompilerDiagnostics,
+                            dotNetVersion,
                             CancellationToken.None).ConfigureAwait(false);
         }
 
@@ -94,9 +96,10 @@ namespace SecurityCodeScan.Test.Helpers
                                      string                             newSource,
                                      int?                               codeFixIndex,
                                      bool                               allowNewCompilerDiagnostics,
+                                     Version                            dotNetVersion,
                                      CancellationToken                  cancellationToken)
         {
-            var document            = CreateDocument(oldSource, language, GetAdditionalReferences());
+            var document            = CreateDocument(oldSource, dotNetVersion, language, GetAdditionalReferences());
             var analyzerDiagnostics = await GetSortedDiagnosticsFromDocuments(analyzers,
                                                                               new[] { document },
                                                                               cancellationToken).ConfigureAwait(false);

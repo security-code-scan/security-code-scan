@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.CodeAnalysis;
@@ -52,9 +53,23 @@ Class Xxe
     End Sub
 End Class
 ";
+            // Defaults were fixed in 4.5.2
+            var safeVersion = new Version(4, 5, 2);
+            await VerifyCSharpDiagnostic(cSharpTest, dotNetVersion: safeVersion).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, dotNetVersion: safeVersion).ConfigureAwait(false);
 
-            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var expected = new[]
+            {
+                new DiagnosticResult
+                {
+                    Id       = "SCS0007",
+                    Severity = DiagnosticSeverity.Warning
+                }
+            };
+
+            var vulnerableVersion = new Version(4, 5, 1);
+            await VerifyCSharpDiagnostic(cSharpTest, expected, dotNetVersion: vulnerableVersion).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, dotNetVersion: vulnerableVersion).ConfigureAwait(false);
         }
 
         [DataRow("ProhibitDtd   = true")]

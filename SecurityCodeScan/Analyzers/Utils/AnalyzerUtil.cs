@@ -16,7 +16,8 @@ namespace SecurityCodeScan.Analyzers.Utils
     internal static class SymbolExtensions
     {
         private static readonly SymbolDisplayFormat SymbolDisplayFormat =
-            new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeContainingType, typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+            new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeContainingType,
+                                    typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
         public static bool IsType(this ISymbol symbol, string type)
         {

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,9 +18,58 @@ namespace SecurityCodeScan.Test.Helpers
     /// </summary>
     public abstract partial class DiagnosticVerifier
     {
-        private static readonly MetadataReference MsCorLibReference     = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-        private static readonly MetadataReference SystemCoreReference   = MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location);
-        private static readonly MetadataReference SystemReference       = MetadataReference.CreateFromFile(typeof(Process).Assembly.Location);
+        private class ReferenceAssemblies
+        {
+            private readonly        string                                   AssemblyPath;
+            private readonly        Dictionary<string, MetadataReference>    Assemblies = new Dictionary<string, MetadataReference>();
+            private static readonly Dictionary<Version, ReferenceAssemblies> Cache      = new Dictionary<Version, ReferenceAssemblies>();
+
+            public ReferenceAssemblies(Version dotNetVersion)
+            {
+                AssemblyPath = BuildPath(dotNetVersion);
+            }
+
+            private string BuildPath(Version dotNetVersion)
+            {
+                var build   = dotNetVersion.Build != -1 ? $".{dotNetVersion.Build}" : "";
+                var version = $"v{dotNetVersion.Major}.{dotNetVersion.Minor}{build}";
+                var programFiles = Environment.Is64BitOperatingSystem
+                                       ? Environment.SpecialFolder.ProgramFilesX86
+                                       : Environment.SpecialFolder.ProgramFiles;
+
+                return $@"{Environment.GetFolderPath(programFiles)}\Reference Assemblies\Microsoft\Framework\.NETFramework\{version}\";
+            }
+
+            public MetadataReference GetMetadata(string assemblyName)
+            {
+                MetadataReference ret;
+                string            name = assemblyName.ToLower();
+                lock (Assemblies)
+                {
+                    if (Assemblies.TryGetValue(name, out ret))
+                        return ret;
+
+                    ret = MetadataReference.CreateFromFile($"{AssemblyPath}{name}");
+                    Assemblies.Add(name, ret);
+                }
+                return ret;
+            }
+
+            public static ReferenceAssemblies GetCache(Version dotNetVersion = null)
+            {
+                ReferenceAssemblies ret;
+                lock (Cache)
+                {
+                    if (Cache.TryGetValue(dotNetVersion, out ret))
+                        return ret;
+
+                    ret = new ReferenceAssemblies(dotNetVersion);
+                    Cache.Add(dotNetVersion, ret);
+                }
+                return ret;
+            }
+        }
+
         private static readonly MetadataReference CodeAnalysisReference = MetadataReference.CreateFromFile(typeof(Compilation).Assembly.Location);
 
         private static readonly CompilationOptions CSharpDefaultOptions      = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
@@ -48,12 +96,13 @@ namespace SecurityCodeScan.Test.Helpers
             string[]                           sources,
             string                             language,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
+            Version                            dotNetVersion,
             CancellationToken                  cancellationToken,
             IEnumerable<MetadataReference>     references                 = null,
             bool                               includeCompilerDiagnostics = false)
         {
             return await GetSortedDiagnosticsFromDocuments(analyzers,
-                                                           GetDocuments(sources, language, references),
+                                                           GetDocuments(sources, dotNetVersion, language, references),
                                                            cancellationToken,
                                                            includeCompilerDiagnostics).ConfigureAwait(false);
         }
@@ -135,6 +184,7 @@ namespace SecurityCodeScan.Test.Helpers
         /// <returns>A Tuple containing the Documents
         ///  produced from the sources and their TextSpans if relevant</returns>
         private static IEnumerable<Document> GetDocuments(string[]                       sources,
+                                                          Version                        dotNetVersion,
                                                           string                         language,
                                                           IEnumerable<MetadataReference> references = null)
         {
@@ -143,7 +193,7 @@ namespace SecurityCodeScan.Test.Helpers
                 throw new ArgumentException("Unsupported Language");
             }
 
-            var project   = CreateProject(sources, language, references);
+            var project   = CreateProject(sources, dotNetVersion, language, references);
             return project.Documents;
         }
 
@@ -154,10 +204,11 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="language">The language the source code is in</param>
         /// <returns>A Document created from the source string</returns>
         protected static Document CreateDocument(string                         source,
+                                                 Version                        dotNetVersion,
                                                  string                         language   = LanguageNames.CSharp,
                                                  IEnumerable<MetadataReference> references = null)
         {
-            return CreateProject(new[] { source }, language, references).Documents.First();
+            return CreateProject(new[] { source }, dotNetVersion, language, references).Documents.First();
         }
 
         /// <summary>
@@ -167,6 +218,7 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="language">The language the source code is in</param>
         /// <returns>A Project created out of the Documents created from the source strings</returns>
         private static Project CreateProject(string[]                           sources,
+                                             Version                            dotNetVersion,
                                              string                             language        = LanguageNames.CSharp,
                                              IEnumerable<MetadataReference>     references      = null)
         {
@@ -177,12 +229,14 @@ namespace SecurityCodeScan.Test.Helpers
 
             var projectId = ProjectId.CreateNewId(debugName: TestProjectName);
 
+            var refAssemblies = ReferenceAssemblies.GetCache(dotNetVersion ?? new Version(4, 5, 2));
+
             var solution = new AdhocWorkspace()
                            .CurrentSolution
                            .AddProject(projectId, TestProjectName, TestProjectName, language)
-                           .AddMetadataReference(projectId, MsCorLibReference)
-                           .AddMetadataReference(projectId, SystemCoreReference)
-                           .AddMetadataReference(projectId, SystemReference)
+                           .AddMetadataReference(projectId, refAssemblies.GetMetadata("mscorlib.dll"))
+                           .AddMetadataReference(projectId, refAssemblies.GetMetadata("System.Core.dll"))
+                           .AddMetadataReference(projectId, refAssemblies.GetMetadata("System.dll"))
                            .AddMetadataReference(projectId, CodeAnalysisReference)
                            .WithProjectCompilationOptions(projectId, options);
 

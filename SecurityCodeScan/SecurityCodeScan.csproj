@@ -58,6 +58,7 @@
     <Compile Include="Analyzers\Taint\VariableTaint.cs" />
     <Compile Include="Analyzers\Locale\LocaleUtil.cs" />
     <Compile Include="Analyzers\Utils\CodeFixUtil.cs" />
+    <Compile Include="Analyzers\Utils\CompilationExtensions.cs" />
     <Compile Include="Analyzers\Utils\SGLogging.cs" />
     <Compile Include="Analyzers\Locale\YamlResourceManager.cs" />
     <Compile Include="Analyzers\Taint\CodeEvaluation\VbCodeEvaluation.cs" />

@@ -44,6 +44,7 @@ namespace SecurityCodeScan.Test.Helpers
         protected async Task VerifyCSharpDiagnostic(string             source,
                                                     DiagnosticResult[] expected         = null,
                                                     bool               verifyIfCompiles = true,
+                                                    Version            dotNetVersion = null,
                                                     CancellationToken cancellationToken = default(CancellationToken))
         {
             var a = GetDiagnosticAnalyzers().ToList();
@@ -52,6 +53,7 @@ namespace SecurityCodeScan.Test.Helpers
                                     LanguageNames.CSharp,
                                     a.ToImmutableArray(),
                                     expected ?? new DiagnosticResult[0],
+                                    dotNetVersion,
                                     cancellationToken,
                                     verifyIfCompiles).ConfigureAwait(false);
         }
@@ -64,8 +66,9 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
         protected async Task VerifyVisualBasicDiagnostic(string             source,
-                                                         DiagnosticResult[] expected         = null,
-                                                         bool               verifyIfCompiles = true,
+                                                         DiagnosticResult[] expected          = null,
+                                                         bool               verifyIfCompiles  = true,
+                                                         Version            dotNetVersion     = null,
                                                          CancellationToken  cancellationToken = default(CancellationToken))
         {
             var a = GetDiagnosticAnalyzers().ToList();
@@ -74,6 +77,7 @@ namespace SecurityCodeScan.Test.Helpers
                                     LanguageNames.VisualBasic,
                                     a.ToImmutableArray(),
                                     expected ?? new DiagnosticResult[0],
+                                    dotNetVersion,
                                     cancellationToken,
                                     verifyIfCompiles).ConfigureAwait(false);
         }
@@ -85,9 +89,12 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="source">A class in the form of a string to run the analyzer on</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
-        protected async Task VerifyCSharpDiagnostic(string source, DiagnosticResult expected, bool verifyIfCompiles = true)
+        protected async Task VerifyCSharpDiagnostic(string           source,
+                                                    DiagnosticResult expected,
+                                                    bool             verifyIfCompiles = true,
+                                                    Version          dotNetVersion    = null)
         {
-            await VerifyCSharpDiagnostic(source, new[] { expected }, verifyIfCompiles).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(source, new[] { expected }, verifyIfCompiles, dotNetVersion).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -121,12 +128,14 @@ namespace SecurityCodeScan.Test.Helpers
                                              string                             language,
                                              ImmutableArray<DiagnosticAnalyzer> analyzers,
                                              DiagnosticResult[]                 expected,
+                                             Version                            dotNetVersion,
                                              CancellationToken                  cancellationToken,
                                              bool                               includeCompilerDiagnostics = true)
         {
             var diagnostics = await GetSortedDiagnostics(sources,
                                                          language,
                                                          analyzers,
+                                                         dotNetVersion,
                                                          cancellationToken,
                                                          GetAdditionalReferences(),
                                                          includeCompilerDiagnostics).ConfigureAwait(false);

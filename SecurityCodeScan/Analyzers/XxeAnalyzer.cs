@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
@@ -21,6 +22,29 @@ namespace SecurityCodeScan.Analyzers
         {
             context.RegisterSyntaxNodeAction(VisitSyntaxNode, CSharp.SyntaxKind.SimpleAssignmentExpression);
             context.RegisterSyntaxNodeAction(VisitSyntaxNode, VB.SyntaxKind.SimpleAssignmentStatement);
+            context.RegisterSyntaxNodeAction(VisitObjectCreationSyntaxNode,
+                                         CSharp.SyntaxKind.ObjectCreationExpression);
+
+            context.RegisterSyntaxNodeAction(VisitObjectCreationSyntaxNode,
+                                         VB.SyntaxKind.ObjectCreationExpression);
+        }
+
+        private static readonly Version SafeDotNetVersion = new Version(4, 5, 2);
+
+        public void VisitObjectCreationSyntaxNode(SyntaxNodeAnalysisContext ctx)
+        {
+            var symbol = ctx.SemanticModel.GetSymbolInfo(ctx.Node).Symbol;
+            if (symbol == null)
+                return;
+
+            if (!symbol.ContainingType.IsType("System.Xml.XmlReaderSettings") ||
+                ctx.SemanticModel.Compilation.GetDotNetFrameworkVersion() >= SafeDotNetVersion)
+            {
+                return;
+            }
+
+            var diagnostic = Diagnostic.Create(Rule, ctx.Node.GetLocation());
+            ctx.ReportDiagnostic(diagnostic);
         }
 
         private static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx)

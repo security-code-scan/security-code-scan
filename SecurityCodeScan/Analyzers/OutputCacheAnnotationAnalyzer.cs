@@ -12,7 +12,7 @@ using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class OutputCacheAnnotationAnalyzer : DiagnosticAnalyzer
     {
         public const            string                               DiagnosticId = "SCS0019";

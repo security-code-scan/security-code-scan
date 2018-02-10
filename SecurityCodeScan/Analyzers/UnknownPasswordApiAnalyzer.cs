@@ -11,7 +11,7 @@ using SyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class UnknownPasswordApiAnalyzer : TaintAnalyzerExtension
     {
         private static readonly DiagnosticDescriptor                 Rule = LocaleUtil.GetDescriptor("SCS0015", "title_assignment");

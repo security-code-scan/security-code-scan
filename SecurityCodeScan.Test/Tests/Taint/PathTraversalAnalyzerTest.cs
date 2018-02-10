@@ -17,7 +17,6 @@ namespace SecurityCodeScan.Test.Taint
     {
         private static readonly PortableExecutableReference[] References =
         {
-            MetadataReference.CreateFromFile(typeof(File).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(XmlReader).Assembly.Location)
         };
 

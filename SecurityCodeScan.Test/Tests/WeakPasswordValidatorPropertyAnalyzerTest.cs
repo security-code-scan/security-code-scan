@@ -23,7 +23,6 @@ namespace SecurityCodeScan.Test
         private static readonly PortableExecutableReference[] References =
         {
             MetadataReference.CreateFromFile(typeof(Controller).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(PasswordValidator).Assembly.Location)
         };
 

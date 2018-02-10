@@ -18,13 +18,6 @@ namespace SecurityCodeScan.Test.Password
             return new[] { new TaintAnalyzer() };
         }
 
-        private static readonly PortableExecutableReference[] References =
-        {
-            MetadataReference.CreateFromFile(typeof(PasswordDeriveBytes).Assembly.Location)
-        };
-
-        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
-
         [TestMethod]
         public async Task HardCodePasswordDerivedBytes()
         {

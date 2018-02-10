@@ -23,11 +23,10 @@ namespace SecurityCodeScan.Test
         private static readonly PortableExecutableReference[] References =
         {
             MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.HttpGetAttribute).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.HttpGetAttribute).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(HtmlEncoder).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.Controller).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(AllowAnonymousAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(HtmlEncoder).Assembly.Location),
             MetadataReference.CreateFromFile(Assembly.Load("System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")
                                                      .Location),
         };

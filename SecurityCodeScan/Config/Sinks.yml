@@ -374,6 +374,24 @@ XmlReader_Create_uri_settings_context:
   injectableArguments: 0
   locale: SCS0018
 
+XmlReader_Create_stream_settings_string:
+  namespace: System.Xml
+  className: XmlReader
+  member: method
+  name: Create
+  argTypes: (System.IO.Stream, System.Xml.XmlReaderSettings, System.String)
+  injectableArguments: 0, 2
+  locale: SCS0018
+
+XmlReader_Create_textreader_settings_string:
+  namespace: System.Xml
+  className: XmlReader
+  member: method
+  name: Create
+  argTypes: (System.IO.TextReader, System.Xml.XmlReaderSettings, System.String)
+  injectableArguments: 0, 2
+  locale: SCS0018
+
 #StreamReader
 
 StreamReader_Create_path:

@@ -501,18 +501,23 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [DataRow("XmlReader.Create(input)")]
-        [DataRow("XmlReader.Create(input, new XmlReaderSettings())")]
-        [DataRow("XmlReader.Create(input, new XmlReaderSettings(), default(XmlParserContext))")]
+        [DataRow("XmlReader.Create(textInput)")]
+        [DataRow("XmlReader.Create(textInput, new XmlReaderSettings())")]
+        [DataRow("XmlReader.Create(textInput, new XmlReaderSettings(), default(XmlParserContext))")]
+        [DataRow("XmlReader.Create(default(Stream), new XmlReaderSettings(), textInput)")]
+        [DataRow("XmlReader.Create(default(TextReader), new XmlReaderSettings(), textInput)")]
         [DataTestMethod]
         public async Task PathTraversalXmlReader(string sink)
         {
             var cSharpTest = $@"
-using System.Xml;
+#pragma warning disable 8019
+    using System.IO;
+    using System.Xml;
+#pragma warning restore 8019
 
 class PathTraversal
 {{
-    public static void Run(string input)
+    public static void Run(string textInput, Stream streamInput, TextReader textReaderInput, XmlReader xmlReaderInput)
     {{
         var reader = {sink};
     }}
@@ -522,10 +527,13 @@ class PathTraversal
             sink = sink.Replace("null", "Nothing");
             sink = Regex.Replace(sink, "default\\(([^\\)]*)\\)", "DirectCast(Nothing, $1)");
             var visualBasicTest = $@"
-Imports System.Xml
+#Disable Warning BC50001
+    Imports System.IO
+    Imports System.Xml
+#Enable Warning BC50001
 
 Class PathTraversal
-    Public Shared Sub Run(input As String)
+    Public Shared Sub Run(textInput As String, streamInput As Stream, textReaderInput As TextReader, xmlReaderInput As XmlReader)
         Dim reader As XMLReader = {sink}
     End Sub
 End Class
@@ -544,11 +552,23 @@ End Class
         [DataRow("XmlReader.Create(\"\")")]
         [DataRow("XmlReader.Create(\"\", settings)")]
         [DataRow("XmlReader.Create(\"\", settings, context)")]
+        [DataRow("XmlReader.Create(default(Stream))")]
+        [DataRow("XmlReader.Create(default(Stream), settings)")]
+        [DataRow("XmlReader.Create(default(Stream), settings, default(string))")]
+        [DataRow("XmlReader.Create(default(Stream), settings, default(XmlParserContext))")]
+        [DataRow("XmlReader.Create(default(TextReader))")]
+        [DataRow("XmlReader.Create(default(TextReader), settings)")]
+        [DataRow("XmlReader.Create(default(TextReader), settings, default(string))")]
+        [DataRow("XmlReader.Create(default(TextReader), settings, default(XmlParserContext))")]
+        [DataRow("XmlReader.Create(default(XmlReader), settings)")]
         [DataTestMethod]
         public async Task PathTraversalXmlReaderConst(string sink)
         {
             var cSharpTest = $@"
-using System.Xml;
+#pragma warning disable 8019
+    using System.IO;
+    using System.Xml;
+#pragma warning restore 8019
 
 class PathTraversal
 {{
@@ -562,7 +582,10 @@ class PathTraversal
             sink                = sink.Replace("null", "Nothing");
             sink                = Regex.Replace(sink, "default\\(([^\\)]*)\\)", "DirectCast(Nothing, $1)");
             var visualBasicTest = $@"
-Imports System.Xml
+#Disable Warning BC50001
+    Imports System.IO
+    Imports System.Xml
+#Enable Warning BC50001
 
 Class PathTraversal
     Public Shared Sub Run(settings As XmlReaderSettings, context As XmlParserContext)

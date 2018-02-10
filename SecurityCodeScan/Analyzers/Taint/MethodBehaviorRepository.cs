@@ -162,18 +162,22 @@ namespace SecurityCodeScan.Analyzers.Taint
                 return null;
             }
 
+            // First try to find specific overload
+            if (symbol.ToString().Contains("("))
+            {
+                string keyExtended =
+                    $"{symbol.ContainingType.ContainingNamespace}.{symbol.ContainingType.Name}|{symbol.Name}|{ExtractGenericParameterSignature(symbol)}";
+                if (MethodInjectableArguments.TryGetValue(keyExtended, out var behavior1))
+                    return behavior1;
+            }
+
+            // try to find generic rule by method name
             string key = $"{symbol.ContainingType.GetTypeName()}|{symbol.Name}";
 
-            if (MethodInjectableArguments.TryGetValue(key, out var behavior))
-                return behavior;
+            if (MethodInjectableArguments.TryGetValue(key, out var behavior2))
+                return behavior2;
 
-            if (!symbol.ToString().Contains("("))
-                return null;
-
-            //Find a signature with parameter type discriminator
-            string keyExtended =
-                $"{symbol.ContainingType.ContainingNamespace}.{symbol.ContainingType.Name}|{symbol.Name}|{ExtractGenericParameterSignature(symbol)}";
-            return MethodInjectableArguments.TryGetValue(keyExtended, out behavior) ? behavior : null;
+            return null;
         }
 
         private string ExtractGenericParameterSignature(ISymbol symbol)

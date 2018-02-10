@@ -19,11 +19,10 @@ namespace SecurityCodeScan.Test.Helpers
     /// </summary>
     public abstract partial class DiagnosticVerifier
     {
-        private static readonly MetadataReference CorlibReference        = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-        private static readonly MetadataReference SystemCoreReference    = MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location);
-        private static readonly MetadataReference CSharpSymbolsReference = MetadataReference.CreateFromFile(typeof(CSharpCompilation).Assembly.Location);
-        private static readonly MetadataReference CodeAnalysisReference  = MetadataReference.CreateFromFile(typeof(Compilation).Assembly.Location);
-        private static readonly MetadataReference SystemDiagReference    = MetadataReference.CreateFromFile(typeof(Process).Assembly.Location);
+        private static readonly MetadataReference MsCorLibReference     = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
+        private static readonly MetadataReference SystemCoreReference   = MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location);
+        private static readonly MetadataReference SystemReference       = MetadataReference.CreateFromFile(typeof(Process).Assembly.Location);
+        private static readonly MetadataReference CodeAnalysisReference = MetadataReference.CreateFromFile(typeof(Compilation).Assembly.Location);
 
         private static readonly CompilationOptions CSharpDefaultOptions      = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
         private static readonly CompilationOptions VisualBasicDefaultOptions = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
@@ -181,11 +180,10 @@ namespace SecurityCodeScan.Test.Helpers
             var solution = new AdhocWorkspace()
                            .CurrentSolution
                            .AddProject(projectId, TestProjectName, TestProjectName, language)
-                           .AddMetadataReference(projectId, CorlibReference)
+                           .AddMetadataReference(projectId, MsCorLibReference)
                            .AddMetadataReference(projectId, SystemCoreReference)
-                           .AddMetadataReference(projectId, CSharpSymbolsReference)
+                           .AddMetadataReference(projectId, SystemReference)
                            .AddMetadataReference(projectId, CodeAnalysisReference)
-                           .AddMetadataReference(projectId, SystemDiagReference)
                            .WithProjectCompilationOptions(projectId, options);
 
             if (references != null)

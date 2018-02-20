@@ -24,7 +24,7 @@ namespace SecurityCodeScan.Test.Helpers
             private readonly        Dictionary<string, MetadataReference>    Assemblies = new Dictionary<string, MetadataReference>();
             private static readonly Dictionary<Version, ReferenceAssemblies> Cache      = new Dictionary<Version, ReferenceAssemblies>();
 
-            public ReferenceAssemblies(Version dotNetVersion)
+            private ReferenceAssemblies(Version dotNetVersion)
             {
                 AssemblyPath = BuildPath(dotNetVersion);
             }
@@ -55,7 +55,7 @@ namespace SecurityCodeScan.Test.Helpers
                 return ret;
             }
 
-            public static ReferenceAssemblies GetCache(Version dotNetVersion = null)
+            public static ReferenceAssemblies GetCache(Version dotNetVersion)
             {
                 ReferenceAssemblies ret;
                 lock (Cache)
@@ -237,6 +237,8 @@ namespace SecurityCodeScan.Test.Helpers
                            .AddMetadataReference(projectId, refAssemblies.GetMetadata("mscorlib.dll"))
                            .AddMetadataReference(projectId, refAssemblies.GetMetadata("System.Core.dll"))
                            .AddMetadataReference(projectId, refAssemblies.GetMetadata("System.dll"))
+                           .AddMetadataReference(projectId, refAssemblies.GetMetadata("System.Xml.dll"))
+                           .AddMetadataReference(projectId, refAssemblies.GetMetadata("System.Data.dll"))
                            .AddMetadataReference(projectId, CodeAnalysisReference)
                            .WithProjectCompilationOptions(projectId, options);
 

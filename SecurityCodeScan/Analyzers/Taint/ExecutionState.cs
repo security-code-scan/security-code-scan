@@ -84,14 +84,5 @@ namespace SecurityCodeScan.Analyzers.Taint
                 return null; // Syntax node is not within syntax tree
             }
         }
-
-        public void AddTag(string variableAccess, VariableTag httpCookieSecure)
-        {
-            if (DebugMode)
-                Logger.Log($"Adding tag '{httpCookieSecure}' to  {variableAccess}");
-
-            if (VariableStates.TryGetValue(variableAccess, out var variable))
-                variable.AddTag(httpCookieSecure);
-        }
     }
 }

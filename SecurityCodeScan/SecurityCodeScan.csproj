@@ -59,9 +59,15 @@
     <Compile Include="Analyzers\Locale\LocaleUtil.cs" />
     <Compile Include="Analyzers\Utils\CodeFixUtil.cs" />
     <Compile Include="Analyzers\Utils\CompilationExtensions.cs" />
+    <Compile Include="Analyzers\Utils\CSharpSyntaxNodeHelper.cs" />
+    <Compile Include="Analyzers\Utils\ISymbolExtensions.cs" />
+    <Compile Include="Analyzers\Utils\ITypeSymbolExtensions.cs" />
+    <Compile Include="Analyzers\Utils\ObjectExtensions.cs" />
     <Compile Include="Analyzers\Utils\SGLogging.cs" />
     <Compile Include="Analyzers\Locale\YamlResourceManager.cs" />
     <Compile Include="Analyzers\Taint\CodeEvaluation\VbCodeEvaluation.cs" />
+    <Compile Include="Analyzers\Utils\SyntaxNodeHelper.cs" />
+    <Compile Include="Analyzers\Utils\VBSyntaxNodeHelper.cs" />
     <Compile Include="Analyzers\WeakCertificateValidationAnalyzer.cs" />
     <Compile Include="Analyzers\WeakCipherAnalyzer.cs" />
     <Compile Include="Analyzers\WeakCipherModeAnalyzer.cs" />
@@ -70,6 +76,8 @@
     <Compile Include="Analyzers\WeakRandomAnalyzer.cs" />
     <Compile Include="Analyzers\WebConfigAnalyzer.cs" />
     <Compile Include="Analyzers\XxeAnalyzer.cs" />
+    <Compile Include="Analyzers\XxeAnalyzerCSharp.cs" />
+    <Compile Include="Analyzers\XxeAnalyzerVBasic.cs" />
     <Compile Include="CodeFixes\CsrfTokenCodeFixProvider.cs" />
     <Compile Include="CodeFixes\InsecureCookieCodeFixProvider.cs" />
     <Compile Include="Constants.cs" />

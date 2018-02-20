@@ -42,10 +42,10 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
         protected async Task VerifyCSharpDiagnostic(string             source,
-                                                    DiagnosticResult[] expected         = null,
-                                                    bool               verifyIfCompiles = true,
-                                                    Version            dotNetVersion = null,
-                                                    CancellationToken cancellationToken = default(CancellationToken))
+                                                    DiagnosticResult[] expected          = null,
+                                                    bool               verifyIfCompiles  = true,
+                                                    Version            dotNetVersion     = null,
+                                                    CancellationToken  cancellationToken = default(CancellationToken))
         {
             var a = GetDiagnosticAnalyzers().ToList();
             a.Add(new DebugAnalyzer());
@@ -89,12 +89,17 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="source">A class in the form of a string to run the analyzer on</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
-        protected async Task VerifyCSharpDiagnostic(string           source,
-                                                    DiagnosticResult expected,
-                                                    bool             verifyIfCompiles = true,
-                                                    Version          dotNetVersion    = null)
+        protected async Task VerifyCSharpDiagnostic(string            source,
+                                                    DiagnosticResult  expected,
+                                                    bool              verifyIfCompiles  = true,
+                                                    Version           dotNetVersion     = null,
+                                                    CancellationToken cancellationToken = default(CancellationToken))
         {
-            await VerifyCSharpDiagnostic(source, new[] { expected }, verifyIfCompiles, dotNetVersion).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(source,
+                                         new[] { expected },
+                                         verifyIfCompiles,
+                                         dotNetVersion,
+                                         cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -104,9 +109,17 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="source">A class in the form of a string to run the analyzer on</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
-        protected async Task VerifyVisualBasicDiagnostic(string source, DiagnosticResult expected, bool verifyIfCompiles = true)
+        protected async Task VerifyVisualBasicDiagnostic(string            source,
+                                                         DiagnosticResult  expected,
+                                                         bool              verifyIfCompiles  = true,
+                                                         Version           dotNetVersion     = null,
+                                                         CancellationToken cancellationToken = default(CancellationToken))
         {
-            await VerifyVisualBasicDiagnostic(source, new[] { expected }, verifyIfCompiles).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(source,
+                                              new[] { expected },
+                                              verifyIfCompiles,
+                                              dotNetVersion,
+                                              cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         [TestInitialize]

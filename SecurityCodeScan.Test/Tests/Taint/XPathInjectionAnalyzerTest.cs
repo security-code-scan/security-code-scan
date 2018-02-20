@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Xml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -17,13 +16,6 @@ namespace SecurityCodeScan.Test.Taint
         {
             return new[] { new TaintAnalyzer() };
         }
-
-        private static readonly PortableExecutableReference[] References =
-        {
-            MetadataReference.CreateFromFile(typeof(XmlNode).Assembly.Location)
-        };
-
-        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         //No diagnostics expected to show up
         [TestMethod]

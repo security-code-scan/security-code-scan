@@ -81,10 +81,22 @@ namespace SecurityCodeScan.Analyzers.Taint
         private VariableState VisitForEach(ForEachStatementSyntax node, ExecutionState state)
         {
             var variableState = VisitExpression(node.Expression, state);
-            var names = ((VariableDeclaratorSyntax)node.ControlVariable).Names;
-            foreach (var name in names)
+
+            switch (node.ControlVariable)
             {
-                state.AddNewValue(ResolveIdentifier(name.Identifier), variableState);
+                case VariableDeclaratorSyntax variableDeclarator:
+                    var names = variableDeclarator.Names;
+                    foreach (var name in names)
+                    {
+                        state.AddNewValue(ResolveIdentifier(name.Identifier), variableState);
+                    }
+
+                    break;
+                case IdentifierNameSyntax identifierName:
+                    state.AddNewValue(ResolveIdentifier(identifierName.Identifier), variableState);
+                    break;
+                default:
+                    throw new ArgumentException(nameof(node.ControlVariable));
             }
 
             return VisitNode(node.Expression, state);
@@ -125,6 +137,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return new VariableState(node, VariableTaint.Unknown);
                 }
                 case ReturnStatementSyntax returnStatementSyntax:
+                    if (returnStatementSyntax.Expression == null)
+                        return new VariableState(node, VariableTaint.Unknown);
+
                     return VisitExpression(returnStatementSyntax.Expression, state);
                 case ForEachStatementSyntax forEachSyntax:
                     return VisitForEach(forEachSyntax, state);
@@ -251,7 +266,15 @@ namespace SecurityCodeScan.Analyzers.Taint
             VariableState? memberVariableState = null;
             if (node.Expression is MemberAccessExpressionSyntax memberAccessExpression)
             {
-                memberVariableState = VisitExpression(memberAccessExpression.Expression, state);
+                if (memberAccessExpression.Expression != null)
+                {
+                    memberVariableState = VisitExpression(memberAccessExpression.Expression, state);
+                }
+                else
+                {
+                    var with = memberAccessExpression.AncestorsAndSelf().OfType<WithBlockSyntax>().First();
+                    memberVariableState = VisitExpression(with.WithStatement.Expression, state);
+                }
             }
 
             return VisitInvocationAndCreation(node, node.ArgumentList, state, memberVariableState);
@@ -477,7 +500,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                     // TODO: Use public API
                     var syntaxNodeProperty = prop.GetMethod.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("Syntax");
-                    var syntaxNode         = (VisualBasicSyntaxNode)syntaxNodeProperty.GetValue(prop.GetMethod);
+                    var syntaxNode         = (VisualBasicSyntaxNode)syntaxNodeProperty?.GetValue(prop.GetMethod);
                     switch (syntaxNode)
                     {
                         case null:

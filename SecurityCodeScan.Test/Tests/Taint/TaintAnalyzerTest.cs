@@ -25,6 +25,55 @@ namespace SecurityCodeScan.Test.Taint
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [TestMethod]
+        public async Task MethodMemberAccessWithVb()
+        {
+            var visualBasicTest = @"
+Namespace sample
+    Friend Class Foo
+        Public Shared Sub Run()
+            Dim a = """"
+            With a
+                Dim e = .Equals(""a"")
+            End With
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task Return()
+        {
+            var cSharpTest = @"
+namespace sample
+{
+    class Foo
+    {
+        public static void Run()
+        {
+            return;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Namespace sample
+    Friend Class Foo
+        Public Shared Sub Run()
+            Return
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
         public async Task VariableLocalForEach()
         {
             var cSharpTest = @"
@@ -60,6 +109,13 @@ Namespace sample
         Public Shared Sub Run2()
             For Each str As String In System.IO.Directory.GetFiles("""", """")
                 Run2()
+            Next
+        End Sub
+        Sub Run3(args As String())
+            Dim str As String
+
+            For Each str In args
+                Dim s As String = str
             Next
         End Sub
     End Class

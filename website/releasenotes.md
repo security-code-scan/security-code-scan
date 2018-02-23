@@ -1,4 +1,7 @@
 # Release Notes
+## 2.6.1
+Exceptions analyzing VB.NET projects fixed.
+
 ## 2.6.0
 XXE analysis expanded.
 More patterns to detect Open Redirect and Path Traversal.

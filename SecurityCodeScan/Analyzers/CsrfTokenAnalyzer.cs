@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
@@ -83,7 +85,13 @@ namespace SecurityCodeScan.Analyzers
             if (symbol.HasDerivedMethodAttribute(HasAntiForgeryToken))
                 return;
 
-            ctx.ReportDiagnostic(Diagnostic.Create(Rule, ctx.Node.GetLocation()));
+            Location diagnosticsLocation;
+            if (ctx.Node is MethodDeclarationSyntax methodDeclaration)
+                diagnosticsLocation = methodDeclaration.Identifier.GetLocation();
+            else
+                diagnosticsLocation = ((MethodBlockSyntax)ctx.Node).SubOrFunctionStatement.Identifier.GetLocation();
+
+            ctx.ReportDiagnostic(Diagnostic.Create(Rule, diagnosticsLocation));
         }
     }
 }

@@ -44,11 +44,12 @@ namespace SecurityCodeScan.CodeFixes
                                                    Diagnostic        diagnostic,
                                                    CancellationToken cancellationToken)
         {
-            var root            = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var highlightedNode = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent;
-
-            if (!(CodeFixUtil.GetParentNode(highlightedNode,
-                                            typeof(MethodDeclarationSyntax)) is MethodDeclarationSyntax methodDeclaration))
+            var root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
+            var methodDeclaration = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent
+                                                                                        .AncestorsAndSelf()
+                                                                                        .OfType<MethodDeclarationSyntax>()
+                                                                                        .First();
+            if (methodDeclaration == null)
             {
                 return document;
             }

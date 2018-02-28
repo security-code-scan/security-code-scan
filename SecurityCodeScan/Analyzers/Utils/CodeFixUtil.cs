@@ -25,17 +25,5 @@ namespace SecurityCodeScan.Analyzers.Utils
 
             return triviaBuild;
         }
-
-        public static SyntaxNode GetParentNode(SyntaxNode childNode, Type target)
-        {
-            SyntaxNode node = childNode;
-
-            do
-            {
-                node = node.Parent;
-            } while (node.Parent != null && node.GetType() != target);
-
-            return node.GetType() == target ? node : null;
-        }
     }
 }

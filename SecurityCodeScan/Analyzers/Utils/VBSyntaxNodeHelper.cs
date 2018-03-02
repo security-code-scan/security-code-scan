@@ -155,6 +155,22 @@ namespace SecurityCodeScan.Analyzers.Utils
             return null;
         }
 
+        public override SyntaxNode GetAttributeNameNode(SyntaxNode node)
+        {
+            if (!(node is AttributeSyntax attribute))
+                return null;
+
+            return attribute.Name;
+        }
+
+        public override SyntaxToken GetPropertyIdentifierNode(SyntaxNode node)
+        {
+            if (!(node is PropertyStatementSyntax property))
+                return new SyntaxToken();
+
+            return property.Identifier;
+        }
+
         public override SyntaxNode GetDefaultValueForAnOptionalParameter(SyntaxNode declNode, int paramIndex)
         {
             if (declNode == null)
@@ -332,6 +348,24 @@ namespace SecurityCodeScan.Analyzers.Utils
             }
 
             return node.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>();
+        }
+
+        public override IEnumerable<SyntaxNode> GetPropertyAttributeNodes(SyntaxNode node)
+        {
+            List<SyntaxNode> result = new List<SyntaxNode>();
+
+            if (!(node is PropertyStatementSyntax property))
+                return result;
+
+            foreach (var attributeList in property.AttributeLists)
+            {
+                if (attributeList.Attributes.Count == 0)
+                    continue;
+
+                result.AddRange(attributeList.Attributes);
+            }
+
+            return result;
         }
 
         public override bool IsObjectCreationExpressionUnderFieldDeclaration(SyntaxNode node)

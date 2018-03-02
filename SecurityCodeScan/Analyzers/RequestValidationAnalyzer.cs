@@ -7,6 +7,8 @@ using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
+using SecurityCodeScan.Analyzers.Utils;
+
 namespace SecurityCodeScan.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
@@ -30,64 +32,26 @@ namespace SecurityCodeScan.Analyzers
 
         private void VisitPropertiesCSharp(SyntaxNodeAnalysisContext ctx)
         {
-            var property = (CSharpSyntax.PropertyDeclarationSyntax)ctx.Node;
-
-            CSharpSyntax.AttributeSyntax allowHtmlAttribute = null;
-
-            foreach (var attributeList in property.AttributeLists)
-            {
-                if (attributeList.Attributes.Count == 0)
-                    continue;
-
-                foreach (var attribute in attributeList.Attributes)
-                {
-                    if (attribute.Name.ToString().Contains("AllowHtml"))
-                    {
-                        allowHtmlAttribute = attribute;
-                        break;
-                    }
-                }
-
-                if (allowHtmlAttribute != null)
-                    break;
-            }
-
-            if (allowHtmlAttribute == null)
-                return;
-
-            var attributeSymbols = ctx.SemanticModel.GetSymbolInfo(allowHtmlAttribute).Symbol;
-            if (attributeSymbols == null)
-                return;
-
-            var containingSymbol = attributeSymbols.ContainingSymbol.ToString();
-            if (containingSymbol != "System.Web.Mvc.AllowHtmlAttribute")
-                return;
-
-            ctx.ReportDiagnostic(Diagnostic.Create(Rule, property.Identifier.GetLocation()));
+            VisitProperties(ctx, CSharpSyntaxNodeHelper.Default);
         }
 
         private void VisitPropertiesVisualBasic(SyntaxNodeAnalysisContext ctx)
         {
-            var property = (VBSyntax.PropertyStatementSyntax)ctx.Node;
+            VisitProperties(ctx, VBSyntaxNodeHelper.Default);
+        }
 
-            VBSyntax.AttributeSyntax allowHtmlAttribute = null;
+        private void VisitProperties(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
+        {
+            var attributes = nodeHelper.GetPropertyAttributeNodes(ctx.Node);
 
-            foreach (var attributeList in property.AttributeLists)
+            SyntaxNode allowHtmlAttribute = null;
+            foreach (var attribute in attributes)
             {
-                if (attributeList.Attributes.Count == 0)
-                    continue;
-
-                foreach (var attribute in attributeList.Attributes)
+                if (nodeHelper.GetAttributeNameNode(attribute).ToString().Contains("AllowHtml"))
                 {
-                    if (attribute.Name.ToString().Contains("AllowHtml"))
-                    {
-                        allowHtmlAttribute = attribute;
-                        break;
-                    }
-                }
-
-                if (allowHtmlAttribute != null)
+                    allowHtmlAttribute = attribute;
                     break;
+                }
             }
 
             if (allowHtmlAttribute == null)
@@ -101,37 +65,32 @@ namespace SecurityCodeScan.Analyzers
             if (containingSymbol != "System.Web.Mvc.AllowHtmlAttribute")
                 return;
 
-            ctx.ReportDiagnostic(Diagnostic.Create(Rule, property.Identifier.GetLocation()));
+            ctx.ReportDiagnostic(Diagnostic.Create(Rule, nodeHelper.GetPropertyIdentifierNode(ctx.Node).GetLocation()));
         }
 
         private void VisitMemberAccessVisualBasic(SyntaxNodeAnalysisContext ctx)
         {
-            var memberAccess = (VBSyntax.MemberAccessExpressionSyntax)ctx.Node;
-            if (memberAccess.Name.ToString() != "Unvalidated")
-                return;
-
-            var memberAccessSymbol = ctx.SemanticModel.GetSymbolInfo(memberAccess).Symbol;
-            if (memberAccessSymbol == null)
-                return;
-
-            var containingSymbol = memberAccessSymbol.ContainingSymbol.ToString();
-            if (containingSymbol == "System.Web.Helpers.Validation" || containingSymbol == "System.Web.HttpRequestBase")
-                ctx.ReportDiagnostic(Diagnostic.Create(Rule, memberAccess.Name.GetLocation()));
+            VisitMemberAccess(ctx, VBSyntaxNodeHelper.Default);
         }
 
         private void VisitMemberAccessCSharp(SyntaxNodeAnalysisContext ctx)
         {
-            var memberAccess = (CSharpSyntax.MemberAccessExpressionSyntax)ctx.Node;
-            if (memberAccess.Name.ToString() != "Unvalidated")
+            VisitMemberAccess(ctx, CSharpSyntaxNodeHelper.Default);
+        }
+
+        private void VisitMemberAccess(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
+        {
+            var name = nodeHelper.GetMemberAccessNameNode(ctx.Node);
+            if (name.ToString() != "Unvalidated")
                 return;
 
-            var memberAccessSymbol =  ctx.SemanticModel.GetSymbolInfo(memberAccess).Symbol;
+            var memberAccessSymbol = ctx.SemanticModel.GetSymbolInfo(ctx.Node).Symbol;
             if (memberAccessSymbol == null)
                 return;
 
             var containingSymbol = memberAccessSymbol.ContainingSymbol.ToString();
             if (containingSymbol == "System.Web.Helpers.Validation" || containingSymbol == "System.Web.HttpRequestBase")
-                ctx.ReportDiagnostic(Diagnostic.Create(Rule, memberAccess.Name.GetLocation()));
+                ctx.ReportDiagnostic(Diagnostic.Create(Rule, name.GetLocation()));
         }
 
         private void VisitMethodsCSharp(SyntaxNodeAnalysisContext ctx)

@@ -18,12 +18,90 @@ namespace SecurityCodeScan.Analyzers
         public override void Initialize(AnalysisContext context)
         {
             // Separated the parsers on this one as they use too many language dependent syntax types. 
-            // TODO: Review to see if this can be simplified.
+            // TODO: Review to see if this can be simplified.\
+            context.RegisterSyntaxNodeAction(VisitPropertiesCSharp,         CSharp.SyntaxKind.PropertyDeclaration);
+            context.RegisterSyntaxNodeAction(VisitPropertiesVisualBasic,    VB.SyntaxKind.PropertyStatement);
             context.RegisterSyntaxNodeAction(VisitMemberAccessCSharp,       CSharp.SyntaxKind.SimpleMemberAccessExpression);
             context.RegisterSyntaxNodeAction(VisitMemberAccessVisualBasic,  VB.SyntaxKind.SimpleMemberAccessExpression);
             context.RegisterSyntaxNodeAction(VisitMethodsCSharp,            CSharp.SyntaxKind.MethodDeclaration);
             context.RegisterSyntaxNodeAction(VisitMethodsVisualBasic,       VB.SyntaxKind.FunctionBlock);
             context.RegisterSyntaxNodeAction(VisitMethodsVisualBasic,       VB.SyntaxKind.SubBlock);
+        }
+
+        private void VisitPropertiesCSharp(SyntaxNodeAnalysisContext ctx)
+        {
+            var property = (CSharpSyntax.PropertyDeclarationSyntax)ctx.Node;
+
+            CSharpSyntax.AttributeSyntax allowHtmlAttribute = null;
+
+            foreach (var attributeList in property.AttributeLists)
+            {
+                if (attributeList.Attributes.Count == 0)
+                    continue;
+
+                foreach (var attribute in attributeList.Attributes)
+                {
+                    if (attribute.Name.ToString() == "AllowHtml")
+                    {
+                        allowHtmlAttribute = attribute;
+                        break;
+                    }
+                }
+
+                if (allowHtmlAttribute != null)
+                    break;
+            }
+
+            if (allowHtmlAttribute == null)
+                return;
+
+            var attributeSymbols = ctx.SemanticModel.GetSymbolInfo(allowHtmlAttribute).Symbol;
+            if (attributeSymbols == null)
+                return;
+
+            var containingSymbol = attributeSymbols.ContainingSymbol.ToString();
+            if (containingSymbol != "System.Web.Mvc.AllowHtmlAttribute")
+                return;
+
+            ctx.ReportDiagnostic(Diagnostic.Create(Rule, allowHtmlAttribute.GetLocation()));
+        }
+
+        private void VisitPropertiesVisualBasic(SyntaxNodeAnalysisContext ctx)
+        {
+            var property = (VBSyntax.PropertyStatementSyntax)ctx.Node;
+
+            VBSyntax.AttributeSyntax allowHtmlAttribute = null;
+
+            foreach (var attributeList in property.AttributeLists)
+            {
+                if (attributeList.Attributes.Count == 0)
+                    continue;
+
+                foreach (var attribute in attributeList.Attributes)
+                {
+                    if (attribute.Name.ToString() == "AllowHtml")
+                    {
+                        allowHtmlAttribute = attribute;
+                        break;
+                    }
+                }
+
+                if (allowHtmlAttribute != null)
+                    break;
+            }
+
+            if (allowHtmlAttribute == null)
+                return;
+
+            var attributeSymbols = ctx.SemanticModel.GetSymbolInfo(allowHtmlAttribute).Symbol;
+            if (attributeSymbols == null)
+                return;
+
+            var containingSymbol = attributeSymbols.ContainingSymbol.ToString();
+            if (containingSymbol != "System.Web.Mvc.AllowHtmlAttribute")
+                return;
+
+            ctx.ReportDiagnostic(Diagnostic.Create(Rule, allowHtmlAttribute.GetLocation()));
         }
 
         private void VisitMemberAccessVisualBasic(SyntaxNodeAnalysisContext ctx)

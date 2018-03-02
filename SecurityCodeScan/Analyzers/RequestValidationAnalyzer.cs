@@ -18,10 +18,37 @@ namespace SecurityCodeScan.Analyzers
         public override void Initialize(AnalysisContext context)
         {
             // Separated the parsers on this one as they use too many language dependent syntax types. 
-            // TODO: Review to see if this can be simplified. 
-            context.RegisterSyntaxNodeAction(VisitMethodsCSharp,      CSharp.SyntaxKind.MethodDeclaration);
-            context.RegisterSyntaxNodeAction(VisitMethodsVisualBasic, VB.SyntaxKind.FunctionBlock);
-            context.RegisterSyntaxNodeAction(VisitMethodsVisualBasic, VB.SyntaxKind.SubBlock);
+            // TODO: Review to see if this can be simplified.
+            context.RegisterSyntaxNodeAction(VisitMemberAccessCSharp,       CSharp.SyntaxKind.SimpleMemberAccessExpression);
+            context.RegisterSyntaxNodeAction(VisitMemberAccessVisualBasic,  VB.SyntaxKind.SimpleMemberAccessExpression);
+            context.RegisterSyntaxNodeAction(VisitMethodsCSharp,            CSharp.SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(VisitMethodsVisualBasic,       VB.SyntaxKind.FunctionBlock);
+            context.RegisterSyntaxNodeAction(VisitMethodsVisualBasic,       VB.SyntaxKind.SubBlock);
+        }
+
+        private void VisitMemberAccessVisualBasic(SyntaxNodeAnalysisContext ctx)
+        {
+            var memberAccess = (VBSyntax.MemberAccessExpressionSyntax)ctx.Node;
+            if (!(memberAccess.Name.ToString() == "Unvalidated"))
+                return;
+
+            var memberAccessSymbol = ctx.SemanticModel.GetSymbolInfo(memberAccess).Symbol;
+            var containingSymbol = memberAccessSymbol.ContainingSymbol.ToString();
+            if (containingSymbol == "System.Web.Helpers.Validation" || containingSymbol == "System.Web.HttpRequestBase")
+                ctx.ReportDiagnostic(Diagnostic.Create(Rule, memberAccess.Name.GetLocation()));
+        }
+
+        private void VisitMemberAccessCSharp(SyntaxNodeAnalysisContext ctx)
+        {
+            var memberAccess = (CSharpSyntax.MemberAccessExpressionSyntax)ctx.Node;
+            if (!(memberAccess.Name.ToString() == "Unvalidated"))
+                return;
+
+            var memberAccessSymbol =  ctx.SemanticModel.GetSymbolInfo(memberAccess).Symbol;
+
+            var containingSymbol = memberAccessSymbol.ContainingSymbol.ToString();
+            if (containingSymbol == "System.Web.Helpers.Validation" || containingSymbol == "System.Web.HttpRequestBase")
+                ctx.ReportDiagnostic(Diagnostic.Create(Rule, memberAccess.Name.GetLocation()));
         }
 
         private void VisitMethodsCSharp(SyntaxNodeAnalysisContext ctx)

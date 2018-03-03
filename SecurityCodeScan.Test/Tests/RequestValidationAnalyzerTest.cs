@@ -206,5 +206,53 @@ End Namespace
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
+
+        [TestMethod]
+        public async Task IgnoreUnrelatedExtensionUnvalidatedMethod()
+        {
+
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestController : Controller
+    {
+        public class Test
+        {
+            public static void Unvalidated(){
+            }
+        }
+        [HttpPost]
+        public ActionResult ControllerMethod(string input) {
+            Test.Unvalidated();
+            return null;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace VulnerableApp
+    Public Class TestController
+        Class Test
+            Public Shared Sub Unvalidated()
+            End Sub
+        End Class
+        <HttpPost> _
+        Public Function ControllerMethod(input As String) As ActionResult
+            Test.Unvalidated()
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
     }
 }

@@ -22,7 +22,9 @@ namespace SecurityCodeScan.Test
         {
             MetadataReference.CreateFromFile(typeof(ValidateInputAttribute).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(System.Web.HttpRequestBase).Assembly.Location),
+#pragma warning disable 618
             MetadataReference.CreateFromFile(typeof(System.Web.Helpers.Validation).Assembly.Location)
+#pragma warning restore 618
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
@@ -134,39 +136,22 @@ namespace VulnerableApp
 }
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id = "SCS0017",
-                Severity = DiagnosticSeverity.Warning
-            };
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+Imports System.Web.Helpers
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 11, 32)).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task IgnoreUnrelatedUnvalidatedMethod()
-        {
-
-            var cSharpTest = @"
-using System.Web.Mvc;
-using System.Web;
-
-namespace VulnerableApp
-{
-    public static class Extension
-    {
-        public static void Unvalidated(this HttpRequestBase request){
-        }
-    }
-    public class TestController : Controller
-    {
-        [HttpPost]
-        public ActionResult ControllerMethod(string input) {
-            Request.Unvalidated();
-            return null;
-        }
-    }
-}
+Namespace VulnerableApp
+    Public Class TestController
+        Inherits Controller
+        <HttpPost> _
+        Public Function ControllerMethod(input As String) As ActionResult
+#Disable Warning BC40000
+            Dim test = Validation.Unvalidated(Request)
+#Enable Warning BC40000
+            Return Nothing
+        End Function
+    End Class
+End Namespace
 ";
 
             var expected = new DiagnosticResult
@@ -175,7 +160,51 @@ namespace VulnerableApp
                 Severity = DiagnosticSeverity.Warning
             };
 
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 11, 32)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test.vb", 11, 35)).ConfigureAwait(false); 
+        }
+
+        [TestMethod]
+        public async Task IgnoreUnrelatedUnvalidatedMethod()
+        {
+
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestController
+    {
+        public void Unvalidated(){
+        }
+        [HttpPost]
+        public ActionResult ControllerMethod(string input) {
+            Unvalidated();
+            return null;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace VulnerableApp
+    Public Class TestController
+        Public Sub Unvalidated()
+        End Sub
+        <HttpPost> _
+        Public Function ControllerMethod(input As String) As ActionResult
+            Unvalidated()
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
+
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
     }
 }

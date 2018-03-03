@@ -29,10 +29,13 @@ namespace SecurityCodeScan.Analyzers
         private void VisitMemberAccessVisualBasic(SyntaxNodeAnalysisContext ctx)
         {
             var memberAccess = (VBSyntax.MemberAccessExpressionSyntax)ctx.Node;
-            if (!(memberAccess.Name.ToString() == "Unvalidated"))
+            if (memberAccess.Name.ToString() != "Unvalidated")
                 return;
 
             var memberAccessSymbol = ctx.SemanticModel.GetSymbolInfo(memberAccess).Symbol;
+            if (memberAccessSymbol == null)
+                return;
+
             var containingSymbol = memberAccessSymbol.ContainingSymbol.ToString();
             if (containingSymbol == "System.Web.Helpers.Validation" || containingSymbol == "System.Web.HttpRequestBase")
                 ctx.ReportDiagnostic(Diagnostic.Create(Rule, memberAccess.Name.GetLocation()));
@@ -41,10 +44,12 @@ namespace SecurityCodeScan.Analyzers
         private void VisitMemberAccessCSharp(SyntaxNodeAnalysisContext ctx)
         {
             var memberAccess = (CSharpSyntax.MemberAccessExpressionSyntax)ctx.Node;
-            if (!(memberAccess.Name.ToString() == "Unvalidated"))
+            if (memberAccess.Name.ToString() != "Unvalidated")
                 return;
 
             var memberAccessSymbol =  ctx.SemanticModel.GetSymbolInfo(memberAccess).Symbol;
+            if (memberAccessSymbol == null)
+                return;
 
             var containingSymbol = memberAccessSymbol.ContainingSymbol.ToString();
             if (containingSymbol == "System.Web.Helpers.Validation" || containingSymbol == "System.Web.HttpRequestBase")

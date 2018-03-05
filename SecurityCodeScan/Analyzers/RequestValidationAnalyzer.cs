@@ -41,7 +41,7 @@ namespace SecurityCodeScan.Analyzers
 
                 foreach (var attribute in attributeList.Attributes)
                 {
-                    if (attribute.Name.ToString() == "AllowHtml")
+                    if (attribute.Name.ToString().Contains("AllowHtml"))
                     {
                         allowHtmlAttribute = attribute;
                         break;
@@ -63,7 +63,7 @@ namespace SecurityCodeScan.Analyzers
             if (containingSymbol != "System.Web.Mvc.AllowHtmlAttribute")
                 return;
 
-            ctx.ReportDiagnostic(Diagnostic.Create(Rule, allowHtmlAttribute.GetLocation()));
+            ctx.ReportDiagnostic(Diagnostic.Create(Rule, property.Identifier.GetLocation()));
         }
 
         private void VisitPropertiesVisualBasic(SyntaxNodeAnalysisContext ctx)
@@ -79,7 +79,7 @@ namespace SecurityCodeScan.Analyzers
 
                 foreach (var attribute in attributeList.Attributes)
                 {
-                    if (attribute.Name.ToString() == "AllowHtml")
+                    if (attribute.Name.ToString().Contains("AllowHtml"))
                     {
                         allowHtmlAttribute = attribute;
                         break;
@@ -101,7 +101,7 @@ namespace SecurityCodeScan.Analyzers
             if (containingSymbol != "System.Web.Mvc.AllowHtmlAttribute")
                 return;
 
-            ctx.ReportDiagnostic(Diagnostic.Create(Rule, allowHtmlAttribute.GetLocation()));
+            ctx.ReportDiagnostic(Diagnostic.Create(Rule, property.Identifier.GetLocation()));
         }
 
         private void VisitMemberAccessVisualBasic(SyntaxNodeAnalysisContext ctx)

@@ -208,7 +208,7 @@ End Namespace
         }
 
         [TestMethod]
-        public async Task IgnoreUnrelatedExtensionUnvalidatedMethod()
+        public async Task IgnoreUnrelatedStaticUnvalidatedMethod()
         {
 
             var cSharpTest = @"

@@ -254,5 +254,43 @@ End Namespace
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
+
+        [TestMethod]
+        public async Task DetectAllowHtmlInput()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestModel
+    {
+        [AllowHtml]
+        public string TestProperty { get; set; }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace VulnerableApp
+    Public Class TestModel
+
+        <AllowHtml>
+        Public Property 
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "SCS0017",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+        }
     }
 }

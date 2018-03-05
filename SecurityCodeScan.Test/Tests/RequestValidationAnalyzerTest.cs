@@ -30,7 +30,7 @@ namespace SecurityCodeScan.Test
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [TestMethod]
-        public async Task DetectAnnotationValidateInput()
+        public async Task DetectValidateInputAttribute()
         {
             var cSharpTest = @"
 using System.Web.Mvc;
@@ -68,8 +68,135 @@ End Namespace
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 9, 24)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 7, 24)).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task DetectValidateInputAttributeOnClass()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace VulnerableApp
+{
+    [ValidateInput(false)]
+    public class TestController
+    {
+        [HttpPost]
+        public ActionResult ControllerMethod(string input) {
+            return null;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace VulnerableApp
+    <ValidateInput(False)> _
+    Public Class TestController
+        <HttpPost> _
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "SCS0017",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 6, 20)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 5, 20)).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task DetectInlineValidateInputAttribute()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestController
+    {
+        [HttpPost, ValidateInput(false)]
+        public ActionResult ControllerMethod(string input) {
+            return null;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace VulnerableApp
+    Public Class TestController
+        <HttpPost, ValidateInput(False)> _
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "SCS0017",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 8, 34)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 6, 34)).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task DetectValidateInputAttributeWithNamespace()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestController
+    {
+        [HttpPost]
+        [System.Web.Mvc.ValidateInput(false)]
+        public ActionResult ControllerMethod(string input) {
+            return null;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace VulnerableApp
+    Public Class TestController
+        <HttpPost> _
+        <System.Web.Mvc.ValidateInput(False)> _
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "SCS0017",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 9, 39)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 7, 39)).ConfigureAwait(false);
         }
 
         [TestMethod]

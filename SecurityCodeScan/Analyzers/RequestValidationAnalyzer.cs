@@ -20,18 +20,20 @@ namespace SecurityCodeScan.Analyzers
         {
             // Separated the parsers on this one as they use too many language dependent syntax types. 
             // TODO: Review to see if this can be simplified.
-            context.RegisterSyntaxNodeAction(ctx => VisitProperties(ctx, CSharpSyntaxNodeHelper.Default),   CSharp.SyntaxKind.PropertyDeclaration);
-            context.RegisterSyntaxNodeAction(ctx => VisitProperties(ctx, VBSyntaxNodeHelper.Default),       VB.SyntaxKind.PropertyStatement);
-            context.RegisterSyntaxNodeAction(ctx => VisitMemberAccess(ctx, CSharpSyntaxNodeHelper.Default), CSharp.SyntaxKind.SimpleMemberAccessExpression);
-            context.RegisterSyntaxNodeAction(ctx => VisitMemberAccess(ctx, VBSyntaxNodeHelper.Default),     VB.SyntaxKind.SimpleMemberAccessExpression);
-            context.RegisterSyntaxNodeAction(VisitMethodsCSharp,            CSharp.SyntaxKind.MethodDeclaration);
-            context.RegisterSyntaxNodeAction(VisitMethodsVisualBasic,       VB.SyntaxKind.FunctionBlock);
-            context.RegisterSyntaxNodeAction(VisitMethodsVisualBasic,       VB.SyntaxKind.SubBlock);
+            context.RegisterSyntaxNodeAction(ctx => CheckAllowHtml(ctx, CSharpSyntaxNodeHelper.Default),   CSharp.SyntaxKind.PropertyDeclaration);
+            context.RegisterSyntaxNodeAction(ctx => CheckAllowHtml(ctx, VBSyntaxNodeHelper.Default),       VB.SyntaxKind.PropertyBlock);
+            context.RegisterSyntaxNodeAction(ctx => CheckUnvalidated(ctx, CSharpSyntaxNodeHelper.Default), CSharp.SyntaxKind.SimpleMemberAccessExpression);
+            context.RegisterSyntaxNodeAction(ctx => CheckUnvalidated(ctx, VBSyntaxNodeHelper.Default),     VB.SyntaxKind.SimpleMemberAccessExpression);
+            context.RegisterSyntaxNodeAction(ctx => CheckValidateInput(ctx, CSharpSyntaxNodeHelper.Default),      CSharp.SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(ctx => CheckValidateInput(ctx, VBSyntaxNodeHelper.Default),          VB.SyntaxKind.FunctionBlock);
+            context.RegisterSyntaxNodeAction(ctx => CheckValidateInput(ctx, VBSyntaxNodeHelper.Default),          VB.SyntaxKind.SubBlock);
+            context.RegisterSyntaxNodeAction(ctx => CheckValidateInput(ctx, CSharpSyntaxNodeHelper.Default),        CSharp.SyntaxKind.ClassDeclaration);
+            context.RegisterSyntaxNodeAction(ctx => CheckValidateInput(ctx, VBSyntaxNodeHelper.Default),            VB.SyntaxKind.ClassBlock);
         }
 
-        private void VisitProperties(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
+        private void CheckAllowHtml(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
-            var attributes = nodeHelper.GetPropertyAttributeNodes(ctx.Node);
+            var attributes = nodeHelper.GetDeclarationAttributeNodes(ctx.Node);
 
             foreach (var attribute in attributes)
             {
@@ -51,7 +53,7 @@ namespace SecurityCodeScan.Analyzers
             }
         }
 
-        private void VisitMemberAccess(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
+        private void CheckUnvalidated(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
             var name = nodeHelper.GetMemberAccessNameNode(ctx.Node);
             if (name.ToString() != "Unvalidated")
@@ -66,82 +68,41 @@ namespace SecurityCodeScan.Analyzers
                 ctx.ReportDiagnostic(Diagnostic.Create(Rule, name.GetLocation()));
         }
 
-        private void VisitMethodsCSharp(SyntaxNodeAnalysisContext ctx)
+        private void CheckValidateInput(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
-            if (!(ctx.Node is CSharpSyntax.MethodDeclarationSyntax node))
-                return;
-
-            //Iterating over the list of annotation for a given method
-            foreach (var attribute in node.AttributeLists)
+            foreach (var attribute in nodeHelper.GetDeclarationAttributeNodes(ctx.Node))
             {
-                if (attribute.Attributes.Count == 0)
-                    continue; //Bound check .. Unlikely to happen
-
-                var att = attribute.Attributes[0];
-
-                //Extract the annotation identifier
-                if (!(att.Name is CSharpSyntax.IdentifierNameSyntax identifier))
+                if (!nodeHelper.GetAttributeNameNode(attribute).ToString().Contains("ValidateInput"))
                     continue;
 
-                if (identifier.Identifier.Text != "ValidateInput")
-                    continue;
-
-                var                           hasArgumentFalse = false;
-                CSharpSyntax.ExpressionSyntax expression       = null;
-                foreach (var arg in att.ArgumentList.Arguments)
+                bool hasArgumentFalse = false;
+                SyntaxNode expression = null;
+                foreach (var arg in nodeHelper.GetAttributeArgumentNodes(attribute))
                 {
-                    var literal = (CSharpSyntax.LiteralExpressionSyntax)arg.Expression;
-                    if (literal.Token.ValueText != "false")
-                        continue;
-
-                    hasArgumentFalse = true;
-                    expression       = arg.Expression;
+                    expression = nodeHelper.GetAttributeArgumentExpresionNode(arg);
+                    var expressionValue = expression.ToString();
+                    if (expressionValue == "false" || expressionValue == "False")
+                    {
+                        hasArgumentFalse = true;
+                        break;
+                    }
                 }
 
-                if (hasArgumentFalse && expression != null)
+                if (!hasArgumentFalse || expression == null)
+                    continue;
+
+                var attributeSymbols = ctx.SemanticModel.GetSymbolInfo(attribute).Symbol;
+                if (attributeSymbols == null)
+                    continue;
+
+                var containingSymbol = attributeSymbols.ContainingSymbol.ToString();
+                if (containingSymbol == "System.Web.Mvc.ValidateInputAttribute")
                 {
                     ctx.ReportDiagnostic(Diagnostic.Create(Rule, expression.GetLocation()));
+                    break;
                 }
             }
         }
 
-        private void VisitMethodsVisualBasic(SyntaxNodeAnalysisContext ctx)
-        {
-            if (!(ctx.Node is VBSyntax.MethodBlockSyntax node))
-                return;
-
-            //Iterating over the list of annotation for a given method
-            foreach (var attribute in node.BlockStatement.AttributeLists)
-            {
-                if (attribute.Attributes.Count == 0)
-                    continue; //Bound check .. Unlikely to happen
-
-                var att = attribute.Attributes[0];
-
-                //Extract the annotation identifier
-                if (!(att.Name is VBSyntax.IdentifierNameSyntax identifier))
-                    continue;
-
-                if (identifier.Identifier.Text != "ValidateInput")
-                    continue;
-
-                var                       hasArgumentFalse = false;
-                VBSyntax.ExpressionSyntax expression       = null;
-                foreach (var arg in att.ArgumentList.Arguments)
-                {
-                    var literal = (VBSyntax.LiteralExpressionSyntax)arg.GetExpression();
-                    if (literal.Token.ValueText != "False")
-                        continue;
-
-                    hasArgumentFalse = true;
-                    expression       = arg.GetExpression();
-                }
-
-                if (hasArgumentFalse && expression != null)
-                {
-                    ctx.ReportDiagnostic(Diagnostic.Create(Rule, expression.GetLocation()));
-                }
-            }
-        }
     }
 }

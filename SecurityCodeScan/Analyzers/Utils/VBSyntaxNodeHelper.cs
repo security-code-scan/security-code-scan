@@ -163,6 +163,14 @@ namespace SecurityCodeScan.Analyzers.Utils
             return attribute.Name;
         }
 
+        public override SyntaxNode GetAttributeArgumentExpresionNode(SyntaxNode node)
+        {
+            if (!(node is ArgumentSyntax argument))
+                return null;
+
+            return argument.GetExpression();
+        }
+
         public override SyntaxNode GetDefaultValueForAnOptionalParameter(SyntaxNode declNode, int paramIndex)
         {
             if (declNode == null)
@@ -342,14 +350,25 @@ namespace SecurityCodeScan.Analyzers.Utils
             return node.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>();
         }
 
-        public override IEnumerable<SyntaxNode> GetPropertyAttributeNodes(SyntaxNode node)
+        public override IEnumerable<SyntaxNode> GetDeclarationAttributeNodes(SyntaxNode node)
         {
+            SyntaxList<AttributeListSyntax> attributeLists = new SyntaxList<AttributeListSyntax>();
+            switch (node.Kind())
+            {
+                case SyntaxKind.PropertyBlock:
+                    attributeLists = ((PropertyBlockSyntax)node).PropertyStatement.AttributeLists;
+                    break;
+                case SyntaxKind.FunctionBlock:
+                case SyntaxKind.SubBlock:
+                    attributeLists = ((MethodBlockSyntax)node).BlockStatement.AttributeLists;
+                    break;
+                case SyntaxKind.ClassBlock:
+                    attributeLists = ((ClassBlockSyntax)node).ClassStatement.AttributeLists;
+                    break;
+            }
+
             List<SyntaxNode> result = new List<SyntaxNode>();
-
-            if (!(node is PropertyStatementSyntax property))
-                return result;
-
-            foreach (var attributeList in property.AttributeLists)
+            foreach (var attributeList in attributeLists)
             {
                 if (attributeList.Attributes.Count == 0)
                     continue;
@@ -358,6 +377,16 @@ namespace SecurityCodeScan.Analyzers.Utils
             }
 
             return result;
+        }
+
+        public override IEnumerable<SyntaxNode> GetAttributeArgumentNodes(SyntaxNode node)
+        {
+            IEnumerable<SyntaxNode> empty = Enumerable.Empty<SyntaxNode>();
+            if (!(node is AttributeSyntax attribute))
+                return empty;
+
+            //Iterating over the list of annotation for a given method
+            return attribute.ArgumentList.Arguments;
         }
 
         public override bool IsObjectCreationExpressionUnderFieldDeclaration(SyntaxNode node)

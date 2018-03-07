@@ -163,14 +163,6 @@ namespace SecurityCodeScan.Analyzers.Utils
             return attribute.Name;
         }
 
-        public override SyntaxToken? GetPropertyIdentifierNode(SyntaxNode node)
-        {
-            if (!(node is PropertyStatementSyntax property))
-                return null;
-
-            return property.Identifier;
-        }
-
         public override SyntaxNode GetDefaultValueForAnOptionalParameter(SyntaxNode declNode, int paramIndex)
         {
             if (declNode == null)

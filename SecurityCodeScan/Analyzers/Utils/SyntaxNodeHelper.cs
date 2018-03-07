@@ -25,7 +25,6 @@ namespace SecurityCodeScan.Analyzers.Utils
         public abstract SyntaxNode GetInvocationExpressionNode(SyntaxNode node);
         public abstract SyntaxNode GetDefaultValueForAnOptionalParameter(SyntaxNode declNode, int paramIndex);
         public abstract SyntaxNode GetAttributeNameNode(SyntaxNode node);
-        public abstract SyntaxToken? GetPropertyIdentifierNode(SyntaxNode node);
         public abstract IEnumerable<SyntaxNode> GetObjectInitializerExpressionNodes(SyntaxNode node);
         // This will return true if the SyntaxNode is either InvocationExpression or ObjectCreationExpression (in C# or VB)
         public abstract bool IsMethodInvocationNode(SyntaxNode node);

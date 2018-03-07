@@ -33,28 +33,22 @@ namespace SecurityCodeScan.Analyzers
         {
             var attributes = nodeHelper.GetPropertyAttributeNodes(ctx.Node);
 
-            SyntaxNode allowHtmlAttribute = null;
             foreach (var attribute in attributes)
             {
                 if (nodeHelper.GetAttributeNameNode(attribute).ToString().Contains("AllowHtml"))
                 {
-                    allowHtmlAttribute = attribute;
-                    break;
+                    var attributeSymbols = ctx.SemanticModel.GetSymbolInfo(attribute).Symbol;
+                    if (attributeSymbols == null)
+                        continue;
+
+                    var containingSymbol = attributeSymbols.ContainingSymbol.ToString();
+                    if (containingSymbol == "System.Web.Mvc.AllowHtmlAttribute")
+                    {
+                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, nodeHelper.GetPropertyIdentifierNode(ctx.Node)?.GetLocation()));
+                        break;
+                    }
                 }
             }
-
-            if (allowHtmlAttribute == null)
-                return;
-
-            var attributeSymbols = ctx.SemanticModel.GetSymbolInfo(allowHtmlAttribute).Symbol;
-            if (attributeSymbols == null)
-                return;
-
-            var containingSymbol = attributeSymbols.ContainingSymbol.ToString();
-            if (containingSymbol != "System.Web.Mvc.AllowHtmlAttribute")
-                return;
-
-            ctx.ReportDiagnostic(Diagnostic.Create(Rule, nodeHelper.GetPropertyIdentifierNode(ctx.Node)?.GetLocation()));
         }
 
         private void VisitMemberAccess(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)

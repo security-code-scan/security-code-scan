@@ -35,18 +35,18 @@ namespace SecurityCodeScan.Analyzers
 
             foreach (var attribute in attributes)
             {
-                if (nodeHelper.GetAttributeNameNode(attribute).ToString().Contains("AllowHtml"))
-                {
-                    var attributeSymbols = ctx.SemanticModel.GetSymbolInfo(attribute).Symbol;
-                    if (attributeSymbols == null)
-                        continue;
+                if (!nodeHelper.GetAttributeNameNode(attribute).ToString().Contains("AllowHtml"))
+                    continue;
 
-                    var containingSymbol = attributeSymbols.ContainingSymbol.ToString();
-                    if (containingSymbol == "System.Web.Mvc.AllowHtmlAttribute")
-                    {
-                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, nodeHelper.GetPropertyIdentifierNode(ctx.Node)?.GetLocation()));
-                        break;
-                    }
+                var attributeSymbols = ctx.SemanticModel.GetSymbolInfo(attribute).Symbol;
+                if (attributeSymbols == null)
+                    continue;
+
+                var containingSymbol = attributeSymbols.ContainingSymbol.ToString();
+                if (containingSymbol == "System.Web.Mvc.AllowHtmlAttribute")
+                {
+                    ctx.ReportDiagnostic(Diagnostic.Create(Rule, attribute.GetLocation()));
+                    break;
                 }
             }
         }

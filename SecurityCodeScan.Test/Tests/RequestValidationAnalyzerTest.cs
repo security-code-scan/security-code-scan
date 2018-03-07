@@ -391,6 +391,59 @@ End Namespace
         }
 
         [TestMethod]
+        public async Task DetectAllowHtmlAttributeAfterAtrributeContainingAllowHtmlInName()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestAllowHtmlTest : System.Attribute
+    {
+    }
+
+    public class TestModel
+    {
+        [TestAllowHtmlTest]
+        [AllowHtml]
+        public string TestProperty { get; set; }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace VulnerableApp
+    Public Class TestAllowHtmlTest
+        Inherits System.Attribute
+    End Class
+
+    Public Class TestModel
+        <TestAllowHtmlTest>
+        <AllowHtml>
+        Public Property TestProperty As String
+            Get
+                Return ""Test""
+            End Get
+            Set(value As String)
+            End Set
+        End Property
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "SCS0017",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 14, 23)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 12, 25)).ConfigureAwait(false);
+        }
+
+        [TestMethod]
         public async Task IgnoreUnrelatedAllowHtmlAttribute()
         {
             var cSharpTest = @"

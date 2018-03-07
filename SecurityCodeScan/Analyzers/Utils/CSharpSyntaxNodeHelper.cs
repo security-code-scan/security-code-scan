@@ -165,10 +165,10 @@ namespace SecurityCodeScan.Analyzers.Utils
             return attribute.Name;
         }
 
-        public override SyntaxToken GetPropertyIdentifierNode(SyntaxNode node)
+        public override SyntaxToken? GetPropertyIdentifierNode(SyntaxNode node)
         {
             if (!(node is PropertyDeclarationSyntax property))
-                return new SyntaxToken();
+                return null;
 
             return property.Identifier;
         }

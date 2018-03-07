@@ -2,12 +2,11 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
+using SecurityCodeScan.Analyzers.Utils;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
-
-using SecurityCodeScan.Analyzers.Utils;
 
 namespace SecurityCodeScan.Analyzers
 {
@@ -20,24 +19,14 @@ namespace SecurityCodeScan.Analyzers
         public override void Initialize(AnalysisContext context)
         {
             // Separated the parsers on this one as they use too many language dependent syntax types. 
-            // TODO: Review to see if this can be simplified.\
-            context.RegisterSyntaxNodeAction(VisitPropertiesCSharp,         CSharp.SyntaxKind.PropertyDeclaration);
-            context.RegisterSyntaxNodeAction(VisitPropertiesVisualBasic,    VB.SyntaxKind.PropertyStatement);
-            context.RegisterSyntaxNodeAction(VisitMemberAccessCSharp,       CSharp.SyntaxKind.SimpleMemberAccessExpression);
-            context.RegisterSyntaxNodeAction(VisitMemberAccessVisualBasic,  VB.SyntaxKind.SimpleMemberAccessExpression);
+            // TODO: Review to see if this can be simplified.
+            context.RegisterSyntaxNodeAction(ctx => VisitProperties(ctx, CSharpSyntaxNodeHelper.Default),   CSharp.SyntaxKind.PropertyDeclaration);
+            context.RegisterSyntaxNodeAction(ctx => VisitProperties(ctx, VBSyntaxNodeHelper.Default),       VB.SyntaxKind.PropertyStatement);
+            context.RegisterSyntaxNodeAction(ctx => VisitMemberAccess(ctx, CSharpSyntaxNodeHelper.Default), CSharp.SyntaxKind.SimpleMemberAccessExpression);
+            context.RegisterSyntaxNodeAction(ctx => VisitMemberAccess(ctx, VBSyntaxNodeHelper.Default),     VB.SyntaxKind.SimpleMemberAccessExpression);
             context.RegisterSyntaxNodeAction(VisitMethodsCSharp,            CSharp.SyntaxKind.MethodDeclaration);
             context.RegisterSyntaxNodeAction(VisitMethodsVisualBasic,       VB.SyntaxKind.FunctionBlock);
             context.RegisterSyntaxNodeAction(VisitMethodsVisualBasic,       VB.SyntaxKind.SubBlock);
-        }
-
-        private void VisitPropertiesCSharp(SyntaxNodeAnalysisContext ctx)
-        {
-            VisitProperties(ctx, CSharpSyntaxNodeHelper.Default);
-        }
-
-        private void VisitPropertiesVisualBasic(SyntaxNodeAnalysisContext ctx)
-        {
-            VisitProperties(ctx, VBSyntaxNodeHelper.Default);
         }
 
         private void VisitProperties(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
@@ -65,17 +54,7 @@ namespace SecurityCodeScan.Analyzers
             if (containingSymbol != "System.Web.Mvc.AllowHtmlAttribute")
                 return;
 
-            ctx.ReportDiagnostic(Diagnostic.Create(Rule, nodeHelper.GetPropertyIdentifierNode(ctx.Node).GetLocation()));
-        }
-
-        private void VisitMemberAccessVisualBasic(SyntaxNodeAnalysisContext ctx)
-        {
-            VisitMemberAccess(ctx, VBSyntaxNodeHelper.Default);
-        }
-
-        private void VisitMemberAccessCSharp(SyntaxNodeAnalysisContext ctx)
-        {
-            VisitMemberAccess(ctx, CSharpSyntaxNodeHelper.Default);
+            ctx.ReportDiagnostic(Diagnostic.Create(Rule, nodeHelper.GetPropertyIdentifierNode(ctx.Node)?.GetLocation()));
         }
 
         private void VisitMemberAccess(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)

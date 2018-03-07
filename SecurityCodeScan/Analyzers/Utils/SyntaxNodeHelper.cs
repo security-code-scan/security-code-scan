@@ -24,12 +24,14 @@ namespace SecurityCodeScan.Analyzers.Utils
         public abstract SyntaxNode GetCallTargetNode(SyntaxNode node);
         public abstract SyntaxNode GetInvocationExpressionNode(SyntaxNode node);
         public abstract SyntaxNode GetDefaultValueForAnOptionalParameter(SyntaxNode declNode, int paramIndex);
+        public abstract SyntaxNode GetAttributeNameNode(SyntaxNode node);
         public abstract IEnumerable<SyntaxNode> GetObjectInitializerExpressionNodes(SyntaxNode node);
         // This will return true if the SyntaxNode is either InvocationExpression or ObjectCreationExpression (in C# or VB)
         public abstract bool IsMethodInvocationNode(SyntaxNode node);
         protected abstract IEnumerable<SyntaxNode> GetCallArgumentExpressionNodes(SyntaxNode node, CallKind callKind);
         public abstract IEnumerable<SyntaxNode> GetDescendantAssignmentExpressionNodes(SyntaxNode node);
         public abstract IEnumerable<SyntaxNode> GetDescendantMemberAccessExpressionNodes(SyntaxNode node);
+        public abstract IEnumerable<SyntaxNode> GetPropertyAttributeNodes(SyntaxNode node);
 
         // returns true if node is an ObjectCreationExpression and is under a FieldDeclaration node
         public abstract bool IsObjectCreationExpressionUnderFieldDeclaration(SyntaxNode node);

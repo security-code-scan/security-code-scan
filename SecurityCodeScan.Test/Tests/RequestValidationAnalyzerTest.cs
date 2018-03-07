@@ -254,5 +254,234 @@ End Namespace
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
+
+        [TestMethod]
+        public async Task DetectAllowHtmlAttribute()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestModel
+    {
+        [AllowHtml]
+        public string TestProperty { get; set; }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace VulnerableApp
+    Public Class TestModel
+
+        <AllowHtml>
+        Public Property TestProperty As String
+            Get
+                Return ""Test""
+            End Get
+            Set(value As String)
+            End Set
+        End Property
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "SCS0017",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 8, 10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 7, 10)).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task DetectAllowHtmlAttributeWithNamespace()
+        {
+            var cSharpTest = @"
+namespace VulnerableApp
+{
+    public class TestModel
+    {
+        [System.Web.Mvc.AllowHtml]
+        public string TestProperty { get; set; }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Namespace VulnerableApp
+    Public Class TestModel
+
+        <System.Web.Mvc.AllowHtml>
+        Public Property TestProperty As String
+            Get
+                Return ""Test""
+            End Get
+            Set(value As String)
+            End Set
+        End Property
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "SCS0017",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 6, 10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 5, 10)).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task DetectInlineAllowHtmlAttribute()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace VulnerableApp
+{
+    public class Test : System.Attribute
+    {
+    }
+
+    public class TestModel
+    {
+        [Test, AllowHtml]
+        public string TestProperty { get; set; }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace VulnerableApp
+    Public Class Test
+        Inherits System.Attribute
+    End Class
+
+    Public Class TestModel
+        <Test, AllowHtml>
+        Public Property TestProperty As String
+            Get
+                Return ""Test""
+            End Get
+            Set(value As String)
+            End Set
+        End Property
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "SCS0017",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 12, 16)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 10, 16)).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task DetectAllowHtmlAttributeAfterAtrributeContainingAllowHtmlInName()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestAllowHtmlTest : System.Attribute
+    {
+    }
+
+    public class TestModel
+    {
+        [TestAllowHtmlTest]
+        [AllowHtml]
+        public string TestProperty { get; set; }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace VulnerableApp
+    Public Class TestAllowHtmlTest
+        Inherits System.Attribute
+    End Class
+
+    Public Class TestModel
+        <TestAllowHtmlTest>
+        <AllowHtml>
+        Public Property TestProperty As String
+            Get
+                Return ""Test""
+            End Get
+            Set(value As String)
+            End Set
+        End Property
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "SCS0017",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 13, 10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 11, 10)).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task IgnoreUnrelatedAllowHtmlAttribute()
+        {
+            var cSharpTest = @"
+namespace VulnerableApp
+{
+    public class AllowHtml : System.Attribute
+    {
+    }
+
+    public class TestModel
+    {
+        [VulnerableApp.AllowHtml]
+        public string TestProperty { get; set; }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Namespace VulnerableApp
+    Public Class AllowHtml
+        Inherits System.Attribute
+    End Class
+
+    Public Class TestModel
+        <VulnerableApp.AllowHtml>
+        Public Property TestProperty As String
+            Get
+                Return ""Test""
+            End Get
+            Set(value As String)
+            End Set
+        End Property
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
     }
 }

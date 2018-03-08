@@ -200,6 +200,101 @@ End Namespace
         }
 
         [TestMethod]
+        public async Task DetectValidateInputAttributeWithContantEqualToFalse()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestController
+    {
+        private const bool test = false;
+
+        [HttpPost]
+        [ValidateInput(test)]
+        public ActionResult ControllerMethod(string input) {
+            return null;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace VulnerableApp
+    Public Class TestController
+        Public Const test = False
+
+        <HttpPost> _
+        <ValidateInput(test)> _
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0017",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 11, 24)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 9, 24)).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task IgnoreUnrelatedValidateInputAttribute()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace VulnerableApp
+{
+    public class ValidateInput : System.Attribute
+    {
+        public ValidateInput(bool test){}
+    }
+
+    public class TestController
+    {
+        [HttpPost]
+        [VulnerableApp.ValidateInput(false)]
+        public ActionResult ControllerMethod(string input) {
+            return null;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace VulnerableApp
+    Public Class ValidateInput
+        Inherits System.Attribute
+        Public Sub New(test As Boolean)
+        End Sub
+    End Class
+
+    Public Class TestController
+        <HttpPost> _
+        <VulnerableApp.ValidateInput(false)> _
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
         public async Task DetectUnvalidatedProperty()
         {
             var cSharpTest = @"

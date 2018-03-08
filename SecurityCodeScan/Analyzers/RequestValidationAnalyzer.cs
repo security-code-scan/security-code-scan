@@ -4,9 +4,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
-using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
-using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
@@ -18,8 +16,6 @@ namespace SecurityCodeScan.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
-            // Separated the parsers on this one as they use too many language dependent syntax types. 
-            // TODO: Review to see if this can be simplified.
             context.RegisterSyntaxNodeAction(ctx => CheckAllowHtml(ctx, CSharpSyntaxNodeHelper.Default),     CSharp.SyntaxKind.PropertyDeclaration);
             context.RegisterSyntaxNodeAction(ctx => CheckAllowHtml(ctx, VBSyntaxNodeHelper.Default),         VB.SyntaxKind.PropertyBlock);
             context.RegisterSyntaxNodeAction(ctx => CheckUnvalidated(ctx, CSharpSyntaxNodeHelper.Default),   CSharp.SyntaxKind.SimpleMemberAccessExpression);
@@ -75,20 +71,23 @@ namespace SecurityCodeScan.Analyzers
                 if (!nodeHelper.GetAttributeNameNode(attribute).ToString().Contains("ValidateInput"))
                     continue;
 
-                bool hasArgumentFalse = false;
+                var hasArgumentFalse = false;
                 SyntaxNode expression = null;
                 foreach (var arg in nodeHelper.GetAttributeArgumentNodes(attribute))
                 {
                     expression = nodeHelper.GetAttributeArgumentExpresionNode(arg);
-                    var expressionValue = expression.ToString();
-                    if (expressionValue == "false" || expressionValue == "False")
+                    var expressionValue = ctx.SemanticModel.GetConstantValue(expression);
+                    if (!expressionValue.HasValue)
+                        continue;
+
+                    if (expressionValue.Value.ToString() == "false" || expressionValue.Value.ToString() == "False")
                     {
                         hasArgumentFalse = true;
                         break;
                     }
                 }
 
-                if (!hasArgumentFalse || expression == null)
+                if (!hasArgumentFalse)
                     continue;
 
                 var attributeSymbols = ctx.SemanticModel.GetSymbolInfo(attribute).Symbol;

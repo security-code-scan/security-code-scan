@@ -311,7 +311,7 @@ namespace SecurityCodeScan.Analyzers.Utils
 
         public override IEnumerable<SyntaxNode> GetDeclarationAttributeNodes(SyntaxNode node)
         {
-            SyntaxList<AttributeListSyntax> attributeLists = new SyntaxList<AttributeListSyntax>();
+            var attributeLists = new SyntaxList<AttributeListSyntax>();
             switch (node.Kind())
             {
                 case SyntaxKind.PropertyDeclaration:
@@ -325,7 +325,7 @@ namespace SecurityCodeScan.Analyzers.Utils
                     break;
             }
 
-            List<SyntaxNode> result = new List<SyntaxNode>();
+            var result = new List<SyntaxNode>();
             foreach (var attributeList in attributeLists)
             {
                 if (attributeList.Attributes.Count == 0)
@@ -339,9 +339,8 @@ namespace SecurityCodeScan.Analyzers.Utils
 
         public override IEnumerable<SyntaxNode> GetAttributeArgumentNodes(SyntaxNode node)
         {
-            IEnumerable<SyntaxNode> empty = Enumerable.Empty<SyntaxNode>();
             if (!(node is AttributeSyntax attribute))
-                return empty;
+                return Enumerable.Empty<SyntaxNode>();
 
             //Iterating over the list of annotation for a given method
             return attribute.ArgumentList.Arguments;

@@ -12,7 +12,8 @@ namespace SecurityCodeScan.Analyzers
     public class RequestValidationAnalyzer : DiagnosticAnalyzer
     {
         private static readonly DiagnosticDescriptor                 Rule = LocaleUtil.GetDescriptor("SCS0017");
-        public override         ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        private static readonly DiagnosticDescriptor                 InheritanceRule = LocaleUtil.GetDescriptor("SCS0035");
+        public override         ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule, InheritanceRule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -25,6 +26,7 @@ namespace SecurityCodeScan.Analyzers
             context.RegisterSyntaxNodeAction(ctx => CheckValidateInput(ctx, VBSyntaxNodeHelper.Default),     VB.SyntaxKind.SubBlock);
             context.RegisterSyntaxNodeAction(ctx => CheckValidateInput(ctx, CSharpSyntaxNodeHelper.Default), CSharp.SyntaxKind.ClassDeclaration);
             context.RegisterSyntaxNodeAction(ctx => CheckValidateInput(ctx, VBSyntaxNodeHelper.Default),     VB.SyntaxKind.ClassBlock);
+            context.RegisterSymbolAction(CheckValidateInputInheritance, SymbolKind.NamedType, SymbolKind.Method);
         }
 
         private void CheckAllowHtml(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
@@ -95,13 +97,49 @@ namespace SecurityCodeScan.Analyzers
                     continue;
 
                 var containingSymbol = attributeSymbols.ContainingSymbol.ToString();
-                if (containingSymbol == "System.Web.Mvc.ValidateInputAttribute")
-                {
-                    ctx.ReportDiagnostic(Diagnostic.Create(Rule, expression.GetLocation()));
-                    break;
-                }
+                if (containingSymbol != "System.Web.Mvc.ValidateInputAttribute")
+                    continue;
+
+                ctx.ReportDiagnostic(Diagnostic.Create(Rule, expression.GetLocation()));
+                return;
             }
         }
 
+        private void CheckValidateInputInheritance(SymbolAnalysisContext ctx)
+        {
+            var classSymbol = (ITypeSymbol)(ctx.Symbol is IMethodSymbol ? ctx.Symbol.ContainingSymbol : ctx.Symbol);
+            if (!classSymbol.IsDerivedFrom("System.Web.Mvc.Controller"))
+                return;
+
+            if (ctx.Symbol.HasAttribute(attr => attr.AttributeClass.ToString().Equals("System.Web.Mvc.ValidateInputAttribute")))
+                return;
+
+            for (var baseType = GetBaseSymbols(ctx.Symbol); baseType != null; baseType = GetBaseSymbols(baseType))
+            {
+                var validateInputAttr =
+                    baseType.GetAttribute(attr => attr.AttributeClass.ToString().Equals("System.Web.Mvc.ValidateInputAttribute"));
+                if (validateInputAttr == null)
+                    break;
+
+                var argValue = validateInputAttr.ConstructorArguments[0].Value.ToString();
+                if (argValue.Equals("true") || argValue.Equals("True"))
+                    return;
+
+                ctx.ReportDiagnostic(Diagnostic.Create(InheritanceRule, ctx.Symbol.Locations[0]));
+            }
+        }
+
+        private ISymbol GetBaseSymbols(ISymbol symbols)
+        {
+            switch (symbols)
+            {
+                case ITypeSymbol typeSymbol:
+                    return typeSymbol.BaseType;
+                case IMethodSymbol methodSymbol:
+                    return methodSymbol.OverriddenMethod;
+                default:
+                    return null;
+            }
+        }
     }
 }

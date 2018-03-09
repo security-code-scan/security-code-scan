@@ -295,6 +295,274 @@ End Namespace
         }
 
         [TestMethod]
+        public async Task DetectValidateInputAttributeWasSetOnParentClass()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace VulnerableApp
+{
+    [ValidateInput(false)]
+    public class TestControllerBase : Controller
+    {
+    }
+
+    public class TestController : TestControllerBase
+    {
+        [HttpPost]
+        public ActionResult ControllerMethod(string input) {
+            return null;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace VulnerableApp
+    <ValidateInput(false)>
+    Public Class TestControllerBase
+        Inherits Controller
+    End Class
+
+    Public Class TestController
+        Inherits TestControllerBase
+
+        <HttpPost> _
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
+            var expectedOnAttribute = new DiagnosticResult
+            {
+                Id       = "SCS0017",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            var expectedOnClass = new DiagnosticResult
+            {
+                Id       = "SCS0035",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, new[]
+            {
+                expectedOnAttribute.WithLocation("Test0.cs", 6, 20),
+                expectedOnClass.WithLocation("Test0.cs", 11, 18)
+            }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new []
+            {
+                expectedOnAttribute.WithLocation("Test0.vb", 5, 20),
+                expectedOnClass.WithLocation("Test0.vb", 10, 18)
+            }).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task DetectValidateInputAttributeWasSetOnOverridenMethod()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestControllerBase : Controller
+    {
+        [HttpPost]
+        [ValidateInput(false)]
+        public virtual ActionResult ControllerMethod(string input) {
+            return null;
+        }
+    }
+
+    public class TestController : TestControllerBase
+    {
+        public override ActionResult ControllerMethod(string input) {
+            return null;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace VulnerableApp
+    Public Class TestControllerBase
+        Inherits Controller
+        <HttpPost>
+        <ValidateInput(false)> _
+        Public Overridable Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+
+    Public Class TestController
+        Inherits TestControllerBase
+
+        Public Overrides Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
+            var expectedOnAttribute = new DiagnosticResult
+            {
+                Id       = "SCS0017",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            var expectedOnMethod = new DiagnosticResult
+            {
+                Id       = "SCS0035",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, new[]
+            {
+                expectedOnAttribute.WithLocation("Test0.cs", 9, 24),
+                expectedOnMethod.WithLocation("Test0.cs", 17, 38)
+            }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[]
+            {
+                expectedOnAttribute.WithLocation("Test0.vb", 8, 24),
+                expectedOnMethod.WithLocation("Test0.vb", 17, 35)
+            }).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task IgnoreOverridenValidateInputAttributeWasSetOnParentClass()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace VulnerableApp
+{
+    [ValidateInput(false)]
+    public class TestControllerBase : Controller
+    {
+    }
+
+    [ValidateInput(true)]
+    public class TestController : TestControllerBase
+    {
+        [HttpPost]
+        public ActionResult ControllerMethod(string input) {
+            return null;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace VulnerableApp
+    <ValidateInput(false)>
+    Public Class TestControllerBase
+        Inherits Controller
+    End Class
+
+    <ValidateInput(true)>
+    Public Class TestController
+        Inherits TestControllerBase
+
+        <HttpPost> _
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
+            var expectedOnAttribute = new DiagnosticResult
+            {
+                Id       = "SCS0017",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, new[]
+            {
+                expectedOnAttribute.WithLocation("Test0.cs", 6, 20)
+            }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[]
+            {
+                expectedOnAttribute.WithLocation("Test0.vb", 5, 20)
+            }).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task IgnoreOverridenValidateInputAttributeWasSetOnOverridenMethod()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestControllerBase : Controller
+    {
+        [HttpPost]
+        [ValidateInput(false)]
+        public virtual ActionResult ControllerMethod(string input) {
+            return null;
+        }
+    }
+
+    public class TestController : TestControllerBase
+    {
+        [ValidateInput(true)]
+        public override ActionResult ControllerMethod(string input) {
+            return null;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace VulnerableApp
+    Public Class TestControllerBase
+        Inherits Controller
+        <HttpPost>
+        <ValidateInput(false)> _
+        Public Overridable Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+
+    Public Class TestController
+        Inherits TestControllerBase
+
+        <ValidateInput(true)>
+        Public Overrides Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
+            var expectedOnAttribute = new DiagnosticResult
+            {
+                Id = "SCS0017",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, new[]
+            {
+                expectedOnAttribute.WithLocation("Test0.cs", 9, 24)
+            }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[]
+            {
+                expectedOnAttribute.WithLocation("Test0.vb", 8, 24)
+            }).ConfigureAwait(false);
+        }
+
+        [TestMethod]
         public async Task DetectUnvalidatedProperty()
         {
             var cSharpTest = @"

@@ -55,7 +55,7 @@ namespace SecurityCodeScan.Analyzers.Utils
             return false;
         }
 
-        private static bool HasAttribute(this ISymbol symbol, Func<AttributeData, bool> condition)
+        public static bool HasAttribute(this ISymbol symbol, Func<AttributeData, bool> condition)
         {
             var attributes = symbol.GetAttributes();
             foreach (var attributeData in attributes)
@@ -65,6 +65,19 @@ namespace SecurityCodeScan.Analyzers.Utils
             }
 
             return false;
+        }
+
+        public static AttributeData GetAttribute(this ISymbol symbol, Func<AttributeData, bool> condition)
+        {
+            var attributes = symbol.GetAttributes();
+            foreach (var attributeData in attributes)
+            {
+                if (condition(attributeData))
+                    return attributeData;
+            }
+
+            return null;
+
         }
 
         public static bool HasDerivedClassAttribute(this ITypeSymbol symbol, Func<AttributeData, bool> condition)

@@ -342,8 +342,7 @@ namespace SecurityCodeScan.Analyzers.Utils
             if (!(node is AttributeSyntax attribute))
                 return Enumerable.Empty<SyntaxNode>();
 
-            //Iterating over the list of annotation for a given method
-            return attribute.ArgumentList.Arguments;
+            return attribute.ArgumentList?.Arguments ?? Enumerable.Empty<SyntaxNode>();
         }
 
         public override bool IsObjectCreationExpressionUnderFieldDeclaration(SyntaxNode node)

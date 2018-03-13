@@ -340,24 +340,26 @@ End Namespace
             var expectedOnAttribute = new DiagnosticResult
             {
                 Id       = "SCS0017",
-                Severity = DiagnosticSeverity.Warning
+                Severity = DiagnosticSeverity.Warning,
+                Message = "Request validation is disabled"
             };
 
-            var expectedOnClass = new DiagnosticResult
+            var expectedOnMethod = new DiagnosticResult
             {
-                Id       = "SCS0035",
-                Severity = DiagnosticSeverity.Warning
+                Id       = "SCS0017",
+                Severity = DiagnosticSeverity.Warning,
+                Message = "Request validation disabled in base class"
             };
 
             await VerifyCSharpDiagnostic(cSharpTest, new[]
             {
                 expectedOnAttribute.WithLocation("Test0.cs", 6, 20),
-                expectedOnClass.WithLocation("Test0.cs", 11, 18)
+                expectedOnMethod.WithLocation("Test0.cs", 11, 18)
             }).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, new []
             {
                 expectedOnAttribute.WithLocation("Test0.vb", 5, 20),
-                expectedOnClass.WithLocation("Test0.vb", 10, 18)
+                expectedOnMethod.WithLocation("Test0.vb", 10, 18)
             }).ConfigureAwait(false);
         }
 
@@ -413,13 +415,15 @@ End Namespace
             var expectedOnAttribute = new DiagnosticResult
             {
                 Id       = "SCS0017",
-                Severity = DiagnosticSeverity.Warning
+                Severity = DiagnosticSeverity.Warning,
+                Message = "Request validation is disabled"
             };
 
             var expectedOnMethod = new DiagnosticResult
             {
-                Id       = "SCS0035",
-                Severity = DiagnosticSeverity.Warning
+                Id       = "SCS0017",
+                Severity = DiagnosticSeverity.Warning,
+                Message = "Request validation disabled in base class"
             };
 
             await VerifyCSharpDiagnostic(cSharpTest, new[]
@@ -434,6 +438,69 @@ End Namespace
             }).ConfigureAwait(false);
         }
 
+        [TestMethod]
+        public async Task IgnoreValidateInputAttributeWasSetOnClassAndNoMethodEffected()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace VulnerableApp
+{
+    [ValidateInput(false)]
+    public class TestControllerBase : Controller
+    {
+    }
+
+    public class TestController : TestControllerBase
+    {
+        [HttpPost]
+        [ValidateInput(true)]
+        public ActionResult ControllerMethod(string input) {
+            return null;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace VulnerableApp
+    <ValidateInput(false)>
+    Public Class TestControllerBase
+        Inherits Controller
+    End Class
+
+    Public Class TestController
+        Inherits TestControllerBase
+
+        <HttpPost>
+        <ValidateInput(true)>
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
+            var expectedOnAttribute = new DiagnosticResult
+            {
+                Id = "SCS0017",
+                Severity = DiagnosticSeverity.Warning,
+                Message = "Request validation is disabled"
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, new[]
+            {
+                expectedOnAttribute.WithLocation("Test0.cs", 6, 20)
+            }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[]
+            {
+                expectedOnAttribute.WithLocation("Test0.vb", 5, 20)
+            }).ConfigureAwait(false);
+        }
+
+        [TestCategory("ValidateInput")]
         [TestMethod]
         public async Task IgnoreOverridenValidateInputAttributeWasSetOnParentClass()
         {
@@ -482,7 +549,8 @@ End Namespace
             var expectedOnAttribute = new DiagnosticResult
             {
                 Id       = "SCS0017",
-                Severity = DiagnosticSeverity.Warning
+                Severity = DiagnosticSeverity.Warning,
+                Message = "Request validation is disabled"
             };
 
             await VerifyCSharpDiagnostic(cSharpTest, new[]
@@ -549,7 +617,8 @@ End Namespace
             var expectedOnAttribute = new DiagnosticResult
             {
                 Id = "SCS0017",
-                Severity = DiagnosticSeverity.Warning
+                Severity = DiagnosticSeverity.Warning,
+                Message = "Request validation is disabled"
             };
 
             await VerifyCSharpDiagnostic(cSharpTest, new[]

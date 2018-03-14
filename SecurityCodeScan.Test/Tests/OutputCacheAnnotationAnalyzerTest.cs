@@ -466,6 +466,40 @@ End Class
         //        }
 
         [TestMethod]
+        public async Task FalsePositiveInvalidDuration()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+[OutputCache(Duration = hmm)]
+public class HomeController : Controller
+{
+    [Authorize]
+    public ActionResult Index()
+    {
+        return View();
+    }
+}
+";
+
+            var vbTest = @"
+Imports System.Web.Mvc
+
+<OutputCache(Duration := hmm)> _
+Public Class HomeController
+    Inherits Controller
+    <Authorize> _
+    Public Function Index() As ActionResult
+        Return View()
+    End Function
+End Class
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, new DiagnosticResult { Id = "CS0103" }.WithLocation("Test0.cs", 4, 25)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest, new DiagnosticResult { Id = "BC30451" }.WithLocation("Test0.vb", 4, 26)).ConfigureAwait(false);
+        }
+
+        [TestMethod]
         public async Task FalsePositive1()
         {
             var cSharpTest = @"

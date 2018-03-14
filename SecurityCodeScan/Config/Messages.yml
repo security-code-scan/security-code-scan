@@ -117,6 +117,7 @@ SCS0016:
 SCS0017:
   class: RequestValidationDisableAnalyzer
   title: Request validation is disabled
+  title_base: Request validation disabled in base class
   description: Request validation is disabled. Request validation allows the filtering of some XSS patterns submitted to the application.
 
 SCS0018:
@@ -166,16 +167,16 @@ SCS0015:
   description: The password configuration to this API appears to be hardcoded. It is suggest to externalized configuration such as password to avoid leakage of secret information.
 
 SCS0032:
-    class: WeakPasswordValidatorAnalyzer
-    title: The RequiredLength property of PasswordValidator is too small
-    description: The minimal length of a password is recommended to be set at least to 8.
+  class: WeakPasswordValidatorAnalyzer
+  title: The RequiredLength property of PasswordValidator is too small
+  description: The minimal length of a password is recommended to be set at least to 8.
 
 SCS0033:
-    class: WeakPasswordValidatorPropertyAnalyzer
-    title: Not enough properties set in PasswordValidator declaration
-    description: PasswordValidator should have at least two requirements for better security (RequiredLength, RequireDigit, RequireLowercase, RequireUppercase and/or RequireNonLetterOrDigit).
+  class: WeakPasswordValidatorPropertyAnalyzer
+  title: Not enough properties set in PasswordValidator declaration
+  description: PasswordValidator should have at least two requirements for better security (RequiredLength, RequireDigit, RequireLowercase, RequireUppercase and/or RequireNonLetterOrDigit).
 
 SCS0034:
-    class: WeakPasswordValidatorPropertyAnalyzer
-    title: The RequiredLength property must be set
-    description: The RequiredLength property must be set with a minimum value of 8.
+  class: WeakPasswordValidatorPropertyAnalyzer
+  title: The RequiredLength property must be set
+  description: The RequiredLength property must be set with a minimum value of 8.

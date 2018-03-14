@@ -82,7 +82,7 @@ namespace SecurityCodeScan.Analyzers
                     if (!expressionValue.HasValue)
                         continue;
 
-                    if (expressionValue.Value.ToString() == "false" || expressionValue.Value.ToString() == "False")
+                    if (expressionValue.Value is bool value && value == false)
                     {
                         hasArgumentFalse = true;
                         break;
@@ -144,6 +144,9 @@ namespace SecurityCodeScan.Analyzers
                     hasMethodsWithoutAttr = true;
             }
 
+            if (!hasMethodsWithoutAttr)
+                return;
+
             //this case is handled by CheckValidateInput analyze
             if (classSymbol.HasAttribute(attr => attr.AttributeClass.ToString().Equals("System.Web.Mvc.ValidateInputAttribute")))
                 return;
@@ -154,7 +157,7 @@ namespace SecurityCodeScan.Analyzers
                 if (value == null)
                     continue;
 
-                if (value == true || !hasMethodsWithoutAttr)
+                if (value == true)
                     return;
 
                 ctx.ReportDiagnostic(Diagnostic.Create(InheritanceRule, ctx.Symbol.Locations[0]));

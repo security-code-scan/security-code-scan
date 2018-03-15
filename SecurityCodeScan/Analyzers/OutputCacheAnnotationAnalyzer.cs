@@ -35,9 +35,16 @@ namespace SecurityCodeScan.Analyzers
 
                 var durationArgument = attributeData.NamedArguments.FirstOrDefault(x => x.Key == "Duration");
                 if (durationArgument.Equals(default(KeyValuePair<string, TypedConstant>)))
+                {
                     d = int.MaxValue;
+                }
                 else
+                {
+                    if (durationArgument.Value.Value == null)
+                        return false;
+
                     d = (int)durationArgument.Value.Value;
+                }
 
                 return true;
             }

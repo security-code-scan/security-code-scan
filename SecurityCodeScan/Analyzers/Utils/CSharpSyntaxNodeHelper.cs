@@ -90,22 +90,6 @@ namespace SecurityCodeScan.Analyzers.Utils
             return null;
         }
 
-        public override SyntaxNode GetMemberAccessNameNode(SyntaxNode node)
-        {
-            if (node == null)
-            {
-                return null;
-            }
-
-            SyntaxKind kind = node.Kind();
-            if (kind == SyntaxKind.SimpleMemberAccessExpression)
-            {
-                return ((MemberAccessExpressionSyntax)node).Name;
-            }
-
-            return null;
-        }
-
         public override SyntaxNode GetInvocationExpressionNode(SyntaxNode node)
         {
             if (node == null)
@@ -132,7 +116,7 @@ namespace SecurityCodeScan.Analyzers.Utils
             {
                 case SyntaxKind.InvocationExpression:
                     ExpressionSyntax callExpr = ((InvocationExpressionSyntax)node).Expression;
-                    return GetMemberAccessNameNode(callExpr) ?? callExpr;
+                    return GetNameNode(callExpr) ?? callExpr;
                 case SyntaxKind.ObjectCreationExpression:
                     return ((ObjectCreationExpressionSyntax)node).Type;
             }
@@ -157,20 +141,30 @@ namespace SecurityCodeScan.Analyzers.Utils
             return null;
         }
 
-        public override SyntaxNode GetAttributeNameNode(SyntaxNode node)
-        {
-            if (!(node is AttributeSyntax attribute))
-                return null;
-
-            return attribute.Name;
-        }
-
         public override SyntaxNode GetAttributeArgumentExpresionNode(SyntaxNode node)
         {
             if (!(node is AttributeArgumentSyntax argument))
                 return null;
 
             return argument.Expression;
+        }
+
+        public override SyntaxNode GetNameNode(SyntaxNode node)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.AttributeArgument:
+                    return ((AttributeArgumentSyntax)node).NameEquals.Name;
+                case SyntaxKind.Attribute:
+                    return ((AttributeSyntax)node).Name;
+                case SyntaxKind.SimpleMemberAccessExpression:
+                    return ((MemberAccessExpressionSyntax)node).Name;
+                case SyntaxKind.ObjectCreationExpression:
+                    return ((ObjectCreationExpressionSyntax)node).Type;
+                default:
+                    return null;
+
+            }
         }
 
         protected override IEnumerable<SyntaxNode> GetCallArgumentExpressionNodes(SyntaxNode node, CallKind callKind)

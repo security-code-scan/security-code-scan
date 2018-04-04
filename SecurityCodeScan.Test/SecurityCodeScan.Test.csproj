@@ -308,6 +308,7 @@
     <Compile Include="Tests\Taint\OpenRedirectAnalyzerTest.cs" />
     <Compile Include="Tests\Taint\TaintTransferTest.cs" />
     <Compile Include="Tests\Taint\UnsafeDeserializationTests.cs" />
+    <Compile Include="Tests\UnsafeDeserializationAnalyzerTests.cs" />
     <Compile Include="Tests\WeakPasswordValidatorPropertyAnalyzerTest.cs" />
     <Compile Include="Tests\XssPreventionAnalyzerTest.cs" />
     <Compile Include="Tests\CsrfTokenAnalyzerTest.cs" />

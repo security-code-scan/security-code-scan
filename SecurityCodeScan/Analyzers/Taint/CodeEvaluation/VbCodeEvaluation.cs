@@ -328,13 +328,13 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             for (var i = 0; i < argList?.Arguments.Count; i++)
             {
-                if (behavior == null)
-                    continue;
-
                 var argument      = argList.Arguments[i];
                 var argumentState = VisitExpression(argument.GetExpression(), state);
 
                 Logger.Log(symbol.ContainingType + "." + symbol.Name + " -> " + argumentState);
+
+                if (behavior == null)
+                    continue;
 
                 //If the API is at risk
                 if ((argumentState.Taint == VariableTaint.Tainted ||

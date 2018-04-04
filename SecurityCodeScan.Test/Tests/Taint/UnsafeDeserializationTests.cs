@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Soap;
 using System.Threading.Tasks;
 using System.Web.UI;
 using System.Activities;
 using System.Messaging;
+using System.Resources;
 using System.Runtime.Serialization.Json;
-using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using fastJSON;
 using Microsoft.CodeAnalysis;
@@ -14,7 +15,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Test.Helpers;
-using Newtonsoft.Json;
 
 namespace SecurityCodeScan.Test.Tests.Taint
 {
@@ -35,38 +35,43 @@ namespace SecurityCodeScan.Test.Tests.Taint
             MetadataReference.CreateFromFile(typeof(DataContractJsonSerializer).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(LosFormatter).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Activity).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(JavaScriptSerializer).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(JsonSerializer).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(BinaryMessageFormatter).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(JSON).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(XmlSerializer).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(XmlMessageFormatter).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(ServiceStack.Text.JsonSerializer).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(ServiceStack.Text.JsonSerializer).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(ResourceReader).Assembly.Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-        [TestMethod]
-        public async Task DetectBinaryFormatterDeserializeMethod()
+        [DataTestMethod]
+        [DataRow("Deserialize",                     "")]
+        [DataRow("Deserialize",                     ", null")]
+        [DataRow("UnsafeDeserialize",               ", null")]
+        [DataRow("UnsafeDeserializeMethodResponse", ", null, null")]
+        public async Task DetectBinaryFormatterDeserializationMethods(string method, string additionalParams)
         {
-            var cSharpTest = @"
+            var cSharpTest = $@"
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
 namespace VulnerableApp
-{
+{{
     class Test
-    {
+    {{
         static void TestDeserialization(Stream input)
-        {
+        {{
             var formatter = new BinaryFormatter();
-            formatter.Deserialize(input);
-        }
-    }
-}
+            formatter.{method}(input{additionalParams});
+        }}
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
+            var vbAdditionalParams = additionalParams.Replace("null", "Nothing");
+
+            var visualBasicTest = $@"
 Imports System.IO
 Imports System.Runtime.Serialization.Formatters.Binary
 
@@ -74,7 +79,7 @@ Namespace VulnerableApp
     Class Test
         Private Sub TestDeserialization(input As Stream)
             Dim formatter = New BinaryFormatter()
-            formatter.Deserialize(input)
+            formatter.{method}(input{vbAdditionalParams})
         End Sub
     End Class
 End Namespace
@@ -82,144 +87,12 @@ End Namespace
 
             var expected = new DiagnosticResult()
             {
-                Id       = "SCS0035",
+                Id       = "SCS0028",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task DetectBinaryFormatterDeserializeMethod1()
-        {
-            var cSharpTest = @"
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
-
-namespace VulnerableApp
-{
-    class Test
-    {
-        static void TestDeserialization(Stream input)
-        {
-            var formatter = new BinaryFormatter();
-            formatter.Deserialize(input, null);
-        }
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports System.IO
-Imports System.Runtime.Serialization.Formatters.Binary
-
-Namespace VulnerableApp
-    Class Test
-        Private Sub TestDeserialization(input As Stream)
-            Dim formatter = New BinaryFormatter()
-            formatter.Deserialize(input, Nothing)
-        End Sub
-    End Class
-End Namespace
-";
-
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0035",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task DetectBinaryFormatterUnsafeDeserializeMethod()
-        {
-            var cSharpTest = @"
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
-
-namespace VulnerableApp
-{
-    class Test
-    {
-        static void TestDeserialization(Stream input)
-        {
-            var formatter = new BinaryFormatter();
-            formatter.UnsafeDeserialize(input, null);
-        }
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports System.IO
-Imports System.Runtime.Serialization.Formatters.Binary
-
-Namespace VulnerableApp
-    Class Test
-        Private Sub TestDeserialization(input As Stream)
-            Dim formatter = New BinaryFormatter()
-            formatter.UnsafeDeserialize(input, Nothing)
-        End Sub
-    End Class
-End Namespace
-";
-
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0035",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task DetectBinaryFormatterUnsafeDeserializeMethodResponseMethod()
-        {
-            var cSharpTest = @"
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
-
-namespace VulnerableApp
-{
-    class Test
-    {
-        static void TestDeserialization(Stream input)
-        {
-            var formatter = new BinaryFormatter();
-            formatter.UnsafeDeserializeMethodResponse(input, null, null);
-        }
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports System.IO
-Imports System.Runtime.Serialization.Formatters.Binary
-
-Namespace VulnerableApp
-    Class Test
-        Private Sub TestDeserialization(input As Stream)
-            Dim formatter = New BinaryFormatter()
-            formatter.UnsafeDeserializeMethodResponse(input, Nothing, Nothing)
-        End Sub
-    End Class
-End Namespace
-";
-
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0035",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 12)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 9)).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -256,35 +129,39 @@ End Namespace
 
             var expected = new DiagnosticResult()
             {
-                Id       = "SCS0035",
+                Id       = "SCS0028",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 8)).ConfigureAwait(false);
         }
 
-    [TestMethod]
-        public async Task DetectSoapFormatterDeserializeMethod()
+        [DataTestMethod]
+        [DataRow("")]
+        [DataRow(", null")]
+        public async Task DetectSoapFormatterDeserializeMethods(string additionalParams)
         {
-            var cSharpTest = @"
+            var cSharpTest = $@"
 using System.IO;
 using System.Runtime.Serialization.Formatters.Soap;
 
 namespace VulnerableApp
-{
+{{
     class Test
-    {
+    {{
         static void TestDeserialization(Stream input)
-        {
+        {{
             var formatter = new SoapFormatter();
-            formatter.Deserialize(input);
-        }
-    }
-}
+            formatter.Deserialize(input{additionalParams});
+        }}
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
+            var vbAdditionalParams = additionalParams.Replace("null", "Nothing");
+
+            var visualBasicTest = $@"
 Imports System.IO
 Imports System.Runtime.Serialization.Formatters.Soap
 
@@ -292,7 +169,7 @@ Namespace VulnerableApp
     Class Test
         Private Sub TestDeserialization(input As Stream)
             Dim formatter = New SoapFormatter()
-            formatter.Deserialize(input)
+            formatter.Deserialize(input{vbAdditionalParams})
         End Sub
     End Class
 End Namespace
@@ -300,85 +177,41 @@ End Namespace
 
             var expected = new DiagnosticResult()
             {
-                Id = "SCS0035",
+                Id       = "SCS0028",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 12)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 9)).ConfigureAwait(false);
         }
 
-        [TestMethod]
-        public async Task DetectSoapFormatterDeserializeMethod1()
+        [DataTestMethod]
+        [DataRow("string")]
+        [DataRow("System.IO.Stream")]
+        public async Task DetectObjectStateFormatterDeserializeMethods(string inputType)
         {
-            var cSharpTest = @"
-using System.IO;
-using System.Runtime.Serialization.Formatters.Soap;
-
-namespace VulnerableApp
-{
-    class Test
-    {
-        static void TestDeserialization(Stream input)
-        {
-            var formatter = new SoapFormatter();
-            formatter.Deserialize(input, null);
-        }
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports System.IO
-Imports System.Runtime.Serialization.Formatters.Soap
-
-Namespace VulnerableApp
-    Class Test
-        Private Sub TestDeserialization(input As Stream)
-            Dim formatter = New SoapFormatter()
-            formatter.Deserialize(input, Nothing)
-        End Sub
-    End Class
-End Namespace
-";
-
-            var expected = new DiagnosticResult()
-            {
-                Id = "SCS0035",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task DetectObjectStateFormatterDeserializeMethod()
-        {
-            var cSharpTest = @"
-using System.IO;
+            var cSharpTest = $@"
 using System.Web.UI;
 
 namespace VulnerableApp
-{
+{{
     class Test
-    {
-        static void TestDeserialization(Stream input)
-        {
+    {{
+        static void TestDeserialization({inputType} input)
+        {{
             var formatter = new ObjectStateFormatter();
             formatter.Deserialize(input);
-        }
-    }
-}
+        }}
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
-Imports System.IO
+            var visualBasicTest = $@"
 Imports System.Web.UI
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As Stream)
+        Private Sub TestDeserialization(input As {inputType})
             Dim formatter = New ObjectStateFormatter()
             formatter.Deserialize(input)
         End Sub
@@ -388,85 +221,47 @@ End Namespace
 
             var expected = new DiagnosticResult()
             {
-                Id       = "SCS0035",
+                Id       = "SCS0028",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 8)).ConfigureAwait(false);
         }
 
-        [TestMethod]
-        public async Task DetectObjectStateFormatterDeserializeMethod1()
+        [DataTestMethod]
+        [DataRow("Deserialize", "System.IO.Stream",               "")]
+        [DataRow("ReadObject",  "System.IO.Stream",               "")]
+        [DataRow("ReadObject",  "System.Xml.XmlDictionaryReader", "")]
+        [DataRow("ReadObject",  "System.Xml.XmlDictionaryReader", ", false")]
+        [DataRow("ReadObject",  "System.Xml.XmlReader",           "")]
+        [DataRow("ReadObject",  "System.Xml.XmlReader",           ", false")]
+        public async Task DetectNetDataContractSerializerDeserializationMethods(string methodName, string inputType, string additionalParams)
         {
-            var cSharpTest = @"
-using System.Web.UI;
-
-namespace VulnerableApp
-{
-    class Test
-    {
-        static void TestDeserialization(string input)
-        {
-            var formatter = new ObjectStateFormatter();
-            formatter.Deserialize(input);
-        }
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports System.Web.UI
-
-Namespace VulnerableApp
-    Class Test
-        Private Sub TestDeserialization(input As String)
-            Dim formatter = New ObjectStateFormatter()
-            formatter.Deserialize(input)
-        End Sub
-    End Class
-End Namespace
-";
-
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0035",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task DetectNetDataContractSerializerDeserializeMethod()
-        {
-            var cSharpTest = @"
-using System.IO;
+            var cSharpTest = $@"
 using System.Runtime.Serialization;
 
 namespace VulnerableApp
-{
+{{
     class Test
-    {
-        static void TestDeserialization(Stream input)
-        {
+    {{
+        static void TestDeserialization({inputType} input)
+        {{
             var formatter = new NetDataContractSerializer();
-            formatter.Deserialize(input);
-        }
-    }
-}
+            formatter.{methodName}(input{additionalParams});
+        }}
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
-Imports System.IO
+            var visualBasicTest = $@"
 Imports System.Runtime.Serialization
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As Stream)
+        Private Sub TestDeserialization(input As {inputType})
             Dim formatter = New NetDataContractSerializer()
-            formatter.Deserialize(input)
+            formatter.{methodName}(input{additionalParams})
         End Sub
     End Class
 End Namespace
@@ -474,263 +269,46 @@ End Namespace
 
             var expected = new DiagnosticResult()
             {
-                Id       = "SCS0035",
+                Id       = "SCS0028",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 8)).ConfigureAwait(false);
         }
 
-        [TestMethod]
-        public async Task DetectNetDataContractSerializerReadObjectMethod()
+        [DataTestMethod]
+        [DataRow("System.IO.Stream",               "")]
+        [DataRow("System.Xml.XmlDictionaryReader", "")]
+        [DataRow("System.Xml.XmlDictionaryReader", ", false")]
+        [DataRow("System.Xml.XmlReader",           "")]
+        [DataRow("System.Xml.XmlReader",           ", false")]
+        public async Task DetectDataContractSerializerReadObjectMethods(string inputType, string additionalParams)
         {
-            var cSharpTest = @"
-using System.IO;
+            var cSharpTest = $@"
 using System.Runtime.Serialization;
 
 namespace VulnerableApp
-{
+{{
     class Test
-    {
-        static void TestDeserialization(Stream input)
-        {
-            var formatter = new NetDataContractSerializer();
-            formatter.ReadObject(input);
-        }
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports System.IO
-Imports System.Runtime.Serialization
-
-Namespace VulnerableApp
-    Class Test
-        Private Sub TestDeserialization(input As Stream)
-            Dim formatter = New NetDataContractSerializer()
-            formatter.ReadObject(input)
-        End Sub
-    End Class
-End Namespace
-";
-
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0035",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task DetectNetDataContractSerializerReadObjectMethod1()
-        {
-            var cSharpTest = @"
-using System.Xml;
-using System.Runtime.Serialization;
-
-namespace VulnerableApp
-{
-    class Test
-    {
-        static void TestDeserialization(XmlDictionaryReader input)
-        {
-            var formatter = new NetDataContractSerializer();
-            formatter.ReadObject(input);
-        }
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports System.Xml
-Imports System.Runtime.Serialization
-
-Namespace VulnerableApp
-    Class Test
-        Private Sub TestDeserialization(input As XmlDictionaryReader)
-            Dim formatter = New NetDataContractSerializer()
-            formatter.ReadObject(input)
-        End Sub
-    End Class
-End Namespace
-";
-
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0035",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task DetectNetDataContractSerializerReadObjectMethod2()
-        {
-            var cSharpTest = @"
-using System.Xml;
-using System.Runtime.Serialization;
-
-namespace VulnerableApp
-{
-    class Test
-    {
-        static void TestDeserialization(XmlDictionaryReader input)
-        {
-            var formatter = new NetDataContractSerializer();
-            formatter.ReadObject(input, false);
-        }
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports System.Xml
-Imports System.Runtime.Serialization
-
-Namespace VulnerableApp
-    Class Test
-        Private Sub TestDeserialization(input As XmlDictionaryReader)
-            Dim formatter = New NetDataContractSerializer()
-            formatter.ReadObject(input, false)
-        End Sub
-    End Class
-End Namespace
-";
-
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0035",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task DetectNetDataContractSerializerReadObjectMethod3()
-        {
-            var cSharpTest = @"
-using System.Xml;
-using System.Runtime.Serialization;
-
-namespace VulnerableApp
-{
-    class Test
-    {
-        static void TestDeserialization(XmlReader input)
-        {
-            var formatter = new NetDataContractSerializer();
-            formatter.ReadObject(input);
-        }
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports System.Xml
-Imports System.Runtime.Serialization
-
-Namespace VulnerableApp
-    Class Test
-        Private Sub TestDeserialization(input As XmlReader)
-            Dim formatter = New NetDataContractSerializer()
-            formatter.ReadObject(input)
-        End Sub
-    End Class
-End Namespace
-";
-
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0035",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task DetectNetDataContractSerializerReadObjectMethod4()
-        {
-            var cSharpTest = @"
-using System.Xml;
-using System.Runtime.Serialization;
-
-namespace VulnerableApp
-{
-    class Test
-    {
-        static void TestDeserialization(XmlReader input)
-        {
-            var formatter = new NetDataContractSerializer();
-            formatter.ReadObject(input, false);
-        }
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports System.Xml
-Imports System.Runtime.Serialization
-
-Namespace VulnerableApp
-    Class Test
-        Private Sub TestDeserialization(input As XmlReader)
-            Dim formatter = New NetDataContractSerializer()
-            formatter.ReadObject(input, false)
-        End Sub
-    End Class
-End Namespace
-";
-
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0035",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task DetectDataContractSerializerReadObjectMethod()
-        {
-            var cSharpTest = @"
-using System.IO;
-using System.Runtime.Serialization;
-
-namespace VulnerableApp
-{
-    class Test
-    {
-        static void TestDeserialization(Stream input)
-        {
+    {{
+        static void TestDeserialization({inputType} input)
+        {{
             var formatter = new DataContractSerializer(typeof(Test));
-            formatter.ReadObject(input);
-        }
-    }
-}
+            formatter.ReadObject(input{additionalParams});
+        }}
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
-Imports System.IO
+            var visualBasicTest = $@"
 Imports System.Runtime.Serialization
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As Stream)
+        Private Sub TestDeserialization(input As {inputType})
             Dim formatter = New DataContractSerializer(GetType(Test))
-            formatter.ReadObject(input)
+            formatter.ReadObject(input{additionalParams})
         End Sub
     End Class
 End Namespace
@@ -738,30 +316,28 @@ End Namespace
 
             var expected = new DiagnosticResult()
             {
-                Id = "SCS0035",
+                Id       = "SCS0028",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 8)).ConfigureAwait(false);
         }
 
         [TestMethod]
-        public async Task DetectDataContractSerializerReadObjectMethodAndConstructor()
+        public async Task DetectDataContractSerializerConstructor()
         {
             var cSharpTest = @"
 using System;
-using System.Xml;
 using System.Runtime.Serialization;
 
 namespace VulnerableApp
 {
     class Test
     {
-        static void TestDeserialization(XmlDictionaryReader input, Type objectType)
+        static void TestDeserialization(Type objectType)
         {
             var formatter = new DataContractSerializer(objectType);
-            formatter.ReadObject(input);
         }
     }
 }
@@ -769,14 +345,12 @@ namespace VulnerableApp
 
             var visualBasicTest = @"
 Imports System
-Imports System.Xml
 Imports System.Runtime.Serialization
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As XmlDictionaryReader, objectType as Type)
+        Private Sub TestDeserialization(objectType as Type)
             Dim formatter = New DataContractSerializer(objectType)
-            formatter.ReadObject(input)
         End Sub
     End Class
 End Namespace
@@ -784,43 +358,46 @@ End Namespace
 
             var expected = new DiagnosticResult()
             {
-                Id = "SCS0035",
+                Id       = "SCS0028",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, new []{expected, expected}).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, new []{expected, expected}).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 8)).ConfigureAwait(false);
         }
 
-        [TestMethod]
-        public async Task DetectDataContractJsonSerializerReadObjectMethod()
+        [DataTestMethod]
+        [DataRow("System.IO.Stream",               "")]
+        [DataRow("System.Xml.XmlDictionaryReader", "")]
+        [DataRow("System.Xml.XmlDictionaryReader", ", false")]
+        [DataRow("System.Xml.XmlReader",           "")]
+        [DataRow("System.Xml.XmlReader",           ", false")]
+        public async Task DetectDataContractJsonSerializerReadObjectMethods(string inputType, string additionalParams)
         {
-            var cSharpTest = @"
-using System.IO;
+            var cSharpTest = $@"
 using System.Runtime.Serialization.Json;
 
 namespace VulnerableApp
-{
+{{
     class Test
-    {
-        static void TestDeserialization(Stream input)
-        {
+    {{
+        static void TestDeserialization({inputType} input)
+        {{
             var formatter = new DataContractJsonSerializer(typeof(Test));
-            formatter.ReadObject(input);
-        }
-    }
-}
+            formatter.ReadObject(input{additionalParams});
+        }}
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
-Imports System.IO
+            var visualBasicTest = $@"
 Imports System.Runtime.Serialization.Json
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As Stream)
+        Private Sub TestDeserialization(input As {inputType})
             Dim formatter = New DataContractJsonSerializer(GetType(Test))
-            formatter.ReadObject(input)
+            formatter.ReadObject(input{additionalParams})
         End Sub
     End Class
 End Namespace
@@ -828,30 +405,28 @@ End Namespace
 
             var expected = new DiagnosticResult()
             {
-                Id = "SCS0035",
+                Id       = "SCS0028",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 8)).ConfigureAwait(false);
         }
 
         [TestMethod]
-        public async Task DetectDataContractJsonSerializerReadObjectMethodAndConstructor()
+        public async Task DetectDataContractJsonSerializerConstructor()
         {
             var cSharpTest = @"
 using System;
-using System.Xml;
 using System.Runtime.Serialization.Json;
 
 namespace VulnerableApp
 {
     class Test
     {
-        static void TestDeserialization(XmlDictionaryReader input, Type objectType)
+        static void TestDeserialization(Type objectType)
         {
             var formatter = new DataContractJsonSerializer(objectType);
-            formatter.ReadObject(input);
         }
     }
 }
@@ -859,14 +434,12 @@ namespace VulnerableApp
 
             var visualBasicTest = @"
 Imports System
-Imports System.Xml
 Imports System.Runtime.Serialization.Json
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As XmlDictionaryReader, objectType as Type)
+        Private Sub TestDeserialization(objectType as Type)
             Dim formatter = New DataContractJsonSerializer(objectType)
-            formatter.ReadObject(input)
         End Sub
     End Class
 End Namespace
@@ -874,44 +447,48 @@ End Namespace
 
             var expected = new DiagnosticResult()
             {
-                Id = "SCS0035",
+                Id       = "SCS0028",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, new []{expected, expected}).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, new []{expected, expected}).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 8)).ConfigureAwait(false);
         }
 
 
-        [TestMethod]
-        public async Task DetectXmlSerializerDeserializeMethod()
+        [DataTestMethod]
+        [DataRow("System.IO.Stream",     "")]
+        [DataRow("System.IO.TextReader", "")]
+        [DataRow("System.Xml.XmlReader", "")]
+        [DataRow("System.Xml.XmlReader", ", \"\"")]
+        [DataRow("System.Xml.XmlReader", ", new System.Xml.Serialization.XmlDeserializationEvents()")]
+        [DataRow("System.Xml.XmlReader", ", \"\", new System.Xml.Serialization.XmlDeserializationEvents()")]
+        public async Task DetectXmlSerializerDeserializeMethods(string inputType, string additionalParams)
         {
-            var cSharpTest = @"
-using System.IO;
+            var cSharpTest = $@"
 using System.Xml.Serialization;
 
 namespace VulnerableApp
-{
+{{
     class Test
-    {
-        static void TestDeserialization(Stream input)
-        {
+    {{
+        static void TestDeserialization({inputType} input)
+        {{
             var formatter = new XmlSerializer(typeof(Test));
-            formatter.Deserialize(input);
-        }
-    }
-}
+            formatter.Deserialize(input{additionalParams});
+        }}
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
-Imports System.IO
+            var visualBasicTest = $@"
 Imports System.Xml.Serialization
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As Stream)
+        Private Sub TestDeserialization(input As {inputType})
             Dim formatter = New XmlSerializer(GetType(Test))
-            formatter.Deserialize(input)
+            formatter.Deserialize(input{additionalParams})
         End Sub
     End Class
 End Namespace
@@ -919,30 +496,28 @@ End Namespace
 
             var expected = new DiagnosticResult()
             {
-                Id = "SCS0035",
+                Id       = "SCS0028",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 8)).ConfigureAwait(false);
         }
 
         [TestMethod]
-        public async Task DetectXmlSerializerDeserializeMethodAndConstructor()
+        public async Task DetectXmlSerializerConstructor()
         {
             var cSharpTest = @"
 using System;
-using System.Xml;
 using System.Xml.Serialization;
 
 namespace VulnerableApp
 {
     class Test
     {
-        static void TestDeserialization(XmlDictionaryReader input, Type objectType)
+        static void TestDeserialization(Type objectType)
         {
             var formatter = new XmlSerializer(objectType);
-            formatter.Deserialize(input);
         }
     }
 }
@@ -950,14 +525,12 @@ namespace VulnerableApp
 
             var visualBasicTest = @"
 Imports System
-Imports System.Xml
 Imports System.Xml.Serialization
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As XmlDictionaryReader, objectType as Type)
+        Private Sub TestDeserialization(objectType as Type)
             Dim formatter = New XmlSerializer(objectType)
-            formatter.Deserialize(input)
         End Sub
     End Class
 End Namespace
@@ -965,12 +538,12 @@ End Namespace
 
             var expected = new DiagnosticResult()
             {
-                Id = "SCS0035",
+                Id       = "SCS0028",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, new[] { expected, expected }).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected, expected }).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 8)).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -1007,41 +580,42 @@ End Namespace
 
             var expected = new DiagnosticResult()
             {
-                Id       = "SCS0035",
+                Id       = "SCS0028",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 8)).ConfigureAwait(false);
         }
 
-        [TestMethod]
-        public async Task DetectLosFormatterDeserializeMethod()
+        [DataTestMethod]
+        [DataRow("System.IO.Stream")]
+        [DataRow("string")]
+        [DataRow("System.IO.TextReader")]
+        public async Task DetectLosFormatterDeserializeMethod(string inputType)
         {
-            var cSharpTest = @"
-using System.IO;
+            var cSharpTest = $@"
 using System.Web.UI;
 
 namespace VulnerableApp
-{
+{{
     class Test
-    {
-        static void TestDeserialization(Stream input)
-        {
+    {{
+        static void TestDeserialization({inputType} input)
+        {{
             var formatter = new LosFormatter();
             formatter.Deserialize(input);
-        }
-    }
-}
+        }}
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
-Imports System.IO
+            var visualBasicTest = $@"
 Imports System.Web.UI
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As Stream)
+        Private Sub TestDeserialization(input As {inputType})
             Dim formatter = New LosFormatter()
             formatter.Deserialize(input)
         End Sub
@@ -1051,98 +625,12 @@ End Namespace
 
             var expected = new DiagnosticResult()
             {
-                Id       = "SCS0035",
+                Id       = "SCS0028",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task DetectLosFormatterDeserializeMethod1()
-        {
-            var cSharpTest = @"
-using System.Web.UI;
-
-namespace VulnerableApp
-{
-    class Test
-    {
-        static void TestDeserialization(string input)
-        {
-            var formatter = new LosFormatter();
-            formatter.Deserialize(input);
-        }
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports System.Web.UI
-
-Namespace VulnerableApp
-    Class Test
-        Private Sub TestDeserialization(input As String)
-            Dim formatter = New LosFormatter()
-            formatter.Deserialize(input)
-        End Sub
-    End Class
-End Namespace
-";
-
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0035",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task DetectLosFormatterDeserializeMethod2()
-        {
-            var cSharpTest = @"
-using System.IO;
-using System.Web.UI;
-
-namespace VulnerableApp
-{
-    class Test
-    {
-        static void TestDeserialization(TextReader input)
-        {
-            var formatter = new LosFormatter();
-            formatter.Deserialize(input);
-        }
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports System.IO
-Imports System.Web.UI
-
-Namespace VulnerableApp
-    Class Test
-        Private Sub TestDeserialization(input As TextReader)
-            Dim formatter = New LosFormatter()
-            formatter.Deserialize(input)
-        End Sub
-    End Class
-End Namespace
-";
-
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0035",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 8)).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -1177,12 +665,12 @@ End Namespace
 
             var expected = new DiagnosticResult()
             {
-                Id       = "SCS0035",
+                Id       = "SCS0028",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 7)).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -1217,323 +705,414 @@ End Namespace
 
             var expected = new DiagnosticResult()
             {
-                Id       = "SCS0035",
+                Id       = "SCS0028",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task DetectServiceStackJsonSerializerSerializeToStringMethod()
-        {
-            var cSharpTest = @"
-using ServiceStack.Text;
-
-namespace VulnerableApp
-{
-    class Test
-    {
-        static void TestDeserialization(string input)
-        {
-            JsonSerializer.DeserializeFromString<Test>(input);
-        }
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports ServiceStack.Text
-
-Namespace VulnerableApp
-    Class Test
-        Private Sub TestDeserialization(input As String)
-            JsonSerializer.DeserializeFromString(Of Test)(input)
-        End Sub
-    End Class
-End Namespace
-";
-
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0035",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task DetectServiceStackTypeSerializerSerializeToStringMethod()
-        {
-            var cSharpTest = @"
-using ServiceStack.Text;
-
-namespace VulnerableApp
-{
-    class Test
-    {
-        static void TestDeserialization(string input)
-        {
-            TypeSerializer.DeserializeFromString<Test>(input);
-        }
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports ServiceStack.Text
-
-Namespace VulnerableApp
-    Class Test
-        Private Sub TestDeserialization(input As String)
-            TypeSerializer.DeserializeFromString(Of Test)(input)
-        End Sub
-    End Class
-End Namespace
-";
-
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0035",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task DetectServiceStackCsvSerializerSerializeToStringMethod()
-        {
-            var cSharpTest = @"
-using ServiceStack.Text;
-
-namespace VulnerableApp
-{
-    class Test
-    {
-        static void TestDeserialization(string input)
-        {
-            CsvSerializer.DeserializeFromString<Test>(input);
-        }
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports ServiceStack.Text
-
-Namespace VulnerableApp
-    Class Test
-        Private Sub TestDeserialization(input As String)
-            CsvSerializer.DeserializeFromString(Of Test)(input)
-        End Sub
-    End Class
-End Namespace
-";
-
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0035",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task DetectJavaScriptSerializerWithSimpleTypeResolverUsed()
-        {
-            var cSharpTest = @"
-using System.Web.Script.Serialization;
-
-namespace VulnerableApp
-{
-    class Test
-    {
-        private JavaScriptSerializer serializer = new JavaScriptSerializer(new SimpleTypeResolver());
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports System.Web.Script.Serialization
-
-Namespace VulnerableApp
-    Class Test
-        Private Dim serializer = new JavaScriptSerializer(new SimpleTypeResolver())
-    End Class
-End Namespace
-";
-
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0035",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task IgnoreJavaScriptSerializerUsed()
-        {
-            var cSharpTest = @"
-using System.Web.Script.Serialization;
-
-namespace VulnerableApp
-{
-    class Test
-    {
-        private JavaScriptSerializer serializer = new JavaScriptSerializer();
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports System.Web.Script.Serialization
-
-Namespace VulnerableApp
-    Class Test
-        Private Dim serializer = new JavaScriptSerializer()
-    End Class
-End Namespace
-";
-
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0035",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 7)).ConfigureAwait(false);
         }
 
         [DataTestMethod]
-        [DataRow("Objects")]
-        [DataRow("Arrays")]
-        [DataRow("All")]
-        [DataRow("Auto")]
-        public async Task DetectJSonSerializerTypeNameHandlingNotNoneOnProperty(string property)
+        [DataRow("DeserializeFromString", "string",               "System.Type")]
+        [DataRow("DeserializeFromReader", "System.IO.TextReader", "System.Type")]
+        [DataRow("DeserializeFromStream", "System.Type",          "System.IO.Stream")]
+        public async Task DetectServiceStackJsonSerializerDeserializeMethods(string method, string firstParam, string secondParam)
         {
             var cSharpTest = $@"
-using Newtonsoft.Json;
+using ServiceStack.Text;
 
 namespace VulnerableApp
 {{
     class Test
     {{
-        [JsonProperty(TypeNameHandling = TypeNameHandling.{property})]
-        private string Property {{ get; set; }}
+        static void TestDeserialization({firstParam} param1, {secondParam} param2)
+        {{
+            JsonSerializer.{method}(param1, param2);
+        }}
     }}
 }}
 ";
 
+            Console.WriteLine(cSharpTest);
+
             var visualBasicTest = $@"
-Imports Newtonsoft.Json
+Imports ServiceStack.Text
 
 Namespace VulnerableApp
     Class Test
-        <JsonProperty(TypeNameHandling := TypeNameHandling.{property})>
-        Public Property TestProperty As String
-            Get
-                Return ""Test""
-            End Get
-            Set(value As String)
-            End Set
-        End Property
+        Private Sub TestDeserialization(param1 As {firstParam}, param2 as {secondParam})
+            JsonSerializer.{method}(param1, param2)
+        End Sub
     End Class
 End Namespace
 ";
 
             var expected = new DiagnosticResult()
             {
-                Id       = "SCS0035",
+                Id       = "SCS0028",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-        }
-
-        [TestMethod]
-        public async Task IgnoreJSonSerializerTypeNameHandlingNoneOnProperty()
-        {
-            var cSharpTest = @"
-using Newtonsoft.Json;
-
-namespace VulnerableApp
-{
-    class Test
-    {
-        [JsonProperty(TypeNameHandling = TypeNameHandling.None)]
-        private string Property { get; set; }
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports Newtonsoft.Json
-
-Namespace VulnerableApp
-    Class Test
-        <JsonProperty(TypeNameHandling := TypeNameHandling.None)>
-        Public Property TestProperty As String
-            Get
-                Return ""Test""
-            End Get
-            Set(value As String)
-            End Set
-        End Property
-    End Class
-End Namespace
-";
-
-            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, new[] { expected.WithLocation("Test0.cs", 10), expected.WithLocation("Test0.cs", 10) }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected.WithLocation("Test0.vb", 7), expected.WithLocation("Test0.vb", 7) }).ConfigureAwait(false);
         }
 
         [DataTestMethod]
-        [DataRow("Objects")]
-        [DataRow("Arrays")]
-        [DataRow("All")]
-        [DataRow("Auto")]
-        public async Task DetectJSonSerializerTypeNameHandlingNotNone(string property)
+        [DataRow("DeserializeFromString", "string")]
+        [DataRow("DeserializeFromReader", "System.IO.TextReader")]
+        [DataRow("DeserializeFromStream", "System.IO.Stream")]
+        public async Task DetectServiceStackJsonSerializerDeserializeGenericMethods(string method, string inputType)
         {
+            var cSharpMethod      = method + "<Test>";
+            var visualBasicMethod = method + "(Of Test)";
+
             var cSharpTest = $@"
-using Newtonsoft.Json;
+using ServiceStack.Text;
 
 namespace VulnerableApp
 {{
     class Test
     {{
-        static void TestDeserialization()
+        static void TestDeserialization({inputType} input)
         {{
-             var settings = new JsonSerializerSettings
-                {{
-                    TypeNameHandling = TypeNameHandling.{property}
-                }};
+            JsonSerializer.{cSharpMethod}(input);
+        }}
+    }}
+}}
+";
+
+            Console.WriteLine(cSharpTest);
+
+            var visualBasicTest = $@"
+Imports ServiceStack.Text
+
+Namespace VulnerableApp
+    Class Test
+        Private Sub TestDeserialization(input As {inputType})
+            JsonSerializer.{visualBasicMethod}(input)
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult()
+            {
+                Id       = "SCS0028",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 7)).ConfigureAwait(false);
+        }
+
+
+        [DataTestMethod]
+        [DataRow("DeserializeFromString", "string",               "System.Type")]
+        [DataRow("DeserializeFromReader", "System.IO.TextReader", "System.Type")]
+        [DataRow("DeserializeFromStream", "System.Type",          "System.IO.Stream")]
+        public async Task DetectServiceStackTypeSerializerDeserializeMethods(string method, string firstParam, string secondParam)
+        {
+            var cSharpTest = $@"
+using ServiceStack.Text;
+
+namespace VulnerableApp
+{{
+    class Test
+    {{
+        static void TestDeserialization({firstParam} param1, {secondParam} param2)
+        {{
+            TypeSerializer.{method}(param1, param2);
+        }}
+    }}
+}}
+";
+
+            Console.WriteLine(cSharpTest);
+
+            var visualBasicTest = $@"
+Imports ServiceStack.Text
+
+Namespace VulnerableApp
+    Class Test
+        Private Sub TestDeserialization(param1 As {firstParam}, param2 as {secondParam})
+            TypeSerializer.{method}(param1, param2)
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult()
+            {
+                Id       = "SCS0028",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, new[] { expected.WithLocation("Test0.cs", 10), expected.WithLocation("Test0.cs", 10) }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected.WithLocation("Test0.vb", 7), expected.WithLocation("Test0.vb", 7) }).ConfigureAwait(false);
+        }
+
+        [DataTestMethod]
+        [DataRow("DeserializeFromString", "string")]
+        [DataRow("DeserializeFromReader", "System.IO.TextReader")]
+        [DataRow("DeserializeFromStream", "System.IO.Stream")]
+        public async Task DetectServiceStackTypeSerializerDeserializeGenericMethods(string method, string inputType)
+        {
+            var cSharpMethod      = method + "<Test>";
+            var visualBasicMethod = method + "(Of Test)";
+
+            var cSharpTest = $@"
+using ServiceStack.Text;
+
+namespace VulnerableApp
+{{
+    class Test
+    {{
+        static void TestDeserialization({inputType} input)
+        {{
+            TypeSerializer.{cSharpMethod}(input);
+        }}
+    }}
+}}
+";
+
+            Console.WriteLine(cSharpTest);
+
+            var visualBasicTest = $@"
+Imports ServiceStack.Text
+
+Namespace VulnerableApp
+    Class Test
+        Private Sub TestDeserialization(input As {inputType})
+            TypeSerializer.{visualBasicMethod}(input)
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult()
+            {
+                Id       = "SCS0028",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 7)).ConfigureAwait(false);
+        }
+
+        [DataTestMethod]
+        [DataRow("DeserializeFromString", "string")]
+        [DataRow("DeserializeFromStream", "System.IO.Stream")]
+        public async Task DetectServiceStackCsvSerializerDeserializeMethods(string method, string inputType)
+        {
+            var cSharpTest = $@"
+using System;
+using ServiceStack.Text;
+
+namespace VulnerableApp
+{{
+    class Test
+    {{
+        static void TestDeserialization({inputType} input, Type type)
+        {{
+            CsvSerializer.{method}(type, input);
+        }}
+    }}
+}}
+";
+
+            Console.WriteLine(cSharpTest);
+
+            var visualBasicTest = $@"
+Imports System
+Imports ServiceStack.Text
+
+Namespace VulnerableApp
+    Class Test
+        Private Sub TestDeserialization(input As {inputType}, type as Type)
+            CsvSerializer.{method}(type, input)
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult()
+            {
+                Id       = "SCS0028",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, new[] { expected.WithLocation("Test0.cs", 11), expected.WithLocation("Test0.cs", 11) }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected.WithLocation("Test0.vb", 8), expected.WithLocation("Test0.vb", 8) }).ConfigureAwait(false);
+        }
+
+        [DataTestMethod]
+        [DataRow("DeserializeFromString", "string")]
+        [DataRow("DeserializeFromReader", "System.IO.TextReader")]
+        [DataRow("DeserializeFromStream", "System.IO.Stream")]
+        public async Task DetectServiceStackCsvSerializerDeserializeGenericMethods(string method, string inputType)
+        {
+            var cSharpMethod      = method + "<Test>";
+            var visualBasicMethod = method + "(Of Test)";
+
+            var cSharpTest = $@"
+using ServiceStack.Text;
+
+namespace VulnerableApp
+{{
+    class Test
+    {{
+        static void TestDeserialization({inputType} input)
+        {{
+            CsvSerializer.{cSharpMethod}(input);
+        }}
+    }}
+}}
+";
+
+            Console.WriteLine(cSharpTest);
+
+            var visualBasicTest = $@"
+Imports ServiceStack.Text
+
+Namespace VulnerableApp
+    Class Test
+        Private Sub TestDeserialization(input As {inputType})
+            CsvSerializer.{visualBasicMethod}(input)
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult()
+            {
+                Id       = "SCS0028",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 7)).ConfigureAwait(false);
+        }
+
+        [DataTestMethod]
+        [DataRow("DeserializeFromString", "string",               "System.Type")]
+        [DataRow("DeserializeFromStream", "System.Type",          "System.IO.Stream")]
+        public async Task DetectServiceStackXmlSerializerDeserializeMethods(string method, string firstParam, string secondParam)
+        {
+            var cSharpTest = $@"
+using ServiceStack.Text;
+
+namespace VulnerableApp
+{{
+    class Test
+    {{
+        static void TestDeserialization({firstParam} param1, {secondParam} param2)
+        {{
+            XmlSerializer.{method}(param1, param2);
+        }}
+    }}
+}}
+";
+
+            Console.WriteLine(cSharpTest);
+
+            var visualBasicTest = $@"
+Imports ServiceStack.Text
+
+Namespace VulnerableApp
+    Class Test
+        Private Sub TestDeserialization(param1 As {firstParam}, param2 as {secondParam})
+            XmlSerializer.{method}(param1, param2)
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult()
+            {
+                Id       = "SCS0028",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, new[] { expected.WithLocation("Test0.cs", 10), expected.WithLocation("Test0.cs", 10) }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected.WithLocation("Test0.vb", 7), expected.WithLocation("Test0.vb", 7) }).ConfigureAwait(false);
+        }
+
+        [DataTestMethod]
+        [DataRow("DeserializeFromString", "string")]
+        [DataRow("DeserializeFromReader", "System.IO.TextReader")]
+        [DataRow("DeserializeFromStream", "System.IO.Stream")]
+        public async Task DetectServiceStackXmlSerializerDeserializeGenericMethods(string method, string inputType)
+        {
+            var cSharpMethod = method + "<Test>";
+            var visualBasicMethod = method + "(Of Test)";
+
+            var cSharpTest = $@"
+using ServiceStack.Text;
+
+namespace VulnerableApp
+{{
+    class Test
+    {{
+        static void TestDeserialization({inputType} input)
+        {{
+            XmlSerializer.{cSharpMethod}(input);
+        }}
+    }}
+}}
+";
+
+            Console.WriteLine(cSharpTest);
+
+            var visualBasicTest = $@"
+Imports ServiceStack.Text
+
+Namespace VulnerableApp
+    Class Test
+        Private Sub TestDeserialization(input As {inputType})
+            XmlSerializer.{visualBasicMethod}(input)
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult()
+            {
+                Id = "SCS0028",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 7)).ConfigureAwait(false);
+        }
+
+        [DataTestMethod]
+        [DataRow("System.IO.Stream")]
+        [DataRow("string")]
+        public async Task DetectResourceReaderCreations(string inputType)
+        {
+            var cSharpTest = $@"
+using System.Resources;
+
+namespace VulnerableApp
+{{
+    class Test
+    {{
+        static void TestDeserialization({inputType} input)
+        {{
+            var formatter = new ResourceReader(input);
         }}
     }}
 }}
 ";
 
             var visualBasicTest = $@"
-Imports Newtonsoft.Json
+Imports System.Resources
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization()
-            Dim settings = New JsonSerializerSettings With _
-                {{
-                    .TypeNameHandling = TypeNameHandling.{property}
-                }}
+        Private Sub TestDeserialization(input As {inputType})
+            Dim formatter = New ResourceReader(input)
         End Sub
     End Class
 End Namespace
@@ -1541,53 +1120,12 @@ End Namespace
 
             var expected = new DiagnosticResult()
             {
-                Id       = "SCS0035",
+                Id       = "SCS0028",
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 12)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 9)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 7)).ConfigureAwait(false);
         }
-
-        [TestMethod]
-        public async Task IgnoreJSonSerializerTypeNameHandlingNone()
-        {
-            var cSharpTest = @"
-using Newtonsoft.Json;
-
-namespace VulnerableApp
-{
-    class Test
-    {
-        static void TestDeserialization()
-        {
-             var settings = new JsonSerializerSettings
-                {
-                    TypeNameHandling = TypeNameHandling.None
-                };
-        }
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports Newtonsoft.Json
-
-Namespace VulnerableApp
-    Class Test
-        Private Sub TestDeserialization()
-            Dim settings = New JsonSerializerSettings With _
-                {
-                    .TypeNameHandling = TypeNameHandling.None
-                }
-        End Sub
-    End Class
-End Namespace
-";
-
-            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
-        }
-
     }
 }

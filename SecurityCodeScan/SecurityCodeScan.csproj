@@ -48,6 +48,7 @@
     <Compile Include="Analyzers\Taint\CodeEvaluation\TaintAnalyzerExtension.cs" />
     <Compile Include="Analyzers\Taint\VariableTag.cs" />
     <Compile Include="Analyzers\UnknownPasswordApiAnalyzer.cs" />
+    <Compile Include="Analyzers\UnsafeDeserializationAnalyzer.cs" />
     <Compile Include="Analyzers\Utils\AnalyzerUtil.cs" />
     <Compile Include="Analyzers\DebugAnalyzer.cs" />
     <Compile Include="Analyzers\Taint\ExecutionState.cs" />

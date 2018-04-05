@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Test.Helpers;
 
-namespace SecurityCodeScan.Test.Tests.Taint
+namespace SecurityCodeScan.Test.Taint
 {
     [TestClass]
     public class UnsafeDeserializationTests : DiagnosticVerifier

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 
-namespace SecurityCodeScan.Test.Tests
+namespace SecurityCodeScan.Test
 {
     [TestClass]
     public class UnsafeDeserializationAnalyzerTests : DiagnosticVerifier
@@ -330,6 +330,94 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 10, 40)).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 7, 41)).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task DetectJSonSerializerTypeNameHandlingAllFromConstant()
+        {
+            var cSharpTest = @"
+using Newtonsoft.Json;
+
+namespace VulnerableApp
+{
+    class Test
+    {
+        static void TestDeserialization()
+        {
+             var settings = new JsonSerializerSettings
+                {
+                    TypeNameHandling = (TypeNameHandling)3
+                };
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports Newtonsoft.Json
+
+Namespace VulnerableApp
+    Class Test
+        Private Sub TestDeserialization()
+            Dim settings = New JsonSerializerSettings With
+                {
+                    .TypeNameHandling = CType(3, TypeNameHandling)
+                }
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult()
+            {
+                Id       = "SCS0028",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 12, 40)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 9, 41)).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task DetectJSonSerializerTypeNameHandlingAllAfterSettingsConstruction()
+        {
+            var cSharpTest = @"
+using Newtonsoft.Json;
+
+namespace VulnerableApp
+{
+    class Test
+    {
+        static void TestDeserialization()
+        {
+             var settings = new JsonSerializerSettings();
+             settings.TypeNameHandling = TypeNameHandling.All;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports Newtonsoft.Json
+
+Namespace VulnerableApp
+    Class Test
+        Private Sub TestDeserialization()
+            Dim settings = New JsonSerializerSettings()
+             settings.TypeNameHandling = TypeNameHandling.All
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult()
+            {
+                Id       = "SCS0028",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 11, 42)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 8, 42)).ConfigureAwait(false);
         }
 
         [TestMethod]

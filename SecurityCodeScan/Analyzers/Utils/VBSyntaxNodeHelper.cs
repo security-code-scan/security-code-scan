@@ -152,7 +152,7 @@ namespace SecurityCodeScan.Analyzers.Utils
             switch (node.Kind())
             {
                 case SyntaxKind.SimpleArgument:
-                    return ((SimpleArgumentSyntax)node).NameColonEquals.Name;
+                    return ((SimpleArgumentSyntax)node).NameColonEquals?.Name;
                 case SyntaxKind.Attribute:
                     return ((AttributeSyntax)node).Name;
                 case SyntaxKind.SimpleMemberAccessExpression:

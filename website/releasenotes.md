@@ -1,6 +1,6 @@
 # Release Notes
 ## 2.7.0
-[Insecure deserialization analyzers]((#SCS0028)) for multiple libraries and formatters:
+[Insecure deserialization analyzers](#SCS0028) for multiple libraries and formatters:
 * [Json.NET](https://www.newtonsoft.com/json)
 * [BinaryFormatter](https://msdn.microsoft.com/en-us/library/system.runtime.serialization.formatters.binary.binaryformatter(v=vs.110).aspx)
 * [FastJSON](https://github.com/mgholam/fastJSON)

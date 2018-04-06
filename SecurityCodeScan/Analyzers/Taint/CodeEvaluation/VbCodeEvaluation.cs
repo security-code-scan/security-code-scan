@@ -237,6 +237,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitArrayCreation(collectionInitializerSyntax, collectionInitializerSyntax, state);
                 case TypeOfExpressionSyntax typeOfExpressionSyntax:
                     return new VariableState(typeOfExpressionSyntax, VariableTaint.Safe);
+                case GetTypeExpressionSyntax getTypeExpressionSyntax:
+                    return new VariableState(getTypeExpressionSyntax, VariableTaint.Safe);
                 case TernaryConditionalExpressionSyntax ternaryConditionalExpressionSyntax:
                 {
                     VisitExpression(ternaryConditionalExpressionSyntax.Condition, state);

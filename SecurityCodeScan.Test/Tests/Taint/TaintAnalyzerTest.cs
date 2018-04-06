@@ -1384,5 +1384,52 @@ End Namespace
             await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
+
+        [TestMethod]
+        public async Task UnsafeFunctionPassedAsParameter()
+        {
+            var cSharpTest = @"
+using System.Data.SqlClient;
+
+namespace sample
+{
+    class SqlConstant
+    {
+        public static void Run(string input)
+        {
+            UsesSqlCommand(new SqlCommand(input));
+        }
+
+        public static void UsesSqlCommand(SqlCommand command)
+        {
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+    Class SqlConstant
+        Public Shared Sub Run(input As String)
+            UsesSqlCommand(new SqlCommand(input))
+        End Sub
+
+        Public Shared Sub UsesSqlCommand(command as SqlCommand)
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+        }
     }
 }

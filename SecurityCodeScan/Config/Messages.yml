@@ -55,6 +55,12 @@ SCS0003:
   title: "XPath injection possible in {1} argument passed to '{0}'"
   description: The dynamic value passed to the XPath query should be validated
 
+SCS0028:
+  class: TaintAnalyzer
+  title: "Unsafe deserialization possible from {1} argument passed to '{0}'"
+  title_analyzer: "Type information used to serialize and deserialize objects"
+  description: Deserialization from untrusted source is unsafe.
+  
 # Various
 
 SCS0004:

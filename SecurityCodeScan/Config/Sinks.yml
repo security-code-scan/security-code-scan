@@ -776,3 +776,253 @@ AspNetCore_RedirectResult_Url:
     name: Url
     injectableField: true
     locale: SCS0027
+
+
+#Deserialization
+BinaryFormatter_Deserialize:
+   namespace: System.Runtime.Serialization.Formatters.Binary
+   className: BinaryFormatter
+   member: method
+   name: Deserialize
+   injectableArguments: 0
+   locale: SCS0028
+
+BinaryFormatter_UnsafeDeserialize:
+   namespace: System.Runtime.Serialization.Formatters.Binary
+   className: BinaryFormatter
+   member: method
+   name: UnsafeDeserialize
+   injectableArguments: 0
+   locale: SCS0028
+
+BinaryFormatter_UnsafeDeserializeMethodResponse:
+   namespace: System.Runtime.Serialization.Formatters.Binary
+   className: BinaryFormatter
+   member: method
+   name: UnsafeDeserializeMethodResponse
+   injectableArguments: 0
+   locale: SCS0028
+
+BinaryMessageFormatter_Read:
+   namespace: System.Messaging
+   className: BinaryMessageFormatter
+   member: method
+   name: Read
+   injectableArguments: 0
+   locale: SCS0028
+
+SoapFormatter_Deserialize:
+   namespace: System.Runtime.Serialization.Formatters.Soap
+   className: SoapFormatter
+   member: method
+   name: Deserialize
+   injectableArguments: 0
+   locale: SCS0028
+
+ObjectStateFormatter_Deserialize:
+   namespace: System.Web.UI
+   className: ObjectStateFormatter
+   member: method
+   name: Deserialize
+   injectableArguments: 0
+   locale: SCS0028
+
+XmlObjectSerializer_ReadObject:
+   namespace: System.Runtime.Serialization
+   className: XmlObjectSerializer
+   member: method
+   name: ReadObject
+   injectableArguments: 0
+   locale: SCS0028
+
+NetDataContractSerializer_Deserialize:
+   namespace: System.Runtime.Serialization
+   className: NetDataContractSerializer
+   member: method
+   name: Deserialize
+   injectableArguments: 0
+   locale: SCS0028
+
+NetDataContractSerializer_ReadObject:
+   namespace: System.Runtime.Serialization
+   className: NetDataContractSerializer
+   member: method
+   name: ReadObject
+   injectableArguments: 0
+   locale: SCS0028
+
+DataContractSerializer_ctor:
+   namespace: System.Runtime.Serialization
+   className: DataContractSerializer
+   member: method
+   name: .ctor
+   injectableArguments: 0
+   locale: SCS0028
+
+DataContractSerializer_ReadObject:
+   namespace: System.Runtime.Serialization
+   className: DataContractSerializer
+   member: method
+   name: ReadObject
+   injectableArguments: 0
+   locale: SCS0028
+
+DataContractJsonSerializer_ctor:
+   namespace: System.Runtime.Serialization.Json
+   className: DataContractJsonSerializer
+   member: method
+   name: .ctor
+   injectableArguments: 0
+   locale: SCS0028
+
+DataContractJsonSerializer_ReadObject:
+   namespace: System.Runtime.Serialization.Json
+   className: DataContractJsonSerializer
+   member: method
+   name: ReadObject
+   injectableArguments: 0
+   locale: SCS0028
+
+XmlSerializer_ctor:
+   namespace: System.Xml.Serialization
+   className: XmlSerializer
+   member: method
+   name: .ctor
+   injectableArguments: 0
+   locale: SCS0028
+
+XmlSerializer_Deserialize:
+   namespace: System.Xml.Serialization
+   className: XmlSerializer
+   member: method
+   name: Deserialize
+   injectableArguments: 0
+   locale: SCS0028
+
+XmlMessageFormatter_Read:
+   namespace: System.Messaging
+   className: XmlMessageFormatter
+   member: method
+   name: Read
+   injectableArguments: 0
+   locale: SCS0028
+
+LosFormatter_Desearialize:
+   namespace: System.Web.UI
+   className: LosFormatter
+   member: method
+   name: Deserialize
+   injectableArguments: 0
+   locale: SCS0028
+
+fastJSON_ToObject:
+   namespace: fastJSON
+   className: JSON
+   member: method
+   name: ToObject
+   injectableArguments: 0
+   locale: SCS0028
+
+ServiceStack_JsonDeserializeFromString:
+   namespace: ServiceStack.Text
+   className: JsonSerializer
+   member: method
+   name: DeserializeFromString
+   injectableArguments: 0, 1
+   locale: SCS0028
+
+ServiceStack_JsonDeserializeFromReader:
+   namespace: ServiceStack.Text
+   className: JsonSerializer
+   member: method
+   name: DeserializeFromReader
+   injectableArguments: 0, 1
+   locale: SCS0028
+
+ServiceStack_JsonDeserializeFromStream:
+   namespace: ServiceStack.Text
+   className: JsonSerializer
+   member: method
+   name: DeserializeFromStream
+   injectableArguments: 0, 1
+   locale: SCS0028
+
+ServiceStack_TypeDeserializeFromString:
+   namespace: ServiceStack.Text
+   className: TypeSerializer
+   member: method
+   name: DeserializeFromString
+   injectableArguments: 0, 1
+   locale: SCS0028
+
+ServiceStack_TypeDeserializeFromReader:
+   namespace: ServiceStack.Text
+   className: TypeSerializer
+   member: method
+   name: DeserializeFromReader
+   injectableArguments: 0, 1
+   locale: SCS0028
+
+ServiceStack_TypeDeserializeFromStream:
+   namespace: ServiceStack.Text
+   className: TypeSerializer
+   member: method
+   name: DeserializeFromStream
+   injectableArguments: 0, 1
+   locale: SCS0028
+
+ServiceStack_CsvDeserializeFromString:
+   namespace: ServiceStack.Text
+   className: CsvSerializer
+   member: method
+   name: DeserializeFromString
+   injectableArguments: 0, 1
+   locale: SCS0028
+
+ServiceStack_CsvDeserializeFromReader:
+   namespace: ServiceStack.Text
+   className: CsvSerializer
+   member: method
+   name: DeserializeFromReader
+   injectableArguments: 0, 1
+   locale: SCS0028
+
+ServiceStack_CsvDeserializeFromStream:
+   namespace: ServiceStack.Text
+   className: CsvSerializer
+   member: method
+   name: DeserializeFromStream
+   injectableArguments: 0, 1
+   locale: SCS0028
+
+ServiceStack_XmlDeserializeFromString:
+   namespace: ServiceStack.Text
+   className: XmlSerializer
+   member: method
+   name: DeserializeFromString
+   injectableArguments: 0, 1
+   locale: SCS0028
+
+ServiceStack_XmlDeserializeFromReader:
+   namespace: ServiceStack.Text
+   className: XmlSerializer
+   member: method
+   name: DeserializeFromReader
+   injectableArguments: 0, 1
+   locale: SCS0028
+
+ServiceStack_XmlDeserializeFromStream:
+   namespace: ServiceStack.Text
+   className: XmlSerializer
+   member: method
+   name: DeserializeFromStream
+   injectableArguments: 0, 1
+   locale: SCS0028
+
+ResourceReader_ctor:
+   namespace: System.Resources
+   className: ResourceReader
+   member: method
+   name: .ctor
+   injectableArguments: 0
+   locale: SCS0028

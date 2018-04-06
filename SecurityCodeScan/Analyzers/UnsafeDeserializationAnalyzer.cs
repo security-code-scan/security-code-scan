@@ -66,8 +66,7 @@ namespace SecurityCodeScan.Analyzers
             if (!value.HasValue)
                 return;
 
-            
-            if ((int)value.Value != 0 /*TypeNameHandling.None*/ )
+            if (value.Value is int intValue && intValue != 0 /*TypeNameHandling.None*/ )
                 ctx.ReportDiagnostic(Diagnostic.Create(Rule, expression.GetLocation()));
         }
 

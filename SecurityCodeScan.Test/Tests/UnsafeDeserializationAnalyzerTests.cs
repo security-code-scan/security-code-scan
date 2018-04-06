@@ -361,7 +361,7 @@ Namespace VulnerableApp
         Private Sub TestDeserialization()
             Dim settings = New JsonSerializerSettings With
                 {
-                    .TypeNameHandling = CType(3, TypeNameHandling)
+                    .TypeNameHandling = 3
                 }
         End Sub
     End Class
@@ -461,7 +461,7 @@ End Namespace
         }
 
         [TestMethod]
-        public async Task IgnoreJSonSerializerTypeNameHandlingNonCompilingVallue()
+        public async Task IgnoreJSonSerializerTypeNameHandlingNonCompilingValue()
         {
             var cSharpTest = @"
 using Newtonsoft.Json;
@@ -499,6 +499,46 @@ End Namespace
             await VerifyCSharpDiagnostic(cSharpTest, new DiagnosticResult { Id = "CS0117" }.WithLocation("Test0.cs", 12)).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, new DiagnosticResult { Id = "BC30456" }.WithLocation("Test0.vb", 9))
                 .ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task IgnoreJSonSerializerTypeNameHandlingNonCompilingStringValue()
+        {
+            var cSharpTest = @"
+using Newtonsoft.Json;
+
+namespace VulnerableApp
+{
+    class Test
+    {
+        static void TestDeserialization()
+        {
+             var settings = new JsonSerializerSettings
+                {
+                    TypeNameHandling = ""test""
+                };
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports Newtonsoft.Json
+
+Namespace VulnerableApp
+    Class Test
+        Private Sub TestDeserialization()
+            Dim settings = New JsonSerializerSettings With _
+                {
+                    .TypeNameHandling = ""test""
+                }
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, new DiagnosticResult { Id = "CS0029" }.WithLocation("Test0.cs", 12)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
     }
 }

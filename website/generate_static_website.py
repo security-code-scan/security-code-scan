@@ -23,7 +23,7 @@ cookiesGroup = ["0008", "0009"]
 viewStateGroup = ["0023", "0024"]
 requestValidationGroup = ["0017", "0021"]
 passwordGroup = ["0015", "0034", "0032", "0033"]
-miscGroup = ["0016", "0019", "0022", "0027"]
+miscGroup = ["0016", "0019", "0022", "0027", "0028"]
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 outFile = open(os.path.join(THIS_DIR, "out_site/readme.md"), "w")

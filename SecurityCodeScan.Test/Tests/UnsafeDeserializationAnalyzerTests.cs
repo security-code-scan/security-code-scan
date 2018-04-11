@@ -240,6 +240,30 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestMethod]
+        [Ignore] // todo: ignore the TypeNameHandling on deep clone (although it doesn't clone private members)
+        public async Task IgnoreJSonSerializerTypeNameHandlingDeepclone()
+        {
+            var cSharpTest = @"
+using Newtonsoft.Json;
+
+namespace VulnerableApp
+{
+    class Test
+    {
+        public T DeepClone<T>(T source)
+        {
+            var serializeSettings = new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.All};
+            var serialized = JsonConvert.SerializeObject(source, serializeSettings);
+            return JsonConvert.DeserializeObject<T>(serialized, serializeSettings);
+        }
+    }
+}
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+        }
+
         [DataTestMethod]
         [DataRow("Objects")]
         [DataRow("Arrays")]

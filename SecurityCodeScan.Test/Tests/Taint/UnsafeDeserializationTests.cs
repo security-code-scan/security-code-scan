@@ -45,6 +45,50 @@ namespace SecurityCodeScan.Test.Taint
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        [TestMethod]
+        public async Task BinaryFormatterDeepCloneNoWarning()
+        {
+            var cSharpTest = @"
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
+
+class A
+{
+    public static T DeepClone<T>(T obj)
+    {
+        using (var ms = new MemoryStream())
+        {
+            var formatter = new BinaryFormatter();
+            formatter.Serialize(ms, obj);
+            ms.Position = 0;
+
+            return (T)formatter.Deserialize(ms);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Runtime.Serialization.Formatters.Binary
+Imports System.IO
+
+Class A
+
+    Public Shared Function DeepClone(Of T)(ByVal obj As T) As T
+        Using ms = New MemoryStream()
+            Dim formatter = New BinaryFormatter()
+            formatter.Serialize(ms, obj)
+            ms.Position = 0
+            Return CType(formatter.Deserialize(ms), T)
+        End Using
+    End Function
+End Class
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
         [DataTestMethod]
         [DataRow("Deserialize",                     "")]
         [DataRow("Deserialize",                     ", null")]

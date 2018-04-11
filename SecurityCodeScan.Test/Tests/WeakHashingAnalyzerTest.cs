@@ -95,11 +95,10 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected, expected }).ConfigureAwait(false);
         }
 
-        [DataRow("MD5",                          "MD5.Create",                  "")]
-        [DataRow("SHA1",                         "SHA1.Create",                 "")]
-        [DataRow("System.String, System.Object", "CryptoConfig.CreateFromName", "\"SHA\""), Ignore] // todo: not implemented
+        [DataRow("MD5",  "MD5.Create")]
+        [DataRow("SHA1", "SHA1.Create")]
         [DataTestMethod]
-        public async Task Func(string type, string create, string arguments)
+        public async Task Func(string type, string create)
         {
             var cSharpTest = $@"
 using System;
@@ -109,7 +108,8 @@ class WeakHashing
 {{
     static void foo()
     {{
-        new Func<{type}>({create})({arguments});
+        new Func<{type}>
+            ({create})();
     }}
 }}
 ";
@@ -120,19 +120,43 @@ Imports System.Security.Cryptography
 
 Class WeakHashing
     Private Shared Sub foo()
-        Dim func As Func(Of {type}) = AddressOf {create}
-        Dim mD As {type} = func({arguments})
+        Dim func As Func(Of {type}) =
+            AddressOf {create}
+        Dim mD As {type} =
+            func()
     End Sub
 End Class
 ";
 
-            var expected = new DiagnosticResult
+            var expectedCSharp = new []
             {
-                Id       = "SCS0006",
-                Severity = DiagnosticSeverity.Warning
+                new DiagnosticResult
+                {
+                    Id       = "SCS0006",
+                    Severity = DiagnosticSeverity.Warning
+                }.WithLocation("Test0.cs", 9, 9),
+                new DiagnosticResult
+                {
+                    Id       = "SCS0006",
+                    Severity = DiagnosticSeverity.Warning
+                }.WithLocation("Test0.cs", 10, 14)
             };
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expectedCSharp).ConfigureAwait(false);
+
+            var expectedVBnet = new[]
+            {
+                new DiagnosticResult
+                {
+                    Id       = "SCS0006",
+                    Severity = DiagnosticSeverity.Warning
+                }.WithLocation("Test0.vb", 8, 23),
+                new DiagnosticResult
+                {
+                    Id       = "SCS0006",
+                    Severity = DiagnosticSeverity.Warning
+                }.WithLocation("Test0.vb", 10, 13)
+            };
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expectedVBnet).ConfigureAwait(false);
         }
 
         [DataRow("MD5",  "MD5.Create")]

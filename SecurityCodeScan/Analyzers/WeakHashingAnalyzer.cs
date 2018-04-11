@@ -87,16 +87,16 @@ namespace SecurityCodeScan.Analyzers
             if (symbol == null)
                 return;
 
-            CheckType(WeakHashingAnalyzer.Sha1TypeName, symbol.ContainingType, ctx);
-            CheckType(WeakHashingAnalyzer.Md5TypeName,  symbol.ContainingType, ctx);
+            CheckType(WeakHashingAnalyzer.Sha1TypeName, WeakHashingAnalyzer.Sha1Rule, symbol.ContainingType, ctx);
+            CheckType(WeakHashingAnalyzer.Md5TypeName,  WeakHashingAnalyzer.Md5Rule,  symbol.ContainingType, ctx);
         }
 
-        private bool CheckType(string type, ITypeSymbol symbol, SyntaxNodeAnalysisContext ctx)
+        private bool CheckType(string type, DiagnosticDescriptor diagnosticDescriptor, ITypeSymbol symbol, SyntaxNodeAnalysisContext ctx)
         {
             if (!symbol.IsTypeOrDerivedFrom(type))
                 return false;
 
-            var diagnostic = Diagnostic.Create(WeakHashingAnalyzer.Sha1Rule, ctx.Node.GetLocation());
+            var diagnostic = Diagnostic.Create(diagnosticDescriptor, ctx.Node.GetLocation());
             Report(diagnostic, ctx);
             return true;
         }
@@ -109,8 +109,8 @@ namespace SecurityCodeScan.Analyzers
                 case null:
                     return;
                 case IMethodSymbol methodSymbol:
-                    CheckType(WeakHashingAnalyzer.Sha1TypeName, methodSymbol.ReturnType, ctx);
-                    CheckType(WeakHashingAnalyzer.Md5TypeName,  methodSymbol.ReturnType, ctx);
+                    CheckType(WeakHashingAnalyzer.Sha1TypeName, WeakHashingAnalyzer.Sha1Rule, methodSymbol.ReturnType, ctx);
+                    CheckType(WeakHashingAnalyzer.Md5TypeName,  WeakHashingAnalyzer.Md5Rule,  methodSymbol.ReturnType, ctx);
                     break;
             }
         }
@@ -133,8 +133,8 @@ namespace SecurityCodeScan.Analyzers
                 case null:
                     return;
                 case IMethodSymbol method:
-                    bool ret = CheckType(WeakHashingAnalyzer.Sha1TypeName, method.ReturnType, ctx);
-                    ret |= CheckType(WeakHashingAnalyzer.Md5TypeName, method.ReturnType, ctx);
+                    bool ret = CheckType(WeakHashingAnalyzer.Sha1TypeName, WeakHashingAnalyzer.Sha1Rule, method.ReturnType, ctx);
+                    ret |= CheckType(WeakHashingAnalyzer.Md5TypeName, WeakHashingAnalyzer.Md5Rule, method.ReturnType, ctx);
                     if (ret)
                         return;
 

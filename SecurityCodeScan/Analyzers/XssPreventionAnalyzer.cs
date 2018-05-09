@@ -12,28 +12,15 @@ using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class XssPreventionAnalyzer : DiagnosticAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class XssPreventionAnalyzerCSharp : XssPreventionAnalyzer
     {
-        public const string DiagnosticId = "SCS0029";
-
-        private List<string> EncodingMethods = new List<string>
-        {
-            "HtmlEncoder.Default.Encode",
-            "HttpContext.Server.HtmlEncode"
-        };
-
-        private static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor(DiagnosticId);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
-
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(VisitMethodsCSharp,      CSharp.SyntaxKind.ClassDeclaration);
-            context.RegisterSyntaxNodeAction(VisitMethodsVisualBasic, VB.SyntaxKind.ClassBlock);
+            context.RegisterSyntaxNodeAction(VisitMethods,      CSharp.SyntaxKind.ClassDeclaration);
         }
 
-        private void VisitMethodsCSharp(SyntaxNodeAnalysisContext ctx)
+        private void VisitMethods(SyntaxNodeAnalysisContext ctx)
         {
             if (!(ctx.Node is CSharpSyntax.ClassDeclarationSyntax node))
                 return;
@@ -57,7 +44,7 @@ namespace SecurityCodeScan.Analyzers
 
             foreach (CSharpSyntax.MethodDeclarationSyntax method in methodsWithParameters)
             {
-                SyntaxList<CSharpSyntax.StatementSyntax> methodStatements  = method.Body.Statements;
+                SyntaxList<CSharpSyntax.StatementSyntax> methodStatements = method.Body.Statements;
                 var methodInvocations = method.DescendantNodes()
                                               .OfType<CSharpSyntax.InvocationExpressionSyntax>()
                                               .ToArray();
@@ -70,7 +57,7 @@ namespace SecurityCodeScan.Analyzers
 
                 // Returns from the Data Flow Analysis of sensible data 
                 // Sensible data is: Data passed as a parameter that is also returned as is by the method
-                var sensibleVariables  = flow.DataFlowsIn.Union(flow.VariablesDeclared.Except(flow.AlwaysAssigned))
+                var sensibleVariables = flow.DataFlowsIn.Union(flow.VariablesDeclared.Except(flow.AlwaysAssigned))
                                                          .Union(flow.WrittenInside)
                                                          .Intersect(flow.WrittenOutside)
                                                          .ToArray();
@@ -100,14 +87,17 @@ namespace SecurityCodeScan.Analyzers
                 }
             }
         }
+    }
 
-        // TODO: Drink a lot of coffee and make this generic. 
-        // Problem #1: So many language specific syntax nodes (why o why are they implemented like this).
-        // Problem #2: Literal strings are different.
-        // Perhaps there could be a way to swap the VB/C# syntax types about. 
-        // Maybe make a wrapper around each of the different common syntax types. :@
+    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+    public class XssPreventionAnalyzerVisualBasic : XssPreventionAnalyzer
+    {
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSyntaxNodeAction(VisitMethods, VB.SyntaxKind.ClassBlock);
+        }
 
-        private void VisitMethodsVisualBasic(SyntaxNodeAnalysisContext ctx)
+        protected void VisitMethods(SyntaxNodeAnalysisContext ctx)
         {
             if (!(ctx.Node is VBSyntax.ClassBlockSyntax node))
                 return;
@@ -127,20 +117,20 @@ namespace SecurityCodeScan.Analyzers
                                                              .SubOrFunctionStatement
                                                              .Modifiers.Any(x => x.IsKind(VB.SyntaxKind.PublicKeyword)))
                                             .Where(method =>
-                                                   {
-                                                       var retType = method.SubOrFunctionStatement.AsClause?.Type;
-                                                       if (retType == null)
-                                                           return false;
+                                            {
+                                                var retType = method.SubOrFunctionStatement.AsClause?.Type;
+                                                if (retType == null)
+                                                    return false;
 
-                                                       return ctx.SemanticModel
-                                                                 .GetSymbolInfo(retType)
-                                                                 .Symbol
-                                                                 ?.IsType("System.String") == true;
-                                                   });
+                                                return ctx.SemanticModel
+                                                          .GetSymbolInfo(retType)
+                                                          .Symbol
+                                                          ?.IsType("System.String") == true;
+                                            });
 
             foreach (VBSyntax.MethodBlockSyntax method in methodsWithParameters)
             {
-                SyntaxList<VBSyntax.StatementSyntax> methodStatements  = method.Statements;
+                SyntaxList<VBSyntax.StatementSyntax> methodStatements = method.Statements;
                 var methodInvocations = method.DescendantNodes()
                                               .OfType<VBSyntax.InvocationExpressionSyntax>()
                                               .ToArray();
@@ -183,5 +173,24 @@ namespace SecurityCodeScan.Analyzers
                 }
             }
         }
+    }
+
+    // TODO: make this generic. 
+    // Problem #1: So many language specific syntax nodes.
+    // Problem #2: Literal strings are different.
+
+    public abstract class XssPreventionAnalyzer : DiagnosticAnalyzer
+    {
+        public const string DiagnosticId = "SCS0029";
+
+        private List<string> EncodingMethods = new List<string>
+        {
+            "HtmlEncoder.Default.Encode",
+            "HttpContext.Server.HtmlEncode"
+        };
+
+        protected static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor(DiagnosticId);
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
     }
 }

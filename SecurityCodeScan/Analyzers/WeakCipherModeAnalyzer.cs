@@ -8,8 +8,25 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class WeakCipherModeAnalyzer : DiagnosticAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class WeakCipherModeAnalyzerCSharp : WeakCipherModeAnalyzer
+    {
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSyntaxNodeAction(VisitSyntaxNode, CSharp.SyntaxKind.IdentifierName);
+        }
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+    public class WeakCipherModeAnalyzerVisualBasic : WeakCipherModeAnalyzer
+    {
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSyntaxNodeAction(VisitSyntaxNode, VB.SyntaxKind.IdentifierName);
+        }
+    }
+
+    public abstract class WeakCipherModeAnalyzer : DiagnosticAnalyzer
     {
         private static readonly DiagnosticDescriptor RuleCBC     = LocaleUtil.GetDescriptor("SCS0011");
         private static readonly DiagnosticDescriptor RuleECB     = LocaleUtil.GetDescriptor("SCS0012");
@@ -19,13 +36,7 @@ namespace SecurityCodeScan.Analyzers
                                                                                                            RuleCBC,
                                                                                                            RuleGeneric);
 
-        public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterSyntaxNodeAction(VisitSyntaxNode, CSharp.SyntaxKind.IdentifierName);
-            context.RegisterSyntaxNodeAction(VisitSyntaxNode, VB.SyntaxKind.IdentifierName);
-        }
-
-        private static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx)
+        protected static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx)
         {
             var symbol = ctx.SemanticModel.GetSymbolInfo(ctx.Node).Symbol;
             if (symbol == null)

@@ -13,9 +13,12 @@ namespace SecurityCodeScan.Test
     [TestClass]
     public class RequestValidationAnalyzerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new[] { new RequestValidationAnalyzer() };
+            if (language == LanguageNames.CSharp)
+                return new[] { new RequestValidationAnalyzerCSharp() };
+
+            return new[] { new RequestValidationAnalyzerVisualBasic() };
         }
 
         private static readonly PortableExecutableReference[] References =

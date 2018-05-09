@@ -8,17 +8,41 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace SecurityCodeScan.Analyzers.Taint
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class TaintAnalyzer : DiagnosticAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class TaintAnalyzerCSharp : TaintAnalyzer
+    {
+        private readonly CSharpCodeEvaluation CodeEval = new CSharpCodeEvaluation();
+        public override void Initialize(AnalysisContext context)
+        {
+            CodeEval.BehaviorRepo = BehaviorRepo;
+            context.RegisterSyntaxNodeAction(CodeEval.VisitMethods, CSharp.SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(CodeEval.VisitMethods, CSharp.SyntaxKind.ConstructorDeclaration);
+            context.RegisterSyntaxNodeAction(CodeEval.VisitMethods, CSharp.SyntaxKind.DestructorDeclaration);
+            context.RegisterSyntaxNodeAction(CodeEval.VisitMethods, CSharp.SyntaxKind.PropertyDeclaration);
+        }
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+    public class TaintAnalyzerVisualBasic : TaintAnalyzer
+    {
+        private readonly VbCodeEvaluation CodeEval = new VbCodeEvaluation();
+        public override void Initialize(AnalysisContext context)
+        {
+            CodeEval.BehaviorRepo = BehaviorRepo;
+            context.RegisterSyntaxNodeAction(CodeEval.VisitMethods,     VB.SyntaxKind.SubBlock);
+            context.RegisterSyntaxNodeAction(CodeEval.VisitMethods,     VB.SyntaxKind.FunctionBlock);
+            context.RegisterSyntaxNodeAction(CodeEval.VisitMethods,     VB.SyntaxKind.ConstructorBlock);
+            context.RegisterSyntaxNodeAction(CodeEval.VisitMethods,     VB.SyntaxKind.PropertyBlock);
+        }
+    }
+
+    public abstract class TaintAnalyzer : DiagnosticAnalyzer
     {
         private readonly List<DiagnosticDescriptor> Descriptors = new List<DiagnosticDescriptor>();
 
-        private readonly MethodBehaviorRepository BehaviorRepo = new MethodBehaviorRepository();
+        protected readonly MethodBehaviorRepository BehaviorRepo = new MethodBehaviorRepository();
 
         private static readonly List<TaintAnalyzerExtension> Extensions = new List<TaintAnalyzerExtension>();
-
-        private readonly CSharpCodeEvaluation CsharpCodeEval = new CSharpCodeEvaluation();
-        private readonly VbCodeEvaluation     VbCodeEval     = new VbCodeEvaluation();
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
@@ -43,7 +67,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             }
         }
 
-        public TaintAnalyzer()
+        protected TaintAnalyzer()
         {
             //Load injectable APIs
             BehaviorRepo.LoadConfiguration("Sinks.yml");
@@ -61,21 +85,6 @@ namespace SecurityCodeScan.Analyzers.Taint
             {
                 Descriptors.Add(desc);
             }
-
-            VbCodeEval.BehaviorRepo     = BehaviorRepo;
-            CsharpCodeEval.BehaviorRepo = BehaviorRepo;
-        }
-
-        public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterSyntaxNodeAction(CsharpCodeEval.VisitMethods, CSharp.SyntaxKind.MethodDeclaration);
-            context.RegisterSyntaxNodeAction(CsharpCodeEval.VisitMethods, CSharp.SyntaxKind.ConstructorDeclaration);
-            context.RegisterSyntaxNodeAction(CsharpCodeEval.VisitMethods, CSharp.SyntaxKind.DestructorDeclaration);
-            context.RegisterSyntaxNodeAction(CsharpCodeEval.VisitMethods, CSharp.SyntaxKind.PropertyDeclaration);
-            context.RegisterSyntaxNodeAction(VbCodeEval.VisitMethods,     VB.SyntaxKind.SubBlock);
-            context.RegisterSyntaxNodeAction(VbCodeEval.VisitMethods,     VB.SyntaxKind.FunctionBlock);
-            context.RegisterSyntaxNodeAction(VbCodeEval.VisitMethods,     VB.SyntaxKind.ConstructorBlock);
-            context.RegisterSyntaxNodeAction(VbCodeEval.VisitMethods,     VB.SyntaxKind.PropertyBlock);
         }
 
         public static void RegisterExtension(TaintAnalyzerExtension extension)

@@ -12,9 +12,9 @@ namespace SecurityCodeScan.Test.Taint
     [TestClass]
     public class XPathInjectionAnalyzerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new[] { new TaintAnalyzer() };
+            return new DiagnosticAnalyzer[] { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic(), };
         }
 
         //No diagnostics expected to show up

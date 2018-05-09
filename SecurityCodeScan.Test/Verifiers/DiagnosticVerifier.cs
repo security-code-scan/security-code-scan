@@ -23,7 +23,7 @@ namespace SecurityCodeScan.Test.Helpers
         /// <summary>
         /// Get the CSharp analyzer being tested - to be implemented in non-abstract class
         /// </summary>
-        protected abstract IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers();
+        protected abstract IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language);
 
         protected virtual IEnumerable<MetadataReference> GetAdditionalReferences()
         {
@@ -47,7 +47,7 @@ namespace SecurityCodeScan.Test.Helpers
                                                     Version            dotNetVersion     = null,
                                                     CancellationToken  cancellationToken = default(CancellationToken))
         {
-            var a = GetDiagnosticAnalyzers().ToList();
+            var a = GetDiagnosticAnalyzers(LanguageNames.CSharp).ToList();
             a.Add(new DebugAnalyzer());
             await VerifyDiagnostics(new[] { source },
                                     LanguageNames.CSharp,
@@ -71,7 +71,7 @@ namespace SecurityCodeScan.Test.Helpers
                                                          Version            dotNetVersion     = null,
                                                          CancellationToken  cancellationToken = default(CancellationToken))
         {
-            var a = GetDiagnosticAnalyzers().ToList();
+            var a = GetDiagnosticAnalyzers(LanguageNames.VisualBasic).ToList();
             a.Add(new DebugAnalyzer());
             await VerifyDiagnostics(new[] { source },
                                     LanguageNames.VisualBasic,

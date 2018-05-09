@@ -10,8 +10,29 @@ using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class WeakCipherAnalyzer : DiagnosticAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class WeakCipherAnalyzerCSharp : WeakCipherAnalyzer
+    {
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSyntaxNodeAction(ctx => VisitSyntaxNode(ctx, CSharpSyntaxNodeHelper.Default),
+                                             CSharp.SyntaxKind.InvocationExpression,
+                                             CSharp.SyntaxKind.ObjectCreationExpression);
+        }
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+    public class WeakCipherAnalyzerVisualBasic : WeakCipherAnalyzer
+    {
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSyntaxNodeAction(ctx => VisitSyntaxNode(ctx, VBSyntaxNodeHelper.Default),
+                                             VB.SyntaxKind.InvocationExpression,
+                                             VB.SyntaxKind.ObjectCreationExpression);
+        }
+    }
+
+    public abstract class WeakCipherAnalyzer : DiagnosticAnalyzer
     {
         private static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0010");
 
@@ -19,36 +40,12 @@ namespace SecurityCodeScan.Analyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
-        public override void Initialize(AnalysisContext context)
+        protected static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
-            context.RegisterSyntaxNodeAction(VisitSyntaxNode,
-                                             CSharp.SyntaxKind.InvocationExpression,
-                                             CSharp.SyntaxKind.ObjectCreationExpression);
-            context.RegisterSyntaxNodeAction(VisitSyntaxNode,
-                                             VB.SyntaxKind.InvocationExpression,
-                                             VB.SyntaxKind.ObjectCreationExpression);
-        }
-
-        private static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx)
-        {
-            SyntaxNode node, node2, expression;
-
-            if (ctx.Node.Language == LanguageNames.CSharp)
+            var expression = nodeHelper.GetInvocationExpressionNode(ctx.Node);
+            if (expression != null)
             {
-                node       = ctx.Node as CSharpSyntax.InvocationExpressionSyntax;
-                expression = ((CSharpSyntax.InvocationExpressionSyntax)node)?.Expression;
-                node2      = ctx.Node as CSharpSyntax.ObjectCreationExpressionSyntax;
-            }
-            else
-            {
-                node       = ctx.Node as VBSyntax.InvocationExpressionSyntax;
-                expression = ((VBSyntax.InvocationExpressionSyntax)node)?.Expression;
-                node2      = ctx.Node as VBSyntax.ObjectCreationExpressionSyntax;
-            }
-
-            if (node != null)
-            {
-                var symbol = ctx.SemanticModel.GetSymbolInfo(node).Symbol;
+                var symbol = ctx.SemanticModel.GetSymbolInfo(ctx.Node).Symbol;
 
                 foreach (string cipher in BadCiphers)
                 {
@@ -60,16 +57,16 @@ namespace SecurityCodeScan.Analyzers
                 }
             }
 
-            if (node2 != null)
+            if (nodeHelper.IsObjectCreationExpressionNode(ctx.Node))
             {
-                var symbol = ctx.SemanticModel.GetSymbolInfo(node2).Symbol;
+                var symbol = ctx.SemanticModel.GetSymbolInfo(ctx.Node).Symbol;
 
                 foreach (string cipher in BadCiphers)
                 {
                     if (!AnalyzerUtil.SymbolMatch(symbol, type: cipher + "CryptoServiceProvider"))
                         continue;
 
-                    var diagnostic = Diagnostic.Create(Rule, node2.GetLocation(), cipher);
+                    var diagnostic = Diagnostic.Create(Rule, ctx.Node.GetLocation(), cipher);
                     ctx.ReportDiagnostic(diagnostic);
                 }
             }

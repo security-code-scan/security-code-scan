@@ -51,8 +51,7 @@ namespace SecurityCodeScan.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(VisitMethods, CSharp.SyntaxKind.MethodDeclaration);
-            context.RegisterSyntaxNodeAction(VisitMethods, VB.SyntaxKind.SubBlock, VB.SyntaxKind.FunctionBlock);
+            context.RegisterSymbolAction(VisitMethods, SymbolKind.Method);
         }
 
         private bool HasAntiForgeryToken(AttributeData attributeData)
@@ -65,9 +64,9 @@ namespace SecurityCodeScan.Analyzers
             return attributeData.AttributeClass.ToString() == AnonymousAttribute;
         }
 
-        private void VisitMethods(SyntaxNodeAnalysisContext ctx)
+        private void VisitMethods(SymbolAnalysisContext ctx)
         {
-            var symbol = (IMethodSymbol)ctx.SemanticModel.GetDeclaredSymbol(ctx.Node);
+            var symbol = (IMethodSymbol)ctx.Symbol;
 
             if (!symbol.HasDerivedMethodAttribute(attributeData =>
                                                       MethodsHttp.Contains(attributeData.AttributeClass.ToString())))
@@ -85,13 +84,7 @@ namespace SecurityCodeScan.Analyzers
             if (symbol.HasDerivedMethodAttribute(HasAntiForgeryToken))
                 return;
 
-            Location diagnosticsLocation;
-            if (ctx.Node is MethodDeclarationSyntax methodDeclaration)
-                diagnosticsLocation = methodDeclaration.Identifier.GetLocation();
-            else
-                diagnosticsLocation = ((MethodBlockSyntax)ctx.Node).SubOrFunctionStatement.Identifier.GetLocation();
-
-            ctx.ReportDiagnostic(Diagnostic.Create(Rule, diagnosticsLocation));
+            ctx.ReportDiagnostic(Diagnostic.Create(Rule, symbol.Locations[0]));
         }
     }
 }

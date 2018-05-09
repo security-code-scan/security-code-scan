@@ -59,7 +59,7 @@ namespace SecurityCodeScan.Test.Helpers
             //Console.WriteLine(normalizeNew);
             //Console.WriteLine("== New source (END) ==");
 
-            var a = GetDiagnosticAnalyzers().ToList();
+            var a = GetDiagnosticAnalyzers(LanguageNames.CSharp).ToList();
             a.Add(new DebugAnalyzer());
 
             await VerifyFix(LanguageNames.CSharp,

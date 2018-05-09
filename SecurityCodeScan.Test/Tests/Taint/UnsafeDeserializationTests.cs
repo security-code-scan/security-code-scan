@@ -21,9 +21,9 @@ namespace SecurityCodeScan.Test.Taint
     [TestClass]
     public class UnsafeDeserializationTests : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new DiagnosticAnalyzer[] { new TaintAnalyzer() };
+            return new DiagnosticAnalyzer[] { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic(), };
         }
 
         private static readonly PortableExecutableReference[] References =

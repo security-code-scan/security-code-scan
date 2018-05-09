@@ -13,9 +13,9 @@ namespace SecurityCodeScan.Test
     [TestClass]
     public class OutputCacheAnnotationAnalyzerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new[] { new OutputCacheAnnotationAnalyzer() };
+            return new DiagnosticAnalyzer[]{ new OutputCacheAnnotationAnalyzer() };
         }
 
         private static readonly PortableExecutableReference[] References =

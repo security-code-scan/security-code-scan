@@ -12,9 +12,9 @@ namespace SecurityCodeScan.Test.Taint
     [TestClass]
     public class TaintTransferTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new List<DiagnosticAnalyzer> { new TaintAnalyzer() };
+            return new List<DiagnosticAnalyzer> { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic(), };
         }
 
         private static readonly PortableExecutableReference[] References =

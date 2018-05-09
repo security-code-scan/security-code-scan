@@ -5,10 +5,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
-using CSharp = Microsoft.CodeAnalysis.CSharp;
-using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
-using VB = Microsoft.CodeAnalysis.VisualBasic;
-using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
@@ -21,8 +17,7 @@ namespace SecurityCodeScan.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(VisitClass, CSharp.SyntaxKind.ClassDeclaration);
-            context.RegisterSyntaxNodeAction(VisitClass, VB.SyntaxKind.ClassBlock);
+            context.RegisterSymbolAction(VisitClass, SymbolKind.NamedType);
         }
 
         private bool HasOutputCacheAttribute(ISymbol symbol, ref int duration, bool method)
@@ -56,50 +51,25 @@ namespace SecurityCodeScan.Analyzers
             return ret;
         }
 
-        private void VisitClass(SyntaxNodeAnalysisContext ctx)
+
+        private void VisitClass(SymbolAnalysisContext ctx)
         {
-            SyntaxNode             node;
-            SyntaxList<SyntaxNode> members;
-            if (ctx.Node.Language == LanguageNames.CSharp)
-            {
-                node = ctx.Node as CSharpSyntax.ClassDeclarationSyntax;
-                if (node == null)
-                    return; //Not the expected node type
-
-                members = ((CSharpSyntax.ClassDeclarationSyntax)node).Members;
-            }
-            else
-            {
-                node = ctx.Node as VBSyntax.ClassBlockSyntax;
-                if (node == null)
-                    return; //Not the expected node type
-
-                members = ((VBSyntax.ClassBlockSyntax)node).Members;
-            }
-
-            var classSymbol = (ITypeSymbol)ctx.SemanticModel.GetDeclaredSymbol(node);
+            var classSymbol = (ITypeSymbol)ctx.Symbol;
 
             bool classHasAuthAnnotation  = classSymbol.HasDerivedClassAttribute(
                 attributeData => attributeData.AttributeClass.ToString() == "System.Web.Mvc.AuthorizeAttribute");
             int  classCacheDuration      = 0;
             bool classHasCacheAnnotation = HasOutputCacheAttribute(classSymbol, ref classCacheDuration, method: false);
 
-            foreach (SyntaxNode member in members)
+            foreach (var member in classSymbol.GetMembers())
             {
-                SyntaxNode method;
-                if (ctx.Node.Language == LanguageNames.CSharp)
-                {
-                    method = member as CSharpSyntax.MethodDeclarationSyntax;
-                }
-                else
-                {
-                    method = member as VBSyntax.MethodBlockSyntax;
-                }
 
-                if (method == null)
+                if(!(member is IMethodSymbol methodSymbol))
                     continue;
 
-                var methodSymbol = (IMethodSymbol)ctx.SemanticModel.GetDeclaredSymbol(method);
+                if(methodSymbol.MethodKind != MethodKind.Ordinary)
+                    continue;
+
                 if (methodSymbol.DeclaredAccessibility != Accessibility.Public)
                     continue;
 
@@ -117,7 +87,7 @@ namespace SecurityCodeScan.Analyzers
 
                 if (hasAuth && hasCache)
                 {
-                    ctx.ReportDiagnostic(Diagnostic.Create(Rule, method.GetLocation()));
+                    ctx.ReportDiagnostic(Diagnostic.Create(Rule, member.Locations[0]));
                 }
             }
         }

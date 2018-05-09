@@ -11,22 +11,16 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class XxeDiagnosticAnalyzer : DiagnosticAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class XxeDiagnosticAnalyzerCSharp : XxeDiagnosticAnalyzer
     {
-        internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0007");
-
-        private static readonly ImmutableArray<DiagnosticDescriptor> Rules = ImmutableArray.Create(Rule);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Rules;
-
         public override void Initialize(AnalysisContext analysisContext)
         {
             analysisContext.RegisterCompilationStartAction(
                 context =>
                 {
                     Compilation compilation = context.Compilation;
-                    var xmlTypes = new XxeSecurityTypes(compilation);
+                    var         xmlTypes    = new XxeSecurityTypes(compilation);
 
                     if (!xmlTypes.IsAnyTypeReferenced())
                         return;
@@ -42,6 +36,27 @@ namespace SecurityCodeScan.Analyzers
                             analyzer.RegisterSyntaxNodeAction(c);
                             c.RegisterCodeBlockEndAction(analyzer.AnalyzeCodeBlockEnd);
                         });
+                });
+        }
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+    public class XxeDiagnosticAnalyzerVisualBasic : XxeDiagnosticAnalyzer
+    {
+        public override void Initialize(AnalysisContext analysisContext)
+        {
+            analysisContext.RegisterCompilationStartAction(
+                context =>
+                {
+                    Compilation compilation = context.Compilation;
+                    var         xmlTypes    = new XxeSecurityTypes(compilation);
+
+                    if (!xmlTypes.IsAnyTypeReferenced())
+                        return;
+
+                    Version version = compilation.GetDotNetFrameworkVersion();
+                    if (version == null)
+                        return;
 
                     context.RegisterCodeBlockStartAction<VB.SyntaxKind>(
                         c =>
@@ -52,6 +67,15 @@ namespace SecurityCodeScan.Analyzers
                         });
                 });
         }
+    }
+
+    public abstract class XxeDiagnosticAnalyzer : DiagnosticAnalyzer
+    {
+        internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0007");
+
+        private static readonly ImmutableArray<DiagnosticDescriptor> Rules = ImmutableArray.Create(Rule);
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Rules;
     }
 
     internal class XxeSecurityTypes

@@ -19,9 +19,9 @@ namespace SecurityCodeScan.Test.Taint
             MetadataReference.CreateFromFile(typeof(XmlReader).Assembly.Location)
         };
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new[] { new TaintAnalyzer() };
+            return new DiagnosticAnalyzer[] { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic(), };
         }
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;

@@ -15,9 +15,12 @@ namespace SecurityCodeScan.Test
     [TestClass]
     public class WeakPasswordValidatorPropertyAnalyzerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new DiagnosticAnalyzer[] { new WeakPasswordValidatorPropertyAnalyzer(), new TaintAnalyzer() };
+            if (language == LanguageNames.CSharp)
+                return new DiagnosticAnalyzer[] { new WeakPasswordValidatorPropertyAnalyzerCSharp(), new TaintAnalyzerCSharp() };
+
+            return new DiagnosticAnalyzer[] { new WeakPasswordValidatorPropertyAnalyzerVisualBasic(), new TaintAnalyzerVisualBasic(), };
         }
 
         private static readonly PortableExecutableReference[] References =

@@ -28,6 +28,8 @@ namespace SecurityCodeScan.Analyzers.Utils
         public abstract IEnumerable<SyntaxNode> GetObjectInitializerExpressionNodes(SyntaxNode node);
         // This will return true if the SyntaxNode is either InvocationExpression or ObjectCreationExpression (in C# or VB)
         public abstract bool IsMethodInvocationNode(SyntaxNode node);
+        public abstract bool IsSimpleMemberAccessExpressionNode(SyntaxNode node);
+        public abstract bool IsObjectCreationExpressionNode(SyntaxNode node);
         protected abstract IEnumerable<SyntaxNode> GetCallArgumentExpressionNodes(SyntaxNode node, CallKind callKind);
         public abstract IEnumerable<SyntaxNode> GetDescendantAssignmentExpressionNodes(SyntaxNode node);
         public abstract IEnumerable<SyntaxNode> GetDescendantMemberAccessExpressionNodes(SyntaxNode node);

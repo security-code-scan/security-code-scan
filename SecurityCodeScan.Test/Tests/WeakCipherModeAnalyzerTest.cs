@@ -12,9 +12,9 @@ namespace SecurityCodeScan.Test
     [TestClass]
     public class WeakCipherModeAnalyzerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new[] { new WeakCipherModeAnalyzer() };
+            return new DiagnosticAnalyzer[] { new WeakCipherModeAnalyzerCSharp(), new WeakCipherModeAnalyzerVisualBasic() };
         }
 
         [DataRow("CipherMode.ECB", "SCS0012")]

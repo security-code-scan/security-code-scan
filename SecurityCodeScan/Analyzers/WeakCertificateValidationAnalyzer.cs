@@ -10,43 +10,41 @@ using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class WeakCertificateValidationAnalyzer : DiagnosticAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class WeakCertificateValidationAnalyzerCSharp : WeakCertificateValidationAnalyzer
+    {
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSyntaxNodeAction(ctx => VisitSyntaxNode(ctx, CSharpSyntaxNodeHelper.Default),
+                                             CSharp.SyntaxKind.AddAssignmentExpression,
+                                             CSharp.SyntaxKind.SimpleAssignmentExpression);
+        }
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+    public class WeakCertificateValidationAnalyzerVisualBasic : WeakCertificateValidationAnalyzer
+    {
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSyntaxNodeAction(ctx => VisitSyntaxNode(ctx, VBSyntaxNodeHelper.Default),
+                                             VB.SyntaxKind.AddAssignmentStatement,
+                                             VB.SyntaxKind.SimpleAssignmentStatement);
+        }
+    }
+
+    public abstract class WeakCertificateValidationAnalyzer : DiagnosticAnalyzer
     {
         private static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0004");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
-        public override void Initialize(AnalysisContext context)
+        protected static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
-            context.RegisterSyntaxNodeAction(VisitSyntaxNode,
-                                             CSharp.SyntaxKind.AddAssignmentExpression,
-                                             CSharp.SyntaxKind.SimpleAssignmentExpression);
-            context.RegisterSyntaxNodeAction(VisitSyntaxNode,
-                                             VB.SyntaxKind.AddAssignmentStatement,
-                                             VB.SyntaxKind.SimpleAssignmentStatement);
-        }
-
-        private static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx)
-        {
-            SyntaxNode assignment;
-            SyntaxNode memberAccess;
-
-            if (ctx.Node.Language == LanguageNames.CSharp)
-            {
-                assignment   = ctx.Node as CSharpSyntax.AssignmentExpressionSyntax;
-                memberAccess = ((CSharpSyntax.AssignmentExpressionSyntax)assignment)?.Left as CSharpSyntax.MemberAccessExpressionSyntax;
-            }
-            else
-            {
-                assignment   = ctx.Node as VBSyntax.AssignmentStatementSyntax;
-                memberAccess = ((VBSyntax.AssignmentStatementSyntax)assignment)?.Left as VBSyntax.MemberAccessExpressionSyntax;
-            }
-
-            if (memberAccess == null)
+            var leftNode = nodeHelper.GetAssignmentLeftNode(ctx.Node);
+            if (!nodeHelper.IsSimpleMemberAccessExpressionNode(leftNode))
                 return;
 
-            var symbolMemberAccess = ctx.SemanticModel.GetSymbolInfo(memberAccess).Symbol;
+            var symbolMemberAccess = ctx.SemanticModel.GetSymbolInfo(leftNode).Symbol;
             if (AnalyzerUtil.SymbolMatch(symbolMemberAccess,
                                          type: "ServicePointManager",
                                          name: "ServerCertificateValidationCallback") ||
@@ -54,7 +52,7 @@ namespace SecurityCodeScan.Analyzers
                                          type: "ServicePointManager",
                                          name: "CertificatePolicy"))
             {
-                var diagnostic = Diagnostic.Create(Rule, assignment.GetLocation());
+                var diagnostic = Diagnostic.Create(Rule, ctx.Node.GetLocation());
                 ctx.ReportDiagnostic(diagnostic);
             }
         }

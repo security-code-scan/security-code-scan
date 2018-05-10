@@ -12,17 +12,25 @@ using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 namespace SecurityCodeScan.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class WeakPasswordValidatorPropertyAnalyzerCSharp : WeakPasswordValidatorPropertyAnalyzer
+    public class WeakPasswordValidatorPropertyAnalyzerCSharp : TaintAnalyzerExtensionCSharp
     {
+        private readonly WeakPasswordValidatorPropertyAnalyzer Analyzer = new WeakPasswordValidatorPropertyAnalyzer();
+
+        public WeakPasswordValidatorPropertyAnalyzerCSharp()
+        {
+            TaintAnalyzerCSharp.RegisterExtension(this);
+        }
+
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(ctx => VisitAssignmentExpression(ctx, CSharpSyntaxNodeHelper.Default), CSharp.SyntaxKind.SimpleAssignmentExpression);
+            context.RegisterSyntaxNodeAction(ctx => Analyzer.VisitAssignmentExpression(ctx, CSharpSyntaxNodeHelper.Default), CSharp.SyntaxKind.SimpleAssignmentExpression);
         }
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Analyzer.SupportedDiagnostics;
 
         public override void VisitEnd(SyntaxNode node, ExecutionState state)
         {
-            if (node.Language == LanguageNames.CSharp)
-                CheckState(state);
+            Analyzer.CheckState(state);
         }
 
         public override void VisitAssignment(CSharpSyntax.AssignmentExpressionSyntax node,
@@ -32,24 +40,32 @@ namespace SecurityCodeScan.Analyzers
                                              VariableState                           variableRightState)
         {
             if (node != null)
-                TagVariables(symbol, variableRightState);
+                Analyzer.TagVariables(symbol, variableRightState);
         }
     }
 
     [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
-    public class WeakPasswordValidatorPropertyAnalyzerVisualBasic : WeakPasswordValidatorPropertyAnalyzer
+    public class WeakPasswordValidatorPropertyAnalyzerVisualBasic : TaintAnalyzerExtensionVisualBasic
     {
+        private readonly WeakPasswordValidatorPropertyAnalyzer Analyzer = new WeakPasswordValidatorPropertyAnalyzer();
+
+        public WeakPasswordValidatorPropertyAnalyzerVisualBasic()
+        {
+            TaintAnalyzerVisualBasic.RegisterExtension(this);
+        }
+
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(ctx => VisitAssignmentExpression(ctx, VBSyntaxNodeHelper.Default),
+            context.RegisterSyntaxNodeAction(ctx => Analyzer.VisitAssignmentExpression(ctx, VBSyntaxNodeHelper.Default),
                                              VB.SyntaxKind.SimpleAssignmentStatement,
                                              VB.SyntaxKind.NamedFieldInitializer);
         }
 
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Analyzer.SupportedDiagnostics;
+
         public override void VisitEnd(SyntaxNode node, ExecutionState state)
         {
-            if (node.Language == LanguageNames.VisualBasic)
-                CheckState(state);
+            Analyzer.CheckState(state);
         }
 
         public override void VisitAssignment(VB.VisualBasicSyntaxNode node,
@@ -59,22 +75,21 @@ namespace SecurityCodeScan.Analyzers
                                              VariableState            variableRightState)
         {
             if (node is VBSyntax.AssignmentStatementSyntax || node is VBSyntax.NamedFieldInitializerSyntax)
-                TagVariables(symbol, variableRightState);
+                Analyzer.TagVariables(symbol, variableRightState);
         }
     }
 
-    public abstract class WeakPasswordValidatorPropertyAnalyzer : TaintAnalyzerExtension
+    internal class WeakPasswordValidatorPropertyAnalyzer
     {
         private static readonly DiagnosticDescriptor RulePasswordLength                  = LocaleUtil.GetDescriptor("SCS0032"); // RequiredLength's value is too small
-        public const            string               RulePasswordDiagnosticId            = "SCS0033";
-        private static readonly DiagnosticDescriptor RulePasswordValidators              = LocaleUtil.GetDescriptor(RulePasswordDiagnosticId); // Not enough properties set
+        private static readonly DiagnosticDescriptor RulePasswordValidators              = LocaleUtil.GetDescriptor("SCS0033"); // Not enough properties set
         private static readonly DiagnosticDescriptor RulePasswordValidatorRequiredLength = LocaleUtil.GetDescriptor("SCS0034");                // RequiredLength must be set
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RulePasswordLength,
+        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RulePasswordLength,
                                                                                                            RulePasswordValidators,
                                                                                                            RulePasswordValidatorRequiredLength);
 
-        protected static void VisitAssignmentExpression(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
+        public void VisitAssignmentExpression(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
             SyntaxNode right = nodeHelper.GetAssignmentRightNode(ctx.Node);
             SyntaxNode left = nodeHelper.GetAssignmentLeftNode(ctx.Node);
@@ -101,12 +116,7 @@ namespace SecurityCodeScan.Analyzers
             ctx.ReportDiagnostic(diagnostic);
         }
 
-        protected WeakPasswordValidatorPropertyAnalyzer()
-        {
-            TaintAnalyzer.RegisterExtension(this);
-        }
-
-        protected void CheckState(ExecutionState state)
+        public  void CheckState(ExecutionState state)
         {
             // For every variables registered in state
             foreach (var variableState in state.VariableStates)
@@ -133,7 +143,7 @@ namespace SecurityCodeScan.Analyzers
             }
         }
 
-        protected void TagVariables(ISymbol symbol, VariableState variableRightState)
+        public  void TagVariables(ISymbol symbol, VariableState variableRightState)
         {
             // Only PasswordValidator properties will cause a new tag to be added
             if (AnalyzerUtil.SymbolMatch(symbol, type: "PasswordValidator", name: "RequiredLength"))

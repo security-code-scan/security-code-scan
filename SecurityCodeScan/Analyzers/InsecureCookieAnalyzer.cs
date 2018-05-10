@@ -9,23 +9,18 @@ using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class InsecureCookieAnalyzer : TaintAnalyzerExtension
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class InsecureCookieAnalyzerCSharp : TaintAnalyzerExtensionCSharp
     {
-        public const            string               DiagnosticIdSecure = "SCS0008";
-        private static readonly DiagnosticDescriptor RuleSecure         = LocaleUtil.GetDescriptor(DiagnosticIdSecure);
-
-        public const            string               DiagnosticIdHttpOnly = "SCS0009";
-        private static readonly DiagnosticDescriptor RuleHttpOnly         = LocaleUtil.GetDescriptor(DiagnosticIdHttpOnly);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RuleSecure, RuleHttpOnly);
-
-        public InsecureCookieAnalyzer()
+        private readonly InsecureCookieAnalyzer Analyzer = new InsecureCookieAnalyzer();
+        public InsecureCookieAnalyzerCSharp()
         {
-            TaintAnalyzer.RegisterExtension(this);
+            TaintAnalyzerCSharp.RegisterExtension(this);
         }
 
         public override void Initialize(AnalysisContext context) { }
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Analyzer.SupportedDiagnostics;
 
         public override void VisitAssignment(CSharpSyntax.AssignmentExpressionSyntax node,
                                              ExecutionState                          state,
@@ -47,8 +42,22 @@ namespace SecurityCodeScan.Analyzers
 
         public override void VisitEnd(SyntaxNode node, ExecutionState state)
         {
-            CheckState(state);
+            Analyzer.CheckState(state);
         }
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+    public class InsecureCookieAnalyzerVisualBasic : TaintAnalyzerExtensionVisualBasic
+    {
+        private readonly InsecureCookieAnalyzer Analyzer = new InsecureCookieAnalyzer();
+        public InsecureCookieAnalyzerVisualBasic()
+        {
+            TaintAnalyzerVisualBasic.RegisterExtension(this);
+        }
+
+        public override void Initialize(AnalysisContext context) { }
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Analyzer.SupportedDiagnostics;
 
         public override void VisitAssignment(VisualBasicSyntaxNode node,
                                              ExecutionState        state,
@@ -66,7 +75,23 @@ namespace SecurityCodeScan.Analyzers
             }
         }
 
-        private void CheckState(ExecutionState state)
+        public override void VisitEnd(SyntaxNode node, ExecutionState state)
+        {
+            Analyzer.CheckState(state);
+        }
+    }
+
+    internal class InsecureCookieAnalyzer 
+    {
+        public const            string               DiagnosticIdSecure = "SCS0008";
+        private static readonly DiagnosticDescriptor RuleSecure         = LocaleUtil.GetDescriptor(DiagnosticIdSecure);
+
+        public const            string               DiagnosticIdHttpOnly = "SCS0009";
+        private static readonly DiagnosticDescriptor RuleHttpOnly         = LocaleUtil.GetDescriptor(DiagnosticIdHttpOnly);
+
+        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RuleSecure, RuleHttpOnly);
+
+        public void CheckState(ExecutionState state)
         {
             // For every variables registered in state
             foreach (var variableState in state.VariableStates)

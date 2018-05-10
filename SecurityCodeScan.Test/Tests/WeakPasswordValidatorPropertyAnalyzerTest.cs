@@ -380,7 +380,7 @@ End Namespace
 
             var expected = new DiagnosticResult
             {
-                Id       = WeakPasswordValidatorPropertyAnalyzer.RulePasswordDiagnosticId,
+                Id       = "SCS0033",
                 Severity = DiagnosticSeverity.Warning
             };
 

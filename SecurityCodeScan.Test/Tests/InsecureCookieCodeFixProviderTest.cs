@@ -24,7 +24,7 @@ namespace SecurityCodeScan.Test.InsecureCookie
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new DiagnosticAnalyzer[] { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic(), new InsecureCookieAnalyzer() };
+            return new DiagnosticAnalyzer[] { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic(), new InsecureCookieAnalyzerCSharp(), new InsecureCookieAnalyzerVisualBasic() };
         }
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()

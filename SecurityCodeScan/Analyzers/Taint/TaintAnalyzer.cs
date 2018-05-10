@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -20,6 +21,42 @@ namespace SecurityCodeScan.Analyzers.Taint
             context.RegisterSyntaxNodeAction(CodeEval.VisitMethods, CSharp.SyntaxKind.DestructorDeclaration);
             context.RegisterSyntaxNodeAction(CodeEval.VisitMethods, CSharp.SyntaxKind.PropertyDeclaration);
         }
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get
+            {
+                //Feed the diagnostic descriptor from the configured sinks
+                var all = new HashSet<DiagnosticDescriptor>(Descriptors);
+
+                //Add the diagnostic that can be reported by taint analysis extension
+                lock (CSharpCodeEvaluation.Extensions)
+                {
+                    foreach (var extension in CSharpCodeEvaluation.Extensions)
+                    {
+                        foreach (DiagnosticDescriptor desc in extension.SupportedDiagnostics)
+                        {
+                            all.Add(desc);
+                        }
+                    }
+                }
+
+                return ImmutableArray.Create(all.ToArray());
+            }
+        }
+
+        public static void RegisterExtension(TaintAnalyzerExtensionCSharp extension)
+        {
+            // Must be executed in a synchronous way for testing purposes
+            lock (CSharpCodeEvaluation.Extensions)
+            {
+                // Makes sure an extension of the same time isn't already registered before adding it to the list
+                if (CSharpCodeEvaluation.Extensions.Any(x => x.GetType().FullName.Equals(extension.GetType().FullName)))
+                    return;
+
+                CSharpCodeEvaluation.Extensions.Add(extension);
+            }
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
@@ -34,15 +71,6 @@ namespace SecurityCodeScan.Analyzers.Taint
             context.RegisterSyntaxNodeAction(CodeEval.VisitMethods,     VB.SyntaxKind.ConstructorBlock);
             context.RegisterSyntaxNodeAction(CodeEval.VisitMethods,     VB.SyntaxKind.PropertyBlock);
         }
-    }
-
-    public abstract class TaintAnalyzer : DiagnosticAnalyzer
-    {
-        private readonly List<DiagnosticDescriptor> Descriptors = new List<DiagnosticDescriptor>();
-
-        protected readonly MethodBehaviorRepository BehaviorRepo = new MethodBehaviorRepository();
-
-        private static readonly List<TaintAnalyzerExtension> Extensions = new List<TaintAnalyzerExtension>();
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
@@ -52,9 +80,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                 var all = new HashSet<DiagnosticDescriptor>(Descriptors);
 
                 //Add the diagnostic that can be reported by taint analysis extension
-                lock (Extensions)
+                lock (VbCodeEvaluation.Extensions)
                 {
-                    foreach (var extension in Extensions)
+                    foreach (var extension in VbCodeEvaluation.Extensions)
                     {
                         foreach (DiagnosticDescriptor desc in extension.SupportedDiagnostics)
                         {
@@ -66,6 +94,26 @@ namespace SecurityCodeScan.Analyzers.Taint
                 return ImmutableArray.Create(all.ToArray());
             }
         }
+
+        public static void RegisterExtension(TaintAnalyzerExtensionVisualBasic extension)
+        {
+            // Must be executed in a synchronous way for testing purposes
+            lock (VbCodeEvaluation.Extensions)
+            {
+                // Makes sure an extension of the same time isn't already registered before adding it to the list
+                if (VbCodeEvaluation.Extensions.Any(x => x.GetType().FullName.Equals(extension.GetType().FullName)))
+                    return;
+
+                VbCodeEvaluation.Extensions.Add(extension);
+            }
+        }
+    }
+
+    public abstract class TaintAnalyzer : DiagnosticAnalyzer
+    {
+        protected readonly List<DiagnosticDescriptor> Descriptors = new List<DiagnosticDescriptor>();
+
+        protected readonly MethodBehaviorRepository BehaviorRepo = new MethodBehaviorRepository();
 
         protected TaintAnalyzer()
         {
@@ -84,21 +132,6 @@ namespace SecurityCodeScan.Analyzers.Taint
             foreach (var desc in BehaviorRepo.GetDescriptors())
             {
                 Descriptors.Add(desc);
-            }
-        }
-
-        public static void RegisterExtension(TaintAnalyzerExtension extension)
-        {
-            // Must be executed in a synchronous way for testing purposes
-            lock (Extensions)
-            {
-                // Makes sure an extension of the same time isn't already registered before adding it to the list
-                if (Extensions.Any(x => x.GetType().FullName.Equals(extension.GetType().FullName)))
-                    return;
-
-                Extensions.Add(extension);
-                CSharpCodeEvaluation.Extensions = Extensions;
-                VbCodeEvaluation.Extensions     = Extensions;
             }
         }
     }

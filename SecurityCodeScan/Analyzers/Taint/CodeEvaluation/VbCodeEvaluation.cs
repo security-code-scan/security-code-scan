@@ -13,7 +13,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 {
     public class VbCodeEvaluation : BaseCodeEvaluation
     {
-        public static List<TaintAnalyzerExtension> Extensions { get; set; } = new List<TaintAnalyzerExtension>();
+        public static List<TaintAnalyzerExtensionVisualBasic> Extensions { get; set; } = new List<TaintAnalyzerExtensionVisualBasic>();
 
         public void VisitMethods(SyntaxNodeAnalysisContext ctx)
         {

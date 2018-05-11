@@ -258,6 +258,18 @@ namespace SecurityCodeScan.Analyzers.Utils
             return kind == SyntaxKind.InvocationExpression || kind == SyntaxKind.ObjectCreationExpression;
         }
 
+        public override bool IsSimpleMemberAccessExpressionNode(SyntaxNode node)
+        {
+            SyntaxKind? kind = node?.Kind();
+            return kind == SyntaxKind.SimpleMemberAccessExpression;
+        }
+
+        public override bool IsObjectCreationExpressionNode(SyntaxNode node)
+        {
+            SyntaxKind? kind = node?.Kind();
+            return kind == SyntaxKind.ObjectCreationExpression;
+        }
+
         public override IMethodSymbol GetCalleeMethodSymbol(SyntaxNode node, SemanticModel semanticModel)
         {
             if (node == null)

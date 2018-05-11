@@ -68,7 +68,7 @@ public class TestController
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             return new[] { new MvcCsrfTokenAnalyzer() };
         }
@@ -87,7 +87,7 @@ public class TestController
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             return new[] { new CoreCsrfTokenAnalyzer() };
         }

@@ -12,9 +12,9 @@ namespace SecurityCodeScan.Test
     [TestClass]
     public class WeakRandomAnalyzerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new[] { new WeakRandomAnalyzer() };
+            return new DiagnosticAnalyzer[] { new WeakRandomAnalyzerCSharp(), new WeakRandomAnalyzerVisualBasic() };
         }
 
         [TestMethod]

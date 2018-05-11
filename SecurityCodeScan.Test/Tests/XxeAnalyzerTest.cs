@@ -101,9 +101,9 @@ namespace SecurityCodeScan.Test.XXE
     [TestClass]
     public class XxeAnalyzerTest : BaseXxeAnalyzerTest
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new[] { new XxeDiagnosticAnalyzer() };
+            return new DiagnosticAnalyzer[] { new XxeDiagnosticAnalyzerCSharp(), new XxeDiagnosticAnalyzerVisualBasic() };
         }
 
         private static readonly PortableExecutableReference[] References =
@@ -1264,9 +1264,9 @@ End Class
     [TestClass]
     public class XxeAnalyzerTaintTest : BaseXxeAnalyzerTest
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new DiagnosticAnalyzer[] { new XxeDiagnosticAnalyzer(), new TaintAnalyzer() };
+            return new DiagnosticAnalyzer[] { new XxeDiagnosticAnalyzerCSharp(), new XxeDiagnosticAnalyzerVisualBasic(), new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic(), };
         }
 
         [TestMethod]

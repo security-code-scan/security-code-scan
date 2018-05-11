@@ -22,9 +22,9 @@ namespace SecurityCodeScan.Test.InsecureCookie
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new DiagnosticAnalyzer[] { new TaintAnalyzer(), new InsecureCookieAnalyzer() };
+            return new DiagnosticAnalyzer[] { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic(), new InsecureCookieAnalyzerCSharp(), new InsecureCookieAnalyzerVisualBasic() };
         }
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()

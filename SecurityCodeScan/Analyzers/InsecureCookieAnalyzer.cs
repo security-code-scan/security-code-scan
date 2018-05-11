@@ -9,8 +9,63 @@ using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class InsecureCookieAnalyzer : TaintAnalyzerExtension
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class InsecureCookieAnalyzerCSharp : TaintAnalyzerExtensionCSharp
+    {
+        private readonly InsecureCookieAnalyzer Analyzer = new InsecureCookieAnalyzer();
+        public InsecureCookieAnalyzerCSharp()
+        {
+            TaintAnalyzerCSharp.RegisterExtension(this);
+        }
+
+        public override void Initialize(AnalysisContext context) { }
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Analyzer.SupportedDiagnostics;
+
+        public override void VisitAssignment(CSharpSyntax.AssignmentExpressionSyntax node,
+                                             ExecutionState                          state,
+                                             MethodBehavior                          behavior,
+                                             ISymbol                                 symbol,
+                                             VariableState                           variableRightState)
+        {
+            Analyzer.VisitAssignment(symbol, variableRightState);
+        }
+
+        public override void VisitEnd(SyntaxNode node, ExecutionState state)
+        {
+            Analyzer.CheckState(state);
+        }
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+    public class InsecureCookieAnalyzerVisualBasic : TaintAnalyzerExtensionVisualBasic
+    {
+        private readonly InsecureCookieAnalyzer Analyzer = new InsecureCookieAnalyzer();
+        public InsecureCookieAnalyzerVisualBasic()
+        {
+            TaintAnalyzerVisualBasic.RegisterExtension(this);
+        }
+
+        public override void Initialize(AnalysisContext context) { }
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Analyzer.SupportedDiagnostics;
+
+        public override void VisitAssignment(VisualBasicSyntaxNode node,
+                                             ExecutionState        state,
+                                             MethodBehavior        behavior,
+                                             ISymbol               symbol,
+                                             VariableState         variableRightState)
+        {
+            Analyzer.VisitAssignment(symbol, variableRightState);
+        }
+
+        public override void VisitEnd(SyntaxNode node, ExecutionState state)
+        {
+            Analyzer.CheckState(state);
+        }
+    }
+
+    internal class InsecureCookieAnalyzer
     {
         public const            string               DiagnosticIdSecure = "SCS0008";
         private static readonly DiagnosticDescriptor RuleSecure         = LocaleUtil.GetDescriptor(DiagnosticIdSecure);
@@ -18,20 +73,10 @@ namespace SecurityCodeScan.Analyzers
         public const            string               DiagnosticIdHttpOnly = "SCS0009";
         private static readonly DiagnosticDescriptor RuleHttpOnly         = LocaleUtil.GetDescriptor(DiagnosticIdHttpOnly);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RuleSecure, RuleHttpOnly);
+        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RuleSecure, RuleHttpOnly);
 
-        public InsecureCookieAnalyzer()
-        {
-            TaintAnalyzer.RegisterExtension(this);
-        }
-
-        public override void Initialize(AnalysisContext context) { }
-
-        public override void VisitAssignment(CSharpSyntax.AssignmentExpressionSyntax node,
-                                             ExecutionState                          state,
-                                             MethodBehavior                          behavior,
-                                             ISymbol                                 symbol,
-                                             VariableState                           variableRightState)
+        public void VisitAssignment(ISymbol       symbol,
+                                    VariableState variableRightState)
         {
             //Looking for Assignment to Secure or HttpOnly property
 
@@ -45,28 +90,7 @@ namespace SecurityCodeScan.Analyzers
             }
         }
 
-        public override void VisitEnd(SyntaxNode node, ExecutionState state)
-        {
-            CheckState(state);
-        }
-
-        public override void VisitAssignment(VisualBasicSyntaxNode node,
-                                             ExecutionState        state,
-                                             MethodBehavior        behavior,
-                                             ISymbol               symbol,
-                                             VariableState         variableRightState)
-        {
-            if (AnalyzerUtil.SymbolMatch(symbol, "HttpCookie", "Secure"))
-            {
-                variableRightState.AddTag(VariableTag.HttpCookieSecure);
-            }
-            else if (AnalyzerUtil.SymbolMatch(symbol, "HttpCookie", "HttpOnly"))
-            {
-                variableRightState.AddTag(VariableTag.HttpCookieHttpOnly);
-            }
-        }
-
-        private void CheckState(ExecutionState state)
+        public void CheckState(ExecutionState state)
         {
             // For every variables registered in state
             foreach (var variableState in state.VariableStates)

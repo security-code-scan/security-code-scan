@@ -15,9 +15,9 @@ namespace SecurityCodeScan.Test
     [TestClass]
     public class XssPreventionAnalyzerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new[] { new XssPreventionAnalyzer() };
+            return new DiagnosticAnalyzer[] { new XssPreventionAnalyzerCSharp(), new XssPreventionAnalyzerVisualBasic() };
         }
 
         private static readonly PortableExecutableReference[] References =

@@ -342,7 +342,7 @@ End Namespace
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             return new[] { new MvcCsrfTokenAnalyzer() };
         }
@@ -364,7 +364,7 @@ End Namespace
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             return new[] { new CoreCsrfTokenAnalyzer() };
         }
@@ -453,7 +453,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 6, 25)).ConfigureAwait(false);
         }
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             return new CsrfTokenAnalyzer[]
             {

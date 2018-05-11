@@ -16,7 +16,7 @@ namespace SecurityCodeScan.Analyzers.Taint
     /// </summary>
     public class CSharpCodeEvaluation : BaseCodeEvaluation
     {
-        public static List<TaintAnalyzerExtension> Extensions { get; set; } = new List<TaintAnalyzerExtension>();
+        public static List<TaintAnalyzerExtensionCSharp> Extensions { get; set; } = new List<TaintAnalyzerExtensionCSharp>();
 
         public void VisitMethods(SyntaxNodeAnalysisContext ctx)
         {

@@ -37,16 +37,11 @@ namespace SecurityCodeScan.Analyzers.Utils
                 return null;
             }
 
-            SyntaxKind kind = node.Kind();
-            switch (kind)
-            {
-                case SyntaxKind.SimpleAssignmentExpression:
-                    return ((AssignmentExpressionSyntax)node).Left;
-                case SyntaxKind.VariableDeclarator:
-                    return (VariableDeclaratorSyntax)node;
-            }
+            var kind = node.Kind();
+            if (kind == SyntaxKind.VariableDeclarator)
+                return (VariableDeclaratorSyntax)node;
 
-            return null;
+            return (node as AssignmentExpressionSyntax)?.Left;
         }
 
         public override SyntaxNode GetAssignmentRightNode(SyntaxNode node)
@@ -228,6 +223,18 @@ namespace SecurityCodeScan.Analyzers.Utils
             }
             SyntaxKind kind = node.Kind();
             return kind == SyntaxKind.InvocationExpression || kind == SyntaxKind.ObjectCreationExpression;
+        }
+
+        public override bool IsSimpleMemberAccessExpressionNode(SyntaxNode node)
+        {
+            SyntaxKind? kind = node?.Kind();
+            return kind == SyntaxKind.SimpleMemberAccessExpression;
+        }
+
+        public override bool IsObjectCreationExpressionNode(SyntaxNode node)
+        {
+            SyntaxKind? kind = node?.Kind();
+            return kind == SyntaxKind.ObjectCreationExpression;
         }
 
         public override IMethodSymbol GetCalleeMethodSymbol(SyntaxNode node, SemanticModel semanticModel)

@@ -12,8 +12,47 @@ using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class WeakHashingAnalyzer : DiagnosticAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class WeakHashingAnalyzerCSharp : WeakHashingAnalyzer
+    {
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(ctx =>
+                                                   {
+                                                       var analyzer = new WeakHashingCompilationAnalyzer();
+                                                       ctx.RegisterSyntaxNodeAction(actionContext => analyzer.VisitInvocationSyntaxNode(actionContext, CSharpSyntaxNodeHelper.Default),
+                                                                                    CSharp.SyntaxKind.InvocationExpression);
+
+                                                       ctx.RegisterSyntaxNodeAction(analyzer.VisitMemberAccessSyntaxNode,
+                                                                                    CSharp.SyntaxKind.SimpleMemberAccessExpression);
+
+                                                       ctx.RegisterSyntaxNodeAction(analyzer.VisitObjectCreationSyntaxNode,
+                                                                                    CSharp.SyntaxKind.ObjectCreationExpression);
+                                                   });
+        }
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+    public class WeakHashingAnalyzerVisualBasic: WeakHashingAnalyzer
+    {
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(ctx =>
+            {
+                var analyzer = new WeakHashingCompilationAnalyzer();
+                ctx.RegisterSyntaxNodeAction(actionContext => analyzer.VisitInvocationSyntaxNode(actionContext, VBSyntaxNodeHelper.Default),
+                                             VB.SyntaxKind.InvocationExpression);
+
+                ctx.RegisterSyntaxNodeAction(analyzer.VisitMemberAccessSyntaxNode,
+                                             VB.SyntaxKind.SimpleMemberAccessExpression);
+
+                ctx.RegisterSyntaxNodeAction(analyzer.VisitObjectCreationSyntaxNode,
+                                             VB.SyntaxKind.ObjectCreationExpression);
+            });
+        }
+    }
+
+    public abstract class WeakHashingAnalyzer : DiagnosticAnalyzer
     {
         public static readonly DiagnosticDescriptor Md5Rule  = LocaleUtil.GetDescriptor("SCS0006", args: new[] { "MD5" });
         public static readonly DiagnosticDescriptor Sha1Rule = LocaleUtil.GetDescriptor("SCS0006", args: new[] { "SHA1" });
@@ -22,31 +61,6 @@ namespace SecurityCodeScan.Analyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Md5Rule,
                                                                                                            Sha1Rule);
-
-        public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterCompilationStartAction(ctx =>
-                                                   {
-                                                       var analyzer = new WeakHashingCompilationAnalyzer();
-                                                       ctx.RegisterSyntaxNodeAction(analyzer.VisitInvocationSyntaxNode,
-                                                                                    CSharp.SyntaxKind.InvocationExpression);
-
-                                                       ctx.RegisterSyntaxNodeAction(analyzer.VisitInvocationSyntaxNode,
-                                                                                    VB.SyntaxKind.InvocationExpression);
-
-                                                       ctx.RegisterSyntaxNodeAction(analyzer.VisitMemberAccessSyntaxNode,
-                                                                                    CSharp.SyntaxKind.SimpleMemberAccessExpression);
-
-                                                       ctx.RegisterSyntaxNodeAction(analyzer.VisitMemberAccessSyntaxNode,
-                                                                                    VB.SyntaxKind.SimpleMemberAccessExpression);
-
-                                                       ctx.RegisterSyntaxNodeAction(analyzer.VisitObjectCreationSyntaxNode,
-                                                                                    CSharp.SyntaxKind.ObjectCreationExpression);
-
-                                                       ctx.RegisterSyntaxNodeAction(analyzer.VisitObjectCreationSyntaxNode,
-                                                                                    VB.SyntaxKind.ObjectCreationExpression);
-                                                   });
-        }
     }
 
     internal class WeakHashingCompilationAnalyzer
@@ -115,18 +129,8 @@ namespace SecurityCodeScan.Analyzers
             }
         }
 
-        public void VisitInvocationSyntaxNode(SyntaxNodeAnalysisContext ctx)
+        public void VisitInvocationSyntaxNode(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
-            SyntaxNode expression;
-            if (ctx.Node.Language == LanguageNames.CSharp)
-            {
-                expression = ((CSharpSyntax.InvocationExpressionSyntax)ctx.Node).Expression;
-            }
-            else
-            {
-                expression = ((VBSyntax.InvocationExpressionSyntax)ctx.Node).Expression;
-            }
-
             var symbol = ctx.SemanticModel.GetSymbolInfo(ctx.Node).Symbol;
             switch (symbol)
             {
@@ -151,8 +155,9 @@ namespace SecurityCodeScan.Analyzers
                         break;
 
                     DiagnosticDescriptor rule;
-                    if ((rule = CheckParameter(ctx)) != null)
+                    if ((rule = CheckParameter(ctx, nodeHelper)) != null)
                     {
+                        SyntaxNode expression = nodeHelper.GetInvocationExpressionNode(ctx.Node);
                         var diagnostic = Diagnostic.Create(rule, expression.GetLocation());
                         Report(diagnostic, ctx);
                     }
@@ -164,8 +169,9 @@ namespace SecurityCodeScan.Analyzers
                     var                  methodSymbol = (IMethodSymbol)symbol;
                     DiagnosticDescriptor rule         = WeakHashingAnalyzer.Sha1Rule; // default if no parameters
                     if (methodSymbol.Parameters.Length == 0 ||
-                        (methodSymbol.Parameters.Length == 1 && (rule = CheckParameter(ctx)) != null))
+                        (methodSymbol.Parameters.Length == 1 && (rule = CheckParameter(ctx, nodeHelper)) != null))
                     {
+                        SyntaxNode expression = nodeHelper.GetInvocationExpressionNode(ctx.Node);
                         var diagnostic = Diagnostic.Create(rule, expression.GetLocation());
                         Report(diagnostic, ctx);
                     }
@@ -175,23 +181,9 @@ namespace SecurityCodeScan.Analyzers
             }
         }
 
-        private static DiagnosticDescriptor CheckParameter(SyntaxNodeAnalysisContext ctx)
+        private static DiagnosticDescriptor CheckParameter(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
-            Optional<object> argValue;
-            if (ctx.Node.Language == LanguageNames.CSharp)
-            {
-                argValue = ctx.SemanticModel
-                              .GetConstantValue(((CSharpSyntax.InvocationExpressionSyntax)ctx.Node).ArgumentList
-                                                                                                   .Arguments[0]
-                                                                                                   .Expression);
-            }
-            else
-            {
-                argValue = ctx.SemanticModel
-                              .GetConstantValue(((VBSyntax.InvocationExpressionSyntax)ctx.Node).ArgumentList
-                                                                                               .Arguments[0]
-                                                                                               .GetExpression());
-            }
+            Optional<object> argValue = ctx.SemanticModel.GetConstantValue(nodeHelper.GetCallArgumentExpressionNodes(ctx.Node).First());
 
             if (!argValue.HasValue)
                 return null;

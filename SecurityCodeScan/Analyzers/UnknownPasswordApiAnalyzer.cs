@@ -11,11 +11,95 @@ using SyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class UnknownPasswordApiAnalyzer : TaintAnalyzerExtension
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class UnknownPasswordApiAnalyzerCSharp : TaintAnalyzerExtensionCSharp
     {
-        private static readonly DiagnosticDescriptor                 Rule = LocaleUtil.GetDescriptor("SCS0015", "title_assignment");
-        public override         ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public UnknownPasswordApiAnalyzerCSharp()
+        {
+            TaintAnalyzerCSharp.RegisterExtension(this);
+        }
+
+        private readonly UnknownPasswordApiAnalyzer Analyzer  = new UnknownPasswordApiAnalyzer();
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Analyzer.SupportedDiagnostics;
+
+        public override void Initialize(AnalysisContext context) { }
+
+        public override void VisitAssignment(CSharpSyntax.AssignmentExpressionSyntax node,
+                                             ExecutionState                          state,
+                                             MethodBehavior                          behavior,
+                                             ISymbol                                 symbol,
+                                             VariableState                           variableRightState)
+        {
+            if (behavior                                                                     != null                               || //Unknown API
+                symbol                                                                       == null                               ||
+                variableRightState.Taint                                                     != VariableTaint.Constant             ||
+                Microsoft.CodeAnalysis.CSharp.CSharpExtensions.Kind(variableRightState.Node) != SyntaxKind.StringLiteralExpression ||
+                !Analyzer.IsPasswordField(symbol))
+            {
+                return;
+            }
+
+            var constValue = state.AnalysisContext.SemanticModel.GetConstantValue(variableRightState.Node);
+            if (constValue.HasValue && constValue.Value.Equals(""))
+                return;
+
+            var varSymbol = state.GetSymbol(variableRightState.Node);
+            if (varSymbol != null && varSymbol.IsType("System.String.Empty"))
+                return;
+
+            var diagnostic = Diagnostic.Create(UnknownPasswordApiAnalyzer.Rule, node.GetLocation());
+            state.AnalysisContext.ReportDiagnostic(diagnostic);
+        }
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+    public class UnknownPasswordApiAnalyzerVisualBasic : TaintAnalyzerExtensionVisualBasic
+    {
+        public UnknownPasswordApiAnalyzerVisualBasic()
+        {
+            TaintAnalyzerVisualBasic.RegisterExtension(this);
+        }
+
+        private readonly UnknownPasswordApiAnalyzer Analyzer = new UnknownPasswordApiAnalyzer();
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Analyzer.SupportedDiagnostics;
+
+        public override void Initialize(AnalysisContext context) { }
+
+        public override void VisitAssignment(VisualBasicSyntaxNode node,
+                                             ExecutionState        state,
+                                             MethodBehavior        behavior,
+                                             ISymbol               symbol,
+                                             VariableState         variableRightState)
+        {
+            if (behavior                 != null                   || //Unknown API
+                symbol                   == null                   ||
+                variableRightState.Taint != VariableTaint.Constant ||
+                Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.Kind(variableRightState.Node) !=
+                Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.StringLiteralExpression ||
+                !Analyzer.IsPasswordField(symbol))
+            {
+                return;
+            }
+
+            var constValue = state.AnalysisContext.SemanticModel.GetConstantValue(variableRightState.Node);
+            if (constValue.HasValue && constValue.Value.Equals(""))
+                return;
+
+            var varSymbol = state.GetSymbol(variableRightState.Node);
+            if (varSymbol != null && varSymbol.IsType("System.String.Empty"))
+                return;
+
+            var diagnostic = Diagnostic.Create(UnknownPasswordApiAnalyzer.Rule, node.GetLocation());
+            state.AnalysisContext.ReportDiagnostic(diagnostic);
+        }
+    }
+
+    public class UnknownPasswordApiAnalyzer
+    {
+        public static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0015", "title_assignment");
+        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         private readonly List<string> PasswordKeywords = new List<string> // todo: move out to config
         {
@@ -36,67 +120,7 @@ namespace SecurityCodeScan.Analyzers
             "pwd"
         };
 
-        public override void Initialize(AnalysisContext context)
-        {
-            TaintAnalyzer.RegisterExtension(this);
-        }
-
-        public override void VisitAssignment(CSharpSyntax.AssignmentExpressionSyntax node,
-                                             ExecutionState                          state,
-                                             MethodBehavior                          behavior,
-                                             ISymbol                                 symbol,
-                                             VariableState                           variableRightState)
-        {
-            if (behavior                                                                     != null                               || //Unknown API
-                symbol                                                                       == null                               ||
-                variableRightState.Taint                                                     != VariableTaint.Constant             ||
-                Microsoft.CodeAnalysis.CSharp.CSharpExtensions.Kind(variableRightState.Node) != SyntaxKind.StringLiteralExpression ||
-                !IsPasswordField(symbol))
-            {
-                return;
-            }
-
-            var constValue = state.AnalysisContext.SemanticModel.GetConstantValue(variableRightState.Node);
-            if (constValue.HasValue && constValue.Value.Equals(""))
-                return;
-
-            var varSymbol = state.GetSymbol(variableRightState.Node);
-            if (varSymbol != null && varSymbol.IsType("System.String.Empty"))
-                return;
-
-            var diagnostic = Diagnostic.Create(Rule, node.GetLocation());
-            state.AnalysisContext.ReportDiagnostic(diagnostic);
-        }
-
-        public override void VisitAssignment(VisualBasicSyntaxNode node,
-                                             ExecutionState        state,
-                                             MethodBehavior        behavior,
-                                             ISymbol               symbol,
-                                             VariableState         variableRightState)
-        {
-            if (behavior                 != null                   || //Unknown API
-                symbol                   == null                   ||
-                variableRightState.Taint != VariableTaint.Constant ||
-                Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.Kind(variableRightState.Node) !=
-                    Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.StringLiteralExpression ||
-                !IsPasswordField(symbol))
-            {
-                return;
-            }
-
-            var constValue = state.AnalysisContext.SemanticModel.GetConstantValue(variableRightState.Node);
-            if (constValue.HasValue && constValue.Value.Equals(""))
-                return;
-
-            var varSymbol = state.GetSymbol(variableRightState.Node);
-            if (varSymbol != null && varSymbol.IsType("System.String.Empty"))
-                return;
-
-            var diagnostic = Diagnostic.Create(Rule, node.GetLocation());
-            state.AnalysisContext.ReportDiagnostic(diagnostic);
-        }
-
-        private bool IsPasswordField(ISymbol symbol)
+        public bool IsPasswordField(ISymbol symbol)
         {
             return PasswordKeywords.Contains(symbol.MetadataName.ToLower());
         }

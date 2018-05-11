@@ -28,16 +28,7 @@ namespace SecurityCodeScan.Analyzers
                                              ISymbol                                 symbol,
                                              VariableState                           variableRightState)
         {
-            //Looking for Assignment to Secure or HttpOnly property
-
-            if (AnalyzerUtil.SymbolMatch(symbol, "HttpCookie", "Secure"))
-            {
-                variableRightState.AddTag(VariableTag.HttpCookieSecure);
-            }
-            else if (AnalyzerUtil.SymbolMatch(symbol, "HttpCookie", "HttpOnly"))
-            {
-                variableRightState.AddTag(VariableTag.HttpCookieHttpOnly);
-            }
+            Analyzer.VisitAssignment(symbol, variableRightState);
         }
 
         public override void VisitEnd(SyntaxNode node, ExecutionState state)
@@ -65,6 +56,30 @@ namespace SecurityCodeScan.Analyzers
                                              ISymbol               symbol,
                                              VariableState         variableRightState)
         {
+            Analyzer.VisitAssignment(symbol, variableRightState);
+        }
+
+        public override void VisitEnd(SyntaxNode node, ExecutionState state)
+        {
+            Analyzer.CheckState(state);
+        }
+    }
+
+    internal class InsecureCookieAnalyzer
+    {
+        public const            string               DiagnosticIdSecure = "SCS0008";
+        private static readonly DiagnosticDescriptor RuleSecure         = LocaleUtil.GetDescriptor(DiagnosticIdSecure);
+
+        public const            string               DiagnosticIdHttpOnly = "SCS0009";
+        private static readonly DiagnosticDescriptor RuleHttpOnly         = LocaleUtil.GetDescriptor(DiagnosticIdHttpOnly);
+
+        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RuleSecure, RuleHttpOnly);
+
+        public void VisitAssignment(ISymbol       symbol,
+                                    VariableState variableRightState)
+        {
+            //Looking for Assignment to Secure or HttpOnly property
+
             if (AnalyzerUtil.SymbolMatch(symbol, "HttpCookie", "Secure"))
             {
                 variableRightState.AddTag(VariableTag.HttpCookieSecure);
@@ -74,22 +89,6 @@ namespace SecurityCodeScan.Analyzers
                 variableRightState.AddTag(VariableTag.HttpCookieHttpOnly);
             }
         }
-
-        public override void VisitEnd(SyntaxNode node, ExecutionState state)
-        {
-            Analyzer.CheckState(state);
-        }
-    }
-
-    internal class InsecureCookieAnalyzer 
-    {
-        public const            string               DiagnosticIdSecure = "SCS0008";
-        private static readonly DiagnosticDescriptor RuleSecure         = LocaleUtil.GetDescriptor(DiagnosticIdSecure);
-
-        public const            string               DiagnosticIdHttpOnly = "SCS0009";
-        private static readonly DiagnosticDescriptor RuleHttpOnly         = LocaleUtil.GetDescriptor(DiagnosticIdHttpOnly);
-
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RuleSecure, RuleHttpOnly);
 
         public void CheckState(ExecutionState state)
         {

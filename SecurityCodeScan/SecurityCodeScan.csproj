@@ -81,6 +81,7 @@
     <Compile Include="Analyzers\XxeAnalyzerVBasic.cs" />
     <Compile Include="CodeFixes\CsrfTokenCodeFixProvider.cs" />
     <Compile Include="CodeFixes\InsecureCookieCodeFixProvider.cs" />
+    <Compile Include="Config\Configuration.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Empty.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -98,7 +99,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Config\Behavior.yml" />
+    <EmbeddedResource Include="Config\SCS.config.yml" />
     <None Include="Diagnostic.nuspec">
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -107,8 +108,6 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
-    <EmbeddedResource Include="Config\Sinks.yml" />
-    <EmbeddedResource Include="Config\Passwords.yml" />
     <None Include="tools\install.ps1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

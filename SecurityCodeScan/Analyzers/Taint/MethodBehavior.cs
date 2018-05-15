@@ -10,17 +10,17 @@
         public bool   IsInjectableField    { get; }
         public bool   IsPasswordField      { get; }
 
-        public MethodBehavior(int[]  injectablesArguments,
-                              int[]  passwordArguments,
-                              int[]  taintFromArguments,
+        public MethodBehavior(int[] injectablesArguments,
+                              int[] passwordArguments,
+                              int[] taintFromArguments,
                               string localeInjection,
                               string localePassword,
-                              bool   isInjectableField,
-                              bool   isPasswordField)
+                              bool isInjectableField,
+                              bool isPasswordField)
         {
-            InjectablesArguments = injectablesArguments;
-            PasswordArguments    = passwordArguments;
-            TaintFromArguments   = taintFromArguments;
+            InjectablesArguments = injectablesArguments ?? new int[0];
+            PasswordArguments    = passwordArguments ?? new int[0];
+            TaintFromArguments   = taintFromArguments ?? new int[0];
             LocaleInjection      = localeInjection;
             LocalePassword       = localePassword;
             IsInjectableField    = isInjectableField;

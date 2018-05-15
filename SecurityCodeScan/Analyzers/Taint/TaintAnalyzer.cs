@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using SecurityCodeScan.Config;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
@@ -117,14 +118,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         protected TaintAnalyzer()
         {
-            //Load injectable APIs
-            BehaviorRepo.LoadConfiguration("Sinks.yml");
-
-            //Load password APIs
-            BehaviorRepo.LoadConfiguration("Passwords.yml");
-
-            //
-            BehaviorRepo.LoadConfiguration("Behavior.yml");
+            BehaviorRepo.LoadConfiguration();
 
             //Build the descriptor based on the locale fields of the Sinks.yml
             //This must be done in the constructor because,

@@ -8,6 +8,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
+using SecurityCodeScan.Config;
 using YamlDotNet.RepresentationModel;
 
 namespace SecurityCodeScan.Analyzers.Taint
@@ -18,107 +19,31 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         private readonly Dictionary<string, DiagnosticDescriptor> Descriptors = new Dictionary<string, DiagnosticDescriptor>();
 
-        public void LoadConfiguration(string configurationFile)
+        public void LoadConfiguration()
         {
-            var assembly = typeof(MethodBehaviorRepository).GetTypeInfo().Assembly;
+            var behaviorInfos = Configuration.GetBehaviors();
 
-            using (Stream stream = assembly.GetManifestResourceStream($"SecurityCodeScan.Config.{configurationFile}"))
-            using (var reader = new StreamReader(stream))
+            foreach (var info in behaviorInfos)
             {
-                var yaml = new YamlStream();
-                yaml.Load(reader);
-                if (!yaml.Documents.Any())
-                    return;
-
-                var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
-
-                foreach (var entry in mapping.Children)
+                foreach (var locale in new[] { info.Locale, info.LocalePass })
                 {
-                    var key   = (YamlScalarNode)entry.Key;
-
-                    //The behavior structure allows the configuration of injectable arguments and password field
-                    //This is the reason. The format merges the two concepts.
-
-                    //Loading the properties for each entry
-                    string beNamespace = GetField(entry, "namespace", true);
-                    string beClassName = GetField(entry, "className", true);
-                    string beMember    = GetField(entry, "member",    true);
-                    string beName      = GetField(entry, "name",      true);
-
-                    //--Method behavior
-                    string beInjectableArguments = GetField(entry, "injectableArguments", defaultValue: "");
-                    string bePasswordArguments   = GetField(entry, "passwordArguments",   defaultValue: "");
-                    string beArgTypes            = GetField(entry, "argTypes");
-
-                    //--Field behavior
-                    bool beInjectableField = bool.Parse(GetField(entry, "injectableField", defaultValue: "false"));
-                    bool bePasswordField   = bool.Parse(GetField(entry, "passwordField",   defaultValue: "false"));
-
-                    //--Localization
-                    string beLocale     = GetField(entry, "locale");
-                    string beLocalePass = GetField(entry, "localePass");
-
-                    string beTaintFromArguments = GetField(entry, "taintFromArguments", defaultValue: "");
-
-                    //Converting the list of index to array
-                    int[] argumentsIndexes          = ConvertToIntArray(beInjectableArguments.Split(','));
-                    int[] passwordIndexes           = ConvertToIntArray(bePasswordArguments.Split(','));
-                    int[] taintFromArgumentsIndexes = ConvertToIntArray(beTaintFromArguments.Split(','));
-
-                    foreach (var locale in new[] { beLocale, beLocalePass })
+                    if (locale != null && !Descriptors.ContainsKey(locale))
                     {
-                        if (locale != null && !Descriptors.ContainsKey(locale))
-                        {
-                            Descriptors.Add(locale, LocaleUtil.GetDescriptor(locale));
-                        }
+                        Descriptors.Add(locale, LocaleUtil.GetDescriptor(locale));
                     }
-
-                    //Validate that 'argumentsIndexes' field 
-                    if ((!beInjectableField && !bePasswordField) //Not a field signatures, arguments indexes is expected.
-                        && argumentsIndexes.Length          == 0
-                        && passwordIndexes.Length           == 0
-                        && taintFromArgumentsIndexes.Length == 0)
-                    {
-                        throw new Exception($"The method behavior {key} is missing injectableArguments or passwordArguments property");
-                    }
-
-                    //Injection based vulnerability
-                    string globalKey = beArgTypes != null
-                                           ? $"{beNamespace}.{beClassName}|{beName}|{beArgTypes}"
-                                           :                                        //With arguments types discriminator
-                                           $"{beNamespace}.{beClassName}|{beName}"; //Minimalist configuration
-
-                    MethodInjectableArguments.Add(globalKey,
-                                                  new MethodBehavior(argumentsIndexes,
-                                                                     passwordIndexes,
-                                                                     taintFromArgumentsIndexes,
-                                                                     beLocale,
-                                                                     beLocalePass,
-                                                                     beInjectableField,
-                                                                     bePasswordField));
-
-                    //Logger.Log(beNamespace);
                 }
 
-                //Logger.Log(methodInjectableArguments.Count + " signatures loaded.");
+                string key = info.ArgTypes != null ? $"{info.Namespace}.{info.ClassName}|{info.Name}|{info.ArgTypes}" : //With arguments types discriminator
+                                                     $"{info.Namespace}.{info.ClassName}|{info.Name}"; //Minimalist configuration
+
+                MethodInjectableArguments.Add(key, new MethodBehavior(info.InjectableArguments,
+                                                      info.PasswordArguments,
+                                                      info.TaintFromArguments,
+                                                      info.Locale,
+                                                      info.LocalePass,
+                                                      info.InjectableField,
+                                                      info.IsPasswordField));
             }
-        }
-
-        private string GetField(KeyValuePair<YamlNode, YamlNode> node,
-                                string                           field,
-                                bool                             mandatory    = false,
-                                string                           defaultValue = null)
-        {
-            var nodeValue = (YamlMappingNode)node.Value;
-            if (nodeValue.Children.TryGetValue(new YamlScalarNode(field), out var yamlNode))
-            {
-                return ((YamlScalarNode)yamlNode).Value;
-            }
-
-            if (mandatory)
-                throw new Exception($"Unable to load the property {field} in node {node.Key}");
-
-            return defaultValue;
         }
 
         public DiagnosticDescriptor[] GetDescriptors()
@@ -126,27 +51,6 @@ namespace SecurityCodeScan.Analyzers.Taint
             DiagnosticDescriptor[] descArray = new DiagnosticDescriptor[Descriptors.Count];
             Descriptors.Values.CopyTo(descArray, 0);
             return descArray;
-        }
-
-        /// <summary>
-        /// Equivalent to : 
-        /// <code>Array.ConvertAll(arrayString, int.Parse)</code>
-        /// </summary>
-        /// <param name="arrayStrings"></param>
-        /// <returns></returns>
-        private int[] ConvertToIntArray(string[] arrayStrings)
-        {
-            if (arrayStrings.Length == 1 && arrayStrings[0].Trim() == "")
-                return new int[0];
-
-            int[] newArray = new int[arrayStrings.Length];
-
-            for (int i = 0; i < arrayStrings.Length; i++)
-            {
-                newArray[i] = int.Parse(arrayStrings[i]);
-            }
-
-            return newArray;
         }
 
         /// <summary>

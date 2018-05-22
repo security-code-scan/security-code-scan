@@ -1,4 +1,9 @@
 # Release Notes
+## 2.7.1
+Couple of issues related to VB.NET fixed:
+* VB.NET projects were not analyzed when using the analyzer from NuGet.
+* 'Could not load file or assembly 'Microsoft.CodeAnalysis.VisualBasic, Version=1.0.0.0...' when building C# .NET Core projects from command line with dotnet.exe
+
 ## 2.7.0
 [Insecure deserialization analyzers](#SCS0028) for multiple libraries and formatters:
 * [Json.NET](https://www.newtonsoft.com/json)

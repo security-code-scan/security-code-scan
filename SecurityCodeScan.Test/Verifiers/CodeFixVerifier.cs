@@ -101,6 +101,7 @@ namespace SecurityCodeScan.Test.Helpers
         {
             var document            = CreateDocument(oldSource, dotNetVersion, language, GetAdditionalReferences());
             var analyzerDiagnostics = await GetSortedDiagnosticsFromDocuments(analyzers,
+                                                                              null,
                                                                               new[] { document },
                                                                               cancellationToken).ConfigureAwait(false);
             var compilerDiagnostics = await GetCompilerDiagnostics(document, cancellationToken).ConfigureAwait(false);
@@ -132,6 +133,7 @@ namespace SecurityCodeScan.Test.Helpers
 
                 document            = await ApplyFix(document, actions.ElementAt(0), cancellationToken).ConfigureAwait(false);
                 analyzerDiagnostics = await GetSortedDiagnosticsFromDocuments(analyzers,
+                                                                              null,
                                                                               new[] { document },
                                                                               cancellationToken).ConfigureAwait(false);
 

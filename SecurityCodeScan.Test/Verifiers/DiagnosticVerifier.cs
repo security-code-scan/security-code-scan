@@ -40,9 +40,11 @@ namespace SecurityCodeScan.Test.Helpers
         /// </summary>
         /// <param name="source">A class in the form of a string to run the analyzer on</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
+        /// <param name="options"> Analyzis context options</param>
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
         protected async Task VerifyCSharpDiagnostic(string             source,
-                                                    DiagnosticResult[] expected          = null,
+                                                    DiagnosticResult[] expected = null,
+                                                    AnalyzerOptions    options  = null,
                                                     bool               verifyIfCompiles  = true,
                                                     Version            dotNetVersion     = null,
                                                     CancellationToken  cancellationToken = default(CancellationToken))
@@ -52,6 +54,7 @@ namespace SecurityCodeScan.Test.Helpers
             await VerifyDiagnostics(new[] { source },
                                     LanguageNames.CSharp,
                                     a.ToImmutableArray(),
+                                    options,
                                     expected ?? new DiagnosticResult[0],
                                     dotNetVersion,
                                     cancellationToken,
@@ -64,9 +67,11 @@ namespace SecurityCodeScan.Test.Helpers
         /// </summary>
         /// <param name="source">A class in the form of a string to run the analyzer on</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
+        /// <param name="options">Analyzis context options</param>
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
         protected async Task VerifyVisualBasicDiagnostic(string             source,
                                                          DiagnosticResult[] expected          = null,
+                                                         AnalyzerOptions    options           = null,
                                                          bool               verifyIfCompiles  = true,
                                                          Version            dotNetVersion     = null,
                                                          CancellationToken  cancellationToken = default(CancellationToken))
@@ -76,6 +81,7 @@ namespace SecurityCodeScan.Test.Helpers
             await VerifyDiagnostics(new[] { source },
                                     LanguageNames.VisualBasic,
                                     a.ToImmutableArray(),
+                                    options,
                                     expected ?? new DiagnosticResult[0],
                                     dotNetVersion,
                                     cancellationToken,
@@ -88,15 +94,18 @@ namespace SecurityCodeScan.Test.Helpers
         /// </summary>
         /// <param name="source">A class in the form of a string to run the analyzer on</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
+        /// <param name="options">Analyzis context options</param>
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
         protected async Task VerifyCSharpDiagnostic(string            source,
                                                     DiagnosticResult  expected,
+                                                    AnalyzerOptions   options           = null,
                                                     bool              verifyIfCompiles  = true,
                                                     Version           dotNetVersion     = null,
                                                     CancellationToken cancellationToken = default(CancellationToken))
         {
             await VerifyCSharpDiagnostic(source,
                                          new[] { expected },
+                                         options,
                                          verifyIfCompiles,
                                          dotNetVersion,
                                          cancellationToken).ConfigureAwait(false);
@@ -108,15 +117,18 @@ namespace SecurityCodeScan.Test.Helpers
         /// </summary>
         /// <param name="source">A class in the form of a string to run the analyzer on</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
+        /// <param name="options">Analyzis context options</param>
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
         protected async Task VerifyVisualBasicDiagnostic(string            source,
                                                          DiagnosticResult  expected,
+                                                         AnalyzerOptions   options           = null,
                                                          bool              verifyIfCompiles  = true,
                                                          Version           dotNetVersion     = null,
                                                          CancellationToken cancellationToken = default(CancellationToken))
         {
             await VerifyVisualBasicDiagnostic(source,
                                               new[] { expected },
+                                              options,
                                               verifyIfCompiles,
                                               dotNetVersion,
                                               cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -135,11 +147,13 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="sources">An array of strings to create source documents from to run the analyzers on</param>
         /// <param name="language">The language of the classes represented by the source strings</param>
         /// <param name="analyzers">The analyzers to be run on the source code</param>
+        /// <param name="options">Analyzis context options</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
         /// <param name="includeCompilerDiagnostics">Verify built-in compile diagnostics</param>
         private async Task VerifyDiagnostics(string[]                           sources,
                                              string                             language,
                                              ImmutableArray<DiagnosticAnalyzer> analyzers,
+                                             AnalyzerOptions                    options,
                                              DiagnosticResult[]                 expected,
                                              Version                            dotNetVersion,
                                              CancellationToken                  cancellationToken,
@@ -148,6 +162,7 @@ namespace SecurityCodeScan.Test.Helpers
             var diagnostics = await GetSortedDiagnostics(sources,
                                                          language,
                                                          analyzers,
+                                                         options,
                                                          dotNetVersion,
                                                          cancellationToken,
                                                          GetAdditionalReferences(),

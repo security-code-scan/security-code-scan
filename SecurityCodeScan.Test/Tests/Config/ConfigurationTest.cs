@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
@@ -17,7 +18,7 @@ namespace SecurityCodeScan.Test.Config
         private readonly string ConfigName = "SCS.config.yml";
         protected AnalyzerOptions CreateAnalyzersOptionsWithConfig(string configSource)
         {
-            var path = Path.Combine(Path.GetTempPath(), FilePaths.Count.ToString());
+            var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             FilePaths.Add(path);
 
             Directory.CreateDirectory(path);
@@ -35,7 +36,7 @@ namespace SecurityCodeScan.Test.Config
             return new AnalyzerOptions(additionalFileText);
         }
 
-        [TestCleanup]
+        [ClassCleanup]
         public void DeleteConfig()
         {
             foreach (var path in FilePaths)

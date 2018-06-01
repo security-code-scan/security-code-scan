@@ -15,50 +15,54 @@ namespace SecurityCodeScan.Config
         public static ConfigurationManager Instance { get; } = new ConfigurationManager();
 
         private const string ConfigName = "SCS.config.yml";
-        private const string UserConfigPathName = @"SecurityCodeScan/SCS.{0}.config.yml";
+        private const string UserConfigName = @"SecurityCodeScan/SCS.{0}.config.yml";
         private readonly Dictionary<string, Configuration> ProjectConfigs = new Dictionary<string, Configuration>();
         private readonly Deserializer Deserializer = new Deserializer();
 
+        private static readonly object ProjectConfigsLock = new object();
+        private static readonly object ConfigurationLock = new object();
         private Configuration _configuration;
         private Configuration Configuration {
             get
             {
-                if (_configuration != null)
-                    return _configuration;
-
-                var assembly = typeof(ConfigurationManager).GetTypeInfo().Assembly;
-
-                using (Stream stream = assembly.GetManifestResourceStream($"SecurityCodeScan.Config.{ConfigName}"))
+                lock (ConfigurationLock)
                 {
-                    using (var reader = new StreamReader(stream))
+                    if (_configuration != null)
+                        return _configuration;
+
+                    var assembly = typeof(ConfigurationManager).GetTypeInfo().Assembly;
+
+                    using (Stream stream = assembly.GetManifestResourceStream($"SecurityCodeScan.Config.{ConfigName}"))
                     {
-                        var configData = Deserializer.Deserialize<ConfigData>(reader);
-                        _configuration = ConvertDataToConfig(configData);
+                        using (var reader = new StreamReader(stream))
+                        {
+                            var configData = Deserializer.Deserialize<ConfigData>(reader);
+                            _configuration = ConvertDataToConfig(configData);
+                        }
                     }
-                }
 
-                var userConfigFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                                                  string.Format(UserConfigPathName, assembly.GetName().Version));
+                    var userConfigFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                                                      string.Format(UserConfigName, assembly.GetName().Version));
 
-                if (!File.Exists(userConfigFile))
+                    if (!File.Exists(userConfigFile))
+                        return _configuration;
+
+                    using (StreamReader reader = new StreamReader(userConfigFile))
+                    {
+                        var userConfig = Deserializer.Deserialize<ConfigData>(reader);
+                        _configuration = MergeConfigData(userConfig);
+                    }
+
                     return _configuration;
-
-                using (StreamReader reader = new StreamReader(userConfigFile))
-                {
-                    var userConfig = Deserializer.Deserialize<ConfigData>(reader);
-                    _configuration = MergeConfigData(userConfig);
                 }
-
-                return _configuration;
             }
         }
 
         private Configuration ConvertDataToConfig(ConfigData configData)
         {
             var config = new Configuration();
-            var behaviorInfos = configData.Behavior;
 
-            foreach (var data in behaviorInfos)
+            foreach (var data in configData.Behavior)
             {
                 config.Behavior[data.Key] = CreateBehavior(data.Value);
             }
@@ -86,29 +90,32 @@ namespace SecurityCodeScan.Config
                                                                                     behavior.IsPasswordField));
         }
 
-        public Configuration GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
+        private Configuration GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
         {
             foreach (var file in additionalFiles)
             {
                 if (Path.GetFileName(file.Path) != ConfigName)
                     continue;
 
-                if (ProjectConfigs.ContainsKey(file.Path))
-                    return ProjectConfigs[file.Path];
-
-                using (var reader = new StreamReader(file.Path))
+                lock (ProjectConfigsLock)
                 {
-                    var deserializer   = new Deserializer();
-                    var userConfig     = deserializer.Deserialize<ConfigData>(reader);
-                    ProjectConfigs[file.Path] = MergeConfigData(userConfig);
-                    return ProjectConfigs[file.Path];
+                    if (ProjectConfigs.ContainsKey(file.Path))
+                        return ProjectConfigs[file.Path];
+
+                    using (var reader = new StreamReader(file.Path))
+                    {
+                        var deserializer = new Deserializer();
+                        var userConfig   = deserializer.Deserialize<ConfigData>(reader);
+                        ProjectConfigs[file.Path] = MergeConfigData(userConfig);
+                        return ProjectConfigs[file.Path];
+                    }
                 }
             }
 
             return Configuration;
         }
 
-        public Configuration MergeConfigData(ConfigData config)
+        private Configuration MergeConfigData(ConfigData config)
         {
             var mergeInto = new Configuration(Configuration);
             if (config.Behavior != null)
@@ -136,7 +143,7 @@ namespace SecurityCodeScan.Config
             return mergeInto;
         }
 
-        public List<KeyValuePair<string, MethodBehavior>> GetBehaviors(ImmutableArray<AdditionalText> additionalFiles)
+        public IEnumerable<KeyValuePair<string, MethodBehavior>> GetBehaviors(ImmutableArray<AdditionalText> additionalFiles)
         {
             var config = GetProjectConfiguration(additionalFiles);
 

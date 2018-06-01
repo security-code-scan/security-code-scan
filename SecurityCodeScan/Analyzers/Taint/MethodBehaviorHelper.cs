@@ -1,64 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
 using SecurityCodeScan.Config;
-using YamlDotNet.RepresentationModel;
 
 namespace SecurityCodeScan.Analyzers.Taint
 {
-    public class MethodBehaviorRepository
+    public static class MethodBehaviorHelper
     {
-        private readonly Dictionary<string, MethodBehavior> MethodInjectableArguments = new Dictionary<string, MethodBehavior>();
 
-        private readonly Dictionary<string, DiagnosticDescriptor> Descriptors = new Dictionary<string, DiagnosticDescriptor>();
-
-        public void LoadConfiguration()
+        private static Dictionary<string, MethodBehavior> GetMethodInjectableArguments(ImmutableArray<AdditionalText> additionalFiles)
         {
-            var behaviorInfos = Configuration.GetBehaviors();
-
-            foreach (var info in behaviorInfos)
-            {
-                foreach (var locale in new[] { info.Locale, info.LocalePass })
-                {
-                    if (locale != null && !Descriptors.ContainsKey(locale))
-                    {
-                        Descriptors.Add(locale, LocaleUtil.GetDescriptor(locale));
-                    }
-                }
-
-                string key = info.ArgTypes != null ? $"{info.Namespace}.{info.ClassName}|{info.Name}|{info.ArgTypes}" : //With arguments types discriminator
-                                                     $"{info.Namespace}.{info.ClassName}|{info.Name}"; //Minimalist configuration
-
-                MethodInjectableArguments.Add(key, new MethodBehavior(info.InjectableArguments,
-                                                      info.PasswordArguments,
-                                                      info.TaintFromArguments,
-                                                      info.Locale,
-                                                      info.LocalePass,
-                                                      info.InjectableField,
-                                                      info.IsPasswordField));
-            }
-        }
-
-        public DiagnosticDescriptor[] GetDescriptors()
-        {
-            DiagnosticDescriptor[] descArray = new DiagnosticDescriptor[Descriptors.Count];
-            Descriptors.Values.CopyTo(descArray, 0);
-            return descArray;
+            return ConfigurationManager.Instance.GetBehaviors(additionalFiles).ToDictionary(pair => pair.Key, pair => pair.Value);
         }
 
         /// <summary>
         /// Get the method behavior for a given symbol
         /// </summary>
+        /// <param name="additionalFiles"></param>
         /// <param name="symbol"></param>
         /// <returns></returns>
-        public MethodBehavior GetMethodBehavior(ISymbol symbol)
+        public static MethodBehavior GetMethodBehavior(ISymbol symbol, ImmutableArray<AdditionalText> additionalFiles)
         {
             if (symbol == null)
             {
@@ -71,20 +37,20 @@ namespace SecurityCodeScan.Analyzers.Taint
             {
                 string keyExtended =
                     $"{symbol.ContainingType.ContainingNamespace}.{symbol.ContainingType.Name}|{symbol.Name}|{ExtractGenericParameterSignature(symbol)}";
-                if (MethodInjectableArguments.TryGetValue(keyExtended, out var behavior1))
+                if (GetMethodInjectableArguments(additionalFiles).TryGetValue(keyExtended, out var behavior1))
                     return behavior1;
             }
 
             // try to find generic rule by method name
             string key = $"{symbol.ContainingType.GetTypeName()}|{symbol.Name}";
 
-            if (MethodInjectableArguments.TryGetValue(key, out var behavior2))
+            if (GetMethodInjectableArguments(additionalFiles).TryGetValue(key, out var behavior2))
                 return behavior2;
 
             return null;
         }
 
-        private string ExtractGenericParameterSignature(ISymbol symbol)
+        private static string ExtractGenericParameterSignature(ISymbol symbol)
         {
             // If not a method revert to the old method, just in case!
             if (symbol.Kind != SymbolKind.Method || !(symbol is IMethodSymbol))

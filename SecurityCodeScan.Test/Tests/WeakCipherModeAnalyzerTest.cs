@@ -23,6 +23,9 @@ namespace SecurityCodeScan.Test
         [DataRow("ECB",            "SCS0012")]
         [DataRow("OFB",            "SCS0013")]
         [DataRow("CBC",            "SCS0011")]
+        [DataRow("CM.ECB",         "SCS0012")]
+        [DataRow("CM.OFB",         "SCS0013")]
+        [DataRow("CM.CBC",         "SCS0011")]
         [DataTestMethod]
         public async Task WeakCipherMode(string name, string id)
         {
@@ -30,6 +33,7 @@ namespace SecurityCodeScan.Test
 using System.Security.Cryptography;
 #pragma warning disable 8019
     using static System.Security.Cryptography.CipherMode;
+    using CM = System.Security.Cryptography.CipherMode;
 #pragma warning restore 8019
 
 class WeakCipherMode
@@ -48,6 +52,7 @@ class WeakCipherMode
 Imports System.Security.Cryptography
 #Disable Warning BC50001
     Imports System.Security.Cryptography.CipherMode
+    Imports CM = System.Security.Cryptography.CipherMode
 #Enable Warning BC50001
 
 Class WeakCipherMode

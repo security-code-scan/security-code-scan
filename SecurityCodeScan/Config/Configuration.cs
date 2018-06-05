@@ -3,7 +3,7 @@ using SecurityCodeScan.Analyzers.Taint;
 
 namespace SecurityCodeScan.Config
 {
-    public class Configuration
+    internal class Configuration
     {
         public Configuration()
         {

@@ -18,9 +18,9 @@
                               bool isInjectableField,
                               bool isPasswordField)
         {
-            InjectablesArguments = injectablesArguments ?? new int[0];
-            PasswordArguments    = passwordArguments ?? new int[0];
-            TaintFromArguments   = taintFromArguments ?? new int[0];
+            InjectablesArguments = injectablesArguments ?? EmptyArray<int>.Value;
+            PasswordArguments    = passwordArguments ?? EmptyArray<int>.Value;
+            TaintFromArguments   = taintFromArguments ?? EmptyArray<int>.Value;
             LocaleInjection      = localeInjection;
             LocalePassword       = localePassword;
             IsInjectableField    = isInjectableField;

@@ -13,49 +13,50 @@ namespace SecurityCodeScan.Config
     {
         public static ConfigurationManager Instance { get; } = new ConfigurationManager();
 
-        private const string ConfigName = "SCS.config.yml";
-        private const string UserConfigName = @"SecurityCodeScan/SCS.{0}.config.yml";
+        private const string ConfigName = "SecurityCodeScan.config.yml";
+        private const string UserConfigName = @"SecurityCodeScan/config.yml";
         private readonly Dictionary<string, Configuration> ProjectConfigs = new Dictionary<string, Configuration>();
-        private readonly Deserializer Deserializer = new Deserializer();
 
         private static readonly object ProjectConfigsLock = new object();
         private static readonly object ConfigurationLock = new object();
-        private Configuration _configuration;
 
         private ConfigurationManager() { }
 
-        private Configuration Configuration {
+        private Configuration configuration;
+
+        private Configuration Configuration
+        {
             get
             {
                 lock (ConfigurationLock)
                 {
-                    if (_configuration != null)
-                        return _configuration;
+                    if (configuration != null)
+                        return configuration;
 
-                    var assembly = typeof(ConfigurationManager).GetTypeInfo().Assembly;
+                    var assembly     = typeof(ConfigurationManager).GetTypeInfo().Assembly;
+                    var deserializer = new Deserializer();
 
                     using (Stream stream = assembly.GetManifestResourceStream($"SecurityCodeScan.Config.Main.yml"))
                     {
                         using (var reader = new StreamReader(stream))
                         {
-                            var configData = Deserializer.Deserialize<ConfigData>(reader);
-                            _configuration = ConvertDataToConfig(configData);
+                            var configData = deserializer.Deserialize<ConfigData>(reader);
+                            configuration = ConvertDataToConfig(configData);
                         }
                     }
 
-                    var userConfigFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                                                      string.Format(UserConfigName, assembly.GetName().Version));
+                    var userConfigFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), UserConfigName);
 
                     if (!File.Exists(userConfigFile))
-                        return _configuration;
+                        return configuration;
 
                     using (StreamReader reader = new StreamReader(userConfigFile))
                     {
-                        var userConfig = Deserializer.Deserialize<ConfigData>(reader);
-                        _configuration = MergeConfigData(userConfig);
+                        var userConfig = deserializer.Deserialize<ConfigData>(reader);
+                        configuration = MergeConfigData(userConfig);
                     }
 
-                    return _configuration;
+                    return configuration;
                 }
             }
         }
@@ -161,9 +162,10 @@ namespace SecurityCodeScan.Config
             public Dictionary<string, MethodBehaviorData> Sinks    { get; set; }
         }
 
-        public class MethodBehaviorData
+        private class MethodBehaviorData
         {
             public string ClassName           { get; set; }
+            // TODO: use member field in tain analyzis or remove it completely
             public string Member              { get; set; }
             public string Name                { get; set; }
             public string Namespace           { get; set; }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -13,8 +14,8 @@ namespace SecurityCodeScan.Test.Config
     public abstract class ConfigurationTest : DiagnosticVerifier
     {
         private readonly List<string> FilePaths = new List<string>();
-        private readonly string ConfigName = "SCS.config.yml";
-        protected AnalyzerOptions CreateAnalyzersOptionsWithConfig(string configSource)
+        private readonly string ConfigName = "SecurityCodeScan.config.yml";
+        protected async Task<AnalyzerOptions> CreateAnalyzersOptionsWithConfig(string configSource)
         {
             var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             FilePaths.Add(path);
@@ -22,10 +23,10 @@ namespace SecurityCodeScan.Test.Config
             Directory.CreateDirectory(path);
 
             var filePath = Path.Combine(path, ConfigName);
-            var file = File.CreateText(filePath);
-            file.Write(configSource);
-            file.Flush();
-            file.Close();
+            using (var file = File.CreateText(filePath))
+            {
+                await file.WriteAsync(configSource).ConfigureAwait(false);
+            }
 
             var additionalTextMock = new Mock<AdditionalText>();
             additionalTextMock.Setup(text => text.Path).Returns(filePath); //return path to our just created config file

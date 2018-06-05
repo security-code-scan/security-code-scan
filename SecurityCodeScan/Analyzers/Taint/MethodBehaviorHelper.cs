@@ -25,25 +25,21 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <returns></returns>
         public static MethodBehavior GetMethodBehavior(this ISymbol symbol, ImmutableArray<AdditionalText> additionalFiles)
         {
-            if (symbol == null)
-            {
-                //The symbol was not properly resolved
-                return null;
-            }
-
+            var injectableArguments = GetMethodInjectableArguments(additionalFiles);
             // First try to find specific overload
             if (symbol.ToString().Contains("("))
             {
                 string keyExtended =
                     $"{symbol.ContainingType.ContainingNamespace}.{symbol.ContainingType.Name}|{symbol.Name}|{ExtractGenericParameterSignature(symbol)}";
-                if (GetMethodInjectableArguments(additionalFiles).TryGetValue(keyExtended, out var behavior1))
+
+                if (injectableArguments.TryGetValue(keyExtended, out var behavior1))
                     return behavior1;
             }
 
             // try to find generic rule by method name
             string key = $"{symbol.ContainingType.GetTypeName()}|{symbol.Name}";
 
-            if (GetMethodInjectableArguments(additionalFiles).TryGetValue(key, out var behavior2))
+            if (injectableArguments.TryGetValue(key, out var behavior2))
                 return behavior2;
 
             return null;

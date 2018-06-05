@@ -11,7 +11,7 @@ using SecurityCodeScan.Analyzers.Utils;
 
 namespace SecurityCodeScan.Analyzers.Taint
 {
-    public class VbCodeEvaluation : BaseCodeEvaluation
+    internal class VbCodeEvaluation
     {
         public static List<TaintAnalyzerExtensionVisualBasic> Extensions { get; set; } = new List<TaintAnalyzerExtensionVisualBasic>();
 
@@ -319,7 +319,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (symbol == null)
                 return new VariableState(node, VariableTaint.Unknown);
 
-            var behavior    = BehaviorRepo.GetMethodBehavior(symbol);
+            var behavior    = symbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
             var returnState = initialVariableState.HasValue && !symbol.IsStatic
                                   ? initialVariableState.Value
                                   : new VariableState(node,
@@ -387,7 +387,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                                               ExecutionState        state)
         {
             var            symbol   = state.GetSymbol(leftExpression);
-            MethodBehavior behavior = BehaviorRepo.GetMethodBehavior(symbol);
+            MethodBehavior behavior = null;
+            if (symbol != null)
+                behavior = symbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
 
             var variableState = VisitExpression(rightExpression, state);
 

@@ -41,7 +41,6 @@
     <Compile Include="Analyzers\InsecureCookieAnalyzer.cs" />
     <Compile Include="Analyzers\RequestValidationAnalyzer.cs" />
     <Compile Include="Analyzers\OutputCacheAnnotationAnalyzer.cs" />
-    <Compile Include="Analyzers\Taint\CodeEvaluation\BaseCodeEvaluation.cs" />
     <Compile Include="Analyzers\Taint\CodeEvaluation\CSharpCodeEvaluation.cs" />
     <Compile Include="Analyzers\Taint\CodeEvaluation\TaintAnalyzerExtension.cs" />
     <Compile Include="Analyzers\Taint\VariableTag.cs" />
@@ -51,7 +50,7 @@
     <Compile Include="Analyzers\DebugAnalyzer.cs" />
     <Compile Include="Analyzers\Taint\ExecutionState.cs" />
     <Compile Include="Analyzers\Taint\MethodBehavior.cs" />
-    <Compile Include="Analyzers\Taint\MethodBehaviorRepository.cs" />
+    <Compile Include="Analyzers\Taint\MethodBehaviorHelper.cs" />
     <Compile Include="Analyzers\Taint\TaintAnalyzer.cs" />
     <Compile Include="Analyzers\Taint\VariableState.cs" />
     <Compile Include="Analyzers\Taint\VariableTaint.cs" />
@@ -79,6 +78,8 @@
     <Compile Include="Analyzers\XxeAnalyzerVBasic.cs" />
     <Compile Include="CodeFixes\CsrfTokenCodeFixProvider.cs" />
     <Compile Include="CodeFixes\InsecureCookieCodeFixProvider.cs" />
+    <Compile Include="Config\ConfigurationManager.cs" />
+    <Compile Include="Config\Configuration.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Empty.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -96,7 +97,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Config\Behavior.yml" />
+    <EmbeddedResource Include="Config\Main.yml" />
     <None Include="Diagnostic.nuspec">
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -105,8 +106,6 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
-    <EmbeddedResource Include="Config\Sinks.yml" />
-    <EmbeddedResource Include="Config\Passwords.yml" />
     <None Include="tools\install.ps1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

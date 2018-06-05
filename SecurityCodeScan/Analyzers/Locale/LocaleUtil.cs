@@ -1,4 +1,6 @@
-﻿using System.Resources;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Resources;
 using Microsoft.CodeAnalysis;
 
 namespace SecurityCodeScan.Analyzers.Locale
@@ -22,6 +24,13 @@ namespace SecurityCodeScan.Analyzers.Locale
                                                              localDesc :
                                                              string.Format(localDesc.ToString(), args)
             );
+        }
+
+        public static IList<DiagnosticDescriptor> GetAllAvailableDescriptors()
+        {
+            var localeIds = ((YamlResourceManager)GetResourceManager()).LocaleKeyIds;
+
+            return localeIds.Select(localeId => GetDescriptor(localeId)).ToList();
         }
 
         private static LocalizableString GetLocalString(string id)

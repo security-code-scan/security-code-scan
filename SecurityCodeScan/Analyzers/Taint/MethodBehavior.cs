@@ -1,4 +1,6 @@
-﻿namespace SecurityCodeScan.Analyzers.Taint
+﻿using SecurityCodeScan.Analyzers.Utils;
+
+namespace SecurityCodeScan.Analyzers.Taint
 {
     public class MethodBehavior
     {
@@ -10,17 +12,17 @@
         public bool   IsInjectableField    { get; }
         public bool   IsPasswordField      { get; }
 
-        public MethodBehavior(int[]  injectablesArguments,
-                              int[]  passwordArguments,
-                              int[]  taintFromArguments,
+        public MethodBehavior(int[] injectablesArguments,
+                              int[] passwordArguments,
+                              int[] taintFromArguments,
                               string localeInjection,
                               string localePassword,
-                              bool   isInjectableField,
-                              bool   isPasswordField)
+                              bool isInjectableField,
+                              bool isPasswordField)
         {
-            InjectablesArguments = injectablesArguments;
-            PasswordArguments    = passwordArguments;
-            TaintFromArguments   = taintFromArguments;
+            InjectablesArguments = injectablesArguments ?? EmptyArray<int>.Value;
+            PasswordArguments    = passwordArguments ?? EmptyArray<int>.Value;
+            TaintFromArguments   = taintFromArguments ?? EmptyArray<int>.Value;
             LocaleInjection      = localeInjection;
             LocalePassword       = localePassword;
             IsInjectableField    = isInjectableField;

@@ -96,12 +96,14 @@ namespace SecurityCodeScan.Test.Helpers
             string[]                           sources,
             string                             language,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
+            AnalyzerOptions                    options,
             Version                            dotNetVersion,
             CancellationToken                  cancellationToken,
             IEnumerable<MetadataReference>     references                 = null,
             bool                               includeCompilerDiagnostics = false)
         {
             return await GetSortedDiagnosticsFromDocuments(analyzers,
+                                                           options,
                                                            GetDocuments(sources, dotNetVersion, language, references),
                                                            cancellationToken,
                                                            includeCompilerDiagnostics).ConfigureAwait(false);
@@ -118,6 +120,7 @@ namespace SecurityCodeScan.Test.Helpers
         /// <returns>An IEnumerable of Diagnostics that surfaced in the source code, sorted by Location</returns>
         protected static async Task<Diagnostic[]> GetSortedDiagnosticsFromDocuments(
             ImmutableArray<DiagnosticAnalyzer> analyzers,
+            AnalyzerOptions                    options,
             IEnumerable<Document>              documents,
             CancellationToken                  cancellationToken,
             bool                               includeCompilerDiagnostics = false)
@@ -132,7 +135,7 @@ namespace SecurityCodeScan.Test.Helpers
             foreach (var project in projects)
             {
                 var compilation              = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
+                var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, options);
                 var diags                    = includeCompilerDiagnostics
                                                    ? await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false)
                                                    : await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false);

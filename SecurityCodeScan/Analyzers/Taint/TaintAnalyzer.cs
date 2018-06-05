@@ -1,21 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using SecurityCodeScan.Analyzers.Locale;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace SecurityCodeScan.Analyzers.Taint
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class TaintAnalyzerCSharp : TaintAnalyzer
+    public class TaintAnalyzerCSharp : DiagnosticAnalyzer
     {
         private readonly CSharpCodeEvaluation CodeEval = new CSharpCodeEvaluation();
         public override void Initialize(AnalysisContext context)
         {
-            CodeEval.BehaviorRepo = BehaviorRepo;
             context.RegisterSyntaxNodeAction(CodeEval.VisitMethods, CSharp.SyntaxKind.MethodDeclaration);
             context.RegisterSyntaxNodeAction(CodeEval.VisitMethods, CSharp.SyntaxKind.ConstructorDeclaration);
             context.RegisterSyntaxNodeAction(CodeEval.VisitMethods, CSharp.SyntaxKind.DestructorDeclaration);
@@ -27,7 +26,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             get
             {
                 //Feed the diagnostic descriptor from the configured sinks
-                var all = new HashSet<DiagnosticDescriptor>(Descriptors);
+                var all = new HashSet<DiagnosticDescriptor>(LocaleUtil.GetAllAvailableDescriptors());
 
                 //Add the diagnostic that can be reported by taint analysis extension
                 lock (CSharpCodeEvaluation.Extensions)
@@ -60,12 +59,11 @@ namespace SecurityCodeScan.Analyzers.Taint
     }
 
     [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
-    public class TaintAnalyzerVisualBasic : TaintAnalyzer
+    public class TaintAnalyzerVisualBasic : DiagnosticAnalyzer
     {
         private readonly VbCodeEvaluation CodeEval = new VbCodeEvaluation();
         public override void Initialize(AnalysisContext context)
         {
-            CodeEval.BehaviorRepo = BehaviorRepo;
             context.RegisterSyntaxNodeAction(CodeEval.VisitMethods,     VB.SyntaxKind.SubBlock);
             context.RegisterSyntaxNodeAction(CodeEval.VisitMethods,     VB.SyntaxKind.FunctionBlock);
             context.RegisterSyntaxNodeAction(CodeEval.VisitMethods,     VB.SyntaxKind.ConstructorBlock);
@@ -77,7 +75,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             get
             {
                 //Feed the diagnostic descriptor from the configured sinks
-                var all = new HashSet<DiagnosticDescriptor>(Descriptors);
+                var all = new HashSet<DiagnosticDescriptor>(LocaleUtil.GetAllAvailableDescriptors());
 
                 //Add the diagnostic that can be reported by taint analysis extension
                 lock (VbCodeEvaluation.Extensions)
@@ -105,33 +103,6 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return;
 
                 VbCodeEvaluation.Extensions.Add(extension);
-            }
-        }
-    }
-
-    public abstract class TaintAnalyzer : DiagnosticAnalyzer
-    {
-        protected readonly List<DiagnosticDescriptor> Descriptors = new List<DiagnosticDescriptor>();
-
-        protected readonly MethodBehaviorRepository BehaviorRepo = new MethodBehaviorRepository();
-
-        protected TaintAnalyzer()
-        {
-            //Load injectable APIs
-            BehaviorRepo.LoadConfiguration("Sinks.yml");
-
-            //Load password APIs
-            BehaviorRepo.LoadConfiguration("Passwords.yml");
-
-            //
-            BehaviorRepo.LoadConfiguration("Behavior.yml");
-
-            //Build the descriptor based on the locale fields of the Sinks.yml
-            //This must be done in the constructor because,
-            //the array need be available before SupportedDiagnostics is first invoked.
-            foreach (var desc in BehaviorRepo.GetDescriptors())
-            {
-                Descriptors.Add(desc);
             }
         }
     }

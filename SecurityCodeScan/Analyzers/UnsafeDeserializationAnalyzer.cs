@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -54,6 +53,10 @@ namespace SecurityCodeScan.Analyzers
             if (symbols.ContainingSymbol.ToString() != "Newtonsoft.Json.JsonPropertyAttribute")
                 return;
 
+            var diagnostics = ctx.SemanticModel.GetDiagnostics(ctx.Node.Span);
+            if (diagnostics.Any(diag => diag.Severity == DiagnosticSeverity.Error))
+                return;
+
             ReportIfTypeNameHandlingIsNotNone(ctx, nodeHelper.GetAttributeArgumentExpresionNode(ctx.Node));
         }
 
@@ -68,6 +71,10 @@ namespace SecurityCodeScan.Analyzers
             if(symbols.ContainingSymbol.ToString() != "Newtonsoft.Json.JsonSerializerSettings")
                 return;
 
+            var diagnostics = ctx.SemanticModel.GetDiagnostics(ctx.Node.Span);
+            if (diagnostics.Any(diag => diag.Severity == DiagnosticSeverity.Error))
+                return;
+
             ReportIfTypeNameHandlingIsNotNone(ctx, nodeHelper.GetAssignmentRightNode(ctx.Node));
         }
 
@@ -76,7 +83,14 @@ namespace SecurityCodeScan.Analyzers
             var value = ctx.SemanticModel.GetConstantValue(expression);
 
             if (!value.HasValue)
+            {
+                var expressionSymbols = ctx.SemanticModel.GetSymbolInfo(expression).Symbol;
+                if (expressionSymbols == null)
+                    return;
+
+                ctx.ReportDiagnostic(Diagnostic.Create(Rule, expression.GetLocation()));
                 return;
+            }
 
             if (value.Value is int intValue && intValue != 0 /*TypeNameHandling.None*/ )
                 ctx.ReportDiagnostic(Diagnostic.Create(Rule, expression.GetLocation()));

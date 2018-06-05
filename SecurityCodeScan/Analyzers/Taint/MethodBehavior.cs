@@ -1,4 +1,6 @@
-﻿namespace SecurityCodeScan.Analyzers.Taint
+﻿using SecurityCodeScan.Analyzers.Utils;
+
+namespace SecurityCodeScan.Analyzers.Taint
 {
     public class MethodBehavior
     {

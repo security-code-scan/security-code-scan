@@ -12,7 +12,6 @@ namespace SecurityCodeScan.Analyzers.Taint
 {
     public static class MethodBehaviorHelper
     {
-
         private static Dictionary<string, MethodBehavior> GetMethodInjectableArguments(ImmutableArray<AdditionalText> additionalFiles)
         {
             return ConfigurationManager.Instance.GetBehaviors(additionalFiles).ToDictionary(pair => pair.Key, pair => pair.Value);
@@ -24,7 +23,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <param name="additionalFiles"></param>
         /// <param name="symbol"></param>
         /// <returns></returns>
-        public static MethodBehavior GetMethodBehavior(ISymbol symbol, ImmutableArray<AdditionalText> additionalFiles)
+        public static MethodBehavior GetMethodBehavior(this ISymbol symbol, ImmutableArray<AdditionalText> additionalFiles)
         {
             if (symbol == null)
             {

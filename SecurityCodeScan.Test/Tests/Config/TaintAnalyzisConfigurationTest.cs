@@ -189,7 +189,7 @@ namespace sample
     {
         public static string Safe (string param)
         {
-        return param;
+            return param;
         }
 
         static void TestMethod()
@@ -243,7 +243,7 @@ Behavior:
         }
 
         [TestMethod]
-        public async Task TwoDiferentProjectConfigs()
+        public async Task TwoDifferentProjectConfigs()
         {
             var cSharpTest = @"
 namespace sample
@@ -252,7 +252,7 @@ namespace sample
     {
         public static string Safe (string param)
         {
-        return param;
+            return param;
         }
 
         public void Vulnerable(string param)

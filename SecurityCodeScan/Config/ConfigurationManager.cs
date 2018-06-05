@@ -9,8 +9,7 @@ using YamlDotNet.Serialization;
 
 namespace SecurityCodeScan.Config
 {
-
-    public class ConfigurationManager
+    internal class ConfigurationManager
     {
         public static ConfigurationManager Instance { get; } = new ConfigurationManager();
 
@@ -22,6 +21,9 @@ namespace SecurityCodeScan.Config
         private static readonly object ProjectConfigsLock = new object();
         private static readonly object ConfigurationLock = new object();
         private Configuration _configuration;
+
+        private ConfigurationManager() { }
+
         private Configuration Configuration {
             get
             {
@@ -32,7 +34,7 @@ namespace SecurityCodeScan.Config
 
                     var assembly = typeof(ConfigurationManager).GetTypeInfo().Assembly;
 
-                    using (Stream stream = assembly.GetManifestResourceStream($"SecurityCodeScan.Config.{ConfigName}"))
+                    using (Stream stream = assembly.GetManifestResourceStream($"SecurityCodeScan.Config.Main.yml"))
                     {
                         using (var reader = new StreamReader(stream))
                         {
@@ -99,15 +101,16 @@ namespace SecurityCodeScan.Config
 
                 lock (ProjectConfigsLock)
                 {
-                    if (ProjectConfigs.ContainsKey(file.Path))
-                        return ProjectConfigs[file.Path];
+                    if (ProjectConfigs.TryGetValue(file.Path, out var projectConfig))
+                        return projectConfig;
 
                     using (var reader = new StreamReader(file.Path))
                     {
                         var deserializer = new Deserializer();
                         var userConfig   = deserializer.Deserialize<ConfigData>(reader);
-                        ProjectConfigs[file.Path] = MergeConfigData(userConfig);
-                        return ProjectConfigs[file.Path];
+                        projectConfig = MergeConfigData(userConfig);
+                        ProjectConfigs[file.Path] = projectConfig;
+                        return projectConfig;
                     }
                 }
             }
@@ -152,7 +155,7 @@ namespace SecurityCodeScan.Config
             return behaviorInfos;
         }
 
-        public class ConfigData
+        private class ConfigData
         {
             public Dictionary<string, MethodBehaviorData> Behavior { get; set; }
             public Dictionary<string, MethodBehaviorData> Sinks    { get; set; }

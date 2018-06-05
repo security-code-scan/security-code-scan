@@ -14,7 +14,7 @@ namespace SecurityCodeScan.Analyzers.Taint
     /// <summary>
     /// Symbolic execution of C# code
     /// </summary>
-    public class CSharpCodeEvaluation
+    internal class CSharpCodeEvaluation
     {
         public static List<TaintAnalyzerExtensionCSharp> Extensions { get; set; } = new List<TaintAnalyzerExtensionCSharp>();
 
@@ -386,7 +386,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (symbol == null)
                 return new VariableState(node, VariableTaint.Unknown);
 
-            var behavior    = MethodBehaviorHelper.GetMethodBehavior(symbol, state.AnalysisContext.Options.AdditionalFiles);
+            var behavior    = symbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
             var returnState = initialVariableState.HasValue && !symbol.IsStatic
                                   ? initialVariableState.Value
                                   : new VariableState(node,
@@ -452,7 +452,9 @@ namespace SecurityCodeScan.Analyzers.Taint
         private VariableState VisitAssignment(AssignmentExpressionSyntax node, ExecutionState state)
         {
             var            symbol   = state.GetSymbol(node.Left);
-            MethodBehavior behavior = MethodBehaviorHelper.GetMethodBehavior(symbol, state.AnalysisContext.Options.AdditionalFiles);
+            MethodBehavior behavior = null;
+            if (symbol != null)
+                behavior = symbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
 
             var variableState = VisitExpression(node.Right, state);
 

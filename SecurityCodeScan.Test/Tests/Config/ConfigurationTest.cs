@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Globalization;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SecurityCodeScan.Test.Helpers;
-using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Test.Config
 {
@@ -30,7 +28,7 @@ namespace SecurityCodeScan.Test.Config
             file.Close();
 
             var additionalTextMock = new Mock<AdditionalText>();
-            additionalTextMock.Setup(text => text.Path).Returns(filePath); //The path is read when the diagnostic is report
+            additionalTextMock.Setup(text => text.Path).Returns(filePath); //return path to our just created config file
             var additionalFileText = ImmutableArray.Create(additionalTextMock.Object);
 
             return new AnalyzerOptions(additionalFileText);

@@ -43,7 +43,7 @@ namespace SecurityCodeScan.Analyzers
         {
             //if expression has errors no diagnostics can be returned
             var diagnostics = ctx.SemanticModel.GetDiagnostics(ctx.Node.Span);
-            if (diagnostics.Any(diag => diag.Severity == DiagnosticSeverity.Error))
+            if (diagnostics.Any(diag => diag.DefaultSeverity == DiagnosticSeverity.Error))
                 return;
 
             var name = nodeHelper.GetNameNode(ctx.Node);
@@ -68,7 +68,7 @@ namespace SecurityCodeScan.Analyzers
         {
             //if expression has errors no diagnostics can be returned
             var diagnostics = ctx.SemanticModel.GetDiagnostics(ctx.Node.Span);
-            if (diagnostics.Any(diag => diag.Severity == DiagnosticSeverity.Error))
+            if (diagnostics.Any(diag => diag.DefaultSeverity == DiagnosticSeverity.Error))
                 return;
 
             var leftNode = nodeHelper.GetAssignmentLeftNode(ctx.Node);

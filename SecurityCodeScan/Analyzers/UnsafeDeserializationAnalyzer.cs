@@ -48,7 +48,7 @@ namespace SecurityCodeScan.Analyzers
 
             var name = nodeHelper.GetNameNode(ctx.Node);
 
-            if(name == null)
+            if (name == null)
                 return;
 
             if (!name.ToString().EndsWith("TypeNameHandling"))
@@ -73,14 +73,14 @@ namespace SecurityCodeScan.Analyzers
 
             var leftNode = nodeHelper.GetAssignmentLeftNode(ctx.Node);
 
-            if(!leftNode.ToString().EndsWith("TypeNameHandling"))
+            if (!leftNode.ToString().EndsWith("TypeNameHandling"))
                 return;
 
             var symbols = ctx.SemanticModel.GetSymbolInfo(leftNode).Symbol;
             if (symbols == null)
                 return;
 
-            if(symbols.ContainingSymbol.ToString() != "Newtonsoft.Json.JsonSerializerSettings")
+            if (symbols.ContainingSymbol.ToString() != "Newtonsoft.Json.JsonSerializerSettings")
                 return;
 
             ReportIfTypeNameHandlingIsNotNone(ctx, nodeHelper.GetAssignmentRightNode(ctx.Node));
@@ -90,7 +90,7 @@ namespace SecurityCodeScan.Analyzers
         {
             var value = ctx.SemanticModel.GetConstantValue(expression);
 
-            if ((!value.HasValue && IsDiagnosticsForUnknownValuesEnabled()))
+            if (!value.HasValue && IsDiagnosticsForUnknownValuesEnabled())
             {
                 ctx.ReportDiagnostic(Diagnostic.Create(Rule, expression.GetLocation()));
                 return;
@@ -104,7 +104,7 @@ namespace SecurityCodeScan.Analyzers
         protected void VisitObjectCreation(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
             var objectCreation = nodeHelper.GetNameNode(ctx.Node);
-            if(!objectCreation.ToString().Contains("JavaScriptSerializer"))
+            if (!objectCreation.ToString().Contains("JavaScriptSerializer"))
                 return;
 
             var creationSymbols = ctx.SemanticModel.GetSymbolInfo(ctx.Node).Symbol;
@@ -118,11 +118,11 @@ namespace SecurityCodeScan.Analyzers
             if (firstArgument == null)
                 return;
 
-            if(ctx.SemanticModel.GetSymbolInfo(firstArgument).Symbol != null)
+            if (ctx.SemanticModel.GetSymbolInfo(firstArgument).Symbol != null)
                 ctx.ReportDiagnostic(Diagnostic.Create(Rule, ctx.Node.GetLocation()));
         }
 
-        // TODO: return dignostics for unknowns only if auditing mode is enabled
+        // TODO: return diagnostics for unknowns only if auditing mode is enabled
         public bool IsDiagnosticsForUnknownValuesEnabled()
         {
             return true;

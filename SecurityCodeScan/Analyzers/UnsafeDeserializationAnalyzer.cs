@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -42,15 +41,23 @@ namespace SecurityCodeScan.Analyzers
 
         protected void VisitAttributeArgument(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
+            //if expression has errors no diagnostics can be returned
+            var diagnostics = ctx.SemanticModel.GetDiagnostics(ctx.Node.Span);
+            if (diagnostics.Any(diag => diag.DefaultSeverity == DiagnosticSeverity.Error))
+                return;
+
             var name = nodeHelper.GetNameNode(ctx.Node);
 
-            if(name == null)
+            if (name == null)
                 return;
 
             if (!name.ToString().EndsWith("TypeNameHandling"))
                 return;
 
             var symbols = ctx.SemanticModel.GetSymbolInfo(name).Symbol;
+            if (symbols == null)
+                return;
+
             if (symbols.ContainingSymbol.ToString() != "Newtonsoft.Json.JsonPropertyAttribute")
                 return;
 
@@ -59,13 +66,21 @@ namespace SecurityCodeScan.Analyzers
 
         protected void VisitAssignment(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
+            //if expression has errors no diagnostics can be returned
+            var diagnostics = ctx.SemanticModel.GetDiagnostics(ctx.Node.Span);
+            if (diagnostics.Any(diag => diag.DefaultSeverity == DiagnosticSeverity.Error))
+                return;
+
             var leftNode = nodeHelper.GetAssignmentLeftNode(ctx.Node);
 
-            if(!leftNode.ToString().EndsWith("TypeNameHandling"))
+            if (!leftNode.ToString().EndsWith("TypeNameHandling"))
                 return;
 
             var symbols = ctx.SemanticModel.GetSymbolInfo(leftNode).Symbol;
-            if(symbols.ContainingSymbol.ToString() != "Newtonsoft.Json.JsonSerializerSettings")
+            if (symbols == null)
+                return;
+
+            if (symbols.ContainingSymbol.ToString() != "Newtonsoft.Json.JsonSerializerSettings")
                 return;
 
             ReportIfTypeNameHandlingIsNotNone(ctx, nodeHelper.GetAssignmentRightNode(ctx.Node));
@@ -75,9 +90,13 @@ namespace SecurityCodeScan.Analyzers
         {
             var value = ctx.SemanticModel.GetConstantValue(expression);
 
-            if (!value.HasValue)
+            if (!value.HasValue && IsDiagnosticsForUnknownValuesEnabled())
+            {
+                ctx.ReportDiagnostic(Diagnostic.Create(Rule, expression.GetLocation()));
                 return;
+            }
 
+            //check if it is really integer, because visual basic allows to assign string values to enums
             if (value.Value is int intValue && intValue != 0 /*TypeNameHandling.None*/ )
                 ctx.ReportDiagnostic(Diagnostic.Create(Rule, expression.GetLocation()));
         }
@@ -85,7 +104,7 @@ namespace SecurityCodeScan.Analyzers
         protected void VisitObjectCreation(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
             var objectCreation = nodeHelper.GetNameNode(ctx.Node);
-            if(!objectCreation.ToString().Contains("JavaScriptSerializer"))
+            if (!objectCreation.ToString().Contains("JavaScriptSerializer"))
                 return;
 
             var creationSymbols = ctx.SemanticModel.GetSymbolInfo(ctx.Node).Symbol;
@@ -99,8 +118,14 @@ namespace SecurityCodeScan.Analyzers
             if (firstArgument == null)
                 return;
 
-            if(ctx.SemanticModel.GetSymbolInfo(firstArgument).Symbol != null)
+            if (ctx.SemanticModel.GetSymbolInfo(firstArgument).Symbol != null)
                 ctx.ReportDiagnostic(Diagnostic.Create(Rule, ctx.Node.GetLocation()));
+        }
+
+        // TODO: return diagnostics for unknowns only if auditing mode is enabled
+        public bool IsDiagnosticsForUnknownValuesEnabled()
+        {
+            return true;
         }
     }
 }

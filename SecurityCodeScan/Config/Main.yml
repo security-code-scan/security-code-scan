@@ -1297,6 +1297,14 @@ Sinks:
      InjectableArguments: [0]
      Locale: SCS0028
 
+  TypeNameHandling_enum:
+    Namespace: Newtonsoft.Json
+    ClassName: JsonSerializerSettings
+    Member: field
+    Name: TypeNameHandling
+    InjectableField: true
+    Locale: SCS0028
+
 #Password
   PasswordDeriveBytes:
     Namespace: System.Security.Cryptography

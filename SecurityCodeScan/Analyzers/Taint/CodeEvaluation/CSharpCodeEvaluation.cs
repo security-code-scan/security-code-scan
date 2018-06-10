@@ -384,7 +384,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             var symbol = state.GetSymbol(node);
             if (symbol == null)
-                return new VariableState(node, VariableTaint.Unknown);
+                return new VariableState(node, VariableTaint.Safe); // don't show warnings if doesn't compile
 
             var behavior    = symbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
             var returnState = initialVariableState.HasValue && !symbol.IsStatic
@@ -451,17 +451,28 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         private VariableState VisitAssignment(AssignmentExpressionSyntax node, ExecutionState state)
         {
-            var            symbol   = state.GetSymbol(node.Left);
+            var            leftSymbol   = state.GetSymbol(node.Left);
             MethodBehavior behavior = null;
-            if (symbol != null)
-                behavior = symbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
+            if (leftSymbol != null)
+                behavior = leftSymbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
 
             var variableState = VisitExpression(node.Right, state);
 
             //Additional analysis by extension
             foreach (var ext in Extensions)
             {
-                ext.VisitAssignment(node, state, behavior, symbol, variableState);
+                ext.VisitAssignment(node, state, behavior, leftSymbol, variableState);
+            }
+
+            if (leftSymbol != null)
+            {
+                var rightTypeSymbol = state.AnalysisContext.SemanticModel.GetTypeInfo(node.Right).Type;
+                if (rightTypeSymbol == null)
+                    return new VariableState(node.Right, VariableTaint.Safe);
+
+                var leftTypeSymbol  = state.AnalysisContext.SemanticModel.GetTypeInfo(node.Left).Type;
+                if (!state.AnalysisContext.SemanticModel.Compilation.ClassifyConversion(rightTypeSymbol, leftTypeSymbol).IsImplicit)
+                    return new VariableState(node.Right, VariableTaint.Safe);
             }
 
             IdentifierNameSyntax parentIdentifierSyntax = GetParentIdentifier(node.Left);
@@ -533,7 +544,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             switch (symbol)
             {
                 case null:
-                    return new VariableState(expression, VariableTaint.Unknown);
+                    return new VariableState(expression, VariableTaint.Safe); // don't show warnings if doesn't compile
                 case IFieldSymbol field:
                     if (field.IsConst)
                         return new VariableState(expression, VariableTaint.Constant);

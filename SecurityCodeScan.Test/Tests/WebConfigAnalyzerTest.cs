@@ -86,8 +86,8 @@ namespace SecurityCodeScan.Test
             var path     = Path.GetTempFileName();
             var expected = new
             {
-                Id      = WebConfigAnalyzer.RuleValidateRequest.Id,
-                Message = String.Format(WebConfigAnalyzer.RuleValidateRequest.MessageFormat.ToString(),
+                Id      = WebConfigAnalyzer.RuleRequestValidationMode.Id,
+                Message = String.Format(WebConfigAnalyzer.RuleRequestValidationMode.MessageFormat.ToString(),
                                         path,
                                         4,
                                         expectedNode)
@@ -116,7 +116,7 @@ namespace SecurityCodeScan.Test
 ";
 
             var diagnostics = await Analyze(config, Path.GetTempFileName()).ConfigureAwait(false);
-            diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleValidateRequest.Id)), Times.Never);
+            diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleRequestValidationMode.Id)), Times.Never);
         }
 
         [DataRow("<httpRuntime requestValidationMode=\"2.0\"></httpRuntime>", "<httpRuntime requestValidationMode=\"2.0\">")]
@@ -146,16 +146,16 @@ namespace SecurityCodeScan.Test
             var path = Path.GetTempFileName();
             var expected = new
             {
-                Id = WebConfigAnalyzer.RuleValidateRequest.Id,
-                Message = String.Format(WebConfigAnalyzer.RuleValidateRequest.MessageFormat.ToString(),
+                Id = WebConfigAnalyzer.RuleRequestValidationMode.Id,
+                Message = String.Format(WebConfigAnalyzer.RuleRequestValidationMode.MessageFormat.ToString(),
                                         path,
                                         5,
                                         expectedNode)
             };
             var expected2 = new
             {
-                Id      = WebConfigAnalyzer.RuleValidateRequest.Id,
-                Message = String.Format(WebConfigAnalyzer.RuleValidateRequest.MessageFormat.ToString(),
+                Id      = WebConfigAnalyzer.RuleRequestValidationMode.Id,
+                Message = String.Format(WebConfigAnalyzer.RuleRequestValidationMode.MessageFormat.ToString(),
                                         path,
                                         10,
                                         expectedNode)
@@ -189,7 +189,7 @@ namespace SecurityCodeScan.Test
 ";
 
             var diagnostics = await Analyze(config, Path.GetTempFileName()).ConfigureAwait(false);
-            diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleValidateRequest.Id)), Times.Never);
+            diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleRequestValidationMode.Id)), Times.Never);
         }
 
         [DataRow("<pages enableEventValidation=\"false\"></pages>", "<pages enableEventValidation=\"false\">")]

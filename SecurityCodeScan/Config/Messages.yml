@@ -141,7 +141,12 @@ SCS0019:
 SCS0021:
   class: ValidateRequestFalse
   title: "Request validation has been disabled in {0}({1}): {2}"
-  description: Request validation, which provided additional protection against Cross-Site Scripting (XSS), has been disabled. 
+  description: Request validation, which provides additional protection against Cross-Site Scripting (XSS), has been disabled.
+
+SCS0030:
+  class: RequestValidationMode
+  title: "Request validation is enabled only for pages, not for all HTTP requests. {0}({1}): {2}"
+  description: The RequestValidationMode property specifies which ASP.NET approach to validation will be used.
 
 SCS0022:
   class: EnableEventValidationFalse

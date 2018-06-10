@@ -21,7 +21,7 @@ injectionGroup = ["0001", "0003", "0007", "0018", "0029"]
 cryptoGroup = ["0004", "0005", "0006", "0010", "0011", "0012", "0013"]
 cookiesGroup = ["0008", "0009"]
 viewStateGroup = ["0023", "0024"]
-requestValidationGroup = ["0017", "0021"]
+requestValidationGroup = ["0017", "0021", "0030"]
 passwordGroup = ["0015", "0034", "0032", "0033"]
 miscGroup = ["0016", "0019", "0022", "0027", "0028"]
 

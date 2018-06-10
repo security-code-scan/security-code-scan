@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -16,6 +15,7 @@ namespace SecurityCodeScan.Analyzers
     public class WebConfigAnalyzer : DiagnosticAnalyzer, IExternalFileAnalyzer
     {
         public static readonly DiagnosticDescriptor RuleValidateRequest         = LocaleUtil.GetDescriptor("SCS0021");
+        public static readonly DiagnosticDescriptor RuleRequestValidationMode   = LocaleUtil.GetDescriptor("SCS0030");
         public static readonly DiagnosticDescriptor RuleEnableEventValidation   = LocaleUtil.GetDescriptor("SCS0022");
         public static readonly DiagnosticDescriptor RuleViewStateEncryptionMode = LocaleUtil.GetDescriptor("SCS0023");
         public static readonly DiagnosticDescriptor RuleEnableViewStateMac      = LocaleUtil.GetDescriptor("SCS0024");
@@ -157,7 +157,7 @@ namespace SecurityCodeScan.Analyzers
 
                                             return version >= 4.0M;
                                         },
-                                        RuleValidateRequest,
+                                        RuleRequestValidationMode,
                                         systemWeb,
                                         lastFoundElement,
                                         "httpRuntime",

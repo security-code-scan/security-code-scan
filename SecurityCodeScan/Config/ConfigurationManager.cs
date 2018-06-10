@@ -22,7 +22,7 @@ namespace SecurityCodeScan.Config
 
         private ConfigurationManager() { }
 
-        private Configuration configuration;
+        private Configuration CachedConfiguration;
 
         private Configuration Configuration
         {
@@ -30,8 +30,8 @@ namespace SecurityCodeScan.Config
             {
                 lock (ConfigurationLock)
                 {
-                    if (configuration != null)
-                        return configuration;
+                    if (CachedConfiguration != null)
+                        return CachedConfiguration;
 
                     var assembly     = typeof(ConfigurationManager).GetTypeInfo().Assembly;
                     var deserializer = new Deserializer();
@@ -41,22 +41,22 @@ namespace SecurityCodeScan.Config
                         using (var reader = new StreamReader(stream))
                         {
                             var configData = deserializer.Deserialize<ConfigData>(reader);
-                            configuration = ConvertDataToConfig(configData);
+                            CachedConfiguration = ConvertDataToConfig(configData);
                         }
                     }
 
                     var userConfigFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), UserConfigName);
 
                     if (!File.Exists(userConfigFile))
-                        return configuration;
+                        return CachedConfiguration;
 
                     using (StreamReader reader = new StreamReader(userConfigFile))
                     {
                         var userConfig = deserializer.Deserialize<ConfigData>(reader);
-                        configuration = MergeConfigData(userConfig);
+                        CachedConfiguration = MergeConfigData(userConfig);
                     }
 
-                    return configuration;
+                    return CachedConfiguration;
                 }
             }
         }

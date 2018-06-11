@@ -317,7 +317,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             var symbol = state.GetSymbol(node);
             if (symbol == null)
-                return new VariableState(node, VariableTaint.Safe); // don't show warnings if doesn't compile
+                return new VariableState(node, VariableTaint.Unknown);
 
             var behavior    = symbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
             var returnState = initialVariableState.HasValue && !symbol.IsStatic
@@ -403,11 +403,11 @@ namespace SecurityCodeScan.Analyzers.Taint
             {
                 var rightTypeSymbol = state.AnalysisContext.SemanticModel.GetTypeInfo(rightExpression).Type;
                 if (rightTypeSymbol == null)
-                    return new VariableState(rightExpression, VariableTaint.Safe);
+                    return new VariableState(rightExpression, VariableTaint.Unknown);
 
                 var leftTypeSymbol = state.AnalysisContext.SemanticModel.GetTypeInfo(leftExpression).Type;
                 if (!state.AnalysisContext.SemanticModel.Compilation.ClassifyConversion(rightTypeSymbol, leftTypeSymbol).Exists)
-                    return new VariableState(rightExpression, VariableTaint.Safe);
+                    return new VariableState(rightExpression, VariableTaint.Unknown);
             }
 
             IdentifierNameSyntax parentIdentifierSyntax = GetParentIdentifier(leftExpression);
@@ -488,7 +488,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             switch (symbol)
             {
                 case null:
-                    return new VariableState(expression, VariableTaint.Safe); // don't show warnings if doesn't compile
+                    return new VariableState(expression, VariableTaint.Unknown);
                 case IFieldSymbol field:
                     if (field.IsConst)
                         return new VariableState(expression, VariableTaint.Constant);

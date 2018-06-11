@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -169,43 +170,64 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestMethod]
-        public async Task Constructor()
+        [DataTestMethod]
+        [DataRow("sql",       new[] { "SCS0026" },           new[] { "SCS0026" })]
+        [DataRow("xyz",       new[] { "CS0103" },            new[] { "BC30451" })]
+        [DataRow("foo()",     new[] { "CS1503" },            new[] { "BC30311" })]
+        [DataRow("foo2(xyz)", new[] { "SCS0026", "CS0103" }, new[] { "BC30451" })]
+        public async Task Constructor(string right, string[] csErrors, string[] vbErrors)
         {
-            var cSharpTest = @"
+            var cSharpTest = $@"
 using System.Data.SqlClient;
 
 namespace sample
-{
+{{
     class Test
-    {
+    {{
         public Test(string sql)
-        {
-            new SqlCommand(sql);
-        }
-    }
-}
+        {{
+            new SqlCommand({right});
+        }}
+
+        static Test foo()
+        {{
+            return null;
+        }}
+
+        static string foo2(string a)
+        {{
+            return null;
+        }}
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
+            var visualBasicTest = $@"
 Imports System.Data.SqlClient
 
 Namespace sample
     Class Test
         Public Sub New(sql As String)
-            Dim com As New SqlCommand(sql)
+            Dim com As New SqlCommand({right})
         End Sub
 
+        Private Shared Function foo() As Test
+            Return Nothing
+        End Function
+
+        Private Shared Function foo2(ByVal a As String) As String
+            Return """"
+        End Function
     End Class
 End Namespace
 ";
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest,
+                                         csErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation("Test0.cs", 10)).ToArray())
+                .ConfigureAwait(false);
+
+            await VerifyVisualBasicDiagnostic(visualBasicTest,
+                                              vbErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation("Test0.vb", 7)).ToArray())
+                .ConfigureAwait(false);
         }
 
         [TestMethod]

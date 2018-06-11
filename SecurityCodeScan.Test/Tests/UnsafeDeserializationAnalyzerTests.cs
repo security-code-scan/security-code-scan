@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Test.Helpers;
@@ -537,10 +538,10 @@ End Namespace
         }
 
         [DataTestMethod]
-        [DataRow("TypeNameHandling.Test", "CS0117", "BC30456")]
-        [DataRow("foo()",                 "CS0029", "BC30311")]
-        [DataRow("foo2(xyz)",             "CS0103", "BC30451")]
-        public async Task IgnoreJSonSerializerTypeNameHandlingNonCompilingValue(string right, string csError, string vbError)
+        [DataRow("TypeNameHandling.Test", new[] { "CS0117" },            new[] { "BC30456" })]
+        [DataRow("foo()",                 new[] { "CS0029" },            new[] { "BC30311" })]
+        [DataRow("foo2(xyz)",             new[] { "SCS0028", "CS0103" }, new[] { "SCS0028", "BC30451" })]
+        public async Task JSonSerializerTypeNameHandlingNonCompilingValue(string right, string[] csErrors, string[] vbErrors)
         {
             var cSharpTest = $@"
 using Newtonsoft.Json;
@@ -593,8 +594,12 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, new DiagnosticResult { Id = csError }.WithLocation("Test0.cs", 12)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, new DiagnosticResult { Id = vbError }.WithLocation("Test0.vb", 9))
+            await VerifyCSharpDiagnostic(cSharpTest,
+                                         csErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation("Test0.cs", 12)).ToArray())
+                .ConfigureAwait(false);
+
+            await VerifyVisualBasicDiagnostic(visualBasicTest,
+                                              vbErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation("Test0.vb", 9)).ToArray())
                 .ConfigureAwait(false);
         }
 

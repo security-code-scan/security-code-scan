@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -226,43 +227,65 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestMethod]
-        public async Task TransferSqlInitializerUnSafe()
+        [DataTestMethod]
+        [DataRow("sql",       new[] { "SCS0026" },           new[] { "SCS0026" })]
+        [DataRow("xyz",       new[] { "CS0103" },            new[] { "BC30451" })]
+        [DataRow("foo()",     new[] { "CS0029" },            new[] { "BC30311" })]
+        [DataRow("foo2(xyz)", new[] { "SCS0026", "CS0103" }, new[] { "SCS0026", "BC30451" })]
+        public async Task TransferSqlInitializerUnSafe(string right, string[] csErrors, string[] vbErrors)
         {
-            var cSharpTest = @"
+            var cSharpTest = $@"
 using System.Data.SqlClient;
 
 namespace sample
-{
+{{
     class MyFoo
-    {
+    {{
         public static void Run(string sql)
-        {
-            var sqlCommand = new SqlCommand {CommandText = sql};
-        }
-    }
-}
+        {{
+            var sqlCommand = new SqlCommand {{CommandText = {right}}};
+        }}
+
+        static MyFoo foo()
+        {{
+            return null;
+        }}
+
+        static string foo2(string a)
+        {{
+            return null;
+        }}
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
+            var visualBasicTest = $@"
 Imports System.Data.SqlClient
 
 Namespace sample
     Class MyFoo
         Public Shared Sub Run(sql As System.String)
-            Dim com As New SqlCommand With {.CommandText = sql}
+            Dim com As New SqlCommand With {{.CommandText = {right}}}
         End Sub
+
+        Private Shared Function foo() As MyFoo
+            Return Nothing
+        End Function
+
+        Private Shared Function foo2(a As String) As String
+            Return Nothing
+        End Function
     End Class
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest,
+                                         csErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation("Test0.cs", 10)).ToArray())
+                .ConfigureAwait(false);
+
+            await VerifyVisualBasicDiagnostic(visualBasicTest,
+                                              vbErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation("Test0.vb", 7)).ToArray())
+                .ConfigureAwait(false);
         }
 
         [TestMethod]

@@ -386,17 +386,28 @@ namespace SecurityCodeScan.Analyzers.Taint
                                               ExpressionSyntax      rightExpression,
                                               ExecutionState        state)
         {
-            var            symbol   = state.GetSymbol(leftExpression);
+            var leftSymbol = state.GetSymbol(leftExpression);
             MethodBehavior behavior = null;
-            if (symbol != null)
-                behavior = symbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
+            if (leftSymbol != null)
+                behavior = leftSymbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
 
             var variableState = VisitExpression(rightExpression, state);
 
             //Additional analysis by extension
             foreach (var ext in Extensions)
             {
-                ext.VisitAssignment(node, state, behavior, symbol, variableState);
+                ext.VisitAssignment(node, state, behavior, leftSymbol, variableState);
+            }
+
+            if (leftSymbol != null)
+            {
+                var rightTypeSymbol = state.AnalysisContext.SemanticModel.GetTypeInfo(rightExpression).Type;
+                if (rightTypeSymbol == null)
+                    return new VariableState(rightExpression, VariableTaint.Unknown);
+
+                var leftTypeSymbol = state.AnalysisContext.SemanticModel.GetTypeInfo(leftExpression).Type;
+                if (!state.AnalysisContext.SemanticModel.Compilation.ClassifyConversion(rightTypeSymbol, leftTypeSymbol).Exists)
+                    return new VariableState(rightExpression, VariableTaint.Unknown);
             }
 
             IdentifierNameSyntax parentIdentifierSyntax = GetParentIdentifier(leftExpression);

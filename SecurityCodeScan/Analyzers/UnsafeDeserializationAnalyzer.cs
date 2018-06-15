@@ -41,11 +41,6 @@ namespace SecurityCodeScan.Analyzers
 
         protected void VisitAttributeArgument(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
-            //if expression has errors no diagnostics can be returned
-            var diagnostics = ctx.SemanticModel.GetDiagnostics(ctx.Node.Span);
-            if (diagnostics.Any(diag => diag.DefaultSeverity == DiagnosticSeverity.Error))
-                return;
-
             var name = nodeHelper.GetNameNode(ctx.Node);
 
             if (name == null)
@@ -66,11 +61,6 @@ namespace SecurityCodeScan.Analyzers
 
         protected void VisitAssignment(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
-            //if expression has errors no diagnostics can be returned
-            var diagnostics = ctx.SemanticModel.GetDiagnostics(ctx.Node.Span);
-            if (diagnostics.Any(diag => diag.DefaultSeverity == DiagnosticSeverity.Error))
-                return;
-
             var leftNode = nodeHelper.GetAssignmentLeftNode(ctx.Node);
 
             if (!leftNode.ToString().EndsWith("TypeNameHandling"))
@@ -90,11 +80,8 @@ namespace SecurityCodeScan.Analyzers
         {
             var value = ctx.SemanticModel.GetConstantValue(expression);
 
-            if (!value.HasValue && IsDiagnosticsForUnknownValuesEnabled())
-            {
-                ctx.ReportDiagnostic(Diagnostic.Create(Rule, expression.GetLocation()));
+            if (!value.HasValue)
                 return;
-            }
 
             //check if it is really integer, because visual basic allows to assign string values to enums
             if (value.Value is int intValue && intValue != 0 /*TypeNameHandling.None*/ )
@@ -120,12 +107,6 @@ namespace SecurityCodeScan.Analyzers
 
             if (ctx.SemanticModel.GetSymbolInfo(firstArgument).Symbol != null)
                 ctx.ReportDiagnostic(Diagnostic.Create(Rule, ctx.Node.GetLocation()));
-        }
-
-        // TODO: return diagnostics for unknowns only if auditing mode is enabled
-        public bool IsDiagnosticsForUnknownValuesEnabled()
-        {
-            return true;
         }
     }
 }

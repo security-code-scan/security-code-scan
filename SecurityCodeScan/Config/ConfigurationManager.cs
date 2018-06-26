@@ -63,7 +63,11 @@ namespace SecurityCodeScan.Config
 
         private Configuration ConvertDataToConfig(ConfigData configData)
         {
-            var config = new Configuration();
+            var config = new Configuration
+            {
+                MinimumPasswordValidatorProperties = configData.MinimumPasswordValidatorProperties ?? 0,
+                PasswordValidatorRequiredLength = configData.PasswordValidatorRequiredLength ?? 0
+            };
 
             foreach (var data in configData.Behavior)
             {
@@ -93,7 +97,7 @@ namespace SecurityCodeScan.Config
                                                                                     behavior.IsPasswordField));
         }
 
-        private Configuration GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
+        public Configuration GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
         {
             foreach (var file in additionalFiles)
             {
@@ -122,6 +126,13 @@ namespace SecurityCodeScan.Config
         private Configuration MergeConfigData(ConfigData config)
         {
             var mergeInto = new Configuration(Configuration);
+
+            if (config.MinimumPasswordValidatorProperties != null)
+                mergeInto.MinimumPasswordValidatorProperties = (int)config.MinimumPasswordValidatorProperties;
+
+            if (config.PasswordValidatorRequiredLength != null)
+                mergeInto.PasswordValidatorRequiredLength = (int)config.PasswordValidatorRequiredLength;
+
             if (config.Behavior != null)
             {
                 foreach (var behavior in config.Behavior)
@@ -158,6 +169,8 @@ namespace SecurityCodeScan.Config
 
         private class ConfigData
         {
+            public int? PasswordValidatorRequiredLength    { get; set; }
+            public int? MinimumPasswordValidatorProperties { get; set; }
             public Dictionary<string, MethodBehaviorData> Behavior { get; set; }
             public Dictionary<string, MethodBehaviorData> Sinks    { get; set; }
         }

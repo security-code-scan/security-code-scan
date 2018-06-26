@@ -49,7 +49,7 @@ namespace WebApplicationSandbox.Controllers
         {
             PasswordValidator pwdv = new PasswordValidator
             {
-                RequiredLength = " + (Constants.PasswordValidatorRequiredLength + 1) + @",
+                RequiredLength = " + 9 + @",
                 RequireNonLetterOrDigit = true,
                 RequireDigit = true,
                 RequireLowercase = true,
@@ -73,7 +73,7 @@ Namespace WebApplicationSandbox.Controllers
         Inherits Controller
         Public Function Index() As ActionResult
             Dim pwdv As New PasswordValidator() With { _
-                .RequiredLength = " + (Constants.PasswordValidatorRequiredLength + 1) + @", _
+                .RequiredLength = " + 9 + @", _
                 .RequireNonLetterOrDigit = True, _
                 .RequireDigit = True, _
                 .RequireLowercase = True, _
@@ -110,7 +110,7 @@ namespace WebApplicationSandbox.Controllers
         {
             PasswordValidator pwdv = new PasswordValidator
             {
-                RequiredLength = " + (Constants.PasswordValidatorRequiredLength - 1) + @",
+                RequiredLength = " + 7 + @",
                 RequireNonLetterOrDigit = true,
                 RequireDigit = true,
                 RequireLowercase = true,
@@ -132,7 +132,7 @@ Namespace WebApplicationSandbox.Controllers
         Inherits Controller
         Public Function Index() As ActionResult
             Dim pwdv As New PasswordValidator() With { _
-                .RequiredLength = " + (Constants.PasswordValidatorRequiredLength - 1) + @", _
+                .RequiredLength = " + 7 + @", _
                 .RequireNonLetterOrDigit = True, _
                 .RequireDigit = True, _
                 .RequireLowercase = True, _
@@ -177,7 +177,7 @@ namespace WebApplicationSandbox.Controllers
                 RequireDigit = true,
             };
 
-            pwdv.RequiredLength = " + (Constants.PasswordValidatorRequiredLength - 1) + @";
+            pwdv.RequiredLength = " + 7 + @";
 
             return View();
         }
@@ -198,7 +198,7 @@ Namespace WebApplicationSandbox.Controllers
                 .RequireDigit = True _
             }
 
-            pwdv.RequiredLength = " + (Constants.PasswordValidatorRequiredLength - 1) + @"
+            pwdv.RequiredLength = " + 7 + @"
 
             Return View()
         End Function
@@ -233,7 +233,7 @@ namespace WebApplicationSandbox.Controllers
     {
         public ActionResult Index()
         {
-            int reqLen = " + Constants.PasswordValidatorRequiredLength + @";
+            int reqLen = " + 8 + @";
 
             PasswordValidator pwdv = new PasswordValidator
             {
@@ -258,7 +258,7 @@ Namespace WebApplicationSandbox.Controllers
     Public Class HomeController
         Inherits Controller
         Public Function Index() As ActionResult
-            Dim reqLen As Integer = " + Constants.PasswordValidatorRequiredLength + @"
+            Dim reqLen As Integer = " + 8 + @"
 
             Dim pwdv As New PasswordValidator() With { _
                 .RequiredLength = reqLen, _
@@ -296,7 +296,7 @@ namespace WebApplicationSandbox.Controllers
         {
             PasswordValidator pwdv = new PasswordValidator
             {
-                RequiredLength = " + (Constants.PasswordValidatorRequiredLength + 1) + @",
+                RequiredLength = " + 9 + @",
             };
             pwdv.RequireNonLetterOrDigit = true;
             pwdv.RequireDigit = true;
@@ -316,7 +316,7 @@ Namespace WebApplicationSandbox.Controllers
         Inherits Controller
         Public Function Index() As ActionResult
             Dim pwdv As New PasswordValidator() With { _
-                .RequiredLength = " + (Constants.PasswordValidatorRequiredLength + 1) + @" _
+                .RequiredLength = " + 9 + @" _
             }
             pwdv.RequireNonLetterOrDigit = True
             pwdv.RequireDigit = True
@@ -349,7 +349,7 @@ namespace WebApplicationSandbox.Controllers
         {
             PasswordValidator pwdv = new PasswordValidator
             {
-                RequiredLength = " + (Constants.PasswordValidatorRequiredLength + 1) + @",
+                RequiredLength = " + 9 + @",
             };
             pwdv.RequireDigit = true;
 
@@ -368,7 +368,7 @@ Namespace WebApplicationSandbox.Controllers
         Inherits Controller
         Public Function Index() As ActionResult
             Dim pwdv As New PasswordValidator() With { _
-                .RequiredLength = " + (Constants.PasswordValidatorRequiredLength + 1) + @" _
+                .RequiredLength = " + 9 + @" _
             }
             pwdv.RequireDigit = True
 

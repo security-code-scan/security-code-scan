@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Analyzers.Utils;
+using SecurityCodeScan.Config;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
@@ -105,9 +106,10 @@ namespace SecurityCodeScan.Analyzers
                 return;
             }
 
+            var requiredLength = ConfigurationManager.Instance.GetProjectConfiguration(ctx.Options.AdditionalFiles).PasswordValidatorRequiredLength;
             // Validates that the value is an int and that it is over the minimum value required
             if (!int.TryParse(right.GetText().ToString(), out var numericValue) ||
-                numericValue >= Constants.PasswordValidatorRequiredLength)
+                numericValue >= requiredLength)
             {
                 return;
             }
@@ -134,8 +136,11 @@ namespace SecurityCodeScan.Analyzers
                                                                              variableState.Value.Node.GetLocation()));
                 }
 
+                var minimumRequiredProperties = ConfigurationManager
+                                                .Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles)
+                                                .MinimumPasswordValidatorProperties;
                 // If the PasswordValidator instance doesn't have enough properties set
-                if (!(st.Tags.Count >= Constants.MinimumPasswordValidatorProperties))
+                if (!(st.Tags.Count >= minimumRequiredProperties))
                 {
                     state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RulePasswordValidators,
                                                                              variableState.Value.Node.GetLocation()));

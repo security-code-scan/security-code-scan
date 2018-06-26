@@ -1,4 +1,7 @@
-﻿Behavior:
+﻿PasswordValidatorRequiredLength: 8
+MinimumPasswordValidatorProperties: 3
+
+Behavior:
 # This is the definition of API that conserve the state of variable received.
 # By considering those API, the flow analysis will be much more accurate.
 # All undocumented API return UNKNOWN state (considered unsafe).

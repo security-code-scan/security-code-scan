@@ -17,6 +17,8 @@ namespace SecurityCodeScan.Config
             Sinks    = new Dictionary<string, KeyValuePair<string, MethodBehavior>>(config.Sinks);
         }
 
+        public int PasswordValidatorRequiredLength;
+        public int MinimumPasswordValidatorProperties;
         public Dictionary<string, KeyValuePair<string, MethodBehavior>> Behavior;
         public Dictionary<string, KeyValuePair<string, MethodBehavior>> Sinks;
     }

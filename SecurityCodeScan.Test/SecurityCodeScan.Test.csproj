@@ -304,7 +304,7 @@
   <ItemGroup>
     <Compile Include="Tests\AspxAnalyzerTest.cs" />
     <Compile Include="Tests\Config\ConfigurationTest.cs" />
-    <Compile Include="Tests\Config\CsrfProtectionConfigurationTests.cs" />
+    <Compile Include="Tests\Config\CsrfTokenAnalyzerConfigTests.cs" />
     <Compile Include="Tests\Config\TaintAnalyzisConfigurationTest.cs" />
     <Compile Include="Tests\ExternalFileAnalyzerTest.cs" />
     <Compile Include="Tests\Password\HardcodedPasswordFieldTest.cs" />

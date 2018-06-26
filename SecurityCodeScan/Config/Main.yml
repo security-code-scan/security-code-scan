@@ -1313,3 +1313,9 @@ Sinks:
     Name: .ctor
     PasswordArguments: [1]
     LocalePass: SCS0015
+
+CsrfProtectionAttributes:
+  - HttpMethodsNameSpace: System.Web.Mvc
+    AntiCsrfAttribute: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
+  - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
+    AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute

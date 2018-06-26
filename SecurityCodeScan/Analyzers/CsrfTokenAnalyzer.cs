@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
+using SecurityCodeScan.Config;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
@@ -33,6 +34,7 @@ namespace SecurityCodeScan.Analyzers
         {
             //99% of the occurrences will be HttpPost.. but here are some additional HTTP methods
             //https://msdn.microsoft.com/en-us/library/system.web.mvc.actionmethodselectorattribute(v=vs.118).aspx
+            Namespace = nameSpace;
             MethodsHttp = new List<string>
             {
                 $"{nameSpace}.HttpPostAttribute",
@@ -41,11 +43,10 @@ namespace SecurityCodeScan.Analyzers
                 $"{nameSpace}.HttpPatchAttribute",
             };
 
-            AntiForgeryAttribute = $"{nameSpace}.ValidateAntiForgeryTokenAttribute";
             AnonymousAttribute   = $"{allowAnonymousNamespace}.AllowAnonymousAttribute";
         }
 
-        private readonly string       AntiForgeryAttribute;
+        private readonly string       Namespace;
         private readonly string       AnonymousAttribute;
         private readonly List<string> MethodsHttp;
 
@@ -54,9 +55,9 @@ namespace SecurityCodeScan.Analyzers
             context.RegisterSymbolAction(VisitMethods, SymbolKind.Method);
         }
 
-        private bool HasAntiForgeryToken(AttributeData attributeData)
+        private bool HasAntiForgeryToken(AttributeData attributeData, string antiForgeryAttribute)
         {
-            return attributeData.AttributeClass.ToString() == AntiForgeryAttribute;
+            return attributeData.AttributeClass.ToString() == antiForgeryAttribute;
         }
 
         private bool HasAnonymousAttribute(AttributeData attributeData)
@@ -74,17 +75,21 @@ namespace SecurityCodeScan.Analyzers
 
             if (symbol.HasDerivedMethodAttribute(HasAnonymousAttribute) ||
                 symbol.ReceiverType.HasDerivedClassAttribute(HasAnonymousAttribute))
-            {
                 return;
+
+            var antiforgeryAttributeExists = false;
+            var antiForgeryAttributes = ConfigurationManager.Instance.GetAntiCsrfAttributes(ctx.Options.AdditionalFiles, Namespace);
+            foreach (var antiForgeryAttribute in antiForgeryAttributes)
+            {
+                if (symbol.ReceiverType.HasDerivedClassAttribute(attributeData => HasAntiForgeryToken(attributeData, antiForgeryAttribute)) ||
+                    symbol.HasDerivedMethodAttribute(attributeData => HasAntiForgeryToken(attributeData, antiForgeryAttribute)))
+                {
+                    antiforgeryAttributeExists = true;
+                }
             }
 
-            if (symbol.ReceiverType.HasDerivedClassAttribute(HasAntiForgeryToken))
-                return;
-
-            if (symbol.HasDerivedMethodAttribute(HasAntiForgeryToken))
-                return;
-
-            ctx.ReportDiagnostic(Diagnostic.Create(Rule, symbol.Locations[0]));
+            if (!antiforgeryAttributeExists)
+                ctx.ReportDiagnostic(Diagnostic.Create(Rule, symbol.Locations[0]));
         }
     }
 }

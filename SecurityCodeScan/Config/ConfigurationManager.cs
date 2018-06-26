@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -75,6 +76,11 @@ namespace SecurityCodeScan.Config
                 config.Sinks[data.Key] = CreateBehavior(data.Value);
             }
 
+            foreach (var data in configData.CsrfProtectionAttributes)
+            {
+                AddAntiCsrfTAttributeToConfiguration(config, data);
+            }
+
             return config;
         }
 
@@ -92,6 +98,18 @@ namespace SecurityCodeScan.Config
                                                                                     behavior.InjectableField,
                                                                                     behavior.IsPasswordField));
         }
+
+        private void AddAntiCsrfTAttributeToConfiguration(Configuration config, CsrfProtectionData csrfData)
+            {
+                config.AntiCsrfAttributes.TryGetValue(csrfData.HttpMethodsNameSpace, out var list);
+                if (list == null)
+                {
+                    list = new List<string>();
+                    config.AntiCsrfAttributes[csrfData.HttpMethodsNameSpace] = list;
+                }
+
+                list.Add(csrfData.AntiCsrfAttribute);
+            }
 
         private Configuration GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
         {
@@ -144,6 +162,14 @@ namespace SecurityCodeScan.Config
                 }
             }
 
+            if (config.CsrfProtectionAttributes != null)
+            {
+                foreach (var data in config.CsrfProtectionAttributes)
+                {
+                    AddAntiCsrfTAttributeToConfiguration(mergeInto, data);
+                }
+            }
+
             return mergeInto;
         }
 
@@ -156,10 +182,18 @@ namespace SecurityCodeScan.Config
             return behaviorInfos;
         }
 
+        public IEnumerable<string> GetAntiCsrfAttributes(ImmutableArray<AdditionalText> additionalFiles, string httpMethodsNamespace)
+        {
+            var config = GetProjectConfiguration(additionalFiles);
+
+            return config.AntiCsrfAttributes[httpMethodsNamespace];
+        }
+
         private class ConfigData
         {
-            public Dictionary<string, MethodBehaviorData> Behavior { get; set; }
-            public Dictionary<string, MethodBehaviorData> Sinks    { get; set; }
+            public Dictionary<string, MethodBehaviorData> Behavior                 { get; set; }
+            public Dictionary<string, MethodBehaviorData> Sinks                    { get; set; }
+            public List<CsrfProtectionData>               CsrfProtectionAttributes { get; set; }
         }
 
         private class MethodBehaviorData
@@ -177,6 +211,12 @@ namespace SecurityCodeScan.Config
             public string LocalePass          { get; set; }
             public bool   InjectableField     { get; set; }
             public bool   IsPasswordField     { get; set; }
+        }
+
+        public class CsrfProtectionData
+        {
+            public string HttpMethodsNameSpace { get; set; }
+            public string AntiCsrfAttribute { get; set; }
         }
     }
 }

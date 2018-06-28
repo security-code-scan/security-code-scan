@@ -18,6 +18,11 @@ namespace SecurityCodeScan.Test.Helpers
     /// </summary>
     public abstract partial class DiagnosticVerifier
     {
+        protected DiagnosticVerifier()
+        {
+            SecurityCodeScan.Config.ConfigurationManager.Instance.UserConfigFile = "";
+        }
+
         #region To be implemented by Test classes
 
         /// <summary>

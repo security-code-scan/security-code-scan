@@ -268,5 +268,70 @@ MinimumPasswordValidatorProperties: 2
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
         }
+
+        [DataTestMethod]
+        [DataRow("RequireNonLetterOrDigit", 1)]
+        [DataRow("RequireDigit", 1)]
+        [DataRow("RequireLowercase", 1)]
+        [DataRow("RequireUppercase", 1)]
+        [DataRow("RequireUppercase, RequireDigit", 2)]
+        public async Task PasswordValidatorRequireSpecificProperty(string properties, int propertiesCount)
+        {
+            var cSharpTest = @"
+using Microsoft.AspNet.Identity;
+
+namespace WebApplicationSandbox.Controllers
+{
+    public class TestApp
+    {
+        public void TestMethod()
+        {
+            PasswordValidator pwdv = new PasswordValidator
+            {
+                RequiredLength = " + 8 + @"
+            };
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports Microsoft.AspNet.Identity
+
+Namespace WebApplicationSandbox.Controllers
+    Public Class TestApp
+        Public Sub TestMethod()
+            Dim pwdv As New PasswordValidator() With { _
+                .RequiredLength = " + 8 + @"
+            }
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0033",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+
+            var testConfig = $@"
+MinimumPasswordValidatorProperties: 0
+PasswordValidatorRequiredProperties: [{properties}]
+";
+
+            var optionsWithProjectConfig = await CreateAnalyzersOptionsWithConfig(testConfig).ConfigureAwait(false);
+            expected = new DiagnosticResult
+            {
+                Id       = "SCS0031",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, Enumerable.Repeat(expected, propertiesCount).ToArray(), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Enumerable.Repeat(expected, propertiesCount).ToArray(), optionsWithProjectConfig).ConfigureAwait(false);
+        }
     }
 }

@@ -9,13 +9,14 @@ using YamlDotNet.Serialization;
 
 namespace SecurityCodeScan.Config
 {
-    internal class ConfigurationManager
+    public class ConfigurationManager
     {
         public static ConfigurationManager Instance { get; } = new ConfigurationManager();
 
         private const string ConfigName = "SecurityCodeScan.config.yml";
         private const string UserConfigName = @"SecurityCodeScan/config.yml";
         private readonly Dictionary<string, Configuration> ProjectConfigs = new Dictionary<string, Configuration>();
+        public string UserConfigFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), UserConfigName);
 
         private static readonly object ProjectConfigsLock = new object();
         private static readonly object ConfigurationLock = new object();
@@ -45,15 +46,16 @@ namespace SecurityCodeScan.Config
                         }
                     }
 
-                    var userConfigFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), UserConfigName);
-
-                    if (!File.Exists(userConfigFile))
+                    if (!File.Exists(UserConfigFile))
                         return CachedConfiguration;
 
-                    using (StreamReader reader = new StreamReader(userConfigFile))
+                    using (StreamReader reader = new StreamReader(UserConfigFile))
                     {
                         var userConfig = deserializer.Deserialize<ConfigData>(reader);
-                        CachedConfiguration = MergeConfigData(userConfig);
+                        if (userConfig != null)
+                        {
+                            CachedConfiguration = MergeConfigData(userConfig);
+                        }
                     }
 
                     return CachedConfiguration;
@@ -68,6 +70,14 @@ namespace SecurityCodeScan.Config
                 MinimumPasswordValidatorProperties = configData.MinimumPasswordValidatorProperties ?? 0,
                 PasswordValidatorRequiredLength = configData.PasswordValidatorRequiredLength ?? 0
             };
+
+            if (configData.PasswordValidatorRequiredProperties != null)
+            {
+                foreach (var data in configData.PasswordValidatorRequiredProperties)
+                {
+                    config.PasswordValidatorRequiredProperties.Add(data);
+                }
+            }
 
             foreach (var data in configData.Behavior)
             {
@@ -113,6 +123,12 @@ namespace SecurityCodeScan.Config
                     {
                         var deserializer = new Deserializer();
                         var userConfig   = deserializer.Deserialize<ConfigData>(reader);
+                        if (userConfig == null)
+                        {
+                            ProjectConfigs[file.Path] = CachedConfiguration;
+                            return CachedConfiguration;
+                        }
+
                         projectConfig = MergeConfigData(userConfig);
                         ProjectConfigs[file.Path] = projectConfig;
                         return projectConfig;
@@ -132,6 +148,14 @@ namespace SecurityCodeScan.Config
 
             if (config.PasswordValidatorRequiredLength != null)
                 mergeInto.PasswordValidatorRequiredLength = (int)config.PasswordValidatorRequiredLength;
+
+            if (config.PasswordValidatorRequiredProperties != null)
+            {
+                foreach (var property in config.PasswordValidatorRequiredProperties)
+                {
+                    mergeInto.PasswordValidatorRequiredProperties.Add(property);
+                }
+            }
 
             if (config.Behavior != null)
             {
@@ -171,6 +195,7 @@ namespace SecurityCodeScan.Config
         {
             public int? PasswordValidatorRequiredLength    { get; set; }
             public int? MinimumPasswordValidatorProperties { get; set; }
+            public List<string> PasswordValidatorRequiredProperties { get; set; }
             public Dictionary<string, MethodBehaviorData> Behavior { get; set; }
             public Dictionary<string, MethodBehaviorData> Sinks    { get; set; }
         }

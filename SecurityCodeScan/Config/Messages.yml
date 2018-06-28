@@ -177,17 +177,22 @@ SCS0015:
   title_assignment: Hardcoded password
   description: The password configuration to this API appears to be hardcoded. It is suggest to externalized configuration such as password to avoid leakage of secret information.
 
+SCS0031:
+  class: WeakPasswordValidatorAnalyzer
+  title: "The {0} property must be set"
+  description: "PasswordValidator must have this requirement for better security."
+
 SCS0032:
   class: WeakPasswordValidatorAnalyzer
-  title: The RequiredLength property of PasswordValidator is too small
-  description: The minimal length of a password is recommended to be set at least to 8.
+  title: "The RequiredLength property of PasswordValidator should be set to at least {0}"
+  description: "The minimal length of a password is too small."
 
 SCS0033:
   class: WeakPasswordValidatorPropertyAnalyzer
-  title: Not enough properties set in PasswordValidator declaration
-  description: PasswordValidator should have at least two requirements for better security (RequiredLength, RequireDigit, RequireLowercase, RequireUppercase and/or RequireNonLetterOrDigit).
+  title: "Less then {0} properties set in PasswordValidator declaration"
+  description: PasswordValidator should have more requirements for better security (RequiredLength, RequireDigit, RequireLowercase, RequireUppercase and/or RequireNonLetterOrDigit).
 
 SCS0034:
   class: WeakPasswordValidatorPropertyAnalyzer
   title: The RequiredLength property must be set
-  description: The RequiredLength property must be set with a minimum value of 8.
+  description: The RequiredLength property must be set to ensure that password are long enough.

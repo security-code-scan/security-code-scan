@@ -35,6 +35,8 @@ namespace SecurityCodeScan.Test.Config
             var options   = await CreateAnalyzersOptionsWithConfig("");
             var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
 
+            //ensuring that field count matches count of properties tested below (test should fail and be updated if someone adds new field in Configuration)
+            Assert.AreEqual(5, typeof(Configuration).GetFields().Length);
             Assert.AreEqual(StartupConfiguration.Behavior.Count,                            newConfig.Behavior.Count);
             Assert.AreEqual(StartupConfiguration.Sinks.Count,                               newConfig.Sinks.Count);
             Assert.AreEqual(StartupConfiguration.MinimumPasswordValidatorProperties,        newConfig.MinimumPasswordValidatorProperties);
@@ -48,6 +50,8 @@ namespace SecurityCodeScan.Test.Config
             var options   = await CreateAnalyzersOptionsWithConfig("Sinks:");
             var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
 
+            // ensuring that field count matches count of properties tested below
+            Assert.AreEqual(5, typeof(Configuration).GetFields().Length);
             Assert.AreEqual(StartupConfiguration.Behavior.Count,                            newConfig.Behavior.Count);
             Assert.AreEqual(StartupConfiguration.Sinks.Count,                               newConfig.Sinks.Count);
             Assert.AreEqual(StartupConfiguration.MinimumPasswordValidatorProperties,        newConfig.MinimumPasswordValidatorProperties);

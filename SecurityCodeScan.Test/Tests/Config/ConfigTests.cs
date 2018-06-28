@@ -36,12 +36,14 @@ namespace SecurityCodeScan.Test.Config
             var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
 
             //ensuring that field count matches count of properties tested below (test should fail and be updated if someone adds new field in Configuration)
-            Assert.AreEqual(5, typeof(Configuration).GetFields().Length);
+            Assert.AreEqual(6,typeof(Configuration).GetFields().Length);
+
             Assert.AreEqual(StartupConfiguration.Behavior.Count,                            newConfig.Behavior.Count);
             Assert.AreEqual(StartupConfiguration.Sinks.Count,                               newConfig.Sinks.Count);
             Assert.AreEqual(StartupConfiguration.MinimumPasswordValidatorProperties,        newConfig.MinimumPasswordValidatorProperties);
             Assert.AreEqual(StartupConfiguration.PasswordValidatorRequiredLength,           newConfig.PasswordValidatorRequiredLength);
             Assert.AreEqual(StartupConfiguration.PasswordValidatorRequiredProperties.Count, newConfig.PasswordValidatorRequiredProperties.Count);
+            Assert.AreEqual(StartupConfiguration.PasswordFields.Count,                      newConfig.PasswordFields.Count);
         }
 
         [TestMethod]
@@ -51,12 +53,14 @@ namespace SecurityCodeScan.Test.Config
             var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
 
             // ensuring that field count matches count of properties tested below
-            Assert.AreEqual(5, typeof(Configuration).GetFields().Length);
+            Assert.AreEqual(6, typeof(Configuration).GetFields().Length);
+
             Assert.AreEqual(StartupConfiguration.Behavior.Count,                            newConfig.Behavior.Count);
             Assert.AreEqual(StartupConfiguration.Sinks.Count,                               newConfig.Sinks.Count);
             Assert.AreEqual(StartupConfiguration.MinimumPasswordValidatorProperties,        newConfig.MinimumPasswordValidatorProperties);
             Assert.AreEqual(StartupConfiguration.PasswordValidatorRequiredLength,           newConfig.PasswordValidatorRequiredLength);
             Assert.AreEqual(StartupConfiguration.PasswordValidatorRequiredProperties.Count, newConfig.PasswordValidatorRequiredProperties.Count);
+            Assert.AreEqual(StartupConfiguration.PasswordFields.Count,                      newConfig.PasswordFields.Count);
         }
     }
 }

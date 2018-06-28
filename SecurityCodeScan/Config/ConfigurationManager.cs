@@ -89,6 +89,11 @@ namespace SecurityCodeScan.Config
                 config.Sinks[data.Key] = CreateBehavior(data.Value);
             }
 
+            foreach (var field in configData.PasswordFields)
+            {
+                config.PasswordFields.Add(field);
+            }
+
             return config;
         }
 
@@ -179,6 +184,14 @@ namespace SecurityCodeScan.Config
                 }
             }
 
+            if (config.PasswordFields != null)
+            {
+                foreach (var field in config.PasswordFields)
+                {
+                    mergeInto.PasswordFields.Add(field);
+                }
+            }
+
             return mergeInto;
         }
 
@@ -193,11 +206,12 @@ namespace SecurityCodeScan.Config
 
         private class ConfigData
         {
-            public int? PasswordValidatorRequiredLength    { get; set; }
-            public int? MinimumPasswordValidatorProperties { get; set; }
-            public List<string> PasswordValidatorRequiredProperties { get; set; }
-            public Dictionary<string, MethodBehaviorData> Behavior { get; set; }
-            public Dictionary<string, MethodBehaviorData> Sinks    { get; set; }
+            public int?                                   PasswordValidatorRequiredLength     { get; set; }
+            public int?                                   MinimumPasswordValidatorProperties  { get; set; }
+            public List<string>                           PasswordValidatorRequiredProperties { get; set; }
+            public Dictionary<string, MethodBehaviorData> Behavior                            { get; set; }
+            public Dictionary<string, MethodBehaviorData> Sinks                               { get; set; }
+            public List<string>                           PasswordFields                      { get; set; }
         }
 
         private class MethodBehaviorData

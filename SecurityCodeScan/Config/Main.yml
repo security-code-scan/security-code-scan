@@ -1324,3 +1324,20 @@ Sinks:
     Name: .ctor
     PasswordArguments: [1]
     LocalePass: SCS0015
+
+PasswordFields:
+  - password
+  - motdepasse
+  - heslo
+  - adgangskode
+  - wachtwoord
+  - salasana
+  - passwort
+  - passord
+  - senha
+  - geslo
+  - clave
+  - losenord
+  - parola
+  - secretkey
+  - pwd

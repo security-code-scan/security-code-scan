@@ -85,6 +85,7 @@ namespace SecurityCodeScan.Analyzers
                     symbol.HasDerivedMethodAttribute(attributeData => HasAntiForgeryToken(attributeData, antiForgeryAttribute)))
                 {
                     antiforgeryAttributeExists = true;
+                    break;
                 }
             }
 

@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
-using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
 
 namespace SecurityCodeScan.Test.Config
@@ -37,7 +33,7 @@ using System.Web.Mvc;
 
 namespace VulnerableApp
 {
-    [AttributeUsage(AttributeTargets.Method)]
+    [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Method)]
     public class TestAttribute : Attribute
     {
     }
@@ -54,12 +50,12 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = $@"
+            var visualBasicTest = @"
 Imports System
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
-    <AttributeUsage(AttributeTargets.Method)>
+    <System.AttributeUsage(System.AttributeTargets.Class Or System.AttributeTargets.Method)>
     Public Class TestAttribute
         Inherits Attribute
     End Class
@@ -104,7 +100,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace VulnerableApp
 {
-    [AttributeUsage(AttributeTargets.Method)]
+    [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Method)]
     public class TestAttribute : Attribute
     {
     }
@@ -126,7 +122,7 @@ Imports System
 Imports Microsoft.AspNetCore.Mvc
 
 Namespace VulnerableApp
-    <AttributeUsage(AttributeTargets.Method)>
+    <AttributeUsage(System.AttributeTargets.Class Or System.AttributeTargets.Method)>
     Public Class TestAttribute
         Inherits Attribute
     End Class

@@ -100,16 +100,16 @@ namespace SecurityCodeScan.Config
         }
 
         private void AddAntiCsrfTAttributeToConfiguration(Configuration config, CsrfProtectionData csrfData)
+        {
+            config.AntiCsrfAttributes.TryGetValue(csrfData.HttpMethodsNameSpace, out var list);
+            if (list == null)
             {
-                config.AntiCsrfAttributes.TryGetValue(csrfData.HttpMethodsNameSpace, out var list);
-                if (list == null)
-                {
-                    list = new List<string>();
-                    config.AntiCsrfAttributes[csrfData.HttpMethodsNameSpace] = list;
-                }
-
-                list.Add(csrfData.AntiCsrfAttribute);
+                list = new List<string>();
+                config.AntiCsrfAttributes[csrfData.HttpMethodsNameSpace] = list;
             }
+
+            list.Add(csrfData.AntiCsrfAttribute);
+        }
 
         private Configuration GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
         {

@@ -11,6 +11,7 @@ namespace SecurityCodeScan.Config
             Behavior                            = new Dictionary<string, KeyValuePair<string, MethodBehavior>>();
             Sinks                               = new Dictionary<string, KeyValuePair<string, MethodBehavior>>();
             PasswordFields                      = new HashSet<string>();
+            ConstantFields                       = new HashSet<string>();
         }
 
         internal Configuration(Configuration config)
@@ -21,6 +22,7 @@ namespace SecurityCodeScan.Config
             Behavior                            = new Dictionary<string, KeyValuePair<string, MethodBehavior>>(config.Behavior);
             Sinks                               = new Dictionary<string, KeyValuePair<string, MethodBehavior>>(config.Sinks);
             PasswordFields                      = new HashSet<string>(config.PasswordFields);
+            ConstantFields                       = new HashSet<string>(config.ConstantFields);
         }
 
         public int PasswordValidatorRequiredLength;
@@ -29,5 +31,6 @@ namespace SecurityCodeScan.Config
         public Dictionary<string, KeyValuePair<string, MethodBehavior>> Behavior;
         public Dictionary<string, KeyValuePair<string, MethodBehavior>> Sinks;
         public HashSet<string> PasswordFields;
+        public HashSet<string> ConstantFields;
     }
 }

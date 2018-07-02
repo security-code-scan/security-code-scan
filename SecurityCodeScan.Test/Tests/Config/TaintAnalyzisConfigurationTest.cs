@@ -335,5 +335,58 @@ Behavior:
             await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
+
+        [TestMethod]
+        public async Task AddConstantValue()
+        {
+            {
+                var cSharpTest = @"
+using System.Data.SqlClient;
+
+namespace sample
+{
+    class Test
+    {
+        public static readonly string Safe = ""Safe"";
+
+        static void TestMethod()
+        {
+            new SqlCommand(Safe);
+        }
+    }
+}
+";
+
+                var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+    Class Test
+        Public Shared ReadOnly Safe As String = ""Safe""
+
+        Private Shared Sub TestMethod()
+            Dim com As New SqlCommand(Safe)
+        End Sub
+    End Class
+End Namespace
+";
+
+                var expected = new DiagnosticResult
+                {
+                    Id       = "SCS0026",
+                    Severity = DiagnosticSeverity.Warning,
+                };
+                await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+
+                var testConfig = @"
+ConstantFields: [sample.Test.Safe]
+";
+                var optionsWithProjectConfig = await CreateAnalyzersOptionsWithConfig(testConfig).ConfigureAwait(false);
+
+                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+        }
     }
 }

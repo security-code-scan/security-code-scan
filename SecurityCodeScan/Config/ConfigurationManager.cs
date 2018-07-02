@@ -89,9 +89,14 @@ namespace SecurityCodeScan.Config
                 config.Sinks[data.Key] = CreateBehavior(data.Value);
             }
 
-            foreach (var field in configData.PasswordFields)
+            foreach (var data in configData.PasswordFields)
             {
-                config.PasswordFields.Add(field);
+                config.PasswordFields.Add(data);
+            }
+
+            foreach (var data in configData.ConstantFields)
+            {
+                config.ConstantFields.Add(data);
             }
 
             return config;
@@ -192,6 +197,14 @@ namespace SecurityCodeScan.Config
                 }
             }
 
+            if (config.ConstantFields != null)
+            {
+                foreach (var field in config.ConstantFields)
+                {
+                    mergeInto.ConstantFields.Add(field);
+                }
+            }
+
             return mergeInto;
         }
 
@@ -212,6 +225,7 @@ namespace SecurityCodeScan.Config
             public Dictionary<string, MethodBehaviorData> Behavior                            { get; set; }
             public Dictionary<string, MethodBehaviorData> Sinks                               { get; set; }
             public List<string>                           PasswordFields                      { get; set; }
+            public List<string>                           ConstantFields                      { get; set; }
         }
 
         private class MethodBehaviorData

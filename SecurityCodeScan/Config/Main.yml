@@ -1315,6 +1315,8 @@ Sinks:
     LocalePass: SCS0015
 
 CsrfProtectionAttributes:
+#These attributes should be applicable to Class and Method and be inheritable. Multiple instances should not be allowed.
+#Otherwise, CsrfTokenAnalyzer may not work properly
   - HttpMethodsNameSpace: System.Web.Mvc
     AntiCsrfAttribute: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
   - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc

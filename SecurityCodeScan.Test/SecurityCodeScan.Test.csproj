@@ -305,6 +305,7 @@
     <Compile Include="Tests\AspxAnalyzerTest.cs" />
     <Compile Include="Tests\Config\ConfigurationTest.cs" />
     <Compile Include="Tests\Config\ConfigTests.cs" />
+    <Compile Include="Tests\Config\CsrfTokenAnalyzerConfigTests.cs" />
     <Compile Include="Tests\Config\TaintAnalyzisConfigurationTest.cs" />
     <Compile Include="Tests\Config\UnknownPasswordApiAnalyzerConfigTest.cs" />
     <Compile Include="Tests\Config\WeakPasswordValidatorPropertyAnalyzerConfigTests.cs" />

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -89,6 +90,11 @@ namespace SecurityCodeScan.Config
                 config.Sinks[data.Key] = CreateBehavior(data.Value);
             }
 
+            foreach (var data in configData.CsrfProtectionAttributes)
+            {
+                AddAntiCsrfTAttributeToConfiguration(config, data);
+            }
+
             foreach (var data in configData.PasswordFields)
             {
                 config.PasswordFields.Add(data);
@@ -115,6 +121,18 @@ namespace SecurityCodeScan.Config
                                                                                     behavior.LocalePass,
                                                                                     behavior.InjectableField,
                                                                                     behavior.IsPasswordField));
+        }
+
+        private void AddAntiCsrfTAttributeToConfiguration(Configuration config, CsrfProtectionData csrfData)
+        {
+            config.AntiCsrfAttributes.TryGetValue(csrfData.HttpMethodsNameSpace, out var list);
+            if (list == null)
+            {
+                list = new List<string>();
+                config.AntiCsrfAttributes[csrfData.HttpMethodsNameSpace] = list;
+            }
+
+            list.Add(csrfData.AntiCsrfAttribute);
         }
 
         public Configuration GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
@@ -188,7 +206,15 @@ namespace SecurityCodeScan.Config
                         mergeInto.Sinks[sink.Key] = CreateBehavior(sink.Value);
                 }
             }
-
+          
+            if (config.CsrfProtectionAttributes != null)
+            {
+                foreach (var data in config.CsrfProtectionAttributes)
+                {
+                    AddAntiCsrfTAttributeToConfiguration(mergeInto, data);
+                }
+            }
+          
             if (config.PasswordFields != null)
             {
                 foreach (var field in config.PasswordFields)
@@ -204,7 +230,7 @@ namespace SecurityCodeScan.Config
                     mergeInto.ConstantFields.Add(field);
                 }
             }
-
+          
             return mergeInto;
         }
 
@@ -217,6 +243,13 @@ namespace SecurityCodeScan.Config
             return behaviorInfos;
         }
 
+        public IEnumerable<string> GetAntiCsrfAttributes(ImmutableArray<AdditionalText> additionalFiles, string httpMethodsNamespace)
+        {
+            var config = GetProjectConfiguration(additionalFiles);
+
+            return config.AntiCsrfAttributes[httpMethodsNamespace];
+        }
+
         private class ConfigData
         {
             public int?                                   PasswordValidatorRequiredLength     { get; set; }
@@ -224,6 +257,7 @@ namespace SecurityCodeScan.Config
             public List<string>                           PasswordValidatorRequiredProperties { get; set; }
             public Dictionary<string, MethodBehaviorData> Behavior                            { get; set; }
             public Dictionary<string, MethodBehaviorData> Sinks                               { get; set; }
+            public List<CsrfProtectionData>               CsrfProtectionAttributes            { get; set; }
             public List<string>                           PasswordFields                      { get; set; }
             public List<string>                           ConstantFields                      { get; set; }
         }
@@ -243,6 +277,12 @@ namespace SecurityCodeScan.Config
             public string LocalePass          { get; set; }
             public bool   InjectableField     { get; set; }
             public bool   IsPasswordField     { get; set; }
+        }
+
+        public class CsrfProtectionData
+        {
+            public string HttpMethodsNameSpace { get; set; }
+            public string AntiCsrfAttribute { get; set; }
         }
     }
 }

@@ -720,6 +720,8 @@ namespace SecurityCodeScan.Analyzers
                         return localSymbol.Type;
                     case IParameterSymbol parameterSymbol:
                         return parameterSymbol.Type;
+                    case IPropertySymbol propertySymbol:
+                        return propertySymbol.Type;
                     default:
                         throw new ArgumentException(nameof(symbol));
                 }

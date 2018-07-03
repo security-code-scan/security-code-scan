@@ -31,8 +31,9 @@ namespace SecurityCodeScan.Test
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        private const int DefaultPasswordValidatorRequiredLenght = 8;
 
-        private readonly int DefaultPasswordValidatorRequiredLenght = 8;
+
         /// <summary>
         /// Test case where the RequiredLength field has an accepted value.
         /// </summary>
@@ -112,7 +113,7 @@ namespace WebApplicationSandbox.Controllers
         {
             PasswordValidator pwdv = new PasswordValidator
             {
-                RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @",
+                RequiredLength = " + (DefaultPasswordValidatorRequiredLenght - 1) + @",
                 RequireNonLetterOrDigit = true,
                 RequireDigit = true,
                 RequireLowercase = true,
@@ -134,7 +135,7 @@ Namespace WebApplicationSandbox.Controllers
         Inherits Controller
         Public Function Index() As ActionResult
             Dim pwdv As New PasswordValidator() With { _
-                .RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @", _
+                .RequiredLength = " + (DefaultPasswordValidatorRequiredLenght - 1) + @", _
                 .RequireNonLetterOrDigit = True, _
                 .RequireDigit = True, _
                 .RequireLowercase = True, _
@@ -179,7 +180,7 @@ namespace WebApplicationSandbox.Controllers
                 RequireDigit = true,
             };
 
-            pwdv.RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @";
+            pwdv.RequiredLength = " + (DefaultPasswordValidatorRequiredLenght - 1) + @";
 
             return View();
         }
@@ -200,7 +201,7 @@ Namespace WebApplicationSandbox.Controllers
                 .RequireDigit = True _
             }
 
-            pwdv.RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @"
+            pwdv.RequiredLength = " + (DefaultPasswordValidatorRequiredLenght - 1) + @"
 
             Return View()
         End Function

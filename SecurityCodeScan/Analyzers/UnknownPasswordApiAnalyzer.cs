@@ -97,7 +97,7 @@ namespace SecurityCodeScan.Analyzers
         }
     }
 
-    public class UnknownPasswordApiAnalyzer
+    internal class UnknownPasswordApiAnalyzer
     {
         public static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0015", "title_assignment");
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);

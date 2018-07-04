@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 
 namespace SecurityCodeScan.Analyzers.Utils
 {
-    public static class ISymbolExtensions
+    internal static class ISymbolExtensions
     {
         public static bool IsType(this ISymbol symbol)
         {

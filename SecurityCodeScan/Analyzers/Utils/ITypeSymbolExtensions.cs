@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 
 namespace SecurityCodeScan.Analyzers.Utils
 {
-    public static class ITypeSymbolExtensions
+    internal static class ITypeSymbolExtensions
     {
         public static bool IsPrimitiveType(this ITypeSymbol type)
         {

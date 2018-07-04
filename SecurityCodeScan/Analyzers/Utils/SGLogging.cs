@@ -5,7 +5,7 @@ namespace SecurityCodeScan.Analyzers.Utils
     /// <summary>
     /// Logging utility to debug the analyzers
     /// </summary>
-    public class Logger
+    internal class Logger
     {
         public static Action<string> LoggerHandler { get; set; }
 

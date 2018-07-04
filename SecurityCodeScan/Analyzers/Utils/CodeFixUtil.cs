@@ -1,10 +1,9 @@
-﻿using System;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace SecurityCodeScan.Analyzers.Utils
 {
-    public class CodeFixUtil
+    internal class CodeFixUtil
     {
         /// <summary>
         /// Extract the last indentation from the trivia passed.

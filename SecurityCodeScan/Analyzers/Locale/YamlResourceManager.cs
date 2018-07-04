@@ -7,7 +7,7 @@ using YamlDotNet.RepresentationModel;
 
 namespace SecurityCodeScan.Analyzers.Locale
 {
-    public class YamlResourceManager : ResourceManager
+    internal class YamlResourceManager : ResourceManager
     {
         private const string MessagesFileName = "Messages.yml";
 

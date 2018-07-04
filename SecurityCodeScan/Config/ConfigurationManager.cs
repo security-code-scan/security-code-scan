@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -135,7 +134,7 @@ namespace SecurityCodeScan.Config
             list.Add(csrfData.AntiCsrfAttribute);
         }
 
-        internal Configuration GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
+        public Configuration GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
         {
             foreach (var file in additionalFiles)
             {
@@ -279,7 +278,7 @@ namespace SecurityCodeScan.Config
             public bool   IsPasswordField     { get; set; }
         }
 
-        public class CsrfProtectionData
+        private class CsrfProtectionData
         {
             public string HttpMethodsNameSpace { get; set; }
             public string AntiCsrfAttribute { get; set; }

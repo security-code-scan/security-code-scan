@@ -67,8 +67,16 @@ PasswordFields: [TestPassword]
                 Id       = "SCS0015",
                 Severity = DiagnosticSeverity.Warning
             };
-            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+
+            testConfig = @"
+PasswordFields: [TeStPassWORD]
+";
+
+            optionsWithProjectConfig = await CreateAnalyzersOptionsWithConfig(testConfig).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
     }
 }

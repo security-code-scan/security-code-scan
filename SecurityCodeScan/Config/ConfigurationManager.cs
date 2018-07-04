@@ -97,7 +97,7 @@ namespace SecurityCodeScan.Config
 
             foreach (var data in configData.PasswordFields)
             {
-                config.PasswordFields.Add(data);
+                config.PasswordFields.Add(data.ToUpperInvariant());
             }
 
             foreach (var data in configData.ConstantFields)
@@ -219,7 +219,7 @@ namespace SecurityCodeScan.Config
             {
                 foreach (var field in config.PasswordFields)
                 {
-                    mergeInto.PasswordFields.Add(field);
+                    mergeInto.PasswordFields.Add(field.ToUpperInvariant());
                 }
             }
 

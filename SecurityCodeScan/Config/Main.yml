@@ -1337,9 +1337,10 @@ CsrfProtectionAttributes:
     AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
     
 PasswordFields:
-  - password
-  - secretkey
-  - pwd
+# These fiels names are case insensitive
+  - PASSWORD
+  - SECRETKEY
+  - PWD
 
 ConstantFields:
   - "System.String.Empty"

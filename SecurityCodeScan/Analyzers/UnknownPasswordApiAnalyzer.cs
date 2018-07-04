@@ -105,7 +105,7 @@ namespace SecurityCodeScan.Analyzers
         public bool IsPasswordField(ISymbol symbol, ImmutableArray<AdditionalText> additionalTexts)
         {
             var passwordFields = ConfigurationManager.Instance.GetProjectConfiguration(additionalTexts).PasswordFields;
-            return passwordFields.Contains(symbol.MetadataName.ToLowerInvariant());
+            return passwordFields.Contains(symbol.MetadataName.ToUpperInvariant());
         }
     }
 }

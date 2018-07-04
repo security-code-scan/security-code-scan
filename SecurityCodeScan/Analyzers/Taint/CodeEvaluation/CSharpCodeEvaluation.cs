@@ -557,7 +557,6 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                             .ConstantFields;
 
                     if (contantFields.Contains(field.GetTypeName()))
-
                     {
                         return new VariableState(expression, VariableTaint.Constant);
                     }

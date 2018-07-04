@@ -326,7 +326,7 @@ PasswordValidatorRequiredProperties: [{properties}]
             var optionsWithProjectConfig = await CreateAnalyzersOptionsWithConfig(testConfig).ConfigureAwait(false);
             expected = new DiagnosticResult
             {
-                Id       = "SCS0031",
+                Id       = "SCS0034",
                 Severity = DiagnosticSeverity.Warning
             };
 

@@ -84,12 +84,11 @@ namespace SecurityCodeScan.Analyzers
     {
         private static readonly DiagnosticDescriptor RulePasswordLength                  = LocaleUtil.GetDescriptor("SCS0032"); // RequiredLength's value is too small
         private static readonly DiagnosticDescriptor RulePasswordValidators              = LocaleUtil.GetDescriptor("SCS0033"); // Not enough properties set
-        private static readonly DiagnosticDescriptor RulePasswordValidatorRequiredLength = LocaleUtil.GetDescriptor("SCS0034");                // RequiredLength must be set
-        private static readonly DiagnosticDescriptor RuleRequiredPasswordValidators      = LocaleUtil.GetDescriptor("SCS0031");
+        private static readonly DiagnosticDescriptor RuleRequiredPasswordValidators      = LocaleUtil.GetDescriptor("SCS0034"); // Required property must be set
 
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RulePasswordLength,
-                                                                                                           RulePasswordValidators,
-                                                                                                           RulePasswordValidatorRequiredLength);
+                                                                                                  RulePasswordValidators,
+                                                                                                  RuleRequiredPasswordValidators);
 
         public void VisitAssignmentExpression(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
@@ -130,13 +129,6 @@ namespace SecurityCodeScan.Analyzers
                 if (!AnalyzerUtil.SymbolMatch(state.GetSymbol(st.Node), "PasswordValidator", ".ctor"))
                     continue;
 
-                // If the PasswordValidator instance doesn't have the RequiredLength property
-                if (!st.Tags.Contains(VariableTag.RequiredLengthIsSet))
-                {
-                    state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RulePasswordValidatorRequiredLength,
-                                                                             variableState.Value.Node.GetLocation()));
-                }
-
                 var minimumRequiredProperties = ConfigurationManager
                                                 .Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles)
                                                 .MinimumPasswordValidatorProperties;
@@ -150,25 +142,31 @@ namespace SecurityCodeScan.Analyzers
                 var requiredProperties = ConfigurationManager.Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles)
                                                              .PasswordValidatorRequiredProperties;
 
-                if (!(st.Tags.Contains(VariableTag.RequireDigitIsSet)) && requiredProperties.Contains("RequireDigit"))
+                if (!st.Tags.Contains(VariableTag.RequiredLengthIsSet) && requiredProperties.Contains("RequiredLength"))
+                {
+                    state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleRequiredPasswordValidators,
+                                                                             variableState.Value.Node.GetLocation(), "RequiredLength"));
+                }
+
+                if (!st.Tags.Contains(VariableTag.RequireDigitIsSet) && requiredProperties.Contains("RequireDigit"))
                 {
                     state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleRequiredPasswordValidators,
                                                                              variableState.Value.Node.GetLocation(), "RequireDigit"));
                 }
 
-                if (!(st.Tags.Contains(VariableTag.RequireLowercaseIsSet)) && requiredProperties.Contains("RequireLowercase"))
+                if (!st.Tags.Contains(VariableTag.RequireLowercaseIsSet) && requiredProperties.Contains("RequireLowercase"))
                 {
                     state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleRequiredPasswordValidators,
                                                                              variableState.Value.Node.GetLocation(), "RequireLowercase"));
                 }
 
-                if (!(st.Tags.Contains(VariableTag.RequireNonLetterOrDigitIsSet)) && requiredProperties.Contains("RequireNonLetterOrDigit"))
+                if (!st.Tags.Contains(VariableTag.RequireNonLetterOrDigitIsSet) && requiredProperties.Contains("RequireNonLetterOrDigit"))
                 {
                     state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleRequiredPasswordValidators,
                                                                              variableState.Value.Node.GetLocation(), "RequireNonLetterOrDigit"));
                 }
 
-                if (!(st.Tags.Contains(VariableTag.RequireUppercaseIsSet)) && requiredProperties.Contains("RequireUppercase"))
+                if (!st.Tags.Contains(VariableTag.RequireUppercaseIsSet) && requiredProperties.Contains("RequireUppercase"))
                 {
                     state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleRequiredPasswordValidators,
                                                                              variableState.Value.Node.GetLocation(), "RequireUppercase"));

@@ -1,6 +1,9 @@
 ﻿PasswordValidatorRequiredLength: 8
 MinimumPasswordValidatorProperties: 3
 
+# Possible values: RequiredLength, RequireUppercase, RequireDigit, RequireLowercase, RequireNonLetterOrDigit
+PasswordValidatorRequiredProperties: [RequiredLength]
+
 Behavior:
 # This is the definition of API that conserve the state of variable received.
 # By considering those API, the flow analysis will be much more accurate.
@@ -1326,8 +1329,8 @@ Sinks:
     LocalePass: SCS0015
 
 CsrfProtectionAttributes:
-#These attributes should be applicable to Class and Method and be inheritable. Multiple instances should not be allowed.
-#Otherwise, CsrfTokenAnalyzer may not work properly
+# These attributes should be applicable to Class and Method and be inheritable. Multiple instances should not be allowed.
+# Otherwise, CsrfTokenAnalyzer may not work properly
   - HttpMethodsNameSpace: System.Web.Mvc
     AntiCsrfAttribute: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
   - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
@@ -1335,18 +1338,6 @@ CsrfProtectionAttributes:
     
 PasswordFields:
   - password
-  - motdepasse
-  - heslo
-  - adgangskode
-  - wachtwoord
-  - salasana
-  - passwort
-  - passord
-  - senha
-  - geslo
-  - clave
-  - losenord
-  - parola
   - secretkey
   - pwd
 

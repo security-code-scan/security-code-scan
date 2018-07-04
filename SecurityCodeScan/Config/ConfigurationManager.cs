@@ -10,7 +10,7 @@ using YamlDotNet.Serialization;
 
 namespace SecurityCodeScan.Config
 {
-    public class ConfigurationManager
+    internal class ConfigurationManager
     {
         public static ConfigurationManager Instance { get; } = new ConfigurationManager();
 
@@ -135,7 +135,7 @@ namespace SecurityCodeScan.Config
             list.Add(csrfData.AntiCsrfAttribute);
         }
 
-        public Configuration GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
+        internal Configuration GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
         {
             foreach (var file in additionalFiles)
             {

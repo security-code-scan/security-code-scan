@@ -3,9 +3,9 @@ using SecurityCodeScan.Analyzers.Taint;
 
 namespace SecurityCodeScan.Config
 {
-    public class Configuration
+    internal class Configuration
     {
-        internal Configuration()
+        public Configuration()
         {
             PasswordValidatorRequiredProperties = new HashSet<string>();
             Behavior                            = new Dictionary<string, KeyValuePair<string, MethodBehavior>>();
@@ -15,7 +15,7 @@ namespace SecurityCodeScan.Config
             ConstantFields                      = new HashSet<string>();
         }
 
-        internal Configuration(Configuration config)
+        public Configuration(Configuration config)
         {
             PasswordValidatorRequiredLength     = config.PasswordValidatorRequiredLength;
             MinimumPasswordValidatorProperties  = config.MinimumPasswordValidatorProperties;

@@ -8,8 +8,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Utils;
+using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Test.Helpers
 {
@@ -18,6 +20,15 @@ namespace SecurityCodeScan.Test.Helpers
     /// </summary>
     public abstract partial class DiagnosticVerifier
     {
+        protected DiagnosticVerifier()
+        {
+            // Tests ignore global user configuration files if they exist
+            var mockConfigReader = new Mock<ConfigurationReader>();
+            mockConfigReader.Setup(mr => mr.GetUserConfiguration()).Returns(default(ConfigData)); // For the partially mocked methods
+            mockConfigReader.CallBase = true; // To wire-up the concrete class.
+            ConfigurationManager.Instance.ConfigurationReader = mockConfigReader.Object;
+        }
+
         #region To be implemented by Test classes
 
         /// <summary>

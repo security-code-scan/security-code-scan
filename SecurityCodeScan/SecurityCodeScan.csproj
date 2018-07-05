@@ -32,7 +32,7 @@
     <LangVersion>default</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Analyzers\CsrfTokenAnalyzer.cs" />
@@ -80,7 +80,6 @@
     <Compile Include="CodeFixes\InsecureCookieCodeFixProvider.cs" />
     <Compile Include="Config\ConfigurationManager.cs" />
     <Compile Include="Config\Configuration.cs" />
-    <Compile Include="Constants.cs" />
     <Compile Include="Empty.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

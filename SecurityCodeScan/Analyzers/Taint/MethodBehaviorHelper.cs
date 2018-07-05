@@ -10,7 +10,7 @@ using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Analyzers.Taint
 {
-    public static class MethodBehaviorHelper
+    internal static class MethodBehaviorHelper
     {
         private static Dictionary<string, MethodBehavior> GetMethodInjectableArguments(ImmutableArray<AdditionalText> additionalFiles)
         {

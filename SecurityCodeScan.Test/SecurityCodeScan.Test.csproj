@@ -38,6 +38,9 @@
     <Prefer32Bit>false</Prefer32Bit>
     <LangVersion>default</LangVersion>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Castle.Core, Version=3.3.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
       <HintPath>..\packages\Castle.Core.3.3.3\lib\net45\Castle.Core.dll</HintPath>
@@ -304,8 +307,11 @@
   <ItemGroup>
     <Compile Include="Tests\AspxAnalyzerTest.cs" />
     <Compile Include="Tests\Config\ConfigurationTest.cs" />
+    <Compile Include="Tests\Config\ConfigTests.cs" />
     <Compile Include="Tests\Config\CsrfTokenAnalyzerConfigTests.cs" />
     <Compile Include="Tests\Config\TaintAnalyzisConfigurationTest.cs" />
+    <Compile Include="Tests\Config\UnknownPasswordApiAnalyzerConfigTest.cs" />
+    <Compile Include="Tests\Config\WeakPasswordValidatorPropertyAnalyzerConfigTests.cs" />
     <Compile Include="Tests\ExternalFileAnalyzerTest.cs" />
     <Compile Include="Tests\Password\HardcodedPasswordFieldTest.cs" />
     <Compile Include="Tests\Taint\OpenRedirectAnalyzerTest.cs" />

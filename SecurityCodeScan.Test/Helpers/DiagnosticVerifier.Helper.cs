@@ -43,7 +43,7 @@ namespace SecurityCodeScan.Test.Helpers
             public MetadataReference GetMetadata(string assemblyName)
             {
                 MetadataReference ret;
-                string            name = assemblyName.ToLower();
+                string            name = assemblyName.ToUpperInvariant();
                 lock (Assemblies)
                 {
                     if (Assemblies.TryGetValue(name, out ret))
@@ -75,10 +75,10 @@ namespace SecurityCodeScan.Test.Helpers
         private static readonly CompilationOptions CSharpDefaultOptions      = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
         private static readonly CompilationOptions VisualBasicDefaultOptions = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
-        internal const string DefaultFilePathPrefix = "Test";
-        internal const string CSharpDefaultFileExt  = "cs";
-        internal const string VisualBasicDefaultExt = "vb";
-        internal const string TestProjectName       = "TestProject";
+        private const string DefaultFilePathPrefix = "Test";
+        private const string CSharpDefaultFileExt  = "cs";
+        private const string VisualBasicDefaultExt = "vb";
+        private const string TestProjectName       = "TestProject";
 
         #region  Get Diagnostics
 

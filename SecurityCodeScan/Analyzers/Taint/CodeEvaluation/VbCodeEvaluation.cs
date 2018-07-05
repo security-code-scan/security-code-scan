@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
+using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Analyzers.Taint
 {
@@ -496,16 +497,12 @@ namespace SecurityCodeScan.Analyzers.Taint
                     if (!field.IsReadOnly)
                         return new VariableState(expression, VariableTaint.Unknown);
 
-                    switch (field.GetTypeName()) // todo: move out to config of readonly values, that are constant in fact
+                    var contantFields = ConfigurationManager.Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles)
+                                                            .ConstantFields;
+
+                    if (contantFields.Contains(field.GetTypeName()))
                     {
-                        case "System.String.Empty":
-                        case "System.IntPtr.Zero":
-                        case "System.IO.Path.AltDirectorySeparatorChar":
-                        case "System.IO.Path.DirectorySeparatorChar":
-                        case "System.IO.Path.InvalidPathChars":
-                        case "System.IO.Path.PathSeparator":
-                        case "System.IO.Path.VolumeSeparatorChar":
-                            return new VariableState(expression, VariableTaint.Constant);
+                        return new VariableState(expression, VariableTaint.Constant);
                     }
 
                     return new VariableState(expression, VariableTaint.Unknown);

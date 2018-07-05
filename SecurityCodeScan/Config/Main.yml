@@ -1,4 +1,10 @@
-﻿Behavior:
+﻿PasswordValidatorRequiredLength: 8
+MinimumPasswordValidatorProperties: 3
+
+# Possible values: RequiredLength, RequireUppercase, RequireDigit, RequireLowercase, RequireNonLetterOrDigit
+PasswordValidatorRequiredProperties: [RequiredLength]
+
+Behavior:
 # This is the definition of API that conserve the state of variable received.
 # By considering those API, the flow analysis will be much more accurate.
 # All undocumented API return UNKNOWN state (considered unsafe).
@@ -1323,9 +1329,24 @@ Sinks:
     LocalePass: SCS0015
 
 CsrfProtectionAttributes:
-#These attributes should be applicable to Class and Method and be inheritable. Multiple instances should not be allowed.
-#Otherwise, CsrfTokenAnalyzer may not work properly
+# These attributes should be applicable to Class and Method and be inheritable. Multiple instances should not be allowed.
+# Otherwise, CsrfTokenAnalyzer may not work properly
   - HttpMethodsNameSpace: System.Web.Mvc
     AntiCsrfAttribute: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
   - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
     AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
+    
+PasswordFields:
+# These fiels names are case insensitive
+  - PASSWORD
+  - SECRETKEY
+  - PWD
+
+ConstantFields:
+  - "System.String.Empty"
+  - "System.IntPtr.Zero"
+  - "System.IO.Path.AltDirectorySeparatorChar"
+  - "System.IO.Path.DirectorySeparatorChar"
+  - "System.IO.Path.InvalidPathChars"
+  - "System.IO.Path.PathSeparator"
+  - "System.IO.Path.VolumeSeparatorChar"

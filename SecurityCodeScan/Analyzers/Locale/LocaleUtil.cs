@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis;
 
 namespace SecurityCodeScan.Analyzers.Locale
 {
-    public class LocaleUtil
+    internal class LocaleUtil
     {
         private static YamlResourceManager ResourceManager;
 

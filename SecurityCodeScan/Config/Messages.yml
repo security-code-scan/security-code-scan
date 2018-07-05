@@ -179,15 +179,15 @@ SCS0015:
 
 SCS0032:
   class: WeakPasswordValidatorAnalyzer
-  title: The RequiredLength property of PasswordValidator is too small
-  description: The minimal length of a password is recommended to be set at least to 8.
+  title: "The RequiredLength property of PasswordValidator should be set to at least {0}"
+  description: "The minimal length of a passwords is too short."
 
 SCS0033:
   class: WeakPasswordValidatorPropertyAnalyzer
-  title: Not enough properties set in PasswordValidator declaration
-  description: PasswordValidator should have at least two requirements for better security (RequiredLength, RequireDigit, RequireLowercase, RequireUppercase and/or RequireNonLetterOrDigit).
+  title: "Less than {0} properties set in PasswordValidator declaration"
+  description: Password requirements are weak. PasswordValidator should have more properties set (RequiredLength, RequireDigit, RequireLowercase, RequireUppercase and/or RequireNonLetterOrDigit).
 
 SCS0034:
   class: WeakPasswordValidatorPropertyAnalyzer
-  title: The RequiredLength property must be set
-  description: The RequiredLength property must be set with a minimum value of 8.
+  title: "The {0} property must be set"
+  description: This property must be set to increase password requirements strength.

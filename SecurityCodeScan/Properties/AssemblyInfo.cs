@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Resources;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
@@ -31,3 +32,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion("2.7.1.0")]
 [assembly: AssemblyFileVersion("2.7.1.0")]
 [assembly: NeutralResourcesLanguage("en")]
+
+[assembly: InternalsVisibleTo("SecurityCodeScan.Test")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

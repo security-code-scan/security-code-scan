@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Analyzers.Utils;
+using SecurityCodeScan.Config;
 using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 using SyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
@@ -35,7 +36,7 @@ namespace SecurityCodeScan.Analyzers
                 symbol                                                                       == null                               ||
                 variableRightState.Taint                                                     != VariableTaint.Constant             ||
                 Microsoft.CodeAnalysis.CSharp.CSharpExtensions.Kind(variableRightState.Node) != SyntaxKind.StringLiteralExpression ||
-                !Analyzer.IsPasswordField(symbol))
+                !Analyzer.IsPasswordField(symbol, state.AnalysisContext.Options.AdditionalFiles))
             {
                 return;
             }
@@ -78,7 +79,7 @@ namespace SecurityCodeScan.Analyzers
                 variableRightState.Taint != VariableTaint.Constant ||
                 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.Kind(variableRightState.Node) !=
                 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.StringLiteralExpression ||
-                !Analyzer.IsPasswordField(symbol))
+                !Analyzer.IsPasswordField(symbol, state.AnalysisContext.Options.AdditionalFiles))
             {
                 return;
             }
@@ -96,33 +97,15 @@ namespace SecurityCodeScan.Analyzers
         }
     }
 
-    public class UnknownPasswordApiAnalyzer
+    internal class UnknownPasswordApiAnalyzer
     {
         public static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0015", "title_assignment");
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
-        private readonly List<string> PasswordKeywords = new List<string> // todo: move out to config
+        public bool IsPasswordField(ISymbol symbol, ImmutableArray<AdditionalText> additionalTexts)
         {
-            "password",
-            "motdepasse",
-            "heslo",
-            "adgangskode",
-            "wachtwoord",
-            "salasana",
-            "passwort",
-            "passord",
-            "senha",
-            "geslo",
-            "clave",
-            "losenord",
-            "parola",
-            "secretkey",
-            "pwd"
-        };
-
-        public bool IsPasswordField(ISymbol symbol)
-        {
-            return PasswordKeywords.Contains(symbol.MetadataName.ToLower());
+            var passwordFields = ConfigurationManager.Instance.GetProjectConfiguration(additionalTexts).PasswordFields;
+            return passwordFields.Contains(symbol.MetadataName.ToUpperInvariant());
         }
     }
 }

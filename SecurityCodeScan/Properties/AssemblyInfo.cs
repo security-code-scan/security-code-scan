@@ -34,3 +34,4 @@ using System.Runtime.InteropServices;
 [assembly: NeutralResourcesLanguage("en")]
 
 [assembly: InternalsVisibleTo("SecurityCodeScan.Test")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

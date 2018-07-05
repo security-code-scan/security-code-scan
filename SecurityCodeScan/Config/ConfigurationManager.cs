@@ -9,14 +9,66 @@ using YamlDotNet.Serialization;
 
 namespace SecurityCodeScan.Config
 {
+    internal class ConfigurationReader
+    {
+        private const string BuiltinConfigName = "SecurityCodeScan.Config.Main.yml";
+        private const    string ConfigName     = "SecurityCodeScan.config.yml";
+        private const    string UserConfigName = "SecurityCodeScan\\config.yml";
+        private readonly string UserConfigFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), UserConfigName);
+
+        public ConfigData GetBuiltinConfiguration()
+        {
+            var assembly = typeof(ConfigurationManager).GetTypeInfo().Assembly;
+
+            using (Stream stream = assembly.GetManifestResourceStream(BuiltinConfigName))
+            {
+                using (var reader = new StreamReader(stream))
+                {
+                    var deserializer = new Deserializer();
+                    return deserializer.Deserialize<ConfigData>(reader);
+                }
+            }
+        }
+
+        public virtual ConfigData GetUserConfiguration()
+        {
+            if (!File.Exists(UserConfigFile))
+                return null;
+
+            using (StreamReader reader = new StreamReader(UserConfigFile))
+            {
+                var deserializer = new Deserializer();
+                return deserializer.Deserialize<ConfigData>(reader);
+            }
+        }
+
+        public ConfigData GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles, out string path)
+        {
+            foreach (var file in additionalFiles)
+            {
+                if (Path.GetFileName(file.Path) != ConfigName)
+                    continue;
+
+                using (var reader = new StreamReader(file.Path))
+                {
+                    var deserializer = new Deserializer();
+                    path = file.Path;
+                    return deserializer.Deserialize<ConfigData>(reader);
+                }
+            }
+
+            path = null;
+            return null;
+        }
+    }
+
     internal class ConfigurationManager
     {
         public static ConfigurationManager Instance { get; } = new ConfigurationManager();
 
-        private const string ConfigName = "SecurityCodeScan.config.yml";
-        private const string UserConfigName = @"SecurityCodeScan/config.yml";
         private readonly Dictionary<string, Configuration> ProjectConfigs = new Dictionary<string, Configuration>();
-        public string UserConfigFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), UserConfigName);
+
+        public ConfigurationReader ConfigurationReader { get; set; } = new ConfigurationReader();
 
         private static readonly object ProjectConfigsLock = new object();
         private static readonly object ConfigurationLock = new object();
@@ -34,29 +86,12 @@ namespace SecurityCodeScan.Config
                     if (CachedConfiguration != null)
                         return CachedConfiguration;
 
-                    var assembly     = typeof(ConfigurationManager).GetTypeInfo().Assembly;
-                    var deserializer = new Deserializer();
+                    var builtinConfiguration = ConfigurationReader.GetBuiltinConfiguration();
+                    CachedConfiguration = ConvertDataToConfig(builtinConfiguration);
 
-                    using (Stream stream = assembly.GetManifestResourceStream($"SecurityCodeScan.Config.Main.yml"))
-                    {
-                        using (var reader = new StreamReader(stream))
-                        {
-                            var configData = deserializer.Deserialize<ConfigData>(reader);
-                            CachedConfiguration = ConvertDataToConfig(configData);
-                        }
-                    }
-
-                    if (!File.Exists(UserConfigFile))
-                        return CachedConfiguration;
-
-                    using (StreamReader reader = new StreamReader(UserConfigFile))
-                    {
-                        var userConfig = deserializer.Deserialize<ConfigData>(reader);
-                        if (userConfig != null)
-                        {
-                            CachedConfiguration = MergeConfigData(userConfig);
-                        }
-                    }
+                    var userConfig = ConfigurationReader.GetUserConfiguration();
+                    if (userConfig != null)
+                        CachedConfiguration = MergeConfigData(userConfig);
 
                     return CachedConfiguration;
                 }
@@ -136,34 +171,24 @@ namespace SecurityCodeScan.Config
 
         public Configuration GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
         {
-            foreach (var file in additionalFiles)
+            lock (ProjectConfigsLock)
             {
-                if (Path.GetFileName(file.Path) != ConfigName)
-                    continue;
-
-                lock (ProjectConfigsLock)
+                foreach (var file in additionalFiles)
                 {
-                    if (ProjectConfigs.TryGetValue(file.Path, out var projectConfig))
-                        return projectConfig;
-
-                    using (var reader = new StreamReader(file.Path))
-                    {
-                        var deserializer = new Deserializer();
-                        var userConfig   = deserializer.Deserialize<ConfigData>(reader);
-                        if (userConfig == null)
-                        {
-                            ProjectConfigs[file.Path] = CachedConfiguration;
-                            return CachedConfiguration;
-                        }
-
-                        projectConfig = MergeConfigData(userConfig);
-                        ProjectConfigs[file.Path] = projectConfig;
-                        return projectConfig;
-                    }
+                    if (ProjectConfigs.TryGetValue(file.Path, out var projectConfiguration))
+                        return projectConfiguration;
                 }
-            }
 
-            return Configuration;
+                var projectConfig = ConfigurationReader.GetProjectConfiguration(additionalFiles, out var configPath);
+                if (projectConfig == null)
+                {
+                    return Configuration;
+                }
+
+                var mergedConfig           = MergeConfigData(projectConfig);
+                ProjectConfigs[configPath] = mergedConfig;
+                return mergedConfig;
+            }
         }
 
         private Configuration MergeConfigData(ConfigData config)
@@ -248,40 +273,40 @@ namespace SecurityCodeScan.Config
 
             return config.AntiCsrfAttributes[httpMethodsNamespace];
         }
+    }
 
-        private class ConfigData
-        {
-            public int?                                   PasswordValidatorRequiredLength     { get; set; }
-            public int?                                   MinimumPasswordValidatorProperties  { get; set; }
-            public List<string>                           PasswordValidatorRequiredProperties { get; set; }
-            public Dictionary<string, MethodBehaviorData> Behavior                            { get; set; }
-            public Dictionary<string, MethodBehaviorData> Sinks                               { get; set; }
-            public List<CsrfProtectionData>               CsrfProtectionAttributes            { get; set; }
-            public List<string>                           PasswordFields                      { get; set; }
-            public List<string>                           ConstantFields                      { get; set; }
-        }
+    internal class ConfigData
+    {
+        public int?                                   PasswordValidatorRequiredLength     { get; set; }
+        public int?                                   MinimumPasswordValidatorProperties  { get; set; }
+        public List<string>                           PasswordValidatorRequiredProperties { get; set; }
+        public Dictionary<string, MethodBehaviorData> Behavior                            { get; set; }
+        public Dictionary<string, MethodBehaviorData> Sinks                               { get; set; }
+        public List<CsrfProtectionData>               CsrfProtectionAttributes            { get; set; }
+        public List<string>                           PasswordFields                      { get; set; }
+        public List<string>                           ConstantFields                      { get; set; }
+    }
 
-        private class MethodBehaviorData
-        {
-            public string ClassName           { get; set; }
-            // TODO: use member field in tain analyzis or remove it completely
-            public string Member              { get; set; }
-            public string Name                { get; set; }
-            public string Namespace           { get; set; }
-            public string ArgTypes            { get; set; }
-            public int[]  InjectableArguments { get; set; }
-            public int[]  PasswordArguments   { get; set; }
-            public int[]  TaintFromArguments  { get; set; }
-            public string Locale              { get; set; }
-            public string LocalePass          { get; set; }
-            public bool   InjectableField     { get; set; }
-            public bool   IsPasswordField     { get; set; }
-        }
+    internal class MethodBehaviorData
+    {
+        public string ClassName           { get; set; }
+        // TODO: use member field in taint analysis or remove it completely
+        public string Member              { get; set; }
+        public string Name                { get; set; }
+        public string Namespace           { get; set; }
+        public string ArgTypes            { get; set; }
+        public int[]  InjectableArguments { get; set; }
+        public int[]  PasswordArguments   { get; set; }
+        public int[]  TaintFromArguments  { get; set; }
+        public string Locale              { get; set; }
+        public string LocalePass          { get; set; }
+        public bool   InjectableField     { get; set; }
+        public bool   IsPasswordField     { get; set; }
+    }
 
-        private class CsrfProtectionData
-        {
-            public string HttpMethodsNameSpace { get; set; }
-            public string AntiCsrfAttribute { get; set; }
-        }
+    internal class CsrfProtectionData
+    {
+        public string HttpMethodsNameSpace { get; set; }
+        public string AntiCsrfAttribute    { get; set; }
     }
 }

@@ -43,7 +43,7 @@ namespace SecurityCodeScan.Test.Helpers
             public MetadataReference GetMetadata(string assemblyName)
             {
                 MetadataReference ret;
-                string            name = assemblyName.ToLower();
+                string            name = assemblyName.ToUpperInvariant();
                 lock (Assemblies)
                 {
                     if (Assemblies.TryGetValue(name, out ret))

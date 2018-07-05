@@ -339,8 +339,7 @@ Behavior:
         [TestMethod]
         public async Task AddConstantValue()
         {
-            {
-                var cSharpTest = @"
+            var cSharpTest = @"
 using System.Data.SqlClient;
 
 namespace sample
@@ -357,7 +356,7 @@ namespace sample
 }
 ";
 
-                var visualBasicTest = @"
+            var visualBasicTest = @"
 Imports System.Data.SqlClient
 
 Namespace sample
@@ -371,22 +370,23 @@ Namespace sample
 End Namespace
 ";
 
-                var expected = new DiagnosticResult
-                {
-                    Id       = "SCS0026",
-                    Severity = DiagnosticSeverity.Warning,
-                };
-                await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
 
-                var testConfig = @"
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+
+            var testConfig = @"
 ConstantFields: [sample.Test.Safe]
 ";
-                var optionsWithProjectConfig = await CreateAnalyzersOptionsWithConfig(testConfig).ConfigureAwait(false);
 
-                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
-            }
+            var optionsWithProjectConfig = await CreateAnalyzersOptionsWithConfig(testConfig).ConfigureAwait(false);
+
+            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
         }
     }
 }

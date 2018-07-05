@@ -133,7 +133,7 @@ namespace SecurityCodeScan.Analyzers
                                                 .Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles)
                                                 .MinimumPasswordValidatorProperties;
                 // If the PasswordValidator instance doesn't have enough properties set
-                if (!(st.Tags.Count >= minimumRequiredProperties))
+                if (st.Tags.Count < minimumRequiredProperties)
                 {
                     state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RulePasswordValidators,
                                                                              variableState.Value.Node.GetLocation(), minimumRequiredProperties));

@@ -184,7 +184,7 @@ SCS0032:
 
 SCS0033:
   class: WeakPasswordValidatorPropertyAnalyzer
-  title: "Less then {0} properties set in PasswordValidator declaration"
+  title: "Less than {0} properties set in PasswordValidator declaration"
   description: Password requirements are weak. PasswordValidator should have more properties set (RequiredLength, RequireDigit, RequireLowercase, RequireUppercase and/or RequireNonLetterOrDigit).
 
 SCS0034:

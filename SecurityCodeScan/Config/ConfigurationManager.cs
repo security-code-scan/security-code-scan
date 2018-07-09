@@ -12,9 +12,11 @@ namespace SecurityCodeScan.Config
     internal class ConfigurationReader
     {
         private const string BuiltinConfigName = "SecurityCodeScan.Config.Main.yml";
-        private const    string ConfigName     = "SecurityCodeScan.config.yml";
-        private const    string UserConfigName = "SecurityCodeScan\\config.yml";
+        private const string ConfigName        = "SecurityCodeScan.config.yml";
+        private const string UserConfigName    = "SecurityCodeScan\\config-{0}.yml";
         private readonly string UserConfigFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), UserConfigName);
+
+        private readonly Version ConfigVersion = new Version(1,0);
 
         public ConfigData GetBuiltinConfiguration()
         {
@@ -32,10 +34,11 @@ namespace SecurityCodeScan.Config
 
         public virtual ConfigData GetUserConfiguration()
         {
-            if (!File.Exists(UserConfigFile))
+            var filePath = string.Format(UserConfigFile, ConfigVersion);
+            if (!File.Exists(filePath))
                 return null;
 
-            using (StreamReader reader = new StreamReader(UserConfigFile))
+            using (var reader = new StreamReader(filePath))
             {
                 var deserializer = new Deserializer();
                 return deserializer.Deserialize<ConfigData>(reader);

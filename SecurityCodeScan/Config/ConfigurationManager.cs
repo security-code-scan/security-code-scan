@@ -13,7 +13,7 @@ namespace SecurityCodeScan.Config
     {
         private const string BuiltinConfigName = "SecurityCodeScan.Config.Main.yml";
         private const string ConfigName        = "SecurityCodeScan.config.yml";
-        private const string UserConfigName    = "SecurityCodeScan\\config{0}.yml";
+        private const string UserConfigName    = "SecurityCodeScan\\config-{0}.yml";
         private readonly string UserConfigFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), UserConfigName);
 
         private readonly Version ConfigVersion = new Version(1,0);
@@ -34,11 +34,11 @@ namespace SecurityCodeScan.Config
 
         public virtual ConfigData GetUserConfiguration()
         {
-            var userConfigFilePath = GetFullUserConfigFilePath();
-            if (userConfigFilePath == null)
+            var filePath = string.Format(UserConfigFile, ConfigVersion);
+            if (!File.Exists(filePath))
                 return null;
 
-            using (StreamReader reader = new StreamReader(userConfigFilePath))
+            using (var reader = new StreamReader(filePath))
             {
                 var deserializer = new Deserializer();
                 return deserializer.Deserialize<ConfigData>(reader);
@@ -61,19 +61,6 @@ namespace SecurityCodeScan.Config
             }
 
             path = null;
-            return null;
-        }
-
-        private string GetFullUserConfigFilePath()
-        {
-            string filePath = string.Format(UserConfigFile, "-" + ConfigVersion.ToString());
-            if (File.Exists(filePath))
-                return filePath;
-
-            filePath = string.Format(UserConfigFile, "");
-            if (File.Exists(filePath))
-                return filePath;
-
             return null;
         }
     }

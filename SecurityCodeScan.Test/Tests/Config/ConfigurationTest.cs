@@ -16,7 +16,7 @@ namespace SecurityCodeScan.Test.Config
         private readonly List<string> FilePaths = new List<string>();
         private const string ConfigName = "SecurityCodeScan.config.yml";
         private readonly Version ConfigVersion = new Version(1,0);
-        private const string ConfigText = "Version: {0}\n\r{1}";
+        private const string ConfigText = "Version: {0}\r\n{1}";
 
         protected async Task<AnalyzerOptions> CreateAnalyzersOptionsWithConfig(string configSource, Version version = null)
         {

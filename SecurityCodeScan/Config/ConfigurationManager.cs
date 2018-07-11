@@ -58,7 +58,7 @@ namespace SecurityCodeScan.Config
                 {
                     var deserializer = new Deserializer();
                     var projectConfig = deserializer.Deserialize<ProjectConfigData>(reader);
-                    if (projectConfig.Version != ConfigVersion.ToString())
+                    if (new Version(projectConfig.Version) != ConfigVersion)
                         return null;
 
                     path = file.Path;

@@ -83,7 +83,7 @@ namespace SecurityCodeScan.Config
 
         private ConfigurationManager() { }
 
-        private Configuration CachedConfiguration; 
+        private Configuration CachedConfiguration;
 
         private Configuration Configuration
         {

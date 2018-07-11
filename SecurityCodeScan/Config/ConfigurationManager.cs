@@ -47,6 +47,8 @@ namespace SecurityCodeScan.Config
 
         public ConfigData GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles, out string path)
         {
+            path = null;
+
             foreach (var file in additionalFiles)
             {
                 if (Path.GetFileName(file.Path) != ConfigName)
@@ -55,12 +57,15 @@ namespace SecurityCodeScan.Config
                 using (var reader = new StreamReader(file.Path))
                 {
                     var deserializer = new Deserializer();
+                    var projectConfig = deserializer.Deserialize<ProjectConfigData>(reader);
+                    if (projectConfig.Version != ConfigVersion.ToString())
+                        return null;
+
                     path = file.Path;
-                    return deserializer.Deserialize<ConfigData>(reader);
+                    return projectConfig;
                 }
             }
 
-            path = null;
             return null;
         }
     }
@@ -78,7 +83,7 @@ namespace SecurityCodeScan.Config
 
         private ConfigurationManager() { }
 
-        private Configuration CachedConfiguration;
+        private Configuration CachedConfiguration; 
 
         private Configuration Configuration
         {
@@ -276,6 +281,11 @@ namespace SecurityCodeScan.Config
 
             return config.AntiCsrfAttributes[httpMethodsNamespace];
         }
+    }
+
+    internal class ProjectConfigData : ConfigData
+    {
+        public string Version { get; set; }
     }
 
     internal class ConfigData

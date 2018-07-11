@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -62,6 +63,16 @@ namespace SecurityCodeScan.Test.Config
             Assert.AreEqual(StartupConfiguration.PasswordFields.Count,                      newConfig.PasswordFields.Count);
             Assert.AreEqual(StartupConfiguration.ConstantFields.Count,                      newConfig.ConstantFields.Count);
             Assert.AreEqual(StartupConfiguration.AntiCsrfAttributes.Count,                  newConfig.AntiCsrfAttributes.Count);
+        }
+
+        [TestMethod]
+        public async Task DifferentConfigVersion_ChangesIgnored()
+        {
+            var options   = await CreateAnalyzersOptionsWithConfig("MinimumPasswordValidatorProperties: 0", new Version(1,2));
+            var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
+
+            Assert.AreNotEqual(StartupConfiguration.MinimumPasswordValidatorProperties, 0);
+            Assert.AreEqual(StartupConfiguration.MinimumPasswordValidatorProperties, newConfig.MinimumPasswordValidatorProperties);
         }
     }
 }

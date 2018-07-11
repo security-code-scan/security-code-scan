@@ -14,8 +14,11 @@ namespace SecurityCodeScan.Test.Config
     public abstract class ConfigurationTest : DiagnosticVerifier
     {
         private readonly List<string> FilePaths = new List<string>();
-        private readonly string ConfigName = "SecurityCodeScan.config.yml";
-        protected async Task<AnalyzerOptions> CreateAnalyzersOptionsWithConfig(string configSource)
+        private const string ConfigName = "SecurityCodeScan.config.yml";
+        private readonly Version ConfigVersion = new Version(1,0);
+        private const string ConfigText = "Version: {0}\r\n{1}";
+
+        protected async Task<AnalyzerOptions> CreateAnalyzersOptionsWithConfig(string configSource, Version version = null)
         {
             var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             FilePaths.Add(path);
@@ -25,7 +28,8 @@ namespace SecurityCodeScan.Test.Config
             var filePath = Path.Combine(path, ConfigName);
             using (var file = File.CreateText(filePath))
             {
-                await file.WriteAsync(configSource).ConfigureAwait(false);
+                var configText = string.Format(ConfigText, version != null ? version : ConfigVersion, configSource);
+                await file.WriteAsync(configText).ConfigureAwait(false);
             }
 
             var additionalTextMock = new Mock<AdditionalText>();

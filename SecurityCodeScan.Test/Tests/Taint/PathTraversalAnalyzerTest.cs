@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
@@ -6,13 +7,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers.Taint;
+using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
-using DiagnosticVerifier = SecurityCodeScan.Test.Helpers.DiagnosticVerifier;
 
 namespace SecurityCodeScan.Test.Taint
 {
     [TestClass]
-    public class PathTraversalAnalyzerTest : DiagnosticVerifier
+    public class PathTraversalAnalyzerTest : ConfigurationTest
     {
         private static readonly PortableExecutableReference[] References =
         {
@@ -199,14 +200,21 @@ Class PathTraversal
 End Class
 ";
 
+            string testConfig;
+            using (var file = File.OpenText(@"Config\AuditingMode.yml"))
+            {
+                testConfig = await file.ReadToEndAsync().ConfigureAwait(false);
+            }
+            var optionsWithProjectConfig = await CreateAnalyzersOptionsWithConfig(testConfig).ConfigureAwait(false);
+
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0018",
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [DataRow("File.AppendAllLines(\"c:\\aaa.txt\", null)")]
@@ -538,14 +546,21 @@ Class PathTraversal
 End Class
 ";
 
+            string testConfig;
+            using (var file = File.OpenText(@"Config\AuditingMode.yml"))
+            {
+                testConfig = await file.ReadToEndAsync().ConfigureAwait(false);
+            }
+            var optionsWithProjectConfig = await CreateAnalyzersOptionsWithConfig(testConfig).ConfigureAwait(false);
+
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0018",
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [DataRow("XmlReader.Create(\"\")")]

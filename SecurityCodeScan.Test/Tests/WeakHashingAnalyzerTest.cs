@@ -420,7 +420,8 @@ End Class
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0006",
-                Severity = DiagnosticSeverity.Warning
+                Severity = DiagnosticSeverity.Warning,
+                Message = "Possibly weak hashing function"
             };
 
             var testConfig = $@"

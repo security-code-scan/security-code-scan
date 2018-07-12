@@ -9,10 +9,10 @@ namespace SecurityCodeScan.Analyzers.Locale
     {
         private static YamlResourceManager ResourceManager;
 
-        public static DiagnosticDescriptor GetDescriptor(string id, string titleId = "title", string[] args = null)
+        public static DiagnosticDescriptor GetDescriptor(string id, string titleId = "title", string descriptionId = "description", string[] args = null)
         {
             var localTitle = GetLocalString($"{id}_{titleId}");
-            var localDesc  = GetLocalString($"{id}_description");
+            var localDesc  = GetLocalString($"{id}_{descriptionId}");
             return new DiagnosticDescriptor(id,
                                             localTitle,
                                             localTitle,

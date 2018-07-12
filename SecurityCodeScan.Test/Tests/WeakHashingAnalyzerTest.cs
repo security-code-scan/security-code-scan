@@ -4,13 +4,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
+using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
-using DiagnosticVerifier = SecurityCodeScan.Test.Helpers.DiagnosticVerifier;
 
 namespace SecurityCodeScan.Test
 {
     [TestClass]
-    public class WeakHashingAnalyzerTest : DiagnosticVerifier
+    public class WeakHashingAnalyzerTest : ConfigurationTest
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
@@ -345,7 +345,6 @@ End Class
 
         [DataRow("HashAlgorithm.Create(\"System.Security.Cryptography.SHA256\")")]
         [DataRow("SHA256.Create()")]
-        [DataRow("CryptoConfig.CreateFromName(name)")] // todo: introduce configuration setting to show questionable findings
         [DataRow("HashAlgorithm.Create(name)")]
         [DataRow("HashAlgorithm.Create(Sha1Name)")]
         // [DataRow("HashAlgorithm.Create(Sha256Name)")] todo: property check not implemented
@@ -389,6 +388,53 @@ End Class
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [DataRow("CryptoConfig.CreateFromName(name)", true)]
+        [DataRow("CryptoConfig.CreateFromName(name)", false)]
+        [DataTestMethod]
+        public async Task HashCreateAuditMode(string create, bool auditMode)
+        {
+            var cSharpTest = $@"
+using System.Security.Cryptography;
+
+class WeakHashing
+{{
+    static void Foo(string name)
+    {{
+        var sha = {create};
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports System.Security.Cryptography
+
+Class WeakHashing
+    Private Shared Sub Foo(name As System.String)
+        Dim sha As HashAlgorithm = {create}
+    End Sub
+End Class
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0006",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            var testConfig = $@"
+AuditingMode: {auditMode}
+";
+
+            var optionsWithProjectConfig = await CreateAnalyzersOptionsWithConfig(testConfig).ConfigureAwait(false);
+
+            await VerifyCSharpDiagnostic(cSharpTest,
+                                         auditMode ? new [] {expected} : null,
+                                         auditMode ? optionsWithProjectConfig : null).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest,
+                                              auditMode ? new[] { expected } : null,
+                                              auditMode ? optionsWithProjectConfig : null).ConfigureAwait(false);
         }
     }
 }

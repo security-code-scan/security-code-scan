@@ -5,10 +5,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
+using SecurityCodeScan.Config;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
-using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
-using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
@@ -186,7 +185,12 @@ namespace SecurityCodeScan.Analyzers
             Optional<object> argValue = ctx.SemanticModel.GetConstantValue(nodeHelper.GetCallArgumentExpressionNodes(ctx.Node).First());
 
             if (!argValue.HasValue)
+            {
+                if (ConfigurationManager.Instance.GetProjectConfiguration(ctx.Options.AdditionalFiles).AuditingMode)
+                    return WeakHashingAnalyzer.Sha1Rule;
+
                 return null;
+            }
 
             var value = (string)argValue.Value;
             switch (value)

@@ -1,4 +1,7 @@
-﻿PasswordValidatorRequiredLength: 8
+﻿# Set to 'true' to see more warnings
+AuditingMode: false
+
+PasswordValidatorRequiredLength: 8
 MinimumPasswordValidatorProperties: 3
 
 # Possible values: RequiredLength, RequireUppercase, RequireDigit, RequireLowercase, RequireNonLetterOrDigit

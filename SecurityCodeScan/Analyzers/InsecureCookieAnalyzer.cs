@@ -28,7 +28,7 @@ namespace SecurityCodeScan.Analyzers
                                              ISymbol                                 symbol,
                                              VariableState                           variableRightState)
         {
-            Analyzer.VisitAssignment(symbol, variableRightState);
+            Analyzer.VisitAssignment(state.AnalysisContext, symbol, variableRightState);
         }
 
         public override void VisitEnd(SyntaxNode node, ExecutionState state)
@@ -56,7 +56,7 @@ namespace SecurityCodeScan.Analyzers
                                              ISymbol               symbol,
                                              VariableState         variableRightState)
         {
-            Analyzer.VisitAssignment(symbol, variableRightState);
+            Analyzer.VisitAssignment(state.AnalysisContext, symbol, variableRightState);
         }
 
         public override void VisitEnd(SyntaxNode node, ExecutionState state)
@@ -75,18 +75,32 @@ namespace SecurityCodeScan.Analyzers
 
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RuleSecure, RuleHttpOnly);
 
-        public void VisitAssignment(ISymbol       symbol,
-                                    VariableState variableRightState)
+        public void VisitAssignment(SyntaxNodeAnalysisContext analysisContext,
+                                    ISymbol                   symbol,
+                                    VariableState             variableRightState)
         {
+            var constant = analysisContext.SemanticModel.GetConstantValue(variableRightState.Node);
+            if (!constant.HasValue)
+                return;
+
+            if (!(constant.Value is bool boolValue))
+                return;
+
             //Looking for Assignment to Secure or HttpOnly property
 
             if (AnalyzerUtil.SymbolMatch(symbol, "HttpCookie", "Secure"))
             {
-                variableRightState.AddTag(VariableTag.HttpCookieSecure);
+                if (boolValue)
+                    variableRightState.AddTag(VariableTag.HttpCookieSecure);
+                else
+                    variableRightState.RemoveTag(VariableTag.HttpCookieSecure);
             }
             else if (AnalyzerUtil.SymbolMatch(symbol, "HttpCookie", "HttpOnly"))
             {
-                variableRightState.AddTag(VariableTag.HttpCookieHttpOnly);
+                if (boolValue)
+                    variableRightState.AddTag(VariableTag.HttpCookieHttpOnly);
+                else
+                    variableRightState.RemoveTag(VariableTag.HttpCookieHttpOnly);
             }
         }
 

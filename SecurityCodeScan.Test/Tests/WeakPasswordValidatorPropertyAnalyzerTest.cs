@@ -449,5 +449,197 @@ End Namespace
             await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
+
+        [TestMethod]
+        public async Task PasswordValidatorDeclarationAssignFalse()
+        {
+            var cSharpTest = @"
+using Microsoft.AspNet.Identity;
+using System.Web.Mvc;
+
+namespace WebApplicationSandbox.Controllers
+{
+    public class HomeController : Controller
+    {
+        public ActionResult Index()
+        {
+            PasswordValidator pwdv = new PasswordValidator
+            {
+                RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @",
+                RequireNonLetterOrDigit = false,
+                RequireDigit = false,
+                RequireLowercase = false,
+                RequireUppercase = false,
+            };
+
+            return View();
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports Microsoft.AspNet.Identity
+Imports System.Web.Mvc
+
+Namespace WebApplicationSandbox.Controllers
+    Public Class HomeController
+        Inherits Controller
+        Public Function Index() As ActionResult
+            Dim pwdv As New PasswordValidator() With { _
+                .RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @", _
+                .RequireNonLetterOrDigit = False, _
+                .RequireDigit = False, _
+                .RequireLowercase = False, _
+                .RequireUppercase = False _
+            }
+
+            Return View()
+        End Function
+    End Class
+End Namespace
+";
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0033",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task PasswordValidatorDeclarationReAssignOK()
+        {
+            var cSharpTest = @"
+using Microsoft.AspNet.Identity;
+using System.Web.Mvc;
+
+namespace WebApplicationSandbox.Controllers
+{
+    public class HomeController : Controller
+    {
+        public ActionResult Index()
+        {
+            PasswordValidator pwdv = new PasswordValidator
+            {
+                RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @",
+                RequireNonLetterOrDigit = false,
+                RequireDigit = false,
+                RequireLowercase = false,
+                RequireUppercase = false,
+            };
+
+            pwdv.RequireNonLetterOrDigit = true;
+            pwdv.RequireDigit = true;
+            pwdv.RequireLowercase = true;
+            pwdv.RequireUppercase = true;
+
+            return View();
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports Microsoft.AspNet.Identity
+Imports System.Web.Mvc
+
+Namespace WebApplicationSandbox.Controllers
+    Public Class HomeController
+        Inherits Controller
+        Public Function Index() As ActionResult
+            Dim pwdv As New PasswordValidator() With { _
+                .RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @", _
+                .RequireNonLetterOrDigit = False, _
+                .RequireDigit = False, _
+                .RequireLowercase = False, _
+                .RequireUppercase = False _
+            }
+
+            pwdv.RequireNonLetterOrDigit = True
+            pwdv.RequireDigit = True
+            pwdv.RequireLowercase = True
+            pwdv.RequireUppercase = True
+
+            Return View()
+        End Function
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task PasswordValidatorDeclarationReAssignFalse()
+        {
+            var cSharpTest = @"
+using Microsoft.AspNet.Identity;
+using System.Web.Mvc;
+
+namespace WebApplicationSandbox.Controllers
+{
+    public class HomeController : Controller
+    {
+        public ActionResult Index()
+        {
+            PasswordValidator pwdv = new PasswordValidator
+            {
+                RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @",
+                RequireNonLetterOrDigit = true,
+                RequireDigit = true,
+                RequireLowercase = true,
+                RequireUppercase = true,
+            };
+
+            pwdv.RequireNonLetterOrDigit = false;
+            pwdv.RequireDigit = false;
+            pwdv.RequireLowercase = false;
+            pwdv.RequireUppercase = false;
+
+            return View();
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports Microsoft.AspNet.Identity
+Imports System.Web.Mvc
+
+Namespace WebApplicationSandbox.Controllers
+    Public Class HomeController
+        Inherits Controller
+        Public Function Index() As ActionResult
+            Dim pwdv As New PasswordValidator() With { _
+                .RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @", _
+                .RequireNonLetterOrDigit = True, _
+                .RequireDigit = True, _
+                .RequireLowercase = True, _
+                .RequireUppercase = True _
+            }
+
+            pwdv.RequireNonLetterOrDigit = False
+            pwdv.RequireDigit = False
+            pwdv.RequireLowercase = False
+            pwdv.RequireUppercase = False
+
+            Return View()
+        End Function
+    End Class
+End Namespace
+";
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0033",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+        }
     }
 }

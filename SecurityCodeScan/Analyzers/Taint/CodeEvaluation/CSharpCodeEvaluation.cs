@@ -324,7 +324,8 @@ namespace SecurityCodeScan.Analyzers.Taint
             {
                 if (child is AssignmentExpressionSyntax assignmentExpressionSyntax)
                 {
-                    finalState = finalState.Merge(VisitAssignment(assignmentExpressionSyntax, state));
+                    var identifier = assignmentExpressionSyntax.Left as IdentifierNameSyntax;
+                    finalState = finalState.MergeProperty(ResolveIdentifier(identifier.Identifier), VisitAssignment(assignmentExpressionSyntax, state));
                 }
                 else
                 {
@@ -459,6 +460,8 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             var variableState = VisitExpression(node.Right, state);
 
+            variableState = MergeVariableState(node.Left, variableState, state);
+
             //Additional analysis by extension
             foreach (var ext in Extensions)
             {
@@ -474,12 +477,6 @@ namespace SecurityCodeScan.Analyzers.Taint
                 var leftTypeSymbol = state.AnalysisContext.SemanticModel.GetTypeInfo(node.Left).Type;
                 if (!state.AnalysisContext.SemanticModel.Compilation.ClassifyConversion(rightTypeSymbol, leftTypeSymbol).IsImplicit)
                     return new VariableState(node.Right, VariableTaint.Unknown);
-            }
-
-            IdentifierNameSyntax parentIdentifierSyntax = GetParentIdentifier(node.Left);
-            if (parentIdentifierSyntax != null)
-            {
-                state.MergeValue(ResolveIdentifier(parentIdentifierSyntax.Identifier), variableState);
             }
 
             if (behavior != null                              && //Injection
@@ -506,27 +503,23 @@ namespace SecurityCodeScan.Analyzers.Taint
             return variableState;
         }
 
-        /// <summary>
-        /// Return the top member from an assignment.
-        /// <code>
-        /// a.b.c = 1234; //Will return a
-        /// d.e = 1234 //Will return d
-        /// </code>
-        /// </summary>
-        /// <param name="expression"></param>
-        /// <returns></returns>
-        private IdentifierNameSyntax GetParentIdentifier(ExpressionSyntax expression)
+        private VariableState MergeVariableState(ExpressionSyntax expression, VariableState? newVariableState, ExecutionState state)
         {
-            while (true)
+            var variableStateToMerge = newVariableState ?? new VariableState(expression, VariableTaint.Unset);
+            if (!(expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax))
             {
-                if (!(expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax))
-                    break;
-
-                expression = memberAccessExpressionSyntax.Expression;
+                var identifierNameSyntax = (IdentifierNameSyntax) expression;
+                var identifier = ResolveIdentifier(identifierNameSyntax.Identifier);
+                state.MergeValue(identifier, variableStateToMerge);
+                return state.VariableStates[identifier];
             }
 
-            var identifierNameSyntax = expression as IdentifierNameSyntax;
-            return identifierNameSyntax;
+            var variableState = MergeVariableState(memberAccessExpressionSyntax.Expression, null, state);
+
+            var stateIdentifier = ResolveIdentifier(memberAccessExpressionSyntax.Name.Identifier);
+            //make sure this identifier exists
+            variableState.MergeProperty(stateIdentifier, variableStateToMerge);
+            return variableState.PropertyStates[stateIdentifier];
         }
 
         /// <summary>

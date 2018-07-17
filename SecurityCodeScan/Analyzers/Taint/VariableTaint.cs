@@ -3,6 +3,10 @@
     public enum VariableTaint
     {
         /// <summary>
+        /// Value is not determined
+        /// </summary>
+        Unset,
+        /// <summary>
         /// Constant string
         /// </summary>
         Constant,

@@ -139,6 +139,57 @@ End Namespace
         }
 
         [TestMethod]
+        public async Task CookieWithFalseFlags()
+        {
+            var cSharpTest = @"
+using System.Web;
+
+namespace VulnerableApp
+{
+    class CookieCreation
+    {
+        static void TestCookie()
+        {
+            var cookie = new HttpCookie(""test"");
+            cookie.Secure = false;
+            cookie.HttpOnly = false;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web
+
+Namespace VulnerableApp
+    Class CookieCreation
+        Private Shared Sub TestCookie()
+            Dim cookie = New HttpCookie(""test"")
+            cookie.Secure = False
+            cookie.HttpOnly = False
+        End Sub
+    End Class
+End Namespace
+";
+            var expected08 = new DiagnosticResult
+            {
+                Id       = "SCS0008",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            var expected09 = new DiagnosticResult
+            {
+                Id       = "SCS0009",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            DiagnosticResult[] expected = { expected08, expected09 };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+        }
+
+        [TestMethod]
         public async Task CookieWithFlagsInLine()
         {
             var cSharpTest = @"
@@ -174,6 +225,103 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task CookieWithFalseFlagsInLine()
+        {
+            var cSharpTest = @"
+using System.Web;
+
+namespace VulnerableApp
+{
+    class CookieCreation
+    {
+        static void TestCookie()
+        {
+            var a = new HttpCookie(""test"")
+            {
+                Secure = false,
+                HttpOnly = false
+            };
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web
+
+Namespace VulnerableApp
+    Class CookieCreation
+        Private Shared Sub TestCookie()
+            Dim cookie As New HttpCookie(""test"") With {.Secure = False, .HttpOnly = False}
+        End Sub
+    End Class
+End Namespace
+";
+            var expected08 = new DiagnosticResult
+            {
+                Id       = "SCS0008",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            var expected09 = new DiagnosticResult
+            {
+                Id       = "SCS0009",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            DiagnosticResult[] expected = { expected08, expected09 };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task CookieWithOverridenFlags()
+        {
+            var cSharpTest = @"
+using System.Web;
+
+namespace VulnerableApp
+{
+    class CookieCreation
+    {
+        static void TestCookie()
+        {
+            var a = new HttpCookie(""test"")
+            {
+                Secure = true,
+                HttpOnly = true
+            };
+
+            a.Secure = false;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web
+
+Namespace VulnerableApp
+    Class CookieCreation
+        Private Shared Sub TestCookie()
+            Dim cookie As New HttpCookie(""test"") With {.Secure = True, .HttpOnly = True}
+            cookie.Secure = False
+        End Sub
+    End Class
+End Namespace
+";
+            var expected08 = new DiagnosticResult
+            {
+                Id       = "SCS0008",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected08).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected08).ConfigureAwait(false);
         }
     }
 }

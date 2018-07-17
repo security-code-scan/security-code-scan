@@ -15,21 +15,39 @@ namespace SecurityCodeScan.Analyzers.Taint
     /// </summary>
     public struct VariableState
     {
+        private readonly List<VariableTag> VariableTags;
+
         public VariableTaint Taint { get; }
 
-        public List<VariableTag> Tags { get; }
+        public List<VariableTag> Tags
+        {
+            get
+            {
+                var tags = new List<VariableTag>(VariableTags);
+                foreach (var propertyState in PropertyStates)
+                {
+                    tags.AddRange(propertyState.Value.Tags);
+                }
+
+                return tags;
+            }
+        }
 
         public SyntaxNode Node { get; private set; }
+
+        public Dictionary<string, VariableState> PropertyStates { get;  }
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="taint">Initial state</param>
-        public VariableState(SyntaxNode node, VariableTaint taint = Unknown, List<VariableTag> tags = null)
+        /// <param name="propertyStates">Initial properties</param>
+        public VariableState(SyntaxNode node, VariableTaint taint = Unknown, Dictionary<string, VariableState> propertyStates = null, List<VariableTag> tags = null)
         {
             Taint = taint;
-            Tags = tags ?? new List<VariableTag>();
+            VariableTags = tags ?? new List<VariableTag>();
             Node = node;
+            PropertyStates = propertyStates ?? new Dictionary<string, VariableState>();
         }
 
         /// <summary>
@@ -40,47 +58,72 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <returns></returns>
         public VariableState Merge(VariableState secondState)
         {
+            var newNode = Node;
             var newTaint = Taint;
-
-            switch (secondState.Taint)
+            if (Taint == Unset)
             {
-                case Tainted:
+                newTaint = secondState.Taint;
+            }
+            else
+            {
+                switch (secondState.Taint)
+                {
+                    case Tainted:
                     newTaint = Tainted;
                     break;
-                case Unknown:
+                    case Unknown:
                     if (Taint != Tainted)
                         newTaint = Unknown;
+
                     break;
-                case Safe:
+                    case Safe:
                     if (Taint != Tainted && Taint != Unknown)
                         newTaint = Safe;
+
                     break;
-                case Constant:
+                    case Constant:
                     if (Taint == Safe)
                         newTaint = Safe;
                     else if (Taint == Constant)
                         newTaint = Constant;
+
                     break;
-                default:
+                    case Unset:
+                    break;
+                    default:
                     throw new ArgumentOutOfRangeException();
+                }
             }
 
-            // A new instance is made to prevent referencing the current VariableState's parameters
-            var vs = new VariableState(Node, newTaint);
+            if (secondState.Taint != Unset)
+                newNode = secondState.Node;
 
-            // Searches through the current VariableState for unique tags
-            foreach (var newTag in Tags)
+            // A new instance is made to prevent referencing the current VariableState's parameters
+            var vs = new VariableState(newNode, newTaint, PropertyStates, VariableTags);
+
+            // Searches through the new VariableState for new tags
+            foreach (var newPropertyState in secondState.PropertyStates)
             {
-                vs.AddTag(newTag);
+                vs.PropertyStates.Add(newPropertyState.Key, newPropertyState.Value);
             }
 
             // Searches through the new VariableState for new tags
-            foreach (var newTag in secondState.Tags)
+            foreach (var newTag in secondState.VariableTags)
             {
                 vs.AddTag(newTag);
             }
 
             return vs;
+        }
+
+        public VariableState MergeProperty(string identifier, VariableState secondState)
+        {
+            if (PropertyStates.ContainsKey(identifier))
+                PropertyStates[identifier] = PropertyStates[identifier].Merge(secondState);
+            else
+                PropertyStates.Add(identifier, secondState);
+
+            return this;
         }
 
         public override string ToString()
@@ -95,10 +138,17 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <returns>A VariabeState with the updated list</returns>
         public VariableState AddTag(VariableTag tag)
         {
-            if (!Tags.Contains(tag))
+            if (!VariableTags.Contains(tag))
             {
-                Tags.Add(tag);
+                VariableTags.Add(tag);
             }
+
+            return this;
+        }
+
+        public VariableState RemoveTag(VariableTag tag)
+        {
+            VariableTags.Remove(tag);
 
             return this;
         }

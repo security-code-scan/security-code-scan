@@ -41,7 +41,7 @@ namespace SecurityCodeScan.Analyzers
                                              VariableState                           variableRightState)
         {
             if (node != null)
-                Analyzer.TagVariables(symbol, variableRightState);
+                Analyzer.TagVariables(state.AnalysisContext, symbol, variableRightState);
         }
     }
 
@@ -76,7 +76,7 @@ namespace SecurityCodeScan.Analyzers
                                              VariableState            variableRightState)
         {
             if (node is VBSyntax.AssignmentStatementSyntax || node is VBSyntax.NamedFieldInitializerSyntax)
-                Analyzer.TagVariables(symbol, variableRightState);
+                Analyzer.TagVariables(state.AnalysisContext, symbol, variableRightState);
         }
     }
 
@@ -174,28 +174,49 @@ namespace SecurityCodeScan.Analyzers
             }
         }
 
-        public  void TagVariables(ISymbol symbol, VariableState variableRightState)
+        public void TagVariables(SyntaxNodeAnalysisContext analysisContext, ISymbol symbol, VariableState variableRightState)
         {
             // Only PasswordValidator properties will cause a new tag to be added
             if (AnalyzerUtil.SymbolMatch(symbol, type: "PasswordValidator", name: "RequiredLength"))
             {
                 variableRightState.AddTag(VariableTag.RequiredLengthIsSet);
+                return;
             }
-            else if (AnalyzerUtil.SymbolMatch(symbol, type: "PasswordValidator", name: "RequireDigit"))
+
+            var constant = analysisContext.SemanticModel.GetConstantValue(variableRightState.Node);
+            if (!constant.HasValue)
+                return;
+
+            if(!(constant.Value is bool boolValue))
+                return;
+
+            if (AnalyzerUtil.SymbolMatch(symbol, type: "PasswordValidator", name: "RequireDigit"))
             {
-                variableRightState.AddTag(VariableTag.RequireDigitIsSet);
+                if (boolValue)
+                    variableRightState.AddTag(VariableTag.RequireDigitIsSet);
+                else
+                    variableRightState.RemoveTag(VariableTag.RequireDigitIsSet);
             }
             else if (AnalyzerUtil.SymbolMatch(symbol, type: "PasswordValidator", name: "RequireLowercase"))
             {
-                variableRightState.AddTag(VariableTag.RequireLowercaseIsSet);
+                if (boolValue)
+                    variableRightState.AddTag(VariableTag.RequireLowercaseIsSet);
+                else
+                    variableRightState.RemoveTag(VariableTag.RequireLowercaseIsSet);
             }
             else if (AnalyzerUtil.SymbolMatch(symbol, type: "PasswordValidator", name: "RequireNonLetterOrDigit"))
             {
-                variableRightState.AddTag(VariableTag.RequireNonLetterOrDigitIsSet);
+                if (boolValue)
+                    variableRightState.AddTag(VariableTag.RequireNonLetterOrDigitIsSet);
+                else
+                    variableRightState.RemoveTag(VariableTag.RequireNonLetterOrDigitIsSet);
             }
             else if (AnalyzerUtil.SymbolMatch(symbol, type: "PasswordValidator", name: "RequireUppercase"))
             {
-                variableRightState.AddTag(VariableTag.RequireUppercaseIsSet);
+                if (boolValue)
+                    variableRightState.AddTag(VariableTag.RequireUppercaseIsSet);
+                else
+                    variableRightState.RemoveTag(VariableTag.RequireUppercaseIsSet);
             }
         }
     }

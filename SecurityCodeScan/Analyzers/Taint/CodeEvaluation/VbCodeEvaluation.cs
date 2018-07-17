@@ -394,6 +394,8 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             var variableState = VisitExpression(rightExpression, state);
 
+            variableState = MergeVariableState(leftExpression, variableState, state);
+
             //Additional analysis by extension
             foreach (var ext in Extensions)
             {
@@ -409,12 +411,6 @@ namespace SecurityCodeScan.Analyzers.Taint
                 var leftTypeSymbol = state.AnalysisContext.SemanticModel.GetTypeInfo(leftExpression).Type;
                 if (!state.AnalysisContext.SemanticModel.Compilation.ClassifyConversion(rightTypeSymbol, leftTypeSymbol).Exists)
                     return new VariableState(rightExpression, VariableTaint.Unknown);
-            }
-
-            IdentifierNameSyntax parentIdentifierSyntax = GetParentIdentifier(leftExpression);
-            if (parentIdentifierSyntax != null)
-            {
-                state.MergeValue(ResolveIdentifier(parentIdentifierSyntax.Identifier), variableState);
             }
 
             if (behavior != null                              && //Injection
@@ -449,7 +445,8 @@ namespace SecurityCodeScan.Analyzers.Taint
             {
                 if (child is NamedFieldInitializerSyntax namedFieldInitializerSyntax)
                 {
-                    finalState = finalState.Merge(VisitNamedFieldInitializer(namedFieldInitializerSyntax, state));
+                    var identifier = ResolveIdentifier(namedFieldInitializerSyntax.Name.Identifier);
+                    finalState = finalState.MergeProperty(identifier, VisitNamedFieldInitializer(namedFieldInitializerSyntax, new ExecutionState(state.AnalysisContext)));
                 }
                 else
                 {
@@ -558,18 +555,40 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        private IdentifierNameSyntax GetParentIdentifier(ExpressionSyntax expression)
+        private VariableState GetVariableState(ExpressionSyntax expression, ExecutionState state)
         {
-            while (true)
+            if (!(expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax))
             {
-                if (!(expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax))
-                    break;
-
-                expression = memberAccessExpressionSyntax.Expression;
+                var identifierNameSyntax = (IdentifierNameSyntax) expression;
+                var identifier = ResolveIdentifier(identifierNameSyntax.Identifier);
+                state.MergeValue(identifier, new VariableState(expression, VariableTaint.Unset));
+                return state.VariableStates[identifier];
             }
 
-            var identifierNameSyntax = expression as IdentifierNameSyntax;
-            return identifierNameSyntax;
+            var variableState = GetVariableState(memberAccessExpressionSyntax.Expression, state);
+
+            var stateIdentifier = ResolveIdentifier(memberAccessExpressionSyntax.Name.Identifier);
+            //make sure this identifier exists
+            variableState.MergeProperty(stateIdentifier, new VariableState(memberAccessExpressionSyntax, VariableTaint.Unset));
+            return variableState.PropertyStates[stateIdentifier];
+        }
+
+        private VariableState MergeVariableState(ExpressionSyntax expression, VariableState newVariableState, ExecutionState state)
+        {
+            if (!(expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax))
+            {
+                var identifierNameSyntax = (IdentifierNameSyntax) expression;
+                var identifier = ResolveIdentifier(identifierNameSyntax.Identifier);
+                state.MergeValue(identifier, newVariableState);
+                return state.VariableStates[identifier];
+            }
+
+            var variableState = GetVariableState(memberAccessExpressionSyntax.Expression, state);
+
+            var stateIdentifier = ResolveIdentifier(memberAccessExpressionSyntax.Name.Identifier);
+            //make sure this identifier exists
+            variableState.MergeProperty(stateIdentifier, newVariableState);
+            return variableState.PropertyStates[stateIdentifier];
         }
 
         /// <summary>

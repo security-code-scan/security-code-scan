@@ -31,6 +31,12 @@ namespace SecurityCodeScan.Analyzers.Taint
             Variables       = new Dictionary<string, VariableState>();
         }
 
+        public ExecutionState(ExecutionState state)
+        {
+            AnalysisContext = state.AnalysisContext;
+            Variables = state.Variables;
+        }
+
         public void AddNewValue(string identifier, VariableState value)
         {
             if (VariableStates.ContainsKey(identifier)) //New variable in a different scope

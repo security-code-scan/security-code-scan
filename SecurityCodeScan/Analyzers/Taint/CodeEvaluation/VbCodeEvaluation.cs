@@ -224,8 +224,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitMethodInvocation(invocationExpressionSyntax, state);
                 case ObjectCreationExpressionSyntax objectCreationExpressionSyntax:
                     return VisitObjectCreation(objectCreationExpressionSyntax, state);
-                case LiteralExpressionSyntax _:
-                    return new VariableState(expression, VariableTaint.Constant);
+                case LiteralExpressionSyntax lietaExpressionSyntax:
+                    return new VariableState(expression, VariableTaint.Constant, state.AnalysisContext.SemanticModel.GetConstantValue(lietaExpressionSyntax).Value);
                 case IdentifierNameSyntax identifierNameSyntax:
                     return VisitIdentifierName(identifierNameSyntax, state);
                 case BinaryExpressionSyntax binaryExpressionSyntax:
@@ -446,7 +446,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 if (child is NamedFieldInitializerSyntax namedFieldInitializerSyntax)
                 {
                     var identifier = ResolveIdentifier(namedFieldInitializerSyntax.Name.Identifier);
-                    finalState = finalState.MergeProperty(identifier, VisitNamedFieldInitializer(namedFieldInitializerSyntax, new ExecutionState(state.AnalysisContext)));
+                    finalState = finalState.MergeProperty(identifier, VisitNamedFieldInitializer(namedFieldInitializerSyntax, state));
                 }
                 else
                 {

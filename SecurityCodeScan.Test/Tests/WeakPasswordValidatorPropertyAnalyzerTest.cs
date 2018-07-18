@@ -641,5 +641,63 @@ End Namespace
             await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
+
+        [TestMethod]
+        public async Task PasswordValidatorDeclarationReAssignRequiredLenght()
+        {
+            var cSharpTest = @"
+using Microsoft.AspNet.Identity;
+using System.Web.Mvc;
+
+namespace WebApplicationSandbox.Controllers
+{
+    public class HomeController : Controller
+    {
+        public ActionResult Index()
+        {
+            PasswordValidator pwdv = new PasswordValidator
+            {
+                RequiredLength = " + (DefaultPasswordValidatorRequiredLenght - 1) + @",
+                RequireNonLetterOrDigit = true,
+                RequireDigit = true,
+                RequireLowercase = true,
+                RequireUppercase = true,
+            };
+
+            pwdv.RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @";
+
+            return View();
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports Microsoft.AspNet.Identity
+Imports System.Web.Mvc
+
+Namespace WebApplicationSandbox.Controllers
+    Public Class HomeController
+        Inherits Controller
+        Public Function Index() As ActionResult
+            Dim pwdv As New PasswordValidator() With { _
+                .RequiredLength = " + (DefaultPasswordValidatorRequiredLenght - 1) + @", _
+                .RequireNonLetterOrDigit = True, _
+                .RequireDigit = True, _
+                .RequireLowercase = True, _
+                .RequireUppercase = True _
+            }
+
+            pwdv.RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @"
+
+            Return View()
+        End Function
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
     }
 }

@@ -213,8 +213,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitMethodInvocation(invocationExpressionSyntax, state);
                 case ObjectCreationExpressionSyntax objectCreationExpressionSyntax:
                     return VisitObjectCreation(objectCreationExpressionSyntax, state);
-                case LiteralExpressionSyntax _:
-                    return new VariableState(expression, VariableTaint.Constant);
+                case LiteralExpressionSyntax lietaExpressionSyntax:
+                    return new VariableState(lietaExpressionSyntax, VariableTaint.Constant, state.AnalysisContext.SemanticModel.GetConstantValue(lietaExpressionSyntax).Value);
                 case IdentifierNameSyntax identifierNameSyntax:
                     return VisitIdentifierName(identifierNameSyntax, state);
                 case BinaryExpressionSyntax binaryExpressionSyntax:
@@ -259,7 +259,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 case CastExpressionSyntax castExpressionSyntax:
                     return VisitExpression(castExpressionSyntax.Expression, state);
                 case DefaultExpressionSyntax defaultExpressionSyntax:
-                    return new VariableState(defaultExpressionSyntax, VariableTaint.Constant);
+                    return new VariableState(defaultExpressionSyntax, VariableTaint.Constant, state.AnalysisContext.SemanticModel.GetConstantValue(defaultExpressionSyntax).Value);
             }
 
             Logger.Log("Unsupported expression " + expression.GetType() + " (" + expression + ")");
@@ -325,7 +325,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 if (child is AssignmentExpressionSyntax assignmentExpressionSyntax)
                 {
                     var identifier = assignmentExpressionSyntax.Left as IdentifierNameSyntax;
-                    finalState = finalState.MergeProperty(ResolveIdentifier(identifier.Identifier), VisitAssignment(assignmentExpressionSyntax, state));
+                    finalState = finalState.MergeProperty(ResolveIdentifier(identifier.Identifier), VisitAssignment(assignmentExpressionSyntax, new ExecutionState(state)));
                 }
                 else
                 {

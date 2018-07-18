@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using static SecurityCodeScan.Analyzers.Taint.VariableTaint;
 
@@ -15,15 +16,20 @@ namespace SecurityCodeScan.Analyzers.Taint
     /// </summary>
     public struct VariableState
     {
-        private readonly List<VariableTag> VariableTags;
+        public readonly List<VariableTag> VariableTags;
 
         public VariableTaint Taint { get; }
 
-        public List<VariableTag> Tags
+        /// <summary>
+        /// Contains Value only is Taint is constant. Otherwise returns null
+        /// </summary>
+        public object Value { get; private set; }
+
+        public List<Tag> Tags
         {
             get
             {
-                var tags = new List<VariableTag>(VariableTags);
+                var tags = new List<Tag>(VariableTags.Select(value => value.Tag));
                 foreach (var propertyState in PropertyStates)
                 {
                     tags.AddRange(propertyState.Value.Tags);
@@ -42,9 +48,12 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// </summary>
         /// <param name="taint">Initial state</param>
         /// <param name="propertyStates">Initial properties</param>
-        public VariableState(SyntaxNode node, VariableTaint taint = Unknown, Dictionary<string, VariableState> propertyStates = null, List<VariableTag> tags = null)
+        public VariableState(SyntaxNode node, VariableTaint taint = Unknown, object value = null, Dictionary<string, VariableState> propertyStates = null, List<VariableTag> tags = null)
         {
             Taint = taint;
+            Value = null;
+            if (Taint == Constant)
+                Value = value;
             VariableTags = tags ?? new List<VariableTag>();
             Node = node;
             PropertyStates = propertyStates ?? new Dictionary<string, VariableState>();
@@ -60,6 +69,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             var newNode = Node;
             var newTaint = Taint;
+            var newValue = Value;
             if (Taint == Unset)
             {
                 newTaint = secondState.Taint;
@@ -83,9 +93,14 @@ namespace SecurityCodeScan.Analyzers.Taint
                     break;
                     case Constant:
                     if (Taint == Safe)
+                    {
                         newTaint = Safe;
+                    }
                     else if (Taint == Constant)
+                    {
                         newTaint = Constant;
+                        newValue = secondState.Value;
+                    }
 
                     break;
                     case Unset:
@@ -98,8 +113,9 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (secondState.Taint != Unset)
                 newNode = secondState.Node;
 
+
             // A new instance is made to prevent referencing the current VariableState's parameters
-            var vs = new VariableState(newNode, newTaint, PropertyStates, VariableTags);
+            var vs = new VariableState(newNode, newTaint, newValue, PropertyStates, VariableTags);
 
             // Searches through the new VariableState for new tags
             foreach (var newPropertyState in secondState.PropertyStates)
@@ -138,7 +154,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <returns>A VariabeState with the updated list</returns>
         public VariableState AddTag(VariableTag tag)
         {
-            if (!VariableTags.Contains(tag))
+            if (!VariableTags.Exists(t => t.Tag == tag.Tag))
             {
                 VariableTags.Add(tag);
             }
@@ -146,17 +162,40 @@ namespace SecurityCodeScan.Analyzers.Taint
             return this;
         }
 
-        public VariableState RemoveTag(VariableTag tag)
+        /// <summary>
+        /// Will only add a new tag to the list if it is not already present in the list
+        /// </summary>
+        /// <param name="tag"></param>
+        /// <param name="value"></param>
+        /// <returns>A VariabeState with the updated list</returns>
+        public VariableState AddTag(Tag tag, object value = null)
         {
-            VariableTags.Remove(tag);
+            if (!VariableTags.Exists(t => t.Tag == tag))
+            {
+                VariableTags.Add(new VariableTag(tag, value));
+            }
 
             return this;
         }
 
-        public VariableState AddSyntaxNode(SyntaxNode node)
+        public VariableState RemoveTag(Tag tag)
         {
-            Node = node;
+            var tagToRemove = VariableTags.SingleOrDefault(t => t.Tag == tag);
+            if(tagToRemove != null)
+                VariableTags.Remove(tagToRemove);
+
             return this;
+        }
+
+        public IEnumerable<VariableTag> GetTags(Tag tag)
+        {
+            var result = new List<VariableTag>(VariableTags.Where(t => t.Tag == tag));
+            foreach (var propertyState in PropertyStates.Values)
+            {
+                result.AddRange(propertyState.VariableTags.Where(t => t.Tag == tag));
+            }
+
+            return result;
         }
     }
 }

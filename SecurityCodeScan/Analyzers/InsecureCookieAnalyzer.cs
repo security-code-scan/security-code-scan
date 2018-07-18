@@ -79,28 +79,28 @@ namespace SecurityCodeScan.Analyzers
                                     ISymbol                   symbol,
                                     VariableState             variableRightState)
         {
-            var constant = analysisContext.SemanticModel.GetConstantValue(variableRightState.Node);
-            if (!constant.HasValue)
-                return;
+            var variableValue = variableRightState.Value;
+            if (variableRightState.Taint != VariableTaint.Constant)
+                variableValue = null;
 
-            if (!(constant.Value is bool boolValue))
-                return;
+            if (!(variableValue is bool boolValue))
+                boolValue = true; // TODO: In case of auditing mode, show warning that value unknown
 
             //Looking for Assignment to Secure or HttpOnly property
 
             if (AnalyzerUtil.SymbolMatch(symbol, "HttpCookie", "Secure"))
             {
                 if (boolValue)
-                    variableRightState.AddTag(VariableTag.HttpCookieSecure);
+                    variableRightState.AddTag(Tag.HttpCookieSecure);
                 else
-                    variableRightState.RemoveTag(VariableTag.HttpCookieSecure);
+                    variableRightState.RemoveTag(Tag.HttpCookieSecure);
             }
             else if (AnalyzerUtil.SymbolMatch(symbol, "HttpCookie", "HttpOnly"))
             {
                 if (boolValue)
-                    variableRightState.AddTag(VariableTag.HttpCookieHttpOnly);
+                    variableRightState.AddTag(Tag.HttpCookieHttpOnly);
                 else
-                    variableRightState.RemoveTag(VariableTag.HttpCookieHttpOnly);
+                    variableRightState.RemoveTag(Tag.HttpCookieHttpOnly);
             }
         }
 
@@ -115,12 +115,12 @@ namespace SecurityCodeScan.Analyzers
                 if (!AnalyzerUtil.SymbolMatch(state.GetSymbol(st.Node), "HttpCookie", ".ctor"))
                     continue;
 
-                if (!st.Tags.Contains(VariableTag.HttpCookieSecure))
+                if (!st.Tags.Contains(Tag.HttpCookieSecure))
                 {
                     state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleSecure, st.Node.GetLocation()));
                 }
 
-                if (!st.Tags.Contains(VariableTag.HttpCookieHttpOnly))
+                if (!st.Tags.Contains(Tag.HttpCookieHttpOnly))
                 {
                     state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleHttpOnly, st.Node.GetLocation()));
                 }

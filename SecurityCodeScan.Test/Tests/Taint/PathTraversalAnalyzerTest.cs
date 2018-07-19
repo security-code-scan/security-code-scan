@@ -1,86 +1,25 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Xml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers.Taint;
-using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
+using DiagnosticVerifier = SecurityCodeScan.Test.Helpers.DiagnosticVerifier;
 
 namespace SecurityCodeScan.Test.Taint
 {
     [TestClass]
-    public class PathTraversalAnalyzerTest : ConfigurationTest
+    public class PathTraversalAnalyzerTest : DiagnosticVerifier
     {
-        private static readonly PortableExecutableReference[] References =
-        {
-            MetadataReference.CreateFromFile(typeof(XmlReader).Assembly.Location)
-        };
-
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             return new DiagnosticAnalyzer[] { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic(), };
         }
 
-        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
-
-        [DataRow("File.AppendAllLines(path, null)")]
-        [DataRow("AppendAllLines(path, null)")]
-        [DataRow("File.AppendAllLines(path, null, System.Text.Encoding.ASCII)")]
-        [DataRow("AppendAllLines(path, null, System.Text.Encoding.ASCII)")]
-        [DataRow("File.AppendAllLines(\"c:\\aaa.txt\", contents)")]
-        [DataRow("AppendAllLines(\"c:\\aaa.txt\", contents)")]
-        [DataRow("File.AppendAllLines(\"c:\\aaa.txt\", contents, System.Text.Encoding.ASCII)")]
-        [DataRow("AppendAllLines(\"c:\\aaa.txt\", contents, System.Text.Encoding.ASCII)")]
-
-        [DataRow("File.AppendAllText(path, null)")]
-        [DataRow("AppendAllText(path, null)")]
-        [DataRow("File.AppendAllText(path, null, System.Text.Encoding.ASCII)")]
-        [DataRow("AppendAllText(path, null, System.Text.Encoding.ASCII)")]
-        [DataRow("File.AppendAllText(\"c:\\aaa.txt\", path)")]
-        [DataRow("AppendAllText(\"c:\\aaa.txt\", path)")]
-        [DataRow("File.AppendAllText(\"c:\\aaa.txt\", path, System.Text.Encoding.ASCII)")]
-        [DataRow("AppendAllText(\"c:\\aaa.txt\", path, System.Text.Encoding.ASCII)")]
-
-        [DataRow("File.AppendText(path)")]
-        [DataRow("AppendText(path)")]
-
-        [DataRow("File.Copy(\"\", path)")]
-        [DataRow("Copy(\"\", path)")]
-        [DataRow("File.Copy(\"\", path, true)")]
-        [DataRow("Copy(\"\", path, true)")]
-        [DataRow("File.Copy(path, \"\")")]
-        [DataRow("Copy(path, \"\")")]
-        [DataRow("File.Copy(path, \"\", true)")]
-        [DataRow("Copy(path, \"\", true)")]
-        [DataRow("File.Copy(\"\", \"\", flag)")]
-
-        [DataRow("File.Create(path)")]
-        [DataRow("Create(path)")]
-        [DataRow("File.Create(path, 10)")]
-        [DataRow("Create(path, 10)")]
-        [DataRow("File.Create(path, 10, System.IO.FileOptions.None)")]
-        [DataRow("Create(path, 10, System.IO.FileOptions.None)")]
-        [DataRow("File.Create(\"\", 10, fileOptions)")]
-        [DataRow("Create(\"\", 10, fileOptions)")]
-        [DataRow("File.Create(path, 10, System.IO.FileOptions.None, null)")]
-        [DataRow("Create(path, 10, System.IO.FileOptions.None, null)")]
-        [DataRow("File.Create(\"\", 10, fileOptions, null)")]
-        [DataRow("Create(\"\", 10, fileOptions, null)")]
-
-        [DataRow("File.CreateText(path)")]
-        [DataRow("CreateText(path)")]
-
         [DataRow("File.Delete(path)")]
         [DataRow("Delete(path)")]
-
-        [DataRow("File.Move(\"c:\\aaa.txt\", path)")]
-        [DataRow("Move(\"c:\\aaa.txt\", path)")]
-        [DataRow("File.Move(path, \"c:\\aaa.txt\")")]
-        [DataRow("Move(path, \"c:\\aaa.txt\")")]
 
         [DataRow("File.Open(path, System.IO.FileMode.CreateNew)")]
         [DataRow("Open(path, System.IO.FileMode.CreateNew)")]
@@ -130,11 +69,6 @@ namespace SecurityCodeScan.Test.Taint
         [DataRow("Replace(\"c:\\aaa.txt\", \"c:\\aaa.txt\", path)")]
         [DataRow("File.Replace(path, \"c:\\aaa.txt\", \"c:\\aaa.txt\", false)")]
         [DataRow("Replace(path, \"c:\\aaa.txt\", \"c:\\aaa.txt\", false)")]
-
-        [DataRow("File.SetAccessControl(path, null)")]
-        [DataRow("SetAccessControl(path, null)")]
-        [DataRow("File.SetAccessControl(\"c:\\aaa.txt\", fileSecurity)")]
-        [DataRow("SetAccessControl(\"c:\\aaa.txt\", fileSecurity)")]
 
         [DataRow("File.WriteAllBytes(path, null)")]
         [DataRow("WriteAllBytes(path, null)")]
@@ -200,58 +134,18 @@ Class PathTraversal
 End Class
 ";
 
-            string testConfig;
-            using (var file = File.OpenText(@"Config\AuditingMode.yml"))
-            {
-                testConfig = await file.ReadToEndAsync().ConfigureAwait(false);
-            }
-            var optionsWithProjectConfig = await CreateAnalyzersOptionsWithConfig(testConfig).ConfigureAwait(false);
-
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0018",
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest,expected).ConfigureAwait(false);
         }
-
-        [DataRow("File.AppendAllLines(\"c:\\aaa.txt\", null)")]
-        [DataRow("AppendAllLines(\"c:\\aaa.txt\", null)")]
-        [DataRow("File.AppendAllLines(\"c:\\aaa.txt\", null, encoding)")]
-        [DataRow("AppendAllLines(\"c:\\aaa.txt\", null, encoding)")]
-
-        [DataRow("File.AppendAllText(\"c:\\aaa.txt\", \"\")")]
-        [DataRow("AppendAllText(\"c:\\aaa.txt\", \"\")")]
-        [DataRow("File.AppendAllText(\"c:\\aaa.txt\", \"\", encoding)")]
-        [DataRow("AppendAllText(\"c:\\aaa.txt\", \"\", encoding)")]
-
-        [DataRow("File.AppendText(\"c:\\aaa.txt\")")]
-        [DataRow("AppendText(\"c:\\aaa.txt\")")]
-
-        [DataRow("File.Copy(\"c:\\aaa.txt\", \"c:\\aaa.txt\")")]
-        [DataRow("Copy(\"c:\\aaa.txt\", \"c:\\aaa.txt\")")]
-        [DataRow("File.Copy(\"c:\\aaa.txt\", \"c:\\aaa.txt\", true)")]
-        [DataRow("Copy(\"c:\\aaa.txt\", \"c:\\aaa.txt\", true)")]
-
-        [DataRow("File.Create(\"c:\\aaa.txt\")")]
-        [DataRow("Create(\"c:\\aaa.txt\")")]
-        [DataRow("File.Create(\"c:\\aaa.txt\", digit)")]
-        [DataRow("Create(\"c:\\aaa.txt\", digit)")]
-        [DataRow("File.Create(\"c:\\aaa.txt\", digit, System.IO.FileOptions.None)")]
-        [DataRow("Create(\"c:\\aaa.txt\", digit, System.IO.FileOptions.None)")]
-        [DataRow("File.Create(\"c:\\aaa.txt\", digit, System.IO.FileOptions.None, null)")]
-        [DataRow("Create(\"c:\\aaa.txt\", digit, System.IO.FileOptions.None, null)")]
-
-        [DataRow("File.CreateText(\"c:\\aaa.txt\")")]
-        [DataRow("CreateText(\"c:\\aaa.txt\")")]
 
         [DataRow("File.Delete(\"c:\\aaa.txt\")")]
         [DataRow("Delete(\"c:\\aaa.txt\")")]
-
-        [DataRow("File.Move(\"c:\\aaa.txt\", \"c:\\aaa.txt\")")]
-        [DataRow("Move(\"c:\\aaa.txt\", \"c:\\aaa.txt\")")]
 
         [DataRow("File.Open(\"c:\\aaa.txt\", System.IO.FileMode.CreateNew)")]
         [DataRow("Open(\"c:\\aaa.txt\", System.IO.FileMode.CreateNew)")]
@@ -293,9 +187,6 @@ End Class
         [DataRow("Replace(\"c:\\aaa.txt\", \"c:\\aaa.txt\", \"c:\\aaa.txt\")")]
         [DataRow("File.Replace(\"c:\\aaa.txt\", \"c:\\aaa.txt\", \"c:\\aaa.txt\", false)")]
         [DataRow("Replace(\"c:\\aaa.txt\", \"c:\\aaa.txt\", \"c:\\aaa.txt\", false)")]
-
-        [DataRow("File.SetAccessControl(\"c:\\aaa.txt\", null)")]
-        [DataRow("SetAccessControl(\"c:\\aaa.txt\", null)")]
 
         [DataRow("File.WriteAllBytes(\"c:\\aaa.txt\", null)")]
         [DataRow("WriteAllBytes(\"c:\\aaa.txt\", null)")]
@@ -506,61 +397,6 @@ End Class
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
-        }
-
-        [DataRow("XmlReader.Create(textInput)")]
-        [DataRow("XmlReader.Create(textInput, new XmlReaderSettings())")]
-        [DataRow("XmlReader.Create(textInput, new XmlReaderSettings(), default(XmlParserContext))")]
-        [DataRow("XmlReader.Create(default(Stream), new XmlReaderSettings(), textInput)")]
-        [DataRow("XmlReader.Create(default(TextReader), new XmlReaderSettings(), textInput)")]
-        [DataTestMethod]
-        public async Task PathTraversalXmlReader(string sink)
-        {
-            var cSharpTest = $@"
-#pragma warning disable 8019
-    using System.IO;
-    using System.Xml;
-#pragma warning restore 8019
-
-class PathTraversal
-{{
-    public static void Run(string textInput, Stream streamInput, TextReader textReaderInput, XmlReader xmlReaderInput)
-    {{
-        var reader = {sink};
-    }}
-}}
-";
-
-            sink = sink.Replace("null", "Nothing");
-            sink = Regex.Replace(sink, "default\\(([^\\)]*)\\)", "DirectCast(Nothing, $1)");
-            var visualBasicTest = $@"
-#Disable Warning BC50001
-    Imports System.IO
-    Imports System.Xml
-#Enable Warning BC50001
-
-Class PathTraversal
-    Public Shared Sub Run(textInput As String, streamInput As Stream, textReaderInput As TextReader, xmlReaderInput As XmlReader)
-        Dim reader As XMLReader = {sink}
-    End Sub
-End Class
-";
-
-            string testConfig;
-            using (var file = File.OpenText(@"Config\AuditingMode.yml"))
-            {
-                testConfig = await file.ReadToEndAsync().ConfigureAwait(false);
-            }
-            var optionsWithProjectConfig = await CreateAnalyzersOptionsWithConfig(testConfig).ConfigureAwait(false);
-
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0018",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [DataRow("XmlReader.Create(\"\")")]

@@ -85,7 +85,7 @@ CsrfProtectionAttributes:
      AntiCsrfAttribute: VulnerableApp.TestAttribute
 ";
 
-            var optionsWithProjectConfig = await CreateAnalyzersOptionsWithConfig(testConfig).ConfigureAwait(false);
+            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
@@ -152,7 +152,7 @@ CsrfProtectionAttributes:
      AntiCsrfAttribute: VulnerableApp.TestAttribute
 ";
 
-            var optionsWithProjectConfig = await CreateAnalyzersOptionsWithConfig(testConfig).ConfigureAwait(false);
+            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);

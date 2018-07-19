@@ -28,9 +28,9 @@ namespace SecurityCodeScan.Test.Config
         private readonly Configuration        StartupConfiguration;
 
         [TestMethod]
-        public async Task EmptyUserConfig_NoChanges()
+        public void EmptyUserConfig_NoChanges()
         {
-            var options   = await CreateAnalyzersOptionsWithConfig("");
+            var options   = CreateAnalyzersOptionsWithConfig("");
             var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
 
             //ensuring that field count matches count of properties tested below (test should fail and be updated if someone adds new field in Configuration)
@@ -48,9 +48,9 @@ namespace SecurityCodeScan.Test.Config
         }
 
         [TestMethod]
-        public async Task MergingUserConfig_NoChanges()
+        public void MergingUserConfig_NoChanges()
         {
-            var options   = await CreateAnalyzersOptionsWithConfig("Sinks:");
+            var options   = CreateAnalyzersOptionsWithConfig("Sinks:");
             var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
 
             // ensuring that field count matches count of properties tested below
@@ -68,9 +68,9 @@ namespace SecurityCodeScan.Test.Config
         }
 
         [TestMethod]
-        public async Task DifferentConfigVersion_ChangesIgnored()
+        public void DifferentConfigVersion_ChangesIgnored()
         {
-            var options   = await CreateAnalyzersOptionsWithConfig("MinimumPasswordValidatorProperties: 0", new Version(1,2));
+            var options   = CreateAnalyzersOptionsWithConfig("MinimumPasswordValidatorProperties: 0", new Version(1,2));
             var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
 
             Assert.AreNotEqual(StartupConfiguration.MinimumPasswordValidatorProperties, 0);

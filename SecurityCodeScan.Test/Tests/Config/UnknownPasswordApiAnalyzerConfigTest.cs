@@ -57,7 +57,7 @@ End Namespace
 PasswordFields: [TestPassword]
 ";
 
-            var optionsWithProjectConfig = await CreateAnalyzersOptionsWithConfig(testConfig).ConfigureAwait(false);
+            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0015",
@@ -70,7 +70,7 @@ PasswordFields: [TestPassword]
 PasswordFields: [TeStPassWORD]
 ";
 
-            optionsWithProjectConfig = await CreateAnalyzersOptionsWithConfig(testConfig).ConfigureAwait(false);
+            optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
             await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }

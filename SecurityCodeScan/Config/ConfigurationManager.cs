@@ -54,16 +54,13 @@ namespace SecurityCodeScan.Config
                 if (Path.GetFileName(file.Path) != ConfigName)
                     continue;
 
-                using (var reader = new StreamReader(file.Path))
-                {
-                    var deserializer = new Deserializer();
-                    var projectConfig = deserializer.Deserialize<ProjectConfigData>(reader);
-                    if (new Version(projectConfig.Version) != ConfigVersion)
-                        return null;
+                var deserializer  = new Deserializer();
+                var projectConfig = deserializer.Deserialize<ProjectConfigData>(file.GetText().ToString());
+                if (new Version(projectConfig.Version) != ConfigVersion)
+                    return null;
 
-                    path = file.Path;
-                    return projectConfig;
-                }
+                path = file.Path;
+                return projectConfig;
             }
 
             return null;

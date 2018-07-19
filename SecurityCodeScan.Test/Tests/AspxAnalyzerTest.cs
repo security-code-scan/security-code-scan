@@ -32,7 +32,7 @@ namespace SecurityCodeScan.Test
 </asp:Content>
               ";
 
-            var path     = Path.GetTempFileName();
+            var path     = Guid.NewGuid().ToString();
             var expected = new
             {
                 Id      = WebConfigAnalyzer.RuleValidateRequest.Id,
@@ -62,7 +62,7 @@ namespace SecurityCodeScan.Test
 </asp:Content>
               ";
 
-            var diagnostics = await Analyze(html, Path.GetTempFileName()).ConfigureAwait(false);
+            var diagnostics = await Analyze(html, Guid.NewGuid().ToString()).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleValidateRequest.Id)), Times.Never);
         }
     }

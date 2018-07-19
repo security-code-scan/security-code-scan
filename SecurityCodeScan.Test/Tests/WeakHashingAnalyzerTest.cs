@@ -428,7 +428,7 @@ End Class
 AuditingMode: {auditMode}
 ";
 
-            var optionsWithProjectConfig = await CreateAnalyzersOptionsWithConfig(testConfig).ConfigureAwait(false);
+            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest,
                                          auditMode ? new [] {expected} : null,

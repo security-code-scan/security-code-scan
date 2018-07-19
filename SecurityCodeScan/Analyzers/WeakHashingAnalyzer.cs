@@ -5,10 +5,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
+using SecurityCodeScan.Config;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
-using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
-using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
@@ -56,6 +55,7 @@ namespace SecurityCodeScan.Analyzers
     {
         public static readonly DiagnosticDescriptor Md5Rule  = LocaleUtil.GetDescriptor("SCS0006", args: new[] { "MD5" });
         public static readonly DiagnosticDescriptor Sha1Rule = LocaleUtil.GetDescriptor("SCS0006", args: new[] { "SHA1" });
+        public static readonly DiagnosticDescriptor UnknownHashRule = LocaleUtil.GetDescriptor("SCS0006", titleId:"title2", descriptionId: "description_unknown");
         public const string Sha1TypeName = "System.Security.Cryptography.SHA1";
         public const string Md5TypeName = "System.Security.Cryptography.MD5";
 
@@ -186,7 +186,12 @@ namespace SecurityCodeScan.Analyzers
             Optional<object> argValue = ctx.SemanticModel.GetConstantValue(nodeHelper.GetCallArgumentExpressionNodes(ctx.Node).First());
 
             if (!argValue.HasValue)
+            {
+                if (ConfigurationManager.Instance.GetProjectConfiguration(ctx.Options.AdditionalFiles).AuditMode)
+                    return WeakHashingAnalyzer.UnknownHashRule;
+
                 return null;
+            }
 
             var value = (string)argValue.Value;
             switch (value)

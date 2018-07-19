@@ -54,16 +54,13 @@ namespace SecurityCodeScan.Config
                 if (Path.GetFileName(file.Path) != ConfigName)
                     continue;
 
-                using (var reader = new StreamReader(file.Path))
-                {
-                    var deserializer = new Deserializer();
-                    var projectConfig = deserializer.Deserialize<ProjectConfigData>(reader);
-                    if (new Version(projectConfig.Version) != ConfigVersion)
-                        return null;
+                var deserializer  = new Deserializer();
+                var projectConfig = deserializer.Deserialize<ProjectConfigData>(file.GetText().ToString());
+                if (new Version(projectConfig.Version) != ConfigVersion)
+                    return null;
 
-                    path = file.Path;
-                    return projectConfig;
-                }
+                path = file.Path;
+                return projectConfig;
             }
 
             return null;
@@ -95,86 +92,15 @@ namespace SecurityCodeScan.Config
                         return CachedConfiguration;
 
                     var builtinConfiguration = ConfigurationReader.GetBuiltinConfiguration();
-                    CachedConfiguration = ConvertDataToConfig(builtinConfiguration);
+                    CachedConfiguration = new Configuration(builtinConfiguration);
 
                     var userConfig = ConfigurationReader.GetUserConfiguration();
                     if (userConfig != null)
-                        CachedConfiguration = MergeConfigData(userConfig);
+                        CachedConfiguration.MergeWith(userConfig);
 
                     return CachedConfiguration;
                 }
             }
-        }
-
-        private Configuration ConvertDataToConfig(ConfigData configData)
-        {
-            var config = new Configuration
-            {
-                MinimumPasswordValidatorProperties = configData.MinimumPasswordValidatorProperties ?? 0,
-                PasswordValidatorRequiredLength = configData.PasswordValidatorRequiredLength ?? 0
-            };
-
-            if (configData.PasswordValidatorRequiredProperties != null)
-            {
-                foreach (var data in configData.PasswordValidatorRequiredProperties)
-                {
-                    config.PasswordValidatorRequiredProperties.Add(data);
-                }
-            }
-
-            foreach (var data in configData.Behavior)
-            {
-                config.Behavior[data.Key] = CreateBehavior(data.Value);
-            }
-
-            foreach (var data in configData.Sinks)
-            {
-                config.Sinks[data.Key] = CreateBehavior(data.Value);
-            }
-
-            foreach (var data in configData.CsrfProtectionAttributes)
-            {
-                AddAntiCsrfTAttributeToConfiguration(config, data);
-            }
-
-            foreach (var data in configData.PasswordFields)
-            {
-                config.PasswordFields.Add(data.ToUpperInvariant());
-            }
-
-            foreach (var data in configData.ConstantFields)
-            {
-                config.ConstantFields.Add(data);
-            }
-
-            return config;
-        }
-
-        private KeyValuePair<string, MethodBehavior> CreateBehavior(MethodBehaviorData behavior)
-        {
-            var key = behavior.ArgTypes != null ?
-                       $"{behavior.Namespace}.{behavior.ClassName}|{behavior.Name}|{behavior.ArgTypes}": //With arguments types discriminator
-                       $"{behavior.Namespace}.{behavior.ClassName}|{behavior.Name}"; //Minimalist configuration
-
-            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(behavior.InjectableArguments,
-                                                                                    behavior.PasswordArguments,
-                                                                                    behavior.TaintFromArguments,
-                                                                                    behavior.Locale,
-                                                                                    behavior.LocalePass,
-                                                                                    behavior.InjectableField,
-                                                                                    behavior.IsPasswordField));
-        }
-
-        private void AddAntiCsrfTAttributeToConfiguration(Configuration config, CsrfProtectionData csrfData)
-        {
-            config.AntiCsrfAttributes.TryGetValue(csrfData.HttpMethodsNameSpace, out var list);
-            if (list == null)
-            {
-                list = new List<string>();
-                config.AntiCsrfAttributes[csrfData.HttpMethodsNameSpace] = list;
-            }
-
-            list.Add(csrfData.AntiCsrfAttribute);
         }
 
         public Configuration GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
@@ -193,77 +119,11 @@ namespace SecurityCodeScan.Config
                     return Configuration;
                 }
 
-                var mergedConfig           = MergeConfigData(projectConfig);
+                var mergedConfig = new Configuration(Configuration);
+                mergedConfig.MergeWith(projectConfig);
                 ProjectConfigs[configPath] = mergedConfig;
                 return mergedConfig;
             }
-        }
-
-        private Configuration MergeConfigData(ConfigData config)
-        {
-            var mergeInto = new Configuration(Configuration);
-
-            if (config.MinimumPasswordValidatorProperties != null)
-                mergeInto.MinimumPasswordValidatorProperties = (int)config.MinimumPasswordValidatorProperties;
-
-            if (config.PasswordValidatorRequiredLength != null)
-                mergeInto.PasswordValidatorRequiredLength = (int)config.PasswordValidatorRequiredLength;
-
-            if (config.PasswordValidatorRequiredProperties != null)
-            {
-                foreach (var property in config.PasswordValidatorRequiredProperties)
-                {
-                    mergeInto.PasswordValidatorRequiredProperties.Add(property);
-                }
-            }
-
-            if (config.Behavior != null)
-            {
-                foreach (var behavior in config.Behavior)
-                {
-                    if (behavior.Value == default(MethodBehaviorData))
-                        mergeInto.Behavior.Remove(behavior.Key);
-                    else
-                        mergeInto.Behavior[behavior.Key] = CreateBehavior(behavior.Value);
-                }
-            }
-
-            if (config.Sinks != null)
-            {
-                foreach (var sink in config.Sinks)
-                {
-                    if (sink.Value == default(MethodBehaviorData))
-                        mergeInto.Sinks.Remove(sink.Key);
-                    else
-                        mergeInto.Sinks[sink.Key] = CreateBehavior(sink.Value);
-                }
-            }
-          
-            if (config.CsrfProtectionAttributes != null)
-            {
-                foreach (var data in config.CsrfProtectionAttributes)
-                {
-                    AddAntiCsrfTAttributeToConfiguration(mergeInto, data);
-                }
-            }
-          
-            if (config.PasswordFields != null)
-            {
-                foreach (var field in config.PasswordFields)
-                {
-                    mergeInto.PasswordFields.Add(field.ToUpperInvariant());
-                }
-            }
-
-            if (config.ConstantFields != null)
-            {
-                foreach (var field in config.ConstantFields)
-                {
-                    mergeInto.ConstantFields.Add(field);
-                }
-            }
-          
-            return mergeInto;
         }
 
         public IEnumerable<KeyValuePair<string, MethodBehavior>> GetBehaviors(ImmutableArray<AdditionalText> additionalFiles)
@@ -290,6 +150,7 @@ namespace SecurityCodeScan.Config
 
     internal class ConfigData
     {
+        public bool?                                  AuditMode                           { get; set; }
         public int?                                   PasswordValidatorRequiredLength     { get; set; }
         public int?                                   MinimumPasswordValidatorProperties  { get; set; }
         public List<string>                           PasswordValidatorRequiredProperties { get; set; }

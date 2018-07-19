@@ -30,7 +30,7 @@ namespace SecurityCodeScan.Test
 </configuration>
 ";
 
-            var path = Path.GetTempFileName();
+            var path = Guid.NewGuid().ToString();
             var expected = new
             {
                 Id      = WebConfigAnalyzer.RuleValidateRequest.Id,
@@ -62,7 +62,7 @@ namespace SecurityCodeScan.Test
 </configuration>
 ";
 
-            var diagnostics = await Analyze(config, Path.GetTempFileName()).ConfigureAwait(false);
+            var diagnostics = await Analyze(config, Guid.NewGuid().ToString()).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleValidateRequest.Id)), Times.Never);
         }
 
@@ -83,7 +83,7 @@ namespace SecurityCodeScan.Test
 </configuration>
 ";
 
-            var path     = Path.GetTempFileName();
+            var path     = Guid.NewGuid().ToString();
             var expected = new
             {
                 Id      = WebConfigAnalyzer.RuleRequestValidationMode.Id,
@@ -115,7 +115,7 @@ namespace SecurityCodeScan.Test
 </configuration>
 ";
 
-            var diagnostics = await Analyze(config, Path.GetTempFileName()).ConfigureAwait(false);
+            var diagnostics = await Analyze(config, Guid.NewGuid().ToString()).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleRequestValidationMode.Id)), Times.Never);
         }
 
@@ -143,7 +143,7 @@ namespace SecurityCodeScan.Test
 </configuration>
 ";
 
-            var path = Path.GetTempFileName();
+            var path = Guid.NewGuid().ToString();
             var expected = new
             {
                 Id = WebConfigAnalyzer.RuleRequestValidationMode.Id,
@@ -188,7 +188,7 @@ namespace SecurityCodeScan.Test
 </configuration>
 ";
 
-            var diagnostics = await Analyze(config, Path.GetTempFileName()).ConfigureAwait(false);
+            var diagnostics = await Analyze(config, Guid.NewGuid().ToString()).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleRequestValidationMode.Id)), Times.Never);
         }
 
@@ -207,7 +207,7 @@ namespace SecurityCodeScan.Test
 </configuration>
 ";
 
-            var path = Path.GetTempFileName();
+            var path = Guid.NewGuid().ToString();
             var expected = new
             {
                 Id = WebConfigAnalyzer.RuleEnableEventValidation.Id,
@@ -240,7 +240,7 @@ namespace SecurityCodeScan.Test
 </configuration>
 ";
 
-            var diagnostics = await Analyze(config, Path.GetTempFileName()).ConfigureAwait(false);
+            var diagnostics = await Analyze(config, Guid.NewGuid().ToString()).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleEnableEventValidation.Id)), Times.Never);
         }
 
@@ -281,7 +281,7 @@ namespace SecurityCodeScan.Test
 </configuration>
 ";
 
-            var path = Path.GetTempFileName();
+            var path = Guid.NewGuid().ToString();
             var expected = new
             {
                 Id = WebConfigAnalyzer.RuleViewStateEncryptionMode.Id,
@@ -313,7 +313,7 @@ namespace SecurityCodeScan.Test
 </configuration>
 ";
 
-            var diagnostics = await Analyze(config, Path.GetTempFileName()).ConfigureAwait(false);
+            var diagnostics = await Analyze(config, Guid.NewGuid().ToString()).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleViewStateEncryptionMode.Id)), Times.Never);
         }
 
@@ -332,7 +332,7 @@ namespace SecurityCodeScan.Test
 </configuration>
 ";
 
-            var path = Path.GetTempFileName();
+            var path = Guid.NewGuid().ToString();
             var expected = new
             {
                 Id = WebConfigAnalyzer.RuleEnableViewStateMac.Id,
@@ -365,7 +365,7 @@ namespace SecurityCodeScan.Test
 </configuration>
 ";
 
-            var diagnostics = await Analyze(config, Path.GetTempFileName()).ConfigureAwait(false);
+            var diagnostics = await Analyze(config, Guid.NewGuid().ToString()).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleEnableViewStateMac.Id)), Times.Never);
         }
     }

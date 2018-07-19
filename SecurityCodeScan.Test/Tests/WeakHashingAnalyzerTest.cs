@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Test.Helpers;
-using DiagnosticVerifier = SecurityCodeScan.Test.Helpers.DiagnosticVerifier;
 
 namespace SecurityCodeScan.Test
 {
@@ -345,7 +344,6 @@ End Class
 
         [DataRow("HashAlgorithm.Create(\"System.Security.Cryptography.SHA256\")")]
         [DataRow("SHA256.Create()")]
-        [DataRow("CryptoConfig.CreateFromName(name)")] // todo: introduce configuration setting to show questionable findings
         [DataRow("HashAlgorithm.Create(name)")]
         [DataRow("HashAlgorithm.Create(Sha1Name)")]
         // [DataRow("HashAlgorithm.Create(Sha256Name)")] todo: property check not implemented

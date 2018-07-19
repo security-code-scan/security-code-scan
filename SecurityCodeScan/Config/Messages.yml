@@ -94,6 +94,8 @@ SCS0006:
   class: WeakHashingAnalyzer
   title: Weak hashing function
   description: "{0} is no longer considered a strong hashing algorithm."
+  title2: Possibly weak hashing function
+  description_unknown: "Unable to determine hashing algorithm statically. Review if it is strong enough (SHA256 for example)."
 
 SCS0010:
   class: WeakCipherAnalyzer

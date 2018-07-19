@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Threading.Tasks;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.CodeAnalysis.Text;
 using Moq;
 using SecurityCodeScan.Test.Helpers;
 
@@ -13,40 +12,22 @@ namespace SecurityCodeScan.Test.Config
 {
     public abstract class ConfigurationTest : DiagnosticVerifier
     {
-        private readonly List<string> FilePaths = new List<string>();
         private const string ConfigName = "SecurityCodeScan.config.yml";
-        private readonly Version ConfigVersion = new Version(1,0);
+        private static readonly Version ConfigVersion = new Version(1,0);
         private const string ConfigText = "Version: {0}\r\n{1}";
 
-        protected async Task<AnalyzerOptions> CreateAnalyzersOptionsWithConfig(string configSource, Version version = null)
+        protected static AnalyzerOptions CreateAnalyzersOptionsWithConfig(string  configSource,
+                                                                          Version version = null)
         {
-            var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-            FilePaths.Add(path);
-
-            Directory.CreateDirectory(path);
-
-            var filePath = Path.Combine(path, ConfigName);
-            using (var file = File.CreateText(filePath))
-            {
-                var configText = string.Format(ConfigText, version != null ? version : ConfigVersion, configSource);
-                await file.WriteAsync(configText).ConfigureAwait(false);
-            }
+            var configText = string.Format(ConfigText, version != null ? version : ConfigVersion, configSource);
 
             var additionalTextMock = new Mock<AdditionalText>();
-            additionalTextMock.Setup(text => text.Path).Returns(filePath); //return path to our just created config file
-            var additionalFileText = ImmutableArray.Create(additionalTextMock.Object);
+            additionalTextMock.Setup(text => text.GetText(CancellationToken.None)).Returns(SourceText.From(configText));
+            // doesn't have to be real path, but config manager caches content, so must be unique for each test
+            var path = Path.Combine(Guid.NewGuid().ToString(), ConfigName);
+            additionalTextMock.Setup(text => text.Path).Returns(path);
 
-            return new AnalyzerOptions(additionalFileText);
-        }
-
-        [ClassCleanup]
-        public void DeleteConfig()
-        {
-            foreach (var path in FilePaths)
-            {
-                File.Delete(Path.Combine(path, ConfigName));
-                Directory.Delete(path);
-            }
+            return new AnalyzerOptions(ImmutableArray.Create(additionalTextMock.Object));
         }
     }
 }

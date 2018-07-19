@@ -86,16 +86,14 @@ namespace SecurityCodeScan.Analyzers
                 boolValue = true; // TODO: In case of auditing mode, show warning that value unknown
 
             //Looking for Assignment to Secure or HttpOnly property
-
-            // InProgress: change to check full name
-            if (AnalyzerUtil.SymbolMatch(symbol, "HttpCookie", "Secure"))
+            if(symbol.IsType("System.Web.HttpCookie.Secure"))
             {
                 if (boolValue)
                     variableRightState.AddTag(Tag.HttpCookieSecure);
                 else
                     variableRightState.RemoveTag(Tag.HttpCookieSecure);
             }
-            else if (AnalyzerUtil.SymbolMatch(symbol, "HttpCookie", "HttpOnly"))
+            else if (symbol.IsType("System.Web.HttpCookie.HttpOnly"))
             {
                 if (boolValue)
                     variableRightState.AddTag(Tag.HttpCookieHttpOnly);
@@ -111,8 +109,12 @@ namespace SecurityCodeScan.Analyzers
             {
                 var st = variableState.Value;
 
+                var symbol = state.GetSymbol(st.Node);
+                if (symbol == null)
+                    continue;
+
                 // Only if it is the constructor of the PasswordValidator instance
-                if (!AnalyzerUtil.SymbolMatch(state.GetSymbol(st.Node), "HttpCookie", ".ctor"))
+                if (!symbol.IsConstructor() || !symbol.ContainingSymbol.ToString().Equals("System.Web.HttpCookie"))
                     continue;
 
                 if (!st.Tags.Contains(Tag.HttpCookieSecure))

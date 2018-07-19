@@ -323,5 +323,42 @@ End Namespace
             await VerifyCSharpDiagnostic(cSharpTest, expected08).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected08).ConfigureAwait(false);
         }
+
+        [TestMethod]
+        public async Task IgnoreCookieFromOtherNamespace()
+        {
+            var cSharpTest = @"
+namespace VulnerableApp
+{
+    class HttpCookie
+    {
+    }
+
+    class CookieCreation
+    {
+        static void TestCookie()
+        {
+            var a = new HttpCookie();
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Namespace VulnerableApp
+    Class HttpCookie
+    End Class
+
+    Class CookieCreation
+        Private Shared Sub TestCookie()
+            Dim a = New HttpCookie()
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
     }
 }

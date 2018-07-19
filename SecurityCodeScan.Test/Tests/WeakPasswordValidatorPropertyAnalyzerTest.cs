@@ -699,5 +699,58 @@ End Namespace
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
+
+        [TestMethod]
+        public async Task IgnorePasswordValidatorDeclarationFromOtherNamespace()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace WebApplicationSandbox.Controllers
+{
+    public class PasswordValidator
+    {
+        public int RequiredLength { get; set; }
+    }
+
+    public class HomeController : Controller
+    {
+        public ActionResult Index()
+        {
+            PasswordValidator pwdv = new PasswordValidator
+            {
+                RequiredLength = 1
+            };
+
+            return View();
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace WebApplicationSandbox.Controllers
+    Public Class PasswordValidator
+        Public Property RequiredLength As Integer
+    End Class
+
+    Public Class HomeController
+        Inherits Controller
+
+        Public Function Index() As ActionResult
+            Dim pwdv As PasswordValidator = New PasswordValidator With {
+                .RequiredLength = 1
+            }
+            Return View()
+        End Function
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
     }
 }

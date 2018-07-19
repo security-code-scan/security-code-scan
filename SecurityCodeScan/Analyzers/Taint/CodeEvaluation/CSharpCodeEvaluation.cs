@@ -231,7 +231,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 case AssignmentExpressionSyntax assignmentExpressionSyntax:
                     return VisitAssignment(assignmentExpressionSyntax, state);
                 case MemberAccessExpressionSyntax memberAccessExpressionSyntax:
-                    return VisitExpression(memberAccessExpressionSyntax.Name, state);
+                    return VisitMemberAccessExpression(memberAccessExpressionSyntax, state);
                 case ElementAccessExpressionSyntax elementAccessExpressionSyntax:
                     return VisitElementAccess(elementAccessExpressionSyntax, elementAccessExpressionSyntax.ArgumentList, state);
                 case ArrayCreationExpressionSyntax arrayCreationExpressionSyntax:
@@ -503,13 +503,48 @@ namespace SecurityCodeScan.Analyzers.Taint
             return variableState;
         }
 
+        private VariableState? GetVariableState(ExpressionSyntax expression, ExecutionState state)
+        {
+            if (!(expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax))
+            {
+                VariableState result;
+                if (!(expression is IdentifierNameSyntax identifierNameSyntax))
+                {
+                    if (expression is ThisExpressionSyntax && state.VariableStates.TryGetValue("this", out result))
+                        return result;
+
+                    return null;
+                }
+
+                var identifier = ResolveIdentifier(identifierNameSyntax.Identifier);
+                if (state.VariableStates.TryGetValue(identifier, out result))
+                    return result;
+
+                return null;
+            }
+
+            var variableState = GetVariableState(memberAccessExpressionSyntax.Expression, state);
+            if (variableState == null)
+                return null;
+
+            var stateIdentifier = ResolveIdentifier(memberAccessExpressionSyntax.Name.Identifier);
+            if (variableState.Value.PropertyStates.TryGetValue(stateIdentifier, out var propertyState))
+                return propertyState;
+
+            return null;
+        }
+
         private VariableState MergeVariableState(ExpressionSyntax expression, VariableState? newVariableState, ExecutionState state)
         {
             var variableStateToMerge = newVariableState ?? new VariableState(expression, VariableTaint.Unset);
             if (!(expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax))
             {
-                var identifierNameSyntax = (IdentifierNameSyntax) expression;
-                var identifier = ResolveIdentifier(identifierNameSyntax.Identifier);
+                var identifier = "";
+                if (expression is IdentifierNameSyntax identifierNameSyntax)
+                    identifier = ResolveIdentifier(identifierNameSyntax.Identifier);
+                else if (expression is ThisExpressionSyntax)
+                    identifier = "this";
+
                 state.MergeValue(identifier, variableStateToMerge);
                 return state.VariableStates[identifier];
             }
@@ -530,54 +565,64 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <returns></returns>
         private VariableState VisitIdentifierName(IdentifierNameSyntax expression, ExecutionState state)
         {
-            var value = ResolveIdentifier(expression.Identifier);
-            if (state.VariableStates.TryGetValue(value, out var varState))
-                return varState;
+            return ResolveVariableState(expression, state);
+        }
+
+        private VariableState VisitMemberAccessExpression(MemberAccessExpressionSyntax expression, ExecutionState state)
+        {
+            return ResolveVariableState(expression, state);
+        }
+
+        private VariableState ResolveVariableState(ExpressionSyntax expression, ExecutionState state)
+        {
+            var varState = GetVariableState(expression, state);
+            if (varState != null)
+                return varState.Value;
 
             var symbol = state.GetSymbol(expression);
             switch (symbol)
             {
                 case null:
-                    return new VariableState(expression, VariableTaint.Unknown);
+                return new VariableState(expression, VariableTaint.Unknown);
                 case IFieldSymbol field:
-                    if (field.IsConst)
-                        return new VariableState(expression, VariableTaint.Constant);
+                if (field.IsConst)
+                    return new VariableState(expression, VariableTaint.Constant);
 
-                    if (!field.IsReadOnly)
-                        return new VariableState(expression, VariableTaint.Unknown);
-
-                    var contantFields = ConfigurationManager.Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles)
-                                                            .ConstantFields;
-
-                    if (contantFields.Contains(field.GetTypeName()))
-                    {
-                        return new VariableState(expression, VariableTaint.Constant);
-                    }
-
+                if (!field.IsReadOnly)
                     return new VariableState(expression, VariableTaint.Unknown);
+
+                var contantFields = ConfigurationManager.Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles)
+                                                        .ConstantFields;
+
+                if (contantFields.Contains(field.GetTypeName()))
+                {
+                    return new VariableState(expression, VariableTaint.Constant);
+                }
+
+                return new VariableState(expression, VariableTaint.Unknown);
                 case IPropertySymbol prop:
-                    if (prop.IsVirtual || prop.IsOverride || prop.IsAbstract)
-                        return new VariableState(expression, VariableTaint.Unknown);
-
-                    // TODO: Use public API
-                    var syntaxNodeProperty = prop.GetMethod.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("BodySyntax");
-                    if (syntaxNodeProperty == null)
-                        return new VariableState(expression, VariableTaint.Unknown);
-
-                    var syntaxNode = (CSharpSyntaxNode)syntaxNodeProperty.GetValue(prop.GetMethod);
-                    switch (syntaxNode)
-                    {
-                        case BlockSyntax blockSyntax:
-                            // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
-                            state.AddNewValue(value, new VariableState(expression, VariableTaint.Unknown));
-                            return VisitBlock(blockSyntax, state);
-                        case ArrowExpressionClauseSyntax arrowSyntax:
-                            // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
-                            state.AddNewValue(value, new VariableState(expression, VariableTaint.Unknown));
-                            return VisitExpression(arrowSyntax.Expression, state);
-                    }
-
+                if (prop.IsVirtual || prop.IsOverride || prop.IsAbstract)
                     return new VariableState(expression, VariableTaint.Unknown);
+
+                // TODO: Use public API
+                var syntaxNodeProperty = prop.GetMethod.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("BodySyntax");
+                if (syntaxNodeProperty == null)
+                    return new VariableState(expression, VariableTaint.Unknown);
+
+                var syntaxNode = (CSharpSyntaxNode)syntaxNodeProperty.GetValue(prop.GetMethod);
+                switch (syntaxNode)
+                {
+                    case BlockSyntax blockSyntax:
+                    // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
+                    MergeVariableState(expression, new VariableState(expression, VariableTaint.Unknown), state);
+                    return VisitBlock(blockSyntax, state);
+                    case ArrowExpressionClauseSyntax arrowSyntax:
+                    // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
+                    MergeVariableState(expression, new VariableState(expression, VariableTaint.Unknown), state);
+                    return VisitExpression(arrowSyntax.Expression, state);
+                }
+
+                return new VariableState(expression, VariableTaint.Unknown);
             }
 
             return new VariableState(expression, VariableTaint.Unknown);

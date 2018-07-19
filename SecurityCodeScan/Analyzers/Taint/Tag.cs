@@ -11,7 +11,6 @@
         RequireDigitIsSet,
         RequireLowercaseIsSet,
         RequireNonLetterOrDigitIsSet,
-        RequireUppercaseIsSet,
-        RequiredLenghtIsTooShort
+        RequireUppercaseIsSet
     }
 }

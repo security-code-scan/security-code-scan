@@ -231,7 +231,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 case BinaryExpressionSyntax binaryExpressionSyntax:
                     return VisitBinaryExpression(binaryExpressionSyntax, state);
                 case MemberAccessExpressionSyntax memberAccessExpressionSyntax:
-                    return VisitExpression(memberAccessExpressionSyntax.Name, state);
+                    return VisitMemberAccessExpression(memberAccessExpressionSyntax, state);
                 case ArrayCreationExpressionSyntax arrayCreationExpressionSyntax:
                     return VisitArrayCreation(arrayCreationExpressionSyntax, arrayCreationExpressionSyntax.Initializer, state);
                 case CollectionInitializerSyntax collectionInitializerSyntax:
@@ -478,53 +478,64 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <returns></returns>
         private VariableState VisitIdentifierName(IdentifierNameSyntax expression, ExecutionState state)
         {
-            var value = ResolveIdentifier(expression.Identifier);
-            if (state.VariableStates.TryGetValue(value, out var varState))
-                return varState;
+            return ResolveVariableState(expression, state);
+        }
+
+        private VariableState VisitMemberAccessExpression(MemberAccessExpressionSyntax expression, ExecutionState state)
+        {
+            return ResolveVariableState(expression, state);
+        }
+
+        private VariableState ResolveVariableState(ExpressionSyntax expression, ExecutionState state)
+        {
+            var varState = GetVariableState(expression, state);
+            if (varState != null)
+                return varState.Value;
 
             var symbol = state.GetSymbol(expression);
             switch (symbol)
             {
                 case null:
-                    return new VariableState(expression, VariableTaint.Unknown);
+                return new VariableState(expression, VariableTaint.Unknown);
                 case IFieldSymbol field:
-                    if (field.IsConst)
-                        return new VariableState(expression, VariableTaint.Constant);
+                if (field.IsConst)
+                    return new VariableState(expression, VariableTaint.Constant);
 
-                    if (!field.IsReadOnly)
-                        return new VariableState(expression, VariableTaint.Unknown);
-
-                    var contantFields = ConfigurationManager.Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles)
-                                                            .ConstantFields;
-
-                    if (contantFields.Contains(field.GetTypeName()))
-                    {
-                        return new VariableState(expression, VariableTaint.Constant);
-                    }
-
+                if (!field.IsReadOnly)
                     return new VariableState(expression, VariableTaint.Unknown);
+
+                var contantFields = ConfigurationManager.Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles)
+                                                        .ConstantFields;
+
+                if (contantFields.Contains(field.GetTypeName()))
+                {
+                    return new VariableState(expression, VariableTaint.Constant);
+                }
+
+                return new VariableState(expression, VariableTaint.Unknown);
                 case IPropertySymbol prop:
-                    if (prop.IsVirtual || prop.IsOverride || prop.IsAbstract)
-                        return new VariableState(expression, VariableTaint.Unknown);
-
-                    // TODO: Use public API
-                    var syntaxNodeProperty = prop.GetMethod.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("Syntax");
-                    var syntaxNode         = (VisualBasicSyntaxNode)syntaxNodeProperty?.GetValue(prop.GetMethod);
-                    switch (syntaxNode)
-                    {
-                        case null:
-                            return new VariableState(expression, VariableTaint.Unknown);
-                        case AccessorBlockSyntax blockSyntax:
-                            // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
-                            state.AddNewValue(value, new VariableState(expression, VariableTaint.Unknown));
-                            return VisitBlock(blockSyntax, state);
-                    }
-
+                if (prop.IsVirtual || prop.IsOverride || prop.IsAbstract)
                     return new VariableState(expression, VariableTaint.Unknown);
+
+                // TODO: Use public API
+                var syntaxNodeProperty = prop.GetMethod.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("Syntax");
+                var syntaxNode = (VisualBasicSyntaxNode)syntaxNodeProperty?.GetValue(prop.GetMethod);
+                switch (syntaxNode)
+                {
+                    case null:
+                    return new VariableState(expression, VariableTaint.Unknown);
+                    case AccessorBlockSyntax blockSyntax:
+                    // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
+                    MergeVariableState(expression, new VariableState(expression, VariableTaint.Unknown), state);
+                    return VisitBlock(blockSyntax, state);
+                }
+
+                return new VariableState(expression, VariableTaint.Unknown);
             }
 
             return new VariableState(expression, VariableTaint.Unknown);
         }
+
 
         private VariableState VisitExpressionStatement(ExpressionStatementSyntax node, ExecutionState state)
         {
@@ -546,48 +557,58 @@ namespace SecurityCodeScan.Analyzers.Taint
             return finalState;
         }
 
-        /// <summary>
-        /// Return the top member from an assignment.
-        /// <code>
-        /// a.b.c = 1234; //Will return a
-        /// d.e = 1234 //Will return d
-        /// </code>
-        /// </summary>
-        /// <param name="expression"></param>
-        /// <returns></returns>
-        private VariableState GetVariableState(ExpressionSyntax expression, ExecutionState state)
+        private VariableState? GetVariableState(ExpressionSyntax expression, ExecutionState state)
         {
             if (!(expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax))
             {
-                var identifierNameSyntax = (IdentifierNameSyntax) expression;
+                VariableState result;
+                if (!(expression is IdentifierNameSyntax identifierNameSyntax))
+                {
+                    if (expression is MeExpressionSyntax && state.VariableStates.TryGetValue("this", out result))
+                        return result;
+
+                    return null;
+                }
+
                 var identifier = ResolveIdentifier(identifierNameSyntax.Identifier);
-                state.MergeValue(identifier, new VariableState(expression, VariableTaint.Unset));
-                return state.VariableStates[identifier];
+                if (state.VariableStates.TryGetValue(identifier, out result))
+                    return result;
+
+                return null;
             }
 
             var variableState = GetVariableState(memberAccessExpressionSyntax.Expression, state);
+            if (variableState == null)
+                return null;
 
             var stateIdentifier = ResolveIdentifier(memberAccessExpressionSyntax.Name.Identifier);
             //make sure this identifier exists
-            variableState.MergeProperty(stateIdentifier, new VariableState(memberAccessExpressionSyntax, VariableTaint.Unset));
-            return variableState.PropertyStates[stateIdentifier];
+            if (variableState.Value.PropertyStates.TryGetValue(stateIdentifier, out var propertyState))
+                return propertyState;
+
+            return null;
         }
 
-        private VariableState MergeVariableState(ExpressionSyntax expression, VariableState newVariableState, ExecutionState state)
+        private VariableState MergeVariableState(ExpressionSyntax expression, VariableState? newVariableState, ExecutionState state)
         {
+            var variableStateToMerge = newVariableState ?? new VariableState(expression, VariableTaint.Unset);
             if (!(expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax))
             {
-                var identifierNameSyntax = (IdentifierNameSyntax) expression;
-                var identifier = ResolveIdentifier(identifierNameSyntax.Identifier);
-                state.MergeValue(identifier, newVariableState);
+                var identifier = "";
+                if (expression is IdentifierNameSyntax identifierNameSyntax)
+                    identifier = ResolveIdentifier(identifierNameSyntax.Identifier);
+                else if (expression is MeExpressionSyntax)
+                    identifier = "this";
+
+                state.MergeValue(identifier, variableStateToMerge);
                 return state.VariableStates[identifier];
             }
 
-            var variableState = GetVariableState(memberAccessExpressionSyntax.Expression, state);
+            var variableState = MergeVariableState(memberAccessExpressionSyntax.Expression, null, state);
 
             var stateIdentifier = ResolveIdentifier(memberAccessExpressionSyntax.Name.Identifier);
             //make sure this identifier exists
-            variableState.MergeProperty(stateIdentifier, newVariableState);
+            variableState.MergeProperty(stateIdentifier, variableStateToMerge);
             return variableState.PropertyStates[stateIdentifier];
         }
 

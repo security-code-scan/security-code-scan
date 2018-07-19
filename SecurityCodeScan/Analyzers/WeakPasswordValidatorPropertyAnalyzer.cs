@@ -40,7 +40,7 @@ namespace SecurityCodeScan.Analyzers
                                              VariableState                           variableRightState)
         {
             if (node != null)
-                Analyzer.TagVariables(state.AnalysisContext, symbol, variableRightState);
+                Analyzer.TagVariables(symbol, variableRightState);
         }
     }
 
@@ -72,7 +72,7 @@ namespace SecurityCodeScan.Analyzers
                                              VariableState            variableRightState)
         {
             if (node is VBSyntax.AssignmentStatementSyntax || node is VBSyntax.NamedFieldInitializerSyntax)
-                Analyzer.TagVariables(state.AnalysisContext, symbol, variableRightState);
+                Analyzer.TagVariables(symbol, variableRightState);
         }
     }
 
@@ -150,7 +150,7 @@ namespace SecurityCodeScan.Analyzers
             }
         }
 
-        public void TagVariables(SyntaxNodeAnalysisContext analysisContext, ISymbol symbol, VariableState variableRightState)
+        public void TagVariables(ISymbol symbol, VariableState variableRightState)
         {
             var variableValue = variableRightState.Value;
             if (variableRightState.Taint != VariableTaint.Constant)

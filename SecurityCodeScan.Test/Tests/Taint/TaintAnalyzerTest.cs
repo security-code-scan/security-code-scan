@@ -1360,7 +1360,7 @@ End Namespace
         }
 
         [TestMethod]
-        public async Task VariableReuse()
+        public async Task VariableReuseFromSafeToUnknown()
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
@@ -1392,6 +1392,117 @@ Namespace sample
 
             query = input
             Dim cmd2 As SqlCommand = New SqlCommand(query)
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task VariableReuseFromUnknownToSafe()
+        {
+            var cSharpTest = @"
+using System.Data.SqlClient;
+
+namespace sample
+{
+    class SqlConstant
+    {
+        public static void Run(string input)
+        {
+            string query = input;
+            SqlCommand cmd1 = new SqlCommand(query);
+
+            query = ""SELECT * FROM [User] WHERE user_id = 1"";
+            SqlCommand cmd2 = new SqlCommand(query);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+    Class SqlConstant
+        Public Shared Sub Run(input As String)
+            Dim query As String = input
+            Dim cmd1 As New SqlCommand(query)
+
+            query = ""SELECT * FROM [User] WHERE user_id = 1""
+            Dim cmd2 As SqlCommand = New SqlCommand(query)
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task VariableReuseFromUnknownToSafeInObject()
+        {
+            var cSharpTest = @"
+using System.Data.SqlClient;
+
+namespace sample
+{
+    class QueryDataClass
+    {
+        public string query { get; set; }
+    }
+
+    class SqlConstant
+    {
+        public static void Run(string input)
+        {
+            var queryObejct = new QueryDataClass{
+                query = input
+            };
+
+            SqlCommand cmd1 = new SqlCommand(queryObejct.query);
+
+            queryObejct.query = ""SELECT * FROM [User] WHERE user_id = 1"";
+            SqlCommand cmd2 = new SqlCommand(queryObejct.query);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+    Class QueryDataClass
+        Public Property query As String
+    End Class
+
+    Class SqlConstant
+        Public Shared Sub Run(input As String)
+            Dim queryObejct As QueryDataClass = new QueryDataClass With {
+                .query = input
+            }
+
+            Dim cmd1 As New SqlCommand(queryObejct.query)
+
+            queryObejct.query = ""SELECT * FROM [User] WHERE user_id = 1""
+            Dim cmd2 As SqlCommand = New SqlCommand(queryObejct.query)
         End Sub
     End Class
 End Namespace

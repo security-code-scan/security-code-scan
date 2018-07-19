@@ -28,7 +28,7 @@ namespace SecurityCodeScan.Analyzers
                                              ISymbol                                 symbol,
                                              VariableState                           variableRightState)
         {
-            Analyzer.VisitAssignment(state.AnalysisContext, symbol, variableRightState);
+            Analyzer.VisitAssignment(symbol, variableRightState);
         }
 
         public override void VisitEnd(SyntaxNode node, ExecutionState state)
@@ -56,7 +56,7 @@ namespace SecurityCodeScan.Analyzers
                                              ISymbol               symbol,
                                              VariableState         variableRightState)
         {
-            Analyzer.VisitAssignment(state.AnalysisContext, symbol, variableRightState);
+            Analyzer.VisitAssignment(symbol, variableRightState);
         }
 
         public override void VisitEnd(SyntaxNode node, ExecutionState state)
@@ -75,8 +75,7 @@ namespace SecurityCodeScan.Analyzers
 
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RuleSecure, RuleHttpOnly);
 
-        public void VisitAssignment(SyntaxNodeAnalysisContext analysisContext,
-                                    ISymbol                   symbol,
+        public void VisitAssignment(ISymbol                   symbol,
                                     VariableState             variableRightState)
         {
             var variableValue = variableRightState.Value;
@@ -88,6 +87,7 @@ namespace SecurityCodeScan.Analyzers
 
             //Looking for Assignment to Secure or HttpOnly property
 
+            // InProgress: change to check full name
             if (AnalyzerUtil.SymbolMatch(symbol, "HttpCookie", "Secure"))
             {
                 if (boolValue)

@@ -113,6 +113,36 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (secondState.Taint != Unset)
                 newNode = secondState.Node;
 
+            // A new instance is made to prevent referencing the current VariableState's parameters
+            var vs = new VariableState(newNode, newTaint, newValue, PropertyStates, VariableTags);
+
+            // Searches through the new VariableState for new tags
+            foreach (var newPropertyState in secondState.PropertyStates)
+            {
+                vs.PropertyStates.Add(newPropertyState.Key, newPropertyState.Value);
+            }
+
+            // Searches through the new VariableState for new tags
+            foreach (var newTag in secondState.VariableTags)
+            {
+                vs.AddTag(newTag);
+            }
+
+            return vs;
+        }
+
+        public VariableState MergeAndReplaceTaint(VariableState secondState)
+        {
+            var newNode = Node;
+            var newValue = Value;
+            var newTaint = Taint;
+
+            if (secondState.Taint != Unset)
+            {
+                newTaint = secondState.Taint;
+                newValue = newTaint == Constant ? secondState.Value : null;
+                newNode = secondState.Node;
+            }
 
             // A new instance is made to prevent referencing the current VariableState's parameters
             var vs = new VariableState(newNode, newTaint, newValue, PropertyStates, VariableTags);
@@ -135,7 +165,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         public VariableState MergeProperty(string identifier, VariableState secondState)
         {
             if (PropertyStates.ContainsKey(identifier))
-                PropertyStates[identifier] = PropertyStates[identifier].Merge(secondState);
+                PropertyStates[identifier] = PropertyStates[identifier].MergeAndReplaceTaint(secondState);
             else
                 PropertyStates.Add(identifier, secondState);
 

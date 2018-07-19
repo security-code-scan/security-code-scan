@@ -17,7 +17,7 @@ namespace SecurityCodeScan.Config
 
         public Configuration(Configuration config)
         {
-            AuditingMode                        = config.AuditingMode;
+            AuditMode                           = config.AuditMode;
             PasswordValidatorRequiredLength     = config.PasswordValidatorRequiredLength;
             MinimumPasswordValidatorProperties  = config.MinimumPasswordValidatorProperties;
             PasswordValidatorRequiredProperties = new HashSet<string>(config.PasswordValidatorRequiredProperties);
@@ -30,7 +30,7 @@ namespace SecurityCodeScan.Config
 
         public Configuration(ConfigData configData) : this()
         {
-            AuditingMode                       = configData.AuditingMode                       ?? false;
+            AuditMode                          = configData.AuditMode                          ?? false;
             MinimumPasswordValidatorProperties = configData.MinimumPasswordValidatorProperties ?? 0;
             PasswordValidatorRequiredLength    = configData.PasswordValidatorRequiredLength    ?? 0;
 
@@ -68,7 +68,7 @@ namespace SecurityCodeScan.Config
             }
         }
 
-        public bool                                                     AuditingMode;
+        public bool                                                     AuditMode;
         public int                                                      PasswordValidatorRequiredLength;
         public int                                                      MinimumPasswordValidatorProperties;
         public HashSet<string>                                          PasswordValidatorRequiredProperties;
@@ -80,8 +80,8 @@ namespace SecurityCodeScan.Config
 
         public void MergeWith(ConfigData config)
         {
-            if (config.AuditingMode.HasValue)
-                AuditingMode = config.AuditingMode.Value;
+            if (config.AuditMode.HasValue)
+                AuditMode = config.AuditMode.Value;
 
             if (config.MinimumPasswordValidatorProperties.HasValue)
                 MinimumPasswordValidatorProperties = config.MinimumPasswordValidatorProperties.Value;

@@ -52,7 +52,7 @@ End Class
             };
 
             var testConfig = $@"
-AuditingMode: {auditMode}
+AuditMode: {auditMode}
 ";
 
             var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);

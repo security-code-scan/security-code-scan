@@ -1,5 +1,5 @@
 ﻿# Set to 'true' to see more warnings
-AuditingMode: false
+AuditMode: false
 
 PasswordValidatorRequiredLength: 8
 MinimumPasswordValidatorProperties: 3

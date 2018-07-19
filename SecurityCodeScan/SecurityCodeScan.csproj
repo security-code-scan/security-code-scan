@@ -97,7 +97,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Config\Main.yml" />
-    <None Include="Config\AuditingMode.yml">
+    <None Include="Config\AuditMode.yml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Diagnostic.nuspec">

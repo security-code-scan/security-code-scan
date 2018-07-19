@@ -187,7 +187,7 @@ namespace SecurityCodeScan.Analyzers
 
             if (!argValue.HasValue)
             {
-                if (ConfigurationManager.Instance.GetProjectConfiguration(ctx.Options.AdditionalFiles).AuditingMode)
+                if (ConfigurationManager.Instance.GetProjectConfiguration(ctx.Options.AdditionalFiles).AuditMode)
                     return WeakHashingAnalyzer.UnknownHashRule;
 
                 return null;

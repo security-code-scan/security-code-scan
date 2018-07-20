@@ -61,12 +61,9 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             if (VariableStates.ContainsKey(identifier)) //Override existing value
             {
-                var state    = VariableStates[identifier];
-                var newState = state.MergeAndReplaceTaint(value);
-                Variables.Remove(identifier);
-                Variables.Add(identifier, newState);
+                VariableStates[identifier].MergeAndReplaceTaint(value);
                 if (DebugMode)
-                    Logger.Log($"Merging state for {identifier} ({newState})");
+                    Logger.Log($"Merging state for {identifier} ({value})");
             }
             else
             {

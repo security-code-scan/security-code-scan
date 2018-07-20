@@ -246,9 +246,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                     var finalState = new VariableState(ternaryConditionalExpressionSyntax, VariableTaint.Safe);
 
                     var whenTrueState  = VisitExpression(ternaryConditionalExpressionSyntax.WhenTrue, state);
-                    finalState         = finalState.Merge(whenTrueState);
+                    finalState.Merge(whenTrueState);
                     var whenFalseState = VisitExpression(ternaryConditionalExpressionSyntax.WhenFalse, state);
-                    finalState         = finalState.Merge(whenFalseState);
+                    finalState.Merge(whenFalseState);
 
                     return finalState;
                 }
@@ -266,7 +266,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         private VariableState VisitMethodInvocation(InvocationExpressionSyntax node, ExecutionState state)
         {
-            VariableState? memberVariableState = null;
+            VariableState memberVariableState = null;
             if (node.Expression is MemberAccessExpressionSyntax memberAccessExpression)
             {
                 if (memberAccessExpression.Expression != null)
@@ -314,15 +314,15 @@ namespace SecurityCodeScan.Analyzers.Taint
         private VariableState VisitInvocationAndCreation(ExpressionSyntax node,
                                                          ArgumentListSyntax argList,
                                                          ExecutionState state,
-                                                         VariableState? initialVariableState = null)
+                                                         VariableState initialVariableState = null)
         {
             var symbol = state.GetSymbol(node);
             if (symbol == null)
                 return new VariableState(node, VariableTaint.Unknown);
 
             var behavior    = symbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
-            var returnState = initialVariableState.HasValue && !symbol.IsStatic
-                                  ? initialVariableState.Value
+            var returnState = initialVariableState != null && !symbol.IsStatic
+                                  ? initialVariableState
                                   : new VariableState(node,
                                                       behavior?.TaintFromArguments?.Any() == true ? VariableTaint.Safe
                                                                                                   : VariableTaint.Unknown);
@@ -357,7 +357,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 }
                 else if (Array.Exists(behavior.TaintFromArguments, element => element == i))
                 {
-                    returnState = returnState.Merge(argumentState);
+                    returnState.Merge(argumentState);
                 }
 
                 //TODO: taint all objects passed as arguments
@@ -466,8 +466,8 @@ namespace SecurityCodeScan.Analyzers.Taint
         private VariableState VisitBinaryExpression(BinaryExpressionSyntax expression, ExecutionState state)
         {
             VariableState left  = VisitExpression(expression.Left,  state);
-            VariableState right = VisitExpression(expression.Right, state);
-            return left.Merge(right);
+            left.Merge(VisitExpression(expression.Right, state));
+            return left;
         }
 
         /// <summary>
@@ -490,7 +490,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             var varState = GetVariableState(expression, state);
             if (varState != null)
-                return varState.Value;
+                return varState;
 
             var symbol = state.GetSymbol(expression);
             switch (symbol)
@@ -551,13 +551,13 @@ namespace SecurityCodeScan.Analyzers.Taint
             foreach (var ex in arrayInit.Initializers)
             {
                 var exprState = VisitExpression(ex, state);
-                finalState    = finalState.Merge(exprState);
+                finalState.Merge(exprState);
             }
 
             return finalState;
         }
 
-        private VariableState? GetVariableState(ExpressionSyntax expression, ExecutionState state)
+        private VariableState GetVariableState(ExpressionSyntax expression, ExecutionState state)
         {
             if (!(expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax))
             {
@@ -583,13 +583,13 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             var stateIdentifier = ResolveIdentifier(memberAccessExpressionSyntax.Name.Identifier);
             //make sure this identifier exists
-            if (variableState.Value.PropertyStates.TryGetValue(stateIdentifier, out var propertyState))
+            if (variableState.PropertyStates.TryGetValue(stateIdentifier, out var propertyState))
                 return propertyState;
 
             return null;
         }
 
-        private VariableState MergeVariableState(ExpressionSyntax expression, VariableState? newVariableState, ExecutionState state)
+        private VariableState MergeVariableState(ExpressionSyntax expression, VariableState newVariableState, ExecutionState state)
         {
             var variableStateToMerge = newVariableState ?? new VariableState(expression, VariableTaint.Unset);
             if (!(expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax))

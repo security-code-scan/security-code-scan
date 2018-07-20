@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SecurityCodeScan.Analyzers.Taint
+﻿namespace SecurityCodeScan.Analyzers.Taint
 {
     public class VariableTag
     {
@@ -16,6 +10,5 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         public Tag    Tag;
         public object Value;
-
     }
 }

@@ -34,7 +34,11 @@ namespace SecurityCodeScan.Analyzers.Taint
         public ExecutionState(ExecutionState state)
         {
             AnalysisContext = state.AnalysisContext;
-            Variables = state.Variables;
+            Variables = new Dictionary<string, VariableState>();
+            foreach (var variableState in Variables)
+            {
+                Variables.Add(variableState.Key, variableState.Value);
+            }
         }
 
         public void AddNewValue(string identifier, VariableState value)

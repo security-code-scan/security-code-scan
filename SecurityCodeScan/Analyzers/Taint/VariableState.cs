@@ -79,34 +79,34 @@ namespace SecurityCodeScan.Analyzers.Taint
                 switch (secondState.Taint)
                 {
                     case Tainted:
-                    newTaint = Tainted;
-                    break;
+                        newTaint = Tainted;
+                        break;
                     case Unknown:
-                    if (Taint != Tainted)
-                        newTaint = Unknown;
+                        if (Taint != Tainted)
+                            newTaint = Unknown;
 
-                    break;
+                        break;
                     case Safe:
-                    if (Taint != Tainted && Taint != Unknown)
-                        newTaint = Safe;
+                        if (Taint != Tainted && Taint != Unknown)
+                            newTaint = Safe;
 
-                    break;
+                        break;
                     case Constant:
-                    if (Taint == Safe)
-                    {
-                        newTaint = Safe;
-                    }
-                    else if (Taint == Constant)
-                    {
-                        newTaint = Constant;
-                        newValue = secondState.Value;
-                    }
+                        if (Taint == Safe)
+                        {
+                            newTaint = Safe;
+                        }
+                        else if (Taint == Constant)
+                        {
+                            newTaint = Constant;
+                            newValue = secondState.Value;
+                        }
 
-                    break;
+                        break;
                     case Unset:
-                    break;
+                        break;
                     default:
-                    throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException();
                 }
             }
 

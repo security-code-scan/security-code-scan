@@ -446,7 +446,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 if (child is NamedFieldInitializerSyntax namedFieldInitializerSyntax)
                 {
                     var identifier = ResolveIdentifier(namedFieldInitializerSyntax.Name.Identifier);
-                    finalState = finalState.MergeProperty(identifier, VisitNamedFieldInitializer(namedFieldInitializerSyntax, state));
+                    finalState = finalState.MergeProperty(identifier, VisitNamedFieldInitializer(namedFieldInitializerSyntax, new ExecutionState(state)));
                 }
                 else
                 {

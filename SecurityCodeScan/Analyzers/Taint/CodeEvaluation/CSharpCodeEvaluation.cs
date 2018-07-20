@@ -325,7 +325,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 if (child is AssignmentExpressionSyntax assignmentExpressionSyntax)
                 {
                     var identifier = assignmentExpressionSyntax.Left as IdentifierNameSyntax;
-                    finalState = finalState.MergeProperty(ResolveIdentifier(identifier.Identifier), VisitAssignment(assignmentExpressionSyntax, new ExecutionState(state)));
+                    finalState = finalState.AddOrMergeProperty(ResolveIdentifier(identifier.Identifier), VisitAssignment(assignmentExpressionSyntax, new ExecutionState(state)));
                 }
                 else
                 {
@@ -546,7 +546,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     identifier = "this";
 
                 //make sure this identifier exists
-                state.MergeValue(identifier, variableStateToMerge);
+                state.AddOrUpdateValue(identifier, variableStateToMerge);
                 return state.VariableStates[identifier];
             }
 
@@ -554,7 +554,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             var stateIdentifier = ResolveIdentifier(memberAccessExpressionSyntax.Name.Identifier);
             //make sure this identifier exists
-            variableState.MergeProperty(stateIdentifier, variableStateToMerge);
+            variableState.AddOrMergeProperty(stateIdentifier, variableStateToMerge);
             return variableState.PropertyStates[stateIdentifier];
         }
 

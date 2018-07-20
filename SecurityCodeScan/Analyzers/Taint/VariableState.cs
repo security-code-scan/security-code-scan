@@ -139,7 +139,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             }
         }
 
-        public VariableState MergeProperty(string identifier, VariableState secondState)
+        public VariableState AddOrMergeProperty(string identifier, VariableState secondState)
         {
             if (PropertyStates.ContainsKey(identifier))
                 PropertyStates[identifier].MergeAndReplaceTaint(secondState);

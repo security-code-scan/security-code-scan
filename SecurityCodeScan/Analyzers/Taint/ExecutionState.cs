@@ -57,19 +57,19 @@ namespace SecurityCodeScan.Analyzers.Taint
             Variables.Add(identifier, value);
         }
 
-        public void MergeValue(string identifier, VariableState value)
+        public void AddOrUpdateValue(string identifier, VariableState value)
         {
             if (VariableStates.ContainsKey(identifier)) //Override existing value
             {
                 VariableStates[identifier].MergeAndReplaceTaint(value);
                 if (DebugMode)
-                    Logger.Log($"Merging state for {identifier} ({value})");
+                    Logger.Log($"Updating state for {identifier} ({value})");
             }
             else
             {
                 //Unexpected state
                 if (DebugMode)
-                    Logger.Log($"Merging state for {identifier} ({value}) .. /!\\ unexpected state");
+                    Logger.Log($"Adding state for {identifier} ({value})");
 
                 Variables.Add(identifier, value);
             }

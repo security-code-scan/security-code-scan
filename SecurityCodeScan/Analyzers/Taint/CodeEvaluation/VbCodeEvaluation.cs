@@ -446,7 +446,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 if (child is NamedFieldInitializerSyntax namedFieldInitializerSyntax)
                 {
                     var identifier = ResolveIdentifier(namedFieldInitializerSyntax.Name.Identifier);
-                    finalState = finalState.MergeProperty(identifier, VisitNamedFieldInitializer(namedFieldInitializerSyntax, new ExecutionState(state)));
+                    finalState = finalState.AddOrMergeProperty(identifier, VisitNamedFieldInitializer(namedFieldInitializerSyntax, new ExecutionState(state)));
                 }
                 else
                 {
@@ -600,7 +600,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 else if (expression is MeExpressionSyntax)
                     identifier = "this";
 
-                state.MergeValue(identifier, variableStateToMerge);
+                state.AddOrUpdateValue(identifier, variableStateToMerge);
                 return state.VariableStates[identifier];
             }
 
@@ -608,7 +608,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             var stateIdentifier = ResolveIdentifier(memberAccessExpressionSyntax.Name.Identifier);
             //make sure this identifier exists
-            variableState.MergeProperty(stateIdentifier, variableStateToMerge);
+            variableState.AddOrMergeProperty(stateIdentifier, variableStateToMerge);
             return variableState.PropertyStates[stateIdentifier];
         }
 

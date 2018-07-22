@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
-  <metadata>
-    <id>SecurityCodeScan</id>
+  <metadata minClientVersion="2.8">
+    <id>SecurityCodeScan.VS2017</id>
     <version>2.7.1</version>
-    <title>Security Code Scan</title>
+    <title>Security Code Scan (for VS2017 and newer)</title>
     <authors>Jaroslav Lobačevski, Philippe Arteau</authors>
     <owners>Jaroslav Lobačevski</owners>
     <licenseUrl>https://opensource.org/licenses/lgpl-3.0.html</licenseUrl>
@@ -21,7 +21,8 @@
   </metadata>
   <!-- The convention for analyzers is to put language agnostic dlls in analyzers\portable50 and language specific analyzers in either analyzers\portable50\cs or analyzers\portable50\vb -->
   <files>
-    <file src="*.dll" target="analyzers\dotnet" exclude="**\Microsoft.CodeAnalysis.*;**\System.Collections.Immutable.*;**\System.Reflection.Metadata.*;**\System.Composition.*" />
+    <file src="SecurityCodeScan.VS2017.dll" target="analyzers\dotnet" />
+    <file src="YamlDotNet.dll" target="analyzers\dotnet" />
     <file src="tools\*.ps1" target="tools\" />
   </files>
 </package>

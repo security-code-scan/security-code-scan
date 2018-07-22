@@ -1,199 +1,52 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <MinimumVisualStudioVersion>11.0</MinimumVisualStudioVersion>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D7034F4A-4741-4493-8E1E-0A6D3BE9734E}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SecurityCodeScan</RootNamespace>
-    <AssemblyName>SecurityCodeScan</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <LangVersion>default</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <LangVersion>default</LangVersion>
-  </PropertyGroup>
+  
   <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
+    <NuspecBasePath>bin/$(Configuration)/$(TargetFramework)/</NuspecBasePath>
+    <NuspecFile>Diagnostic.nuspec</NuspecFile>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <AssemblyName>SecurityCodeScan.VS2017</AssemblyName>
   </PropertyGroup>
+  
   <ItemGroup>
-    <Compile Include="Analyzers\CsrfTokenAnalyzer.cs" />
-    <Compile Include="Analyzers\HtmlValidateRequestAnalyzer.cs" />
-    <Compile Include="Analyzers\IExternalFileAnalyzer.cs" />
-    <Compile Include="Analyzers\InsecureCookieAnalyzer.cs" />
-    <Compile Include="Analyzers\RequestValidationAnalyzer.cs" />
-    <Compile Include="Analyzers\OutputCacheAnnotationAnalyzer.cs" />
-    <Compile Include="Analyzers\Taint\CodeEvaluation\CSharpCodeEvaluation.cs" />
-    <Compile Include="Analyzers\Taint\CodeEvaluation\TaintAnalyzerExtension.cs" />
-    <Compile Include="Analyzers\Taint\VariableTag.cs" />
-    <Compile Include="Analyzers\UnknownPasswordApiAnalyzer.cs" />
-    <Compile Include="Analyzers\UnsafeDeserializationAnalyzer.cs" />
-    <Compile Include="Analyzers\Utils\AnalyzerUtil.cs" />
-    <Compile Include="Analyzers\DebugAnalyzer.cs" />
-    <Compile Include="Analyzers\Taint\ExecutionState.cs" />
-    <Compile Include="Analyzers\Taint\MethodBehavior.cs" />
-    <Compile Include="Analyzers\Taint\MethodBehaviorHelper.cs" />
-    <Compile Include="Analyzers\Taint\TaintAnalyzer.cs" />
-    <Compile Include="Analyzers\Taint\VariableState.cs" />
-    <Compile Include="Analyzers\Taint\VariableTaint.cs" />
-    <Compile Include="Analyzers\Locale\LocaleUtil.cs" />
-    <Compile Include="Analyzers\Utils\CodeFixUtil.cs" />
-    <Compile Include="Analyzers\Utils\CompilationExtensions.cs" />
-    <Compile Include="Analyzers\Utils\CSharpSyntaxNodeHelper.cs" />
-    <Compile Include="Analyzers\Utils\ISymbolExtensions.cs" />
-    <Compile Include="Analyzers\Utils\ITypeSymbolExtensions.cs" />
-    <Compile Include="Analyzers\Utils\ObjectExtensions.cs" />
-    <Compile Include="Analyzers\Utils\SGLogging.cs" />
-    <Compile Include="Analyzers\Locale\YamlResourceManager.cs" />
-    <Compile Include="Analyzers\Taint\CodeEvaluation\VbCodeEvaluation.cs" />
-    <Compile Include="Analyzers\Utils\SyntaxNodeHelper.cs" />
-    <Compile Include="Analyzers\Utils\VBSyntaxNodeHelper.cs" />
-    <Compile Include="Analyzers\WeakCertificateValidationAnalyzer.cs" />
-    <Compile Include="Analyzers\WeakCipherAnalyzer.cs" />
-    <Compile Include="Analyzers\WeakCipherModeAnalyzer.cs" />
-    <Compile Include="Analyzers\WeakHashingAnalyzer.cs" />
-    <Compile Include="Analyzers\WeakPasswordValidatorPropertyAnalyzer.cs" />
-    <Compile Include="Analyzers\WeakRandomAnalyzer.cs" />
-    <Compile Include="Analyzers\WebConfigAnalyzer.cs" />
-    <Compile Include="Analyzers\XxeAnalyzer.cs" />
-    <Compile Include="Analyzers\XxeAnalyzerCSharp.cs" />
-    <Compile Include="Analyzers\XxeAnalyzerVBasic.cs" />
-    <Compile Include="CodeFixes\CsrfTokenCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\InsecureCookieCodeFixProvider.cs" />
-    <Compile Include="Config\ConfigurationManager.cs" />
-    <Compile Include="Config\Configuration.cs" />
-    <Compile Include="Empty.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Empty.resx</DependentUpon>
-    </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Analyzers\XssPreventionAnalyzer.cs" />
+    <None Remove="Config\Main.yml" />
+    <None Remove="Config\Messages.yml" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Empty.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Empty.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-  </ItemGroup>
+  
   <ItemGroup>
     <EmbeddedResource Include="Config\Main.yml" />
-    <None Include="Config\AuditMode.yml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Diagnostic.nuspec">
-      <SubType>Designer</SubType>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <EmbeddedResource Include="Config\Messages.yml" />
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="tools\install.ps1">
+  </ItemGroup>
+   
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.4.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="2.4.0" PrivateAssets="all" />
+    <PackageReference Include="YamlDotNet" Version="5.0.1" />
+    <PackageReference Update="NETStandard.Library" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Empty.Designer.cs" DesignTime="True" AutoGen="True" DependentUpon="Empty.resx" />
+    <EmbeddedResource Update="Empty.resx" Generator="ResXFileCodeGenerator" LastGenOutput="Empty.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Config\AuditMode.yml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="tools\uninstall.ps1">
+    <None Update="tools\install.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="tools\uninstall.ps1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.0.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
-    <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.0.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Microsoft.CodeAnalysis, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.CodeAnalysis.Common.1.0.0\lib\portable-net45+win8\Microsoft.CodeAnalysis.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.CSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.CodeAnalysis.CSharp.1.0.0\lib\portable-net45+win8\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.CSharp.Workspaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.CodeAnalysis.CSharp.Workspaces.1.0.0\lib\portable-net45+win8\Microsoft.CodeAnalysis.CSharp.Workspaces.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.VisualBasic, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.CodeAnalysis.VisualBasic.1.0.0\lib\portable-net45+win8\Microsoft.CodeAnalysis.VisualBasic.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.CodeAnalysis.VisualBasic.Workspaces.1.0.0\lib\portable-net45+win8\Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.Workspaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.CodeAnalysis.Workspaces.Common.1.0.0\lib\portable-net45+win8\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=1.1.36.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Collections.Immutable.1.1.36\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Composition.AttributedModel, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Composition.Convention, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Composition.Hosting, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Composition.Runtime, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Composition.TypedParts, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Reflection.Metadata, Version=1.0.21.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Reflection.Metadata.1.0.21\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.XML" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="YamlDotNet, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\YamlDotNet.4.0.0\lib\portable-net45+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\YamlDotNet.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="AfterBuild">
-    <GetAssemblyIdentity AssemblyFiles="$(OutDir)\$(AssemblyName).dll">
-      <Output TaskParameter="Assemblies" ItemName="AnalyzerAssemblyInfo" />
-    </GetAssemblyIdentity>
-    <Exec Command="&quot;$(SolutionDir)packages\NuGet.CommandLine.2.8.5\tools\NuGet.exe&quot; pack Diagnostic.nuspec -NoPackageAnalysis -Version %(AnalyzerAssemblyInfo.Version) -OutputDirectory ." WorkingDirectory="$(OutDir)" LogStandardErrorAsError="true" ConsoleToMSBuild="true">
-      <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
-    </Exec>
-  </Target>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
 </Project>

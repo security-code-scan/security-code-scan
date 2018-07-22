@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using SecurityCodeScan.Analyzers.Taint;
 using YamlDotNet.Serialization;
@@ -14,7 +15,32 @@ namespace SecurityCodeScan.Config
         private const string BuiltinConfigName = "SecurityCodeScan.Config.Main.yml";
         private const string ConfigName        = "SecurityCodeScan.config.yml";
         private const string UserConfigName    = "SecurityCodeScan\\config-{0}.yml";
-        private readonly string UserConfigFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), UserConfigName);
+        private string UserConfigFile => UserConfigFileCached.Value;
+
+        private static readonly Lazy<string> UserConfigFileCached =
+            new Lazy<string>(() =>
+                             {
+                                 // todo: use Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) once on netstandard 2.0
+                                 string path;
+                                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                                 {
+                                     path = Environment.GetEnvironmentVariable("LocalAppData");
+                                 }
+                                 else
+                                 {
+                                     string home = Environment.GetEnvironmentVariable("HOME");
+                                     // "$XDG_DATA_HOME defines the base directory relative to which user specific data files should be stored."
+                                     // "If $XDG_DATA_HOME is either not set or empty, a default equal to $HOME/.local/share should be used."
+                                     path = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+
+                                     if (string.IsNullOrEmpty(path) || path[0] != '/')
+                                     {
+                                         path = Path.Combine(home, ".local", "share");
+                                     }
+                                 }
+
+                                 return Path.Combine(path, UserConfigName);
+                             });
 
         private readonly Version ConfigVersion = new Version(1,0);
 
@@ -38,7 +64,7 @@ namespace SecurityCodeScan.Config
             if (!File.Exists(filePath))
                 return null;
 
-            using (var reader = new StreamReader(filePath))
+            using (var reader = File.OpenText (filePath))
             {
                 var deserializer = new Deserializer();
                 return deserializer.Deserialize<ConfigData>(reader);

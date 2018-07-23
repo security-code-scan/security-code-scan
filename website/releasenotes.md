@@ -1,4 +1,35 @@
 # Release Notes
+## 2.8.0
+Bad news: this release will no longer run on Unix machines.
+Good news: for Continuous Integration builds on Unix use https://www.nuget.org/packages/SecurityCodeScan.VS2017 nuget package.
+
+Added external configuration files: per user account and per project. It allows you to customize settings from https://github.com/security-code-scan/security-code-scan/blob/master/SecurityCodeScan/Config/Main.yml or add your specific Sinks and Behaviors. Global settings file location is %LocalAppData%\SecurityCodeScan\config-1.0.yml
+An example of config-1.0.yml:
+```
+CsrfProtectionAttributes:
+  -  HttpMethodsNameSpace: MyCompany.AspNetCore.Mvc
+     AntiCsrfAttribute: MyNamespace.MyAntiCsrfAttribute
+```
+
+For project specific settings add SecurityCodeScan.config.yml into a project. Go to file properties and set the Build Action to AdditionalFiles:
+
+![image](https://user-images.githubusercontent.com/26652396/43063175-d28dc288-8e63-11e8-90eb-a7cb31900aff.png)
+
+An example of SecurityCodeScan.config.yml:
+```
+Version: 1.0
+Sinks:
+  MyKey:
+    Namespace: MyNamespace
+    ClassName: Test
+    Member: method
+    Name: VulnerableFunctionName
+    InjectableArguments: [0]
+    Locale: SCS0001
+```
+
+Audit Mode setting (Off by default) was introduced for those interested in warnings with more false positives.
+
 ## 2.7.1
 Couple of issues related to VB.NET fixed:
 * VB.NET projects were not analyzed when using the analyzer from NuGet.

@@ -38,9 +38,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Config\AuditMode.yml">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
     <None Update="tools\install.ps1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

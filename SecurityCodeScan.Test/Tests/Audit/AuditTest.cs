@@ -8,7 +8,7 @@ namespace SecurityCodeScan.Test.Audit
 {
     public abstract class AuditTest : ConfigurationTest
     {
-        private const string ConfigPath = @"Config\AuditMode.yml";
+        private const string ConfigPath = @"Tests\Config\AuditMode.yml";
 
         // Multi-thread safe initialization, guaranteed to be called only once
         private static readonly Lazy<Task<AnalyzerOptions>> Config = new Lazy<Task<AnalyzerOptions>>(async () =>

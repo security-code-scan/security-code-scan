@@ -3,7 +3,7 @@
 *Full solution analysis* is a Visual Studio (2015 Update 3 RC and later) feature that enables you to choose whether you see code analysis issues only in open Visual C# or Visual Basic files in your solution, or in both open and closed Visual C# or Visual Basic files in your solution. For performance reasons it is disabled by default. It is not needed if SCS is installed as NuGet package. In VS extension case open Tools > Options in Visual Studio. Select Text Editor > C# (or Basic) > Advanced. Make sure the "Enable full solution analysis" is checked:
 
 ![Full Solution Analysis](images/fullsolution.png)  
-Since *Full solution analysis* for IntelliSense has performance impact this is another reason to use Security Code Scan during a build only as a nuget instead of Visual Studio extension.
+Since *Full solution analysis* for IntelliSense has performance impact this is another reason to use SCS during a build only as a nuget instead of Visual Studio extension.
 ## Analyzing .aspx and web.config Files
 To enable analysis of these files you need to modify all C#(.csproj) and VB.NET(.vbproj) projects in a solution and add "AdditionalFileItemNames" element as shown below:
 ```xml

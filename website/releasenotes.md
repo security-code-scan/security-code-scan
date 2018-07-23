@@ -3,7 +3,7 @@
 Bad news: this release will no longer run on Unix machines.  
 Good news: for Continuous Integration builds on Unix use the [VS2017 nuget package](https://www.nuget.org/packages/SecurityCodeScan.VS2017).
 
-Added external configuration files: per user account and per project. It allows you to customize settings from [built-in configuration](https://github.com/security-code-scan/security-code-scan/blob/master/SecurityCodeScan/Config/Main.yml) or add your specific Sinks and Behaviors. Global settings file location is %LocalAppData%\SecurityCodeScan\config-1.0.yml  
+Added external configuration files: per user account and per project. It allows you to customize settings from [built-in configuration](https://github.com/security-code-scan/security-code-scan/blob/master/SecurityCodeScan/Config/Main.yml) or add your specific Sinks and Behaviors. Global settings file location is `%LocalAppData%\SecurityCodeScan\config-1.0.yml` on Windows and `$XDG_DATA_HOME/.local/share` on Unix.  
 An example of config-1.0.yml:
 ```
 CsrfProtectionAttributes:

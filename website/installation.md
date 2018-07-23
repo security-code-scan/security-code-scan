@@ -10,7 +10,7 @@ Installing it as NuGet package gives an advantage to choose projects in a soluti
 Because of the [Roslyn](https://github.com/dotnet/roslyn) technology SCS is based on, only the NuGet version runs during a build (VS extension provides IntelliSense only) and can be integrated to any Continuous Integration (CI) server that supports [MSBuild](https://msdn.microsoft.com/en-us/library/dd393574.aspx).
 
 ## Continuous Integration Builds
-If the CI server of your choice is using MSBuild integration of SCS is just a matter of adding NuGet packages and collecting the output from the build. SCS warnings are in the form of  
+If the CI server of your choice is using MSBuild, then integration of SCS is just a matter of adding NuGet packages and collecting the output from the build. SCS warnings are in the form of  
 `[source file](line,column): warning SCS[rule id]: [warning description] [project_file]`  
 If your CI server doesn't support MSBuild, here is an example how it can be scripted to use Docker container for building:  
 * `git clone` or copy by other means the sources to a local directory.

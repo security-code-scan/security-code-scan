@@ -36,7 +36,7 @@ $content.Save($_)
 }
 ```
 ## External Configuration Files
-There are two types of external configuration files that can be used together: per user account and per project. It allows you to customize built-in settings from https://github.com/security-code-scan/security-code-scan/blob/master/SecurityCodeScan/Config/Main.yml or add your specific Sinks and Behaviors. Global settings file location is `%LocalAppData%\SecurityCodeScan\config-1.0.yml` on Windows and `$XDG_DATA_HOME/.local/share` on Unix.  
+There are two types of external configuration files that can be used together: per user account and per project. It allows you to customize settings from [built-in configuration](https://github.com/security-code-scan/security-code-scan/blob/master/SecurityCodeScan/Config/Main.yml) or add your specific Sinks and Behaviors. Global settings file location is `%LocalAppData%\SecurityCodeScan\config-1.0.yml` on Windows and `$XDG_DATA_HOME/.local/share` on Unix.  
 An example of config-1.0.yml:
 ```
 CsrfProtectionAttributes:

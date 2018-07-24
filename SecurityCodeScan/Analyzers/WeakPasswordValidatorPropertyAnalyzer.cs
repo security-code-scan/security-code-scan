@@ -124,7 +124,7 @@ namespace SecurityCodeScan.Analyzers
 
                 if (!st.Tags.Contains(Tag.RequiredLengthIsSet) && requiredProperties.Contains("RequiredLength"))
                 {
-                        state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleRequiredPasswordValidators,
+                    state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleRequiredPasswordValidators,
                                                                                  variableState.Value.Node.GetLocation(), "RequiredLength"));
                 }
 
@@ -156,14 +156,14 @@ namespace SecurityCodeScan.Analyzers
 
         public void TagVariables(ISymbol symbol, VariableState variableRightState)
         {
-            if(symbol.ContainingType.ToString() != "Microsoft.AspNet.Identity.PasswordValidator")
+            // Only PasswordValidator properties will cause a new tag to be added
+            if (symbol.ContainingType.ToString() != "Microsoft.AspNet.Identity.PasswordValidator")
                 return;
 
             var variableValue = variableRightState.Value;
             if (variableRightState.Taint != VariableTaint.Constant)
                 variableValue = null;
 
-            // Only PasswordValidator properties will cause a new tag to be added
             if (symbol.Name == "RequiredLength")
             {
                 int? requiredLenght = null;

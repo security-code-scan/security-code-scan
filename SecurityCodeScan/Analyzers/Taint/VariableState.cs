@@ -16,7 +16,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         public VariableTaint Taint { get; private set; }
 
         /// <summary>
-        /// Contains Value only is Taint is constant. Otherwise returns null
+        /// Contains Value only if Taint is constant. Otherwise returns null
         /// </summary>
         public object Value { get; private set; }
 

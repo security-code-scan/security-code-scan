@@ -213,8 +213,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitMethodInvocation(invocationExpressionSyntax, state);
                 case ObjectCreationExpressionSyntax objectCreationExpressionSyntax:
                     return VisitObjectCreation(objectCreationExpressionSyntax, state);
-                case LiteralExpressionSyntax lietaExpressionSyntax:
-                    return new VariableState(lietaExpressionSyntax, VariableTaint.Constant, state.AnalysisContext.SemanticModel.GetConstantValue(lietaExpressionSyntax).Value);
+                case LiteralExpressionSyntax literalExpressionSyntax:
+                    return new VariableState(literalExpressionSyntax, VariableTaint.Constant, literalExpressionSyntax.Token.Value);
                 case IdentifierNameSyntax identifierNameSyntax:
                     return VisitIdentifierName(identifierNameSyntax, state);
                 case BinaryExpressionSyntax binaryExpressionSyntax:

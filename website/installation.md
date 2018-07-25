@@ -6,12 +6,13 @@ Security Code Scan (SCS) [can be installed as](https://docs.microsoft.com/en-us/
   * Another option is to install the package into all projects in a solution: use "Tools > NuGet Package Manager > Package Manager Console". Run the command `Get-Project -All | Install-Package SecurityCodeScan`.
 
 Installing it as NuGet package gives an advantage to choose projects in a solution that should be analyzed. It is a good idea to exclude test projects, because they do not make it into a final product.  
-> :warning:Note:
+> ⚠️Note:
 > In a .NET Core project, if you add a reference to a project that has SCS as a NuGet package, it is automatically added to the dependent project too. To disable this behavior, for example if the dependent project is a unit test project, mark the NuGet package as private in the *.csproj* or *.vbproj* file of the referenced project:
 >
 > ```xml
 > <PackageReference Include="SecurityCodeScan" Version="2.8.0" PrivateAssets="all" />
 > ```
+
 However it requires discipline to install SCS into every solution a developer works with. Installing it as a Visual Studio extension is a single install action.
 
 Because of the [Roslyn](https://github.com/dotnet/roslyn) technology SCS is based on, only the NuGet version runs during a build (VS extension provides IntelliSense only) and can be integrated to any Continuous Integration (CI) server that supports [MSBuild](https://msdn.microsoft.com/en-us/library/dd393574.aspx).

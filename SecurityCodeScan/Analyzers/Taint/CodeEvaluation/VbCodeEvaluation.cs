@@ -441,18 +441,19 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             VariableState finalState = VisitInvocationAndCreation(node, node.ArgumentList, state);
 
+            state.CurrentVariableScope = finalState;
             foreach (SyntaxNode child in node.DescendantNodes())
             {
                 if (child is NamedFieldInitializerSyntax namedFieldInitializerSyntax)
                 {
-                    var identifier = ResolveIdentifier(namedFieldInitializerSyntax.Name.Identifier);
-                    finalState = finalState.AddOrMergeProperty(identifier, VisitNamedFieldInitializer(namedFieldInitializerSyntax, new ExecutionState(state)));
+                    VisitNamedFieldInitializer(namedFieldInitializerSyntax, state);
                 }
                 else
                 {
                     Logger.Log(child.GetText().ToString().Trim() + " -> " + finalState);
                 }
             }
+            state.CurrentVariableScope = null;
 
             return finalState;
         }
@@ -599,6 +600,12 @@ namespace SecurityCodeScan.Analyzers.Taint
                     identifier = ResolveIdentifier(identifierNameSyntax.Identifier);
                 else if (expression is MeExpressionSyntax)
                     identifier = "this";
+
+                if (state.CurrentVariableScope != null)
+                {
+                    state.CurrentVariableScope.AddOrMergeProperty(identifier, variableStateToMerge);
+                    return state.CurrentVariableScope.PropertyStates[identifier];
+                }
 
                 state.AddOrUpdateValue(identifier, variableStateToMerge);
                 return state.VariableStates[identifier];

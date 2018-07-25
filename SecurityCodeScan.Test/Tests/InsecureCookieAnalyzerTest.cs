@@ -325,6 +325,44 @@ End Namespace
         }
 
         [TestMethod]
+        public async Task CookieWithUnknownFlags()
+        {
+            var cSharpTest = @"
+using System.Web;
+
+namespace VulnerableApp
+{
+    class CookieCreation
+    {
+        static void TestCookie(bool isTrue)
+        {
+            var a = new HttpCookie(""test"")
+            {
+                Secure = isTrue,
+                HttpOnly = isTrue
+            };
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web
+
+Namespace VulnerableApp
+    Class CookieCreation
+        Private Shared Sub TestCookie(isTrue As Boolean)
+            Dim cookie As New HttpCookie(""test"") With {.Secure = isTrue, .HttpOnly = isTrue}
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
         public async Task IgnoreCookieFromOtherNamespace()
         {
             var cSharpTest = @"

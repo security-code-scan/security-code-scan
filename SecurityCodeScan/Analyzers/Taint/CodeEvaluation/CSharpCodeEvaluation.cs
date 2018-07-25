@@ -319,19 +319,19 @@ namespace SecurityCodeScan.Analyzers.Taint
         private VariableState VisitObjectCreation(ObjectCreationExpressionSyntax node, ExecutionState state)
         {
             VariableState finalState = VisitInvocationAndCreation(node, node.ArgumentList, state);
-
+            state.CurrentVariableScope = finalState;
             foreach (SyntaxNode child in node.DescendantNodes())
             {
                 if (child is AssignmentExpressionSyntax assignmentExpressionSyntax)
                 {
-                    var identifier = assignmentExpressionSyntax.Left as IdentifierNameSyntax;
-                    finalState = finalState.AddOrMergeProperty(ResolveIdentifier(identifier.Identifier), VisitAssignment(assignmentExpressionSyntax, new ExecutionState(state)));
+                    VisitAssignment(assignmentExpressionSyntax, state);
                 }
                 else
                 {
                     Logger.Log(child.GetText().ToString().Trim() + " -> " + finalState);
                 }
             }
+            state.CurrentVariableScope = null;
 
             return finalState;
         }
@@ -510,6 +510,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 VariableState result;
                 if (!(expression is IdentifierNameSyntax identifierNameSyntax))
                 {
+                    //TODO: How to corectly handle "this" case
                     if (expression is ThisExpressionSyntax && state.VariableStates.TryGetValue("this", out result))
                         return result;
 
@@ -545,7 +546,12 @@ namespace SecurityCodeScan.Analyzers.Taint
                 else if (expression is ThisExpressionSyntax)
                     identifier = "this";
 
-                //make sure this identifier exists
+                if (state.CurrentVariableScope != null)
+                {
+                    state.CurrentVariableScope.AddOrMergeProperty(identifier, variableStateToMerge);
+                    return state.CurrentVariableScope.PropertyStates[identifier];
+                }
+
                 state.AddOrUpdateValue(identifier, variableStateToMerge);
                 return state.VariableStates[identifier];
             }
@@ -553,7 +559,6 @@ namespace SecurityCodeScan.Analyzers.Taint
             var variableState = MergeVariableState(memberAccessExpressionSyntax.Expression, null, state);
 
             var stateIdentifier = ResolveIdentifier(memberAccessExpressionSyntax.Name.Identifier);
-            //make sure this identifier exists
             variableState.AddOrMergeProperty(stateIdentifier, variableStateToMerge);
             return variableState.PropertyStates[stateIdentifier];
         }

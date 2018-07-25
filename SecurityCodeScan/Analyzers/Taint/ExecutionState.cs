@@ -17,9 +17,10 @@ namespace SecurityCodeScan.Analyzers.Taint
     {
         private bool DebugMode = true;
 
-        public SyntaxNodeAnalysisContext                  AnalysisContext { get; }
-        public IReadOnlyDictionary<string, VariableState> VariableStates  => Variables;
-        private Dictionary<string, VariableState>         Variables       { get; }
+        public  SyntaxNodeAnalysisContext                  AnalysisContext      { get; }
+        public  IReadOnlyDictionary<string, VariableState> VariableStates       => Variables;
+        private Dictionary<string, VariableState>          Variables            { get; }
+        public  VariableState                              CurrentVariableScope { get; set; }
 
         /// <summary>
         /// Initialize the state with no variable recorded yet.
@@ -29,16 +30,6 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             AnalysisContext = ctx;
             Variables       = new Dictionary<string, VariableState>();
-        }
-
-        public ExecutionState(ExecutionState state)
-        {
-            AnalysisContext = state.AnalysisContext;
-            Variables = new Dictionary<string, VariableState>();
-            foreach (var variableState in Variables)
-            {
-                Variables.Add(variableState.Key, variableState.Value);
-            }
         }
 
         public void AddNewValue(string identifier, VariableState value)

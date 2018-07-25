@@ -701,6 +701,60 @@ End Namespace
         }
 
         [TestMethod]
+        public async Task PasswordValidatorAssignUnknownValue()
+        {
+            var cSharpTest = @"
+using Microsoft.AspNet.Identity;
+using System.Web.Mvc;
+
+namespace WebApplicationSandbox.Controllers
+{
+    public class HomeController : Controller
+    {
+        public ActionResult Index(int requiredLenght, bool require)
+        {
+            PasswordValidator pwdv = new PasswordValidator
+            {
+                RequiredLength = requiredLenght,
+                RequireNonLetterOrDigit = require,
+                RequireDigit = require,
+                RequireLowercase = require,
+                RequireUppercase = require,
+            };
+
+            return View();
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports Microsoft.AspNet.Identity
+Imports System.Web.Mvc
+
+Namespace WebApplicationSandbox.Controllers
+    Public Class HomeController
+        Inherits Controller
+        Public Function Index(requiredLenght As Integer, require As Boolean) As ActionResult
+            Dim pwdv As New PasswordValidator() With { _
+                .RequiredLength = requiredLenght, _
+                .RequireNonLetterOrDigit = require, _
+                .RequireDigit = require, _
+                .RequireLowercase = require, _
+                .RequireUppercase = require _
+            }
+
+            Return View()
+        End Function
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
         public async Task IgnorePasswordValidatorDeclarationFromOtherNamespace()
         {
             var cSharpTest = @"

@@ -3,7 +3,7 @@
 **Important:** This release targets full .NET framework and **may** not run on Unix machines. Although as tested it runs fine in [microsoft/dotnet 2.1 docker container](https://hub.docker.com/r/microsoft/dotnet/) on Linux, still for Unix based Continuous Integration builds it is better to use [SecurityCodeScan.VS2017 NuGet package](https://www.nuget.org/packages/SecurityCodeScan.VS2017), that targets netstandard.
 
 Added external configuration files: per user account and per project. It allows you to customize settings from [built-in configuration](https://github.com/security-code-scan/security-code-scan/blob/master/SecurityCodeScan/Config/Main.yml) or add your specific Sinks and Behaviors. Global settings file location is `%LocalAppData%\SecurityCodeScan\config-1.0.yml` on Windows and `$XDG_DATA_HOME/.local/share` on Unix.  
-An example of config-1.0.yml:
+An example of user's config-1.0.yml with custom Anti CSRF token:
 ```
 CsrfProtectionAttributes:
   -  HttpMethodsNameSpace: MyCompany.AspNetCore.Mvc
@@ -14,11 +14,11 @@ For project specific settings add SecurityCodeScan.config.yml into a project. Go
 
 ![image](https://user-images.githubusercontent.com/26652396/43063175-d28dc288-8e63-11e8-90eb-a7cb31900aff.png)
 
-An example of SecurityCodeScan.config.yml:
+An example of SecurityCodeScan.config.yml with custom sink function (method that shouldn't be called with untrusted data without first being sanitized):
 ```
 Version: 1.0
 Sinks:
-  MyKey:
+  UniqueKey:
     Namespace: MyNamespace
     ClassName: Test
     Member: method

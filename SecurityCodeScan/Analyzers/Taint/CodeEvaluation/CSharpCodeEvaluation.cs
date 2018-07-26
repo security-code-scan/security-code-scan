@@ -40,7 +40,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             catch (Exception e)
             {
                 //Intercept the exception for logging. Otherwise, the analyzer fails silently.
-                string errorMsg   = $"Unhandled exception while visiting method {ctx.Node} : {e.Message}";
+                string errorMsg = $"Unhandled exception while visiting method {ctx.Node} : {e.Message}";
                 Logger.Log(errorMsg);
                 Logger.Log(e.StackTrace, false);
                 throw new Exception(errorMsg, e);
@@ -128,7 +128,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     }
 
                     return new VariableState(node, VariableTaint.Unknown);
-                    }
+                }
                 case ReturnStatementSyntax returnStatementSyntax:
                     if (returnStatementSyntax.Expression == null)
                         return new VariableState(node, VariableTaint.Unknown);
@@ -244,7 +244,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     VisitExpression(conditionalExpressionSyntax.Condition, state);
                     var finalState = new VariableState(conditionalExpressionSyntax, VariableTaint.Safe);
 
-                    var whenTrueState  = VisitExpression(conditionalExpressionSyntax.WhenTrue, state);
+                    var whenTrueState = VisitExpression(conditionalExpressionSyntax.WhenTrue, state);
                     finalState.Merge(whenTrueState);
                     var whenFalseState = VisitExpression(conditionalExpressionSyntax.WhenFalse, state);
                     finalState.Merge(whenFalseState);
@@ -260,7 +260,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitExpression(castExpressionSyntax.Expression, state);
                 case DefaultExpressionSyntax defaultExpressionSyntax:
                     var value = state.AnalysisContext.SemanticModel.GetConstantValue(defaultExpressionSyntax);
-                    return new VariableState(defaultExpressionSyntax, VariableTaint.Constant, value.HasValue ? value.Value : null); 
+                    return new VariableState(defaultExpressionSyntax, VariableTaint.Constant, value.HasValue ? value.Value : null);
             }
 
             Logger.Log("Unsupported expression " + expression.GetType() + " (" + expression + ")");
@@ -383,18 +383,19 @@ namespace SecurityCodeScan.Analyzers.Taint
         private VariableState VisitInvocationAndCreation(ExpressionSyntax   node,
                                                          ArgumentListSyntax argList,
                                                          ExecutionState     state,
-                                                         VariableState     initialVariableState = null)
+                                                         VariableState      initialVariableState = null)
         {
             var symbol = state.GetSymbol(node);
             if (symbol == null)
                 return new VariableState(node, VariableTaint.Unknown);
 
-            var behavior    = symbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
+            var behavior = symbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
             var returnState = initialVariableState != null && !symbol.IsStatic
                                   ? initialVariableState
                                   : new VariableState(node,
-                                                      behavior?.TaintFromArguments?.Any() == true ? VariableTaint.Safe
-                                                                                                  : VariableTaint.Unknown);
+                                                      behavior?.TaintFromArguments?.Any() == true
+                                                          ? VariableTaint.Safe
+                                                          : VariableTaint.Unknown);
 
             for (var i = 0; i < argList?.Arguments.Count; i++)
             {
@@ -454,8 +455,8 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         private VariableState VisitAssignment(AssignmentExpressionSyntax node, ExecutionState state)
         {
-            var            leftSymbol   = state.GetSymbol(node.Left);
-            MethodBehavior behavior = null;
+            var            leftSymbol = state.GetSymbol(node.Left);
+            MethodBehavior behavior   = null;
             if (leftSymbol != null)
                 behavior = leftSymbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
 
@@ -590,46 +591,46 @@ namespace SecurityCodeScan.Analyzers.Taint
             switch (symbol)
             {
                 case null:
-                return new VariableState(expression, VariableTaint.Unknown);
+                    return new VariableState(expression, VariableTaint.Unknown);
                 case IFieldSymbol field:
-                if (field.IsConst)
-                    return new VariableState(expression, VariableTaint.Constant);
+                    if (field.IsConst)
+                        return new VariableState(expression, VariableTaint.Constant);
 
-                if (!field.IsReadOnly)
+                    if (!field.IsReadOnly)
+                        return new VariableState(expression, VariableTaint.Unknown);
+
+                    var contantFields = ConfigurationManager.Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles)
+                                                            .ConstantFields;
+
+                    if (contantFields.Contains(field.GetTypeName()))
+                    {
+                        return new VariableState(expression, VariableTaint.Constant);
+                    }
+
                     return new VariableState(expression, VariableTaint.Unknown);
-
-                var contantFields = ConfigurationManager.Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles)
-                                                        .ConstantFields;
-
-                if (contantFields.Contains(field.GetTypeName()))
-                {
-                    return new VariableState(expression, VariableTaint.Constant);
-                }
-
-                return new VariableState(expression, VariableTaint.Unknown);
                 case IPropertySymbol prop:
-                if (prop.IsVirtual || prop.IsOverride || prop.IsAbstract)
+                    if (prop.IsVirtual || prop.IsOverride || prop.IsAbstract)
+                        return new VariableState(expression, VariableTaint.Unknown);
+
+                    // TODO: Use public API
+                    var syntaxNodeProperty = prop.GetMethod.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("BodySyntax");
+                    if (syntaxNodeProperty == null)
+                        return new VariableState(expression, VariableTaint.Unknown);
+
+                    var syntaxNode = (CSharpSyntaxNode)syntaxNodeProperty.GetValue(prop.GetMethod);
+                    switch (syntaxNode)
+                    {
+                        case BlockSyntax blockSyntax:
+                            // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
+                            MergeVariableState(expression, new VariableState(expression, VariableTaint.Unknown), state);
+                            return VisitBlock(blockSyntax, state);
+                        case ArrowExpressionClauseSyntax arrowSyntax:
+                            // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
+                            MergeVariableState(expression, new VariableState(expression, VariableTaint.Unknown), state);
+                            return VisitExpression(arrowSyntax.Expression, state);
+                    }
+
                     return new VariableState(expression, VariableTaint.Unknown);
-
-                // TODO: Use public API
-                var syntaxNodeProperty = prop.GetMethod.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("BodySyntax");
-                if (syntaxNodeProperty == null)
-                    return new VariableState(expression, VariableTaint.Unknown);
-
-                var syntaxNode = (CSharpSyntaxNode)syntaxNodeProperty.GetValue(prop.GetMethod);
-                switch (syntaxNode)
-                {
-                    case BlockSyntax blockSyntax:
-                    // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
-                    MergeVariableState(expression, new VariableState(expression, VariableTaint.Unknown), state);
-                    return VisitBlock(blockSyntax, state);
-                    case ArrowExpressionClauseSyntax arrowSyntax:
-                    // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
-                    MergeVariableState(expression, new VariableState(expression, VariableTaint.Unknown), state);
-                    return VisitExpression(arrowSyntax.Expression, state);
-                }
-
-                return new VariableState(expression, VariableTaint.Unknown);
             }
 
             return new VariableState(expression, VariableTaint.Unknown);
@@ -643,7 +644,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <returns></returns>
         private VariableState VisitBinaryExpression(BinaryExpressionSyntax expression, ExecutionState state)
         {
-            VariableState left  = VisitExpression(expression.Left,  state);
+            VariableState left = VisitExpression(expression.Left, state);
             left.Merge(VisitExpression(expression.Right, state));
             return left;
         }

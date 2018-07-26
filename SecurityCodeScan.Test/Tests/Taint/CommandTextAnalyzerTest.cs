@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -17,16 +16,16 @@ namespace SecurityCodeScan.Test.Taint
         }
 
         [DataTestMethod]
-        [DataRow("SqlCommand", "new SqlCommand { CommandText = sql }",           new[] { "SCS0026" })]
-        [DataRow("DbCommand",  "new SqlCommand { CommandText = sql }",           new[] { "SCS0026" })]
-        [DataRow("IDbCommand", "new SqlCommand { CommandText = sql }",           new[] { "SCS0026" })]
-        [DataRow("SqlCommand", "new SqlCommand(); sqlCommand.CommandText = sql", new[] { "SCS0026" })]
-        [DataRow("DbCommand",  "new SqlCommand(); sqlCommand.CommandText = sql", new[] { "SCS0026" })]
-        [DataRow("IDbCommand", "new SqlCommand(); sqlCommand.CommandText = sql", new[] { "SCS0026" })]
-        [DataRow("SqlCommand", "Create(); sqlCommand.CommandText = sql",         new[] { "SCS0026" })]
-        [DataRow("DbCommand",  "Create(); sqlCommand.CommandText = sql",         new[] { "SCS0026" })]
-        [DataRow("IDbCommand", "Create(); sqlCommand.CommandText = sql",         new[] { "SCS0026" })]
-        public async Task CommandTextUnSafeCSharp(string type, string factory, string[] csErrors)
+        [DataRow("SqlCommand", "new SqlCommand { CommandText = sql }")]
+        [DataRow("DbCommand",  "new SqlCommand { CommandText = sql }")]
+        [DataRow("IDbCommand", "new SqlCommand { CommandText = sql }")]
+        [DataRow("SqlCommand", "new SqlCommand(); sqlCommand.CommandText = sql")]
+        [DataRow("DbCommand",  "new SqlCommand(); sqlCommand.CommandText = sql")]
+        [DataRow("IDbCommand", "new SqlCommand(); sqlCommand.CommandText = sql")]
+        [DataRow("SqlCommand", "Create(); sqlCommand.CommandText = sql")]
+        [DataRow("DbCommand",  "Create(); sqlCommand.CommandText = sql")]
+        [DataRow("IDbCommand", "Create(); sqlCommand.CommandText = sql")]
+        public async Task CommandTextUnSafeCSharp(string type, string factory)
         {
             var cSharpTest = $@"
 #pragma warning disable 8019
@@ -53,21 +52,21 @@ namespace sample
 ";
 
             await VerifyCSharpDiagnostic(cSharpTest,
-                                         csErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation("Test0.cs", 14)).ToArray())
+                                         new DiagnosticResult { Id = "SCS0026" }.WithLocation("Test0.cs", 14))
                 .ConfigureAwait(false);
         }
 
         [DataTestMethod]
-        [DataRow("SqlCommand", "New SqlCommand With \r\n{ .CommandText = sql }", new[] { "SCS0026" })]
-        [DataRow("DbCommand",  "New SqlCommand With \r\n{ .CommandText = sql }", new[] { "SCS0026" })]
-        [DataRow("IDbCommand", "New SqlCommand With \r\n{ .CommandText = sql }", new[] { "SCS0026" })]
-        [DataRow("SqlCommand", "New SqlCommand\r\nsqlCommand.CommandText = sql", new[] { "SCS0026" })]
-        [DataRow("DbCommand",  "New SqlCommand\r\nsqlCommand.CommandText = sql", new[] { "SCS0026" })]
-        [DataRow("IDbCommand", "New SqlCommand\r\nsqlCommand.CommandText = sql", new[] { "SCS0026" })]
-        [DataRow("SqlCommand", "Create()\r\nsqlCommand.CommandText = sql",       new[] { "SCS0026" })]
-        [DataRow("DbCommand",  "Create()\r\nsqlCommand.CommandText = sql",       new[] { "SCS0026" })]
-        [DataRow("IDbCommand", "Create()\r\nsqlCommand.CommandText = sql",       new[] { "SCS0026" })]
-        public async Task CommandTextUnSafeVBasic(string type, string factory, string[] vbErrors)
+        [DataRow("SqlCommand", "New SqlCommand With \r\n{ .CommandText = sql }")]
+        [DataRow("DbCommand",  "New SqlCommand With \r\n{ .CommandText = sql }")]
+        [DataRow("IDbCommand", "New SqlCommand With \r\n{ .CommandText = sql }")]
+        [DataRow("SqlCommand", "New SqlCommand\r\nsqlCommand.CommandText = sql")]
+        [DataRow("DbCommand",  "New SqlCommand\r\nsqlCommand.CommandText = sql")]
+        [DataRow("IDbCommand", "New SqlCommand\r\nsqlCommand.CommandText = sql")]
+        [DataRow("SqlCommand", "Create()\r\nsqlCommand.CommandText = sql")]
+        [DataRow("DbCommand",  "Create()\r\nsqlCommand.CommandText = sql")]
+        [DataRow("IDbCommand", "Create()\r\nsqlCommand.CommandText = sql")]
+        public async Task CommandTextUnSafeVBasic(string type, string factory)
         {
             var visualBasicTest = $@"
 #Disable Warning BC50001
@@ -90,7 +89,7 @@ End Namespace
 ";
 
             await VerifyVisualBasicDiagnostic(visualBasicTest,
-                                              vbErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation("Test0.vb", 12)).ToArray())
+                                              new DiagnosticResult { Id = "SCS0026" }.WithLocation("Test0.vb", 12))
                 .ConfigureAwait(false);
         }
     }

@@ -51,7 +51,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             foreach (StatementSyntax statement in node.Statements)
             {
                 var statementState = VisitNode(statement, state);
-                lastState          = statementState;
+                lastState = statementState;
 
                 foreach (var ext in Extensions)
                 {
@@ -204,7 +204,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                 if (declaration.AsClause is AsNewClauseSyntax asNewClauseSyntax)
                 {
-                    VariableState varState  = VisitExpression(asNewClauseSyntax.NewExpression, state);
+                    VariableState varState = VisitExpression(asNewClauseSyntax.NewExpression, state);
                     state.AddNewValue(ResolveIdentifier(identifier), varState);
                     lastState = varState;
                 }
@@ -245,7 +245,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     VisitExpression(ternaryConditionalExpressionSyntax.Condition, state);
                     var finalState = new VariableState(ternaryConditionalExpressionSyntax, VariableTaint.Safe);
 
-                    var whenTrueState  = VisitExpression(ternaryConditionalExpressionSyntax.WhenTrue, state);
+                    var whenTrueState = VisitExpression(ternaryConditionalExpressionSyntax.WhenTrue, state);
                     finalState.Merge(whenTrueState);
                     var whenFalseState = VisitExpression(ternaryConditionalExpressionSyntax.WhenFalse, state);
                     finalState.Merge(whenFalseState);
@@ -311,21 +311,22 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <param name="argList"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        private VariableState VisitInvocationAndCreation(ExpressionSyntax node,
+        private VariableState VisitInvocationAndCreation(ExpressionSyntax   node,
                                                          ArgumentListSyntax argList,
-                                                         ExecutionState state,
-                                                         VariableState initialVariableState = null)
+                                                         ExecutionState     state,
+                                                         VariableState      initialVariableState = null)
         {
             var symbol = state.GetSymbol(node);
             if (symbol == null)
                 return new VariableState(node, VariableTaint.Unknown);
 
-            var behavior    = symbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
+            var behavior = symbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
             var returnState = initialVariableState != null && !symbol.IsStatic
                                   ? initialVariableState
                                   : new VariableState(node,
-                                                      behavior?.TaintFromArguments?.Any() == true ? VariableTaint.Safe
-                                                                                                  : VariableTaint.Unknown);
+                                                      behavior?.TaintFromArguments?.Any() == true
+                                                          ? VariableTaint.Safe
+                                                          : VariableTaint.Unknown);
 
             for (var i = 0; i < argList?.Arguments.Count; i++)
             {
@@ -387,8 +388,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                                               ExpressionSyntax      rightExpression,
                                               ExecutionState        state)
         {
-            var leftSymbol = state.GetSymbol(leftExpression);
-            MethodBehavior behavior = null;
+            var            leftSymbol = state.GetSymbol(leftExpression);
+            MethodBehavior behavior   = null;
             if (leftSymbol != null)
                 behavior = leftSymbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
 
@@ -466,7 +467,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <returns></returns>
         private VariableState VisitBinaryExpression(BinaryExpressionSyntax expression, ExecutionState state)
         {
-            VariableState left  = VisitExpression(expression.Left,  state);
+            VariableState left = VisitExpression(expression.Left, state);
             left.Merge(VisitExpression(expression.Right, state));
             return left;
         }
@@ -497,41 +498,41 @@ namespace SecurityCodeScan.Analyzers.Taint
             switch (symbol)
             {
                 case null:
-                return new VariableState(expression, VariableTaint.Unknown);
+                    return new VariableState(expression, VariableTaint.Unknown);
                 case IFieldSymbol field:
-                if (field.IsConst)
-                    return new VariableState(expression, VariableTaint.Constant);
+                    if (field.IsConst)
+                        return new VariableState(expression, VariableTaint.Constant);
 
-                if (!field.IsReadOnly)
+                    if (!field.IsReadOnly)
+                        return new VariableState(expression, VariableTaint.Unknown);
+
+                    var contantFields = ConfigurationManager.Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles)
+                                                            .ConstantFields;
+
+                    if (contantFields.Contains(field.GetTypeName()))
+                    {
+                        return new VariableState(expression, VariableTaint.Constant);
+                    }
+
                     return new VariableState(expression, VariableTaint.Unknown);
-
-                var contantFields = ConfigurationManager.Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles)
-                                                        .ConstantFields;
-
-                if (contantFields.Contains(field.GetTypeName()))
-                {
-                    return new VariableState(expression, VariableTaint.Constant);
-                }
-
-                return new VariableState(expression, VariableTaint.Unknown);
                 case IPropertySymbol prop:
-                if (prop.IsVirtual || prop.IsOverride || prop.IsAbstract)
-                    return new VariableState(expression, VariableTaint.Unknown);
+                    if (prop.IsVirtual || prop.IsOverride || prop.IsAbstract)
+                        return new VariableState(expression, VariableTaint.Unknown);
 
-                // TODO: Use public API
-                var syntaxNodeProperty = prop.GetMethod.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("Syntax");
-                var syntaxNode = (VisualBasicSyntaxNode)syntaxNodeProperty?.GetValue(prop.GetMethod);
-                switch (syntaxNode)
-                {
-                    case null:
-                    return new VariableState(expression, VariableTaint.Unknown);
-                    case AccessorBlockSyntax blockSyntax:
-                    // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
-                    MergeVariableState(expression, new VariableState(expression, VariableTaint.Unknown), state);
-                    return VisitBlock(blockSyntax, state);
-                }
+                    // TODO: Use public API
+                    var syntaxNodeProperty = prop.GetMethod.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("Syntax");
+                    var syntaxNode         = (VisualBasicSyntaxNode)syntaxNodeProperty?.GetValue(prop.GetMethod);
+                    switch (syntaxNode)
+                    {
+                        case null:
+                            return new VariableState(expression, VariableTaint.Unknown);
+                        case AccessorBlockSyntax blockSyntax:
+                            // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
+                            MergeVariableState(expression, new VariableState(expression, VariableTaint.Unknown), state);
+                            return VisitBlock(blockSyntax, state);
+                    }
 
-                return new VariableState(expression, VariableTaint.Unknown);
+                    return new VariableState(expression, VariableTaint.Unknown);
             }
 
             return new VariableState(expression, VariableTaint.Unknown);

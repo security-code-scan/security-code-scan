@@ -259,7 +259,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                 case CastExpressionSyntax castExpressionSyntax:
                     return VisitExpression(castExpressionSyntax.Expression, state);
                 case DefaultExpressionSyntax defaultExpressionSyntax:
-                    return new VariableState(defaultExpressionSyntax, VariableTaint.Constant, state.AnalysisContext.SemanticModel.GetConstantValue(defaultExpressionSyntax).Value);
+                    var value = state.AnalysisContext.SemanticModel.GetConstantValue(defaultExpressionSyntax);
+                    return new VariableState(defaultExpressionSyntax, VariableTaint.Constant, value.HasValue ? value.Value : null); 
             }
 
             Logger.Log("Unsupported expression " + expression.GetType() + " (" + expression + ")");

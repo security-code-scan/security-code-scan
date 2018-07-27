@@ -1228,14 +1228,20 @@ Sinks:
     PasswordArguments: [1]
     LocalePass: SCS0015
 
+# Allows to define custom anti CSRF attribute
+# HttpMethodsNameSpace must be System.Web.Mvc or Microsoft.AspNetCore.Mvc.
+# AntiCsrfAttribute should be applicable to Class and Method and be inheritable. Multiple instances should not be allowed. For example:
+# [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+# public class MyCustomAntiCsrfAttribute : Attribute {}
+# Otherwise CsrfTokenAnalyzer may not work properly.
 CsrfProtectionAttributes:
-# These attributes should be applicable to Class and Method and be inheritable. Multiple instances should not be allowed.
-# Otherwise, CsrfTokenAnalyzer may not work properly
   - HttpMethodsNameSpace: System.Web.Mvc
     AntiCsrfAttribute: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
   - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
     AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
-    
+  - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
+    AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+
 PasswordFields:
 # These fiels names are case insensitive
   - PASSWORD

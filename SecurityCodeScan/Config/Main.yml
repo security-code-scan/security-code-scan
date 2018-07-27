@@ -320,6 +320,14 @@ Sinks:
     InjectableField: true
     Locale: SCS0026
 
+  idbcommand_field:
+    Namespace: System.Data
+    ClassName: IDbCommand
+    Member: field
+    Name: CommandText
+    InjectableField: true
+    Locale: SCS0026
+
   oledbcommand_constructor:
     Namespace: System.Data.OleDb
     ClassName: OleDbCommand

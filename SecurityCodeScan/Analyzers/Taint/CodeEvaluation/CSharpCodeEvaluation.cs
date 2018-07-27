@@ -43,7 +43,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 string errorMsg   = $"Unhandled exception while visiting method {ctx.Node} : {e.Message}";
                 Logger.Log(errorMsg);
                 Logger.Log(e.StackTrace, false);
-                throw new Exception(errorMsg, e);
+                throw;
             }
         }
 

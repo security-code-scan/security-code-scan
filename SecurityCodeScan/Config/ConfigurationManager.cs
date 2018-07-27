@@ -14,9 +14,12 @@ namespace SecurityCodeScan.Config
         private const string BuiltinConfigName = "SecurityCodeScan.Config.Main.yml";
         private const string ConfigName        = "SecurityCodeScan.config.yml";
         private const string UserConfigName    = "SecurityCodeScan\\config-{0}.yml";
-        private readonly string UserConfigFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), UserConfigName);
+        private string UserConfigFile => UserConfigFileCached.Value;
 
-        private readonly Version ConfigVersion = new Version(1,0);
+        private static readonly Lazy<string> UserConfigFileCached =
+            new Lazy<string>(() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), UserConfigName));
+
+        private static readonly Version ConfigVersion = new Version(1,0);
 
         public ConfigData GetBuiltinConfiguration()
         {

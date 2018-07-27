@@ -6,7 +6,7 @@ Added external configuration files: per user account and per project. It allows 
 An example of user's config-1.0.yml with custom Anti CSRF token:
 ```yml
 CsrfProtectionAttributes:
-  -  HttpMethodsNameSpace: MyCompany.AspNetCore.Mvc
+  -  HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
      AntiCsrfAttribute: MyNamespace.MyAntiCsrfAttribute
 ```
 

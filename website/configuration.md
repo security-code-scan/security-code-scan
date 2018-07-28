@@ -40,7 +40,7 @@ There are two types of external configuration files that can be used together: p
 An example of user's config-1.0.yml with custom Anti CSRF token:
 ```yml
 CsrfProtectionAttributes:
-  -  HttpMethodsNameSpace: MyCompany.AspNetCore.Mvc
+  -  HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
      AntiCsrfAttribute: MyNamespace.MyAntiCsrfAttribute
 ```
 

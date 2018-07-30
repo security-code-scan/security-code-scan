@@ -120,7 +120,7 @@ SCS0013:
 SCS0016:
   class: CsrfTokenAnalyzer
   title: Controller method is vulnerable to CSRF
-  description: The annotation [ValidateAntiForgeryToken] is missing.
+  description: The annotation [ValidateAntiForgeryToken] is missing. It can be ignored/suppressed if .NET Core AutoValidateAntiforgeryToken is set up globally.
 
 SCS0017:
   class: RequestValidationDisableAnalyzer

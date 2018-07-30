@@ -14,6 +14,8 @@ namespace SecurityCodeScan.Test.AntiCsrf
 
         protected abstract string AllowAnonymousNamespace { get; }
 
+        protected abstract string AntiCsrfTokenName { get; }
+
         [TestMethod]
         public async Task CsrfDetectMissingToken()
         {
@@ -227,7 +229,7 @@ namespace VulnerableApp
     public class TestController
     {{
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [{AntiCsrfTokenName}]
         public ActionResult ControllerMethod(string input) {{
 
             return null;
@@ -242,7 +244,7 @@ Imports {Namespace}
 Namespace VulnerableApp
     Public Class TestController
         <HttpPost> _
-        <ValidateAntiForgeryToken> _
+        <{AntiCsrfTokenName}> _
         Public Function ControllerMethod(input As String) As ActionResult
             Return Nothing
         End Function
@@ -262,7 +264,7 @@ using {Namespace};
 
 namespace VulnerableApp
 {{
-    [ValidateAntiForgeryToken]
+    [{AntiCsrfTokenName}]
     public class TestController
     {{
         [HttpPost]
@@ -278,7 +280,7 @@ namespace VulnerableApp
 Imports {Namespace}
 
 Namespace VulnerableApp
-    <ValidateAntiForgeryToken> _
+    <{AntiCsrfTokenName}> _
     Public Class TestController
         <HttpPost> _
         Public Function ControllerMethod(input As String) As ActionResult
@@ -302,7 +304,7 @@ namespace VulnerableApp
 {{
     public class TestController
     {{
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, {AntiCsrfTokenName}]
         public ActionResult ControllerMethod(string input) {{
             return null;
         }}
@@ -315,7 +317,7 @@ Imports {Namespace}
 
 Namespace VulnerableApp
     Public Class TestController
-        <HttpPost, ValidateAntiForgeryToken> _
+        <HttpPost, {AntiCsrfTokenName}> _
         Public Function ControllerMethod(input As String) As ActionResult
             Return Nothing
         End Function
@@ -334,6 +336,8 @@ End Namespace
         protected override string Namespace => "System.Web.Mvc";
 
         protected override string AllowAnonymousNamespace => "System.Web.Mvc";
+
+        protected override string AntiCsrfTokenName => "ValidateAntiForgeryToken";
 
         private static readonly PortableExecutableReference[] References =
         {
@@ -355,9 +359,35 @@ End Namespace
 
         protected override string AllowAnonymousNamespace => "Microsoft.AspNetCore.Authorization";
 
+        protected override string AntiCsrfTokenName => "ValidateAntiForgeryToken";
+
         private static readonly PortableExecutableReference[] References =
         {
             MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.HttpPostAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute).Assembly.Location)
+        };
+
+        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
+
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        {
+            return new[] { new CoreCsrfTokenAnalyzer() };
+        }
+    }
+
+    [TestClass]
+    public class CoreAutoCsrfTokenAnalyzerTest : CsrfTokenAnalyzerTest
+    {
+        protected override string Namespace => "Microsoft.AspNetCore.Mvc";
+
+        protected override string AllowAnonymousNamespace => "Microsoft.AspNetCore.Authorization";
+
+        protected override string AntiCsrfTokenName => "AutoValidateAntiforgeryToken";
+
+        private static readonly PortableExecutableReference[] References =
+        {
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.HttpPostAttribute).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute).Assembly.Location)
         };

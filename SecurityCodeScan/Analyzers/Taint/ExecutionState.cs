@@ -15,12 +15,9 @@ namespace SecurityCodeScan.Analyzers.Taint
     /// </summary>
     public class ExecutionState
     {
-        private bool DebugMode = true;
-
         public  SyntaxNodeAnalysisContext                  AnalysisContext      { get; }
         public  IReadOnlyDictionary<string, VariableState> VariableStates       => Variables;
         private Dictionary<string, VariableState>          Variables            { get; }
-        public  VariableState                              CurrentVariableScope { get; set; }
 
         /// <summary>
         /// Initialize the state with no variable recorded yet.
@@ -36,15 +33,11 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             if (VariableStates.ContainsKey(identifier)) //New variable in a different scope
             {
-                if (DebugMode)
-                    Logger.Log("Removing existing state for " + identifier);
-
+                Logger.Log("Removing existing state for " + identifier);
                 Variables.Remove(identifier);
             }
 
-            if (DebugMode)
-                Logger.Log($"Adding state for {identifier} ({value})");
-
+            Logger.Log($"Adding state for {identifier} ({value})");
             Variables.Add(identifier, value);
         }
 
@@ -52,15 +45,13 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             if (VariableStates.ContainsKey(identifier)) //Override existing value
             {
-                VariableStates[identifier].MergeAndReplaceTaint(value);
-                if (DebugMode)
-                    Logger.Log($"Updating state for {identifier} ({value})");
+                VariableStates[identifier].Replace(value);
+                Logger.Log($"Updating state for {identifier} ({value})");
             }
             else
             {
                 //Unexpected state
-                if (DebugMode)
-                    Logger.Log($"Adding state for {identifier} ({value})");
+                Logger.Log($"Adding state for {identifier} ({value})");
 
                 Variables.Add(identifier, value);
             }

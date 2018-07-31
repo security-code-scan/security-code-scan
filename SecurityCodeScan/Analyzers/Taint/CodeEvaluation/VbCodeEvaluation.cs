@@ -375,12 +375,14 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         private VariableState VisitAssignmentStatement(AssignmentStatementSyntax node, ExecutionState state)
         {
-            return VisitAssignment(node, node.Left, node.Right, state);
+            var assigmentState = VisitAssignment(node, node.Left, node.Right, state);
+            return MergeVariableState(node.Left, assigmentState, state);
         }
 
-        private VariableState VisitNamedFieldInitializer(NamedFieldInitializerSyntax node, ExecutionState state)
+        private VariableState VisitNamedFieldInitializer(NamedFieldInitializerSyntax node, ExecutionState state, VariableState currentScope)
         {
-            return VisitAssignment(node, node.Name, node.Expression, state);
+            var assigmentState = VisitAssignment(node, node.Name, node.Expression, state);
+            return MergeVariableState(node.Name, assigmentState, state, currentScope);
         }
 
         private VariableState VisitAssignment(VisualBasicSyntaxNode node,
@@ -394,8 +396,6 @@ namespace SecurityCodeScan.Analyzers.Taint
                 behavior = leftSymbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
 
             var variableState = VisitExpression(rightExpression, state);
-
-            variableState = MergeVariableState(leftExpression, variableState, state);
 
             //Additional analysis by extension
             foreach (var ext in Extensions)
@@ -442,19 +442,17 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             VariableState finalState = VisitInvocationAndCreation(node, node.ArgumentList, state);
 
-            state.CurrentVariableScope = finalState;
             foreach (SyntaxNode child in node.DescendantNodes())
             {
                 if (child is NamedFieldInitializerSyntax namedFieldInitializerSyntax)
                 {
-                    VisitNamedFieldInitializer(namedFieldInitializerSyntax, state);
+                    VisitNamedFieldInitializer(namedFieldInitializerSyntax, state, finalState);
                 }
                 else
                 {
                     Logger.Log(child.GetText().ToString().Trim() + " -> " + finalState);
                 }
             }
-            state.CurrentVariableScope = null;
 
             return finalState;
         }
@@ -591,7 +589,10 @@ namespace SecurityCodeScan.Analyzers.Taint
             return null;
         }
 
-        private VariableState MergeVariableState(ExpressionSyntax expression, VariableState newVariableState, ExecutionState state)
+        private VariableState MergeVariableState(ExpressionSyntax expression,
+                                                 VariableState    newVariableState,
+                                                 ExecutionState   state,
+                                                 VariableState    currentScope = null)
         {
             var variableStateToMerge = newVariableState ?? new VariableState(expression, VariableTaint.Unset);
             if (!(expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax))
@@ -602,17 +603,17 @@ namespace SecurityCodeScan.Analyzers.Taint
                 else if (expression is MeExpressionSyntax)
                     identifier = "this";
 
-                if (state.CurrentVariableScope != null)
+                if (currentScope != null)
                 {
-                    state.CurrentVariableScope.AddOrMergeProperty(identifier, variableStateToMerge);
-                    return state.CurrentVariableScope.PropertyStates[identifier];
+                    currentScope.AddOrMergeProperty(identifier, variableStateToMerge);
+                    return currentScope.PropertyStates[identifier];
                 }
 
                 state.AddOrUpdateValue(identifier, variableStateToMerge);
                 return state.VariableStates[identifier];
             }
 
-            var variableState = MergeVariableState(memberAccessExpressionSyntax.Expression, null, state);
+            var variableState = MergeVariableState(memberAccessExpressionSyntax.Expression, null, state, currentScope);
 
             var stateIdentifier = ResolveIdentifier(memberAccessExpressionSyntax.Name.Identifier);
             //make sure this identifier exists

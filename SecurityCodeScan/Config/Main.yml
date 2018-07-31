@@ -275,6 +275,42 @@ Behavior:
     ArgTypes: (System.String, System.Object, System.Object, System.Object)
     TaintFromArguments: [0,1,2,3]
 
+  #String.Join
+
+  StringJoin_1:
+    Namespace: System
+    ClassName: String
+    Member: method
+    Name: Join
+    ArgTypes: (System.String, System.Collections.Generic.IEnumerable)
+    TaintFromArguments: [0,1]
+
+  StringJoin_2:
+    Namespace: System
+    ClassName: String
+    Member: method
+    Name: Join
+    ArgTypes: (System.String, params System.String[])
+    TaintFromArguments: [0,1]
+
+  StringJoin_3:
+    Namespace: System
+    ClassName: String
+    Member: method
+    Name: Join
+    ArgTypes: (System.String, System.String[], System.Int32, System.Int32)
+    TaintFromArguments: [0,1]
+
+  StringJoin_4:
+    Namespace: System
+    ClassName: String
+    Member: method
+    Name: Join
+    ArgTypes: (System.String, params System.Object[])
+    TaintFromArguments: [0,1]
+
+
+
 Sinks:
 # This is the list of sinks
 # The API is susceptible to attack if value passed is not properly sanitized.

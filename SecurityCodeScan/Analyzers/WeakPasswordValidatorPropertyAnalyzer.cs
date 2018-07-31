@@ -58,6 +58,8 @@ namespace SecurityCodeScan.Analyzers
         private static readonly DiagnosticDescriptor RulePasswordValidators              = LocaleUtil.GetDescriptor("SCS0033"); // Not enough properties set
         private static readonly DiagnosticDescriptor RuleRequiredPasswordValidators      = LocaleUtil.GetDescriptor("SCS0034"); // Required property must be set
 
+        private static readonly string[] BoolPropertyNames =  { "RequireDigit", "RequireLowercase", "RequireNonLetterOrDigit", "RequireUppercase" };
+
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RulePasswordLength,
                                                                                                   RulePasswordValidators,
                                                                                                   RuleRequiredPasswordValidators);
@@ -96,9 +98,7 @@ namespace SecurityCodeScan.Analyzers
                         state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RulePasswordLength, variableState.Node.GetLocation(), requiredLength));
                 }
 
-                var boolPasswordValidatorPropertyNames = new []{ "RequireDigit", "RequireLowercase", "RequireNonLetterOrDigit", "RequireUppercase" };
-
-                foreach (var propertyName in boolPasswordValidatorPropertyNames)
+                foreach (var propertyName in BoolPropertyNames)
                 {
                     if (!variableState.PropertyStates.TryGetValue(propertyName, out var propertyState) ||
                         propertyState.Taint == VariableTaint.Constant && //TODO: In case of auditing mode show unknown value warning

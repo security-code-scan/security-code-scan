@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using static SecurityCodeScan.Analyzers.Taint.VariableTaint;
 
@@ -20,14 +19,9 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         public SyntaxNode Node { get; private set; }
 
-        public Dictionary<string, VariableState> PropertyStates { get;  }
+        public  IReadOnlyDictionary<string, VariableState> PropertyStates => Properties;
+        private Dictionary<string, VariableState>          Properties { get; set; }
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="node"></param>
-        /// <param name="taint">Initial state</param>
-        /// <param name="value"></param>
         public VariableState(SyntaxNode node, VariableTaint taint = Unknown, object value = null)
         {
             Taint = taint;
@@ -35,24 +29,40 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (Taint == Constant)
                 Value = value;
             Node = node;
-            PropertyStates = new Dictionary<string, VariableState>();
+            Properties = new Dictionary<string, VariableState>();
         }
 
         /// <summary>
-        /// Merge two different states. State are merge if a data structure accept new input or 
-        /// if values are concatenate.
+        /// Merge two different states. Use it to merge two states then values are concatenated.
         /// </summary>
-        /// <param name="secondState"></param>
-        /// <returns></returns>
         public void Merge(VariableState secondState)
+        {
+            ResolveTaint(secondState.Taint);
+
+            if (secondState.Taint == Constant)
+                Value = secondState.Value;
+
+            if (secondState.Taint != Unset)
+                Node = secondState.Node;
+
+            foreach (var newPropertyState in secondState.PropertyStates)
+            {
+                if (Properties.ContainsKey(newPropertyState.Key))
+                    Properties[newPropertyState.Key].Merge(newPropertyState.Value);
+                else
+                    Properties.Add(newPropertyState.Key, newPropertyState.Value);
+            }
+        }
+
+        public void ResolveTaint(VariableTaint newTaint)
         {
             if (Taint == Unset)
             {
-                Taint = secondState.Taint;
+                Taint = newTaint;
             }
             else
             {
-                switch (secondState.Taint)
+                switch (newTaint)
                 {
                     case Tainted:
                         Taint = Tainted;
@@ -68,56 +78,40 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                         break;
                     case Constant:
-                        if (Taint == Safe)
-                        {
-                            Taint = Safe;
-                        }
-                        else if (Taint == Constant)
-                        {
-                            Taint = Constant;
-                            Value = secondState.Value;
-                        }
-
-                        break;
                     case Unset:
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
             }
-
-            if (secondState.Taint != Unset)
-                Node = secondState.Node;
-
-            // Searches through the new VariableState for new tags
-            foreach (var newPropertyState in secondState.PropertyStates)
-            {
-                PropertyStates.Add(newPropertyState.Key, newPropertyState.Value);
-            }
         }
 
-        public void MergeAndReplaceTaint(VariableState secondState)
+        /// <summary>
+        /// Merge two different states. Use it to merge two states then value is overridden.
+        /// </summary>
+        public void Replace(VariableState secondState)
         {
-            if (secondState.Taint != Unset)
-            {
-                Taint = secondState.Taint;
-                Value = Taint == Constant ? secondState.Value : null;
-                Node = secondState.Node;
-            }
+            if (secondState.Taint == Unset)
+                return;
 
-            // Searches through the new VariableState for new tags
-            foreach (var newPropertyState in secondState.PropertyStates)
-            {
-                PropertyStates.Add(newPropertyState.Key, newPropertyState.Value);
-            }
+            Taint = secondState.Taint;
+            Value = Taint == Constant ? secondState.Value : null;
+            Node  = secondState.Node;
+
+            Properties = secondState.Properties;
         }
 
         public VariableState AddOrMergeProperty(string identifier, VariableState secondState)
         {
             if (PropertyStates.ContainsKey(identifier))
-                PropertyStates[identifier].MergeAndReplaceTaint(secondState);
+            {
+                PropertyStates[identifier].Replace(secondState);
+                ResolveTaint(secondState.Taint);
+            }
             else
-                PropertyStates.Add(identifier, secondState);
+            {
+                Properties.Add(identifier, secondState);
+            }
 
             return this;
         }

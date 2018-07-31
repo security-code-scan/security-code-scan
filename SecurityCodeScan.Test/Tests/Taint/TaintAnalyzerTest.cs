@@ -1519,6 +1519,78 @@ End Namespace
         }
 
         [TestMethod]
+        public async Task VariableReuseReplaceObject()
+        {
+            var cSharpTest = @"
+using System.Data.SqlClient;
+
+namespace sample
+{
+    class QueryDataClass
+    {
+        public string query { get; set; }
+    }
+
+    class SqlConstant
+    {
+        public static QueryDataClass GetQueryDataClass(string input)
+        {
+            return null;
+        }
+
+        public static void Run(string input)
+        {
+            var queryObejct = new QueryDataClass{
+                query = ""SELECT * FROM [User] WHERE user_id = 1""
+            };
+
+            SqlCommand cmd1 = new SqlCommand(queryObejct.query);
+
+            queryObejct = GetQueryDataClass(input);
+            SqlCommand cmd2 = new SqlCommand(queryObejct.query);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+    Class QueryDataClass
+        Public Property query As String
+    End Class
+
+    Class SqlConstant
+        Public Shared Function GetQueryDataClass(ByVal input As String) As QueryDataClass
+            Return Nothing
+        End Function
+
+        Public Shared Sub Run(ByVal input As String)
+            Dim queryObejct = New QueryDataClass With {
+                .query = ""SELECT * FROM [User] WHERE user_id = 1""
+            }
+
+            Dim cmd1 As SqlCommand = New SqlCommand(queryObejct.query)
+
+            queryObejct = GetQueryDataClass(input)
+            Dim cmd2 As SqlCommand = New SqlCommand(queryObejct.query)
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+        }
+
+        [TestMethod]
         public async Task UnsafeFunctionPassedAsParameter()
         {
             var cSharpTest = @"
@@ -1626,6 +1698,225 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task VariableArraySafe()
+        {
+            var cSharpTest = @"
+using System;
+using System.Data.SqlClient;
+
+namespace sample
+{
+    class SqlConstant
+    {
+        public static void Run()
+        {
+            var array = new []{""aaa"", ""bbb""};
+            new SqlCommand(String.Join("" "", array));
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+    Class SqlConstant
+        Public Shared Sub Run()
+            Dim array = {""aaa"", ""bbb""}
+            Dim com As New SqlCommand(String.Join("" "", array))
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task VariableArrayUnsafe()
+        {
+            var cSharpTest = @"
+using System;
+using System.Data.SqlClient;
+
+namespace sample
+{
+    class SqlConstant
+    {
+        public static void Run(string input)
+        {
+            var array = new []{""aaa"", input, ""bbb""};
+            new SqlCommand(String.Join("" "", array));
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+    Class SqlConstant
+        Public Shared Sub Run(input As String)
+            Dim array = {""aaa"", input, ""bbb""}
+            Dim com As New SqlCommand(String.Join("" "", array))
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+        }
+
+        [Ignore] //TODO: Copy structure state then assigned to new variable
+        [TestMethod]
+        public async Task StructReuseChangePropertyFromTaintedToSafe()
+        {
+            var cSharpTest = @"
+using System.Data.SqlClient;
+
+namespace sample
+{
+    struct QueryDataClass
+    {
+        public string query { get; set; }
+    }
+
+    class SqlConstant
+    {
+        public static void Run(string input)
+        {
+            var queryObejct = new QueryDataClass{
+                query = input
+            };
+            var queryObejct2 = queryObejct;
+
+            SqlCommand cmd1 = new SqlCommand(queryObejct.query);
+            cmd1 = new SqlCommand(queryObejct2.query);
+
+            queryObejct.query = ""SELECT * FROM [User] WHERE user_id = 1"";
+            SqlCommand cmd2 = new SqlCommand(queryObejct.query);
+            cmd2 = new SqlCommand(queryObejct2.query);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+    Structure  QueryDataClass
+        Public Property query As String
+    End Structure
+
+Class SqlConstant
+    Public Shared Sub Run(ByVal input As String)
+        Dim queryObejct = New QueryDataClass With {
+            .query = input
+        }
+        Dim queryObejct2 = queryObejct
+
+        Dim cmd1 As SqlCommand = New SqlCommand(queryObejct.query)
+        cmd1 = New SqlCommand(queryObejct2.query)
+
+        queryObejct.query = ""SELECT* FROM[User] WHERE user_id = 1""
+        Dim cmd2 As SqlCommand = New SqlCommand(queryObejct.query)
+        cmd2 = New SqlCommand(queryObejct2.query)
+    End Sub
+End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, new [] {expected, expected, expected }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected, expected, expected }).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task ObjectReuseChangePropertyFromTaintedToSafe()
+        {
+            var cSharpTest = @"
+using System.Data.SqlClient;
+
+namespace sample
+{
+    class QueryDataClass
+    {
+        public string query { get; set; }
+    }
+
+    class SqlConstant
+    {
+        public static void Run(string input)
+        {
+            var queryObejct = new QueryDataClass{
+                query = input
+            };
+            var queryObejct2 = queryObejct;
+
+            SqlCommand cmd1 = new SqlCommand(queryObejct.query);
+            cmd1 = new SqlCommand(queryObejct2.query);
+
+            queryObejct.query = ""SELECT * FROM [User] WHERE user_id = 1"";
+            SqlCommand cmd2 = new SqlCommand(queryObejct.query);
+            cmd2 = new SqlCommand(queryObejct2.query);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+    Class QueryDataClass
+        Public Property query As String
+    End Class
+
+Class SqlConstant
+    Public Shared Sub Run(ByVal input As String)
+        Dim queryObejct = New QueryDataClass With {
+            .query = input
+        }
+        Dim queryObejct2 = queryObejct
+
+        Dim cmd1 As SqlCommand = New SqlCommand(queryObejct.query)
+        cmd1 = New SqlCommand(queryObejct2.query)
+
+        queryObejct.query = ""SELECT* FROM[User] WHERE user_id = 1""
+        Dim cmd2 As SqlCommand = New SqlCommand(queryObejct.query)
+        cmd2 = New SqlCommand(queryObejct2.query)
+    End Sub
+End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, new[] { expected, expected }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected, expected }).ConfigureAwait(false);
         }
     }
 }

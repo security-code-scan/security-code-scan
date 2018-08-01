@@ -591,5 +591,208 @@ class SqlTransferTesting
 
             await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
         }
+
+        [DataTestMethod]
+        [DataRow("String[]", "")]
+        [DataRow("String[]", ", 0, 2")]
+        [DataRow("Object[]", "")]
+        public async Task TransferStringJoinSafe(string dataType, string additionalArguments)
+        {
+            var cSharpTest = $@"
+using System;
+using System.Data.SqlClient;
+#pragma warning disable 8019
+using System.Collections.Generic;
+#pragma warning restore 8019
+
+namespace sample
+{{
+    class SqlConstant
+    {{
+        public static void Run()
+        {{
+            {dataType} array = new []{{""aaa"", ""bbb""}};
+            new SqlCommand(String.Join("" "", array {additionalArguments}));
+        }}
+    }}
+}}
+";
+
+            dataType = dataType.Replace('[', '(').Replace(']', ')');
+
+            var visualBasicTest = $@"
+Imports System.Data.SqlClient
+#Disable Warning BC50001
+Imports System.Collections.Generic
+#Enable Warning BC50001
+
+Namespace sample
+    Class SqlConstant
+        Public Shared Sub Run()
+            Dim array As {dataType} = {{""aaa"", ""bbb""}}
+            Dim com As New SqlCommand(String.Join("" "", array {additionalArguments}))
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [DataTestMethod]
+        [DataRow("string", false)]
+        [DataRow("object", true)]
+        public async Task TransferStringJoinSafe2(string dataType, bool isMethodGeneric)
+        {
+            var cSharpTest = $@"
+using System;
+using System.Data.SqlClient;
+#pragma warning disable 8019
+using System.Collections.Generic;
+#pragma warning restore 8019
+
+namespace sample
+{{
+    class SqlConstant
+    {{
+        public static void Run()
+        {{
+            IEnumerable<{dataType}> array = new []{{""aaa"", ""bbb""}};
+            new SqlCommand(String.Join{(isMethodGeneric ? $"<{dataType}>" : "")}("" "", array));
+        }}
+    }}
+}}
+";
+
+            dataType = dataType.Replace('[', '(').Replace(']', ')');
+
+            var visualBasicTest = $@"
+Imports System.Data.SqlClient
+#Disable Warning BC50001
+Imports System.Collections.Generic
+#Enable Warning BC50001
+
+Namespace sample
+    Class SqlConstant
+        Public Shared Sub Run()
+            Dim array As IEnumerable(Of {dataType}) = {{""aaa"", ""bbb""}}
+            Dim com As New SqlCommand(String.Join{(isMethodGeneric ? $"(Of {dataType})" : "")}("" "", array))
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [DataTestMethod]
+        [DataRow("String[]", "")]
+        [DataRow("String[]", ", 0, 2")]
+        [DataRow("Object[]", "")]
+        public async Task TransferStringJoinUnsafe(string dataType, string additionalArguments)
+        {
+            var cSharpTest = $@"
+using System;
+using System.Data.SqlClient;
+#pragma warning disable 8019
+using System.Collections.Generic;
+#pragma warning restore 8019
+
+namespace sample
+{{
+    class SqlConstant
+    {{
+        public static void Run(string input)
+        {{
+            {dataType} array = new []{{""aaa"", input, ""bbb""}};
+            new SqlCommand(String.Join("" "", array {additionalArguments}));
+        }}
+    }}
+}}
+";
+
+            dataType = dataType.Replace('[', '(').Replace(']', ')');
+
+            var visualBasicTest = $@"
+Imports System.Data.SqlClient
+#Disable Warning BC50001
+Imports System.Collections.Generic
+#Enable Warning BC50001
+
+Namespace sample
+    Class SqlConstant
+        Public Shared Sub Run(input As String)
+            Dim array As {dataType} = {{""aaa"", input, ""bbb""}}
+            Dim com As New SqlCommand(String.Join("" "", array {additionalArguments}))
+        End Sub
+    End Class
+End Namespace
+";
+
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+        }
+
+        [DataTestMethod]
+        [DataRow("string", false)]
+        [DataRow("object", true)]
+        public async Task TransferStringJoinUnsafe2(string dataType, bool isMethodGeneric)
+        {
+            var cSharpTest = $@"
+using System;
+using System.Data.SqlClient;
+#pragma warning disable 8019
+using System.Collections.Generic;
+#pragma warning restore 8019
+
+namespace sample
+{{
+    class SqlConstant
+    {{
+        public static void Run(string input)
+        {{
+            IEnumerable<{dataType}> array = new []{{""aaa"", input, ""bbb""}};
+            new SqlCommand(String.Join{(isMethodGeneric ? $"<{dataType}>" : "")}("" "", array));
+        }}
+    }}
+}}
+";
+
+            dataType = dataType.Replace('[', '(').Replace(']', ')');
+
+            var visualBasicTest = $@"
+Imports System.Data.SqlClient
+#Disable Warning BC50001
+Imports System.Collections.Generic
+#Enable Warning BC50001
+
+Namespace sample
+    Class SqlConstant
+        Public Shared Sub Run(input As String)
+            Dim array As IEnumerable(Of {dataType}) = {{""aaa"", input, ""bbb""}}
+            Dim com As New SqlCommand(String.Join{(isMethodGeneric ? $"(Of {dataType})" : "")}("" "", array))
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+        }
     }
 }

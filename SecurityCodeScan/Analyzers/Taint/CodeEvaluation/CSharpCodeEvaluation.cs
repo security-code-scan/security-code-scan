@@ -40,7 +40,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             catch (Exception e)
             {
                 //Intercept the exception for logging. Otherwise, the analyzer fails silently.
-                string errorMsg   = $"Unhandled exception while visiting method {ctx.Node} : {e.Message}";
+                string errorMsg = $"Unhandled exception while visiting method {ctx.Node} : {e.Message}";
                 Logger.Log(errorMsg);
                 Logger.Log(e.StackTrace, false);
                 throw;
@@ -128,7 +128,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     }
 
                     return new VariableState(node, VariableTaint.Unknown);
-                    }
+                }
                 case ReturnStatementSyntax returnStatementSyntax:
                     if (returnStatementSyntax.Expression == null)
                         return new VariableState(node, VariableTaint.Unknown);
@@ -213,8 +213,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitMethodInvocation(invocationExpressionSyntax, state);
                 case ObjectCreationExpressionSyntax objectCreationExpressionSyntax:
                     return VisitObjectCreation(objectCreationExpressionSyntax, state);
-                case LiteralExpressionSyntax _:
-                    return new VariableState(expression, VariableTaint.Constant);
+                case LiteralExpressionSyntax literalExpressionSyntax:
+                    return new VariableState(literalExpressionSyntax, VariableTaint.Constant, literalExpressionSyntax.Token.Value);
                 case IdentifierNameSyntax identifierNameSyntax:
                     return VisitIdentifierName(identifierNameSyntax, state);
                 case BinaryExpressionSyntax binaryExpressionSyntax:
@@ -229,9 +229,10 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitBinaryExpression(binaryExpressionSyntax, state);
                 }
                 case AssignmentExpressionSyntax assignmentExpressionSyntax:
-                    return VisitAssignment(assignmentExpressionSyntax, state);
+                    var assigmentState = VisitAssignment(assignmentExpressionSyntax, state);
+                    return MergeVariableState(assignmentExpressionSyntax.Left, assigmentState, state);
                 case MemberAccessExpressionSyntax memberAccessExpressionSyntax:
-                    return VisitExpression(memberAccessExpressionSyntax.Name, state);
+                    return VisitMemberAccessExpression(memberAccessExpressionSyntax, state);
                 case ElementAccessExpressionSyntax elementAccessExpressionSyntax:
                     return VisitElementAccess(elementAccessExpressionSyntax, elementAccessExpressionSyntax.ArgumentList, state);
                 case ArrayCreationExpressionSyntax arrayCreationExpressionSyntax:
@@ -244,10 +245,10 @@ namespace SecurityCodeScan.Analyzers.Taint
                     VisitExpression(conditionalExpressionSyntax.Condition, state);
                     var finalState = new VariableState(conditionalExpressionSyntax, VariableTaint.Safe);
 
-                    var whenTrueState  = VisitExpression(conditionalExpressionSyntax.WhenTrue, state);
-                    finalState         = finalState.Merge(whenTrueState);
+                    var whenTrueState = VisitExpression(conditionalExpressionSyntax.WhenTrue, state);
+                    finalState.Merge(whenTrueState);
                     var whenFalseState = VisitExpression(conditionalExpressionSyntax.WhenFalse, state);
-                    finalState         = finalState.Merge(whenFalseState);
+                    finalState.Merge(whenFalseState);
 
                     return finalState;
                 case CheckedExpressionSyntax checkedExpressionSyntax:
@@ -259,7 +260,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                 case CastExpressionSyntax castExpressionSyntax:
                     return VisitExpression(castExpressionSyntax.Expression, state);
                 case DefaultExpressionSyntax defaultExpressionSyntax:
-                    return new VariableState(defaultExpressionSyntax, VariableTaint.Constant);
+                    var value = state.AnalysisContext.SemanticModel.GetConstantValue(defaultExpressionSyntax);
+                    return new VariableState(defaultExpressionSyntax, VariableTaint.Constant, value.HasValue ? value.Value : null);
             }
 
             Logger.Log("Unsupported expression " + expression.GetType() + " (" + expression + ")");
@@ -275,14 +277,14 @@ namespace SecurityCodeScan.Analyzers.Taint
             {
                 if (content is InterpolatedStringTextSyntax textString)
                 {
-                    varState = varState.Merge(new VariableState(textString, VariableTaint.Constant));
+                    varState.Merge(new VariableState(textString, VariableTaint.Constant));
                 }
 
                 if (!(content is InterpolationSyntax interpolation))
                     continue;
 
                 var expressionState = VisitExpression(interpolation.Expression, state);
-                varState            = varState.Merge(expressionState);
+                varState.Merge(expressionState);
             }
 
             return varState;
@@ -307,7 +309,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         private VariableState VisitMethodInvocation(InvocationExpressionSyntax node, ExecutionState state)
         {
-            VariableState? memberVariableState = null;
+            VariableState memberVariableState = null;
             if (node.Expression is MemberAccessExpressionSyntax memberAccessExpression)
             {
                 memberVariableState = VisitExpression(memberAccessExpression.Expression, state);
@@ -319,12 +321,12 @@ namespace SecurityCodeScan.Analyzers.Taint
         private VariableState VisitObjectCreation(ObjectCreationExpressionSyntax node, ExecutionState state)
         {
             VariableState finalState = VisitInvocationAndCreation(node, node.ArgumentList, state);
-
             foreach (SyntaxNode child in node.DescendantNodes())
             {
                 if (child is AssignmentExpressionSyntax assignmentExpressionSyntax)
                 {
-                    finalState = finalState.Merge(VisitAssignment(assignmentExpressionSyntax, state));
+                    var assignmentState = VisitAssignment(assignmentExpressionSyntax, state);
+                    MergeVariableState(assignmentExpressionSyntax.Left, assignmentState, state, finalState);
                 }
                 else
                 {
@@ -344,7 +346,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             foreach (var ex in arrayInit.Expressions)
             {
                 var exprState = VisitExpression(ex, state);
-                finalState    = finalState.Merge(exprState);
+                finalState.Merge(exprState);
             }
 
             return finalState;
@@ -381,18 +383,19 @@ namespace SecurityCodeScan.Analyzers.Taint
         private VariableState VisitInvocationAndCreation(ExpressionSyntax   node,
                                                          ArgumentListSyntax argList,
                                                          ExecutionState     state,
-                                                         VariableState?     initialVariableState = null)
+                                                         VariableState      initialVariableState = null)
         {
             var symbol = state.GetSymbol(node);
             if (symbol == null)
                 return new VariableState(node, VariableTaint.Unknown);
 
-            var behavior    = symbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
-            var returnState = initialVariableState.HasValue && !symbol.IsStatic
-                                  ? initialVariableState.Value
+            var behavior = symbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
+            var returnState = initialVariableState != null && !symbol.IsStatic
+                                  ? initialVariableState
                                   : new VariableState(node,
-                                                      behavior?.TaintFromArguments?.Any() == true ? VariableTaint.Safe
-                                                                                                  : VariableTaint.Unknown);
+                                                      behavior?.TaintFromArguments?.Any() == true
+                                                          ? VariableTaint.Safe
+                                                          : VariableTaint.Unknown);
 
             for (var i = 0; i < argList?.Arguments.Count; i++)
             {
@@ -424,7 +427,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 }
                 else if (Array.Exists(behavior.TaintFromArguments, element => element == i))
                 {
-                    returnState = returnState.Merge(argumentState);
+                    returnState.Merge(argumentState);
                 }
 
                 //TODO: taint all objects passed as arguments
@@ -452,8 +455,8 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         private VariableState VisitAssignment(AssignmentExpressionSyntax node, ExecutionState state)
         {
-            var            leftSymbol   = state.GetSymbol(node.Left);
-            MethodBehavior behavior = null;
+            var            leftSymbol = state.GetSymbol(node.Left);
+            MethodBehavior behavior   = null;
             if (leftSymbol != null)
                 behavior = leftSymbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
 
@@ -474,12 +477,6 @@ namespace SecurityCodeScan.Analyzers.Taint
                 var leftTypeSymbol = state.AnalysisContext.SemanticModel.GetTypeInfo(node.Left).Type;
                 if (!state.AnalysisContext.SemanticModel.Compilation.ClassifyConversion(rightTypeSymbol, leftTypeSymbol).IsImplicit)
                     return new VariableState(node.Right, VariableTaint.Unknown);
-            }
-
-            IdentifierNameSyntax parentIdentifierSyntax = GetParentIdentifier(node.Left);
-            if (parentIdentifierSyntax != null)
-            {
-                state.MergeValue(ResolveIdentifier(parentIdentifierSyntax.Identifier), variableState);
             }
 
             if (behavior != null                              && //Injection
@@ -506,39 +503,83 @@ namespace SecurityCodeScan.Analyzers.Taint
             return variableState;
         }
 
-        /// <summary>
-        /// Return the top member from an assignment.
-        /// <code>
-        /// a.b.c = 1234; //Will return a
-        /// d.e = 1234 //Will return d
-        /// </code>
-        /// </summary>
-        /// <param name="expression"></param>
-        /// <returns></returns>
-        private IdentifierNameSyntax GetParentIdentifier(ExpressionSyntax expression)
+        private VariableState GetVariableState(ExpressionSyntax expression, ExecutionState state)
         {
-            while (true)
+            if (!(expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax))
             {
-                if (!(expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax))
-                    break;
+                VariableState result;
+                if (!(expression is IdentifierNameSyntax identifierNameSyntax))
+                {
+                    //TODO: How to correctly handle "this" case
+                    if (expression is ThisExpressionSyntax && state.VariableStates.TryGetValue("this", out result))
+                        return result;
 
-                expression = memberAccessExpressionSyntax.Expression;
+                    return null;
+                }
+
+                var identifier = ResolveIdentifier(identifierNameSyntax.Identifier);
+                if (state.VariableStates.TryGetValue(identifier, out result))
+                    return result;
+
+                return null;
             }
 
-            var identifierNameSyntax = expression as IdentifierNameSyntax;
-            return identifierNameSyntax;
+            var variableState = GetVariableState(memberAccessExpressionSyntax.Expression, state);
+            if (variableState == null)
+                return null;
+
+            var stateIdentifier = ResolveIdentifier(memberAccessExpressionSyntax.Name.Identifier);
+            if (variableState.PropertyStates.TryGetValue(stateIdentifier, out var propertyState))
+                return propertyState;
+
+            return null;
         }
 
-        /// <summary>
-        /// Identifier name include variable name.
-        /// </summary>
-        /// <param name="expression"></param>
-        /// <param name="state"></param>
-        /// <returns></returns>
+        private VariableState MergeVariableState(ExpressionSyntax expression,
+                                                 VariableState    newVariableState,
+                                                 ExecutionState   state,
+                                                 VariableState    currentScope = null)
+        {
+            var variableStateToMerge = newVariableState ?? new VariableState(expression, VariableTaint.Unset);
+            if (!(expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax))
+            {
+                var identifier = "";
+                if (expression is IdentifierNameSyntax identifierNameSyntax)
+                    identifier = ResolveIdentifier(identifierNameSyntax.Identifier);
+                else if (expression is ThisExpressionSyntax)
+                    identifier = "this";
+
+                if (currentScope != null)
+                {
+                    currentScope.AddOrMergeProperty(identifier, variableStateToMerge);
+                    return currentScope.PropertyStates[identifier];
+                }
+
+                state.AddOrUpdateValue(identifier, variableStateToMerge);
+                return state.VariableStates[identifier];
+            }
+
+            var variableState = MergeVariableState(memberAccessExpressionSyntax.Expression, null, state, currentScope);
+
+            var stateIdentifier = ResolveIdentifier(memberAccessExpressionSyntax.Name.Identifier);
+            variableState.AddOrMergeProperty(stateIdentifier, variableStateToMerge);
+            return variableState.PropertyStates[stateIdentifier];
+        }
+
         private VariableState VisitIdentifierName(IdentifierNameSyntax expression, ExecutionState state)
         {
-            var value = ResolveIdentifier(expression.Identifier);
-            if (state.VariableStates.TryGetValue(value, out var varState))
+            return ResolveVariableState(expression, state);
+        }
+
+        private VariableState VisitMemberAccessExpression(MemberAccessExpressionSyntax expression, ExecutionState state)
+        {
+            return ResolveVariableState(expression, state);
+        }
+
+        private VariableState ResolveVariableState(ExpressionSyntax expression, ExecutionState state)
+        {
+            var varState = GetVariableState(expression, state);
+            if (varState != null)
                 return varState;
 
             var symbol = state.GetSymbol(expression);
@@ -576,11 +617,11 @@ namespace SecurityCodeScan.Analyzers.Taint
                     {
                         case BlockSyntax blockSyntax:
                             // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
-                            state.AddNewValue(value, new VariableState(expression, VariableTaint.Unknown));
+                            MergeVariableState(expression, new VariableState(expression, VariableTaint.Unknown), state);
                             return VisitBlock(blockSyntax, state);
                         case ArrowExpressionClauseSyntax arrowSyntax:
                             // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
-                            state.AddNewValue(value, new VariableState(expression, VariableTaint.Unknown));
+                            MergeVariableState(expression, new VariableState(expression, VariableTaint.Unknown), state);
                             return VisitExpression(arrowSyntax.Expression, state);
                     }
 
@@ -598,9 +639,9 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <returns></returns>
         private VariableState VisitBinaryExpression(BinaryExpressionSyntax expression, ExecutionState state)
         {
-            VariableState left  = VisitExpression(expression.Left,  state);
-            VariableState right = VisitExpression(expression.Right, state);
-            return left.Merge(right);
+            VariableState left = VisitExpression(expression.Left, state);
+            left.Merge(VisitExpression(expression.Right, state));
+            return left;
         }
     }
 }

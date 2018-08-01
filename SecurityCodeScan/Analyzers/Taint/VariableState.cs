@@ -7,106 +7,118 @@ namespace SecurityCodeScan.Analyzers.Taint
 {
     /// <summary>
     /// Define the state of variable regarding can it be trust, where does it come from.
-    /// 
-    /// <code>struct</code> was chosen because the execution of the taint analysis will be visited a lot.
-    /// This may allow less heap allocation and less garbage collection.
-    /// 
-    /// <a href="https://msdn.microsoft.com/en-us/library/ms229017.aspx">Choosing Between Class and Struct</a>
     /// </summary>
-    public struct VariableState
+    public class VariableState
     {
-        public VariableTaint Taint { get; }
+        public VariableTaint Taint { get; private set; }
 
-        public List<VariableTag> Tags { get; }
+        /// <summary>
+        /// Contains Value only if Taint is constant. Otherwise returns null
+        /// </summary>
+        public object Value { get; private set; }
 
         public SyntaxNode Node { get; private set; }
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="taint">Initial state</param>
-        public VariableState(SyntaxNode node, VariableTaint taint = Unknown, List<VariableTag> tags = null)
+        public  IReadOnlyDictionary<string, VariableState> PropertyStates => Properties;
+        private Dictionary<string, VariableState>          Properties { get; set; }
+
+        public VariableState(SyntaxNode node, VariableTaint taint = Unknown, object value = null)
         {
             Taint = taint;
-            Tags = tags ?? new List<VariableTag>();
+            Value = null;
+            if (Taint == Constant)
+                Value = value;
             Node = node;
+            Properties = new Dictionary<string, VariableState>();
         }
 
         /// <summary>
-        /// Merge two different states. State are merge if a data structure accept new input or 
-        /// if values are concatenate.
+        /// Merge two different states. Use it to merge two states when values are concatenated.
         /// </summary>
-        /// <param name="secondState"></param>
-        /// <returns></returns>
-        public VariableState Merge(VariableState secondState)
+        public void Merge(VariableState secondState)
         {
-            var newTaint = Taint;
+            ResolveTaint(secondState.Taint);
 
-            switch (secondState.Taint)
+            if (secondState.Taint == Constant)
+                Value = secondState.Value;
+
+            if (secondState.Taint != Unset)
+                Node = secondState.Node;
+
+            foreach (var newPropertyState in secondState.PropertyStates)
             {
-                case Tainted:
-                    newTaint = Tainted;
-                    break;
-                case Unknown:
-                    if (Taint != Tainted)
-                        newTaint = Unknown;
-                    break;
-                case Safe:
-                    if (Taint != Tainted && Taint != Unknown)
-                        newTaint = Safe;
-                    break;
-                case Constant:
-                    if (Taint == Safe)
-                        newTaint = Safe;
-                    else if (Taint == Constant)
-                        newTaint = Constant;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                if (Properties.ContainsKey(newPropertyState.Key))
+                    Properties[newPropertyState.Key].Merge(newPropertyState.Value);
+                else
+                    Properties.Add(newPropertyState.Key, newPropertyState.Value);
+            }
+        }
+
+        public void ResolveTaint(VariableTaint newTaint)
+        {
+            if (Taint == Unset)
+            {
+                Taint = newTaint;
+            }
+            else
+            {
+                switch (newTaint)
+                {
+                    case Tainted:
+                        Taint = Tainted;
+                        break;
+                    case Unknown:
+                        if (Taint != Tainted)
+                            Taint = Unknown;
+
+                        break;
+                    case Safe:
+                        if (Taint != Tainted && Taint != Unknown)
+                            Taint = Safe;
+
+                        break;
+                    case Constant:
+                    case Unset:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Merge two different states. Use it to merge two states when value is overridden.
+        /// </summary>
+        public void Replace(VariableState secondState)
+        {
+            if (secondState.Taint == Unset)
+                return;
+
+            Taint = secondState.Taint;
+            Value = Taint == Constant ? secondState.Value : null;
+            Node  = secondState.Node;
+
+            Properties = secondState.Properties;
+        }
+
+        public VariableState AddOrMergeProperty(string identifier, VariableState secondState)
+        {
+            if (PropertyStates.ContainsKey(identifier))
+            {
+                PropertyStates[identifier].Replace(secondState);
+                ResolveTaint(secondState.Taint);
+            }
+            else
+            {
+                Properties.Add(identifier, secondState);
             }
 
-            // A new instance is made to prevent referencing the current VariableState's parameters
-            var vs = new VariableState(Node, newTaint);
-
-            // Searches through the current VariableState for unique tags
-            foreach (var newTag in Tags)
-            {
-                vs.AddTag(newTag);
-            }
-
-            // Searches through the new VariableState for new tags
-            foreach (var newTag in secondState.Tags)
-            {
-                vs.AddTag(newTag);
-            }
-
-            return vs;
+            return this;
         }
 
         public override string ToString()
         {
             return Taint.ToString();
-        }
-
-        /// <summary>
-        /// Will only add a new tag to the list if it is not already present in the list
-        /// </summary>
-        /// <param name="tag"></param>
-        /// <returns>A VariabeState with the updated list</returns>
-        public VariableState AddTag(VariableTag tag)
-        {
-            if (!Tags.Contains(tag))
-            {
-                Tags.Add(tag);
-            }
-
-            return this;
-        }
-
-        public VariableState AddSyntaxNode(SyntaxNode node)
-        {
-            Node = node;
-            return this;
         }
     }
 }

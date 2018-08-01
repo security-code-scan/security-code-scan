@@ -33,7 +33,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         }
 
         /// <summary>
-        /// Merge two different states. Use it to merge two states then values are concatenated.
+        /// Merge two different states. Use it to merge two states when values are concatenated.
         /// </summary>
         public void Merge(VariableState secondState)
         {
@@ -87,7 +87,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         }
 
         /// <summary>
-        /// Merge two different states. Use it to merge two states then value is overridden.
+        /// Merge two different states. Use it to merge two states when value is overridden.
         /// </summary>
         public void Replace(VariableState secondState)
         {

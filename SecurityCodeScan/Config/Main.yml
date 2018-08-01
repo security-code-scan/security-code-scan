@@ -282,7 +282,7 @@ Behavior:
     ClassName: String
     Member: method
     Name: Join
-    ArgTypes: (System.String, System.Collections.Generic.IEnumerable)
+    ArgTypes: (System.String, System.Collections.Generic.IEnumerable)
     TaintFromArguments: [0,1]
 
   StringJoin_2:
@@ -298,7 +298,7 @@ Behavior:
     ClassName: String
     Member: method
     Name: Join
-    ArgTypes: (System.String, System.String[], System.Int32, System.Int32)
+    ArgTypes: (System.String, System.String[], System.Int32, System.Int32)
     TaintFromArguments: [0,1]
 
   StringJoin_4:
@@ -1373,7 +1373,7 @@ CsrfProtectionAttributes:
     AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
     
 PasswordFields:
-# These fiels names are case insensitive
+# These field names are case insensitive
   - PASSWORD
   - SECRETKEY
   - PWD

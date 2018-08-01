@@ -1700,7 +1700,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
-        [Ignore] //TODO: Copy structure state then assigned to new variable
+        [Ignore] //TODO: Copy structure state when assigned to new variable
         [TestMethod]
         public async Task StructReuseChangePropertyFromTaintedToSafe()
         {

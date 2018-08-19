@@ -1,12 +1,10 @@
-﻿using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
+using System.Collections.Immutable;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
-using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
-using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
@@ -45,16 +43,24 @@ namespace SecurityCodeScan.Analyzers
                 return;
 
             var symbolMemberAccess = ctx.SemanticModel.GetSymbolInfo(leftNode).Symbol;
-            if (AnalyzerUtil.SymbolMatch(symbolMemberAccess,
-                                         type: "ServicePointManager",
-                                         name: "ServerCertificateValidationCallback") ||
-                AnalyzerUtil.SymbolMatch(symbolMemberAccess,
-                                         type: "ServicePointManager",
-                                         name: "CertificatePolicy"))
+            if (IsMatch(symbolMemberAccess))
             {
                 var diagnostic = Diagnostic.Create(Rule, ctx.Node.GetLocation());
                 ctx.ReportDiagnostic(diagnostic);
             }
+        }
+
+        private static bool IsMatch(ISymbol symbolMemberAccess)
+        {
+            return  AnalyzerUtil.SymbolMatch(symbolMemberAccess,
+                                                     type: "ServicePointManager",
+                                                     name: "ServerCertificateValidationCallback") ||
+                    AnalyzerUtil.SymbolMatch(symbolMemberAccess,
+                                                     type: "HttpWebRequest",
+                                                     name: "ServerCertificateValidationCallback") ||
+                    AnalyzerUtil.SymbolMatch(symbolMemberAccess,
+                                                     type: "ServicePointManager",
+                                                     name: "CertificatePolicy");
         }
     }
 }

@@ -52,15 +52,15 @@ namespace SecurityCodeScan.Analyzers
 
         private static bool IsMatch(ISymbol symbolMemberAccess)
         {
-            return  AnalyzerUtil.SymbolMatch(symbolMemberAccess,
-                                                     type: "ServicePointManager",
-                                                     name: "ServerCertificateValidationCallback") ||
-                    AnalyzerUtil.SymbolMatch(symbolMemberAccess,
-                                                     type: "HttpWebRequest",
-                                                     name: "ServerCertificateValidationCallback") ||
-                    AnalyzerUtil.SymbolMatch(symbolMemberAccess,
-                                                     type: "ServicePointManager",
-                                                     name: "CertificatePolicy");
+            return AnalyzerUtil.SymbolMatch(symbolMemberAccess,
+                                            type: "ServicePointManager",
+                                            name: "ServerCertificateValidationCallback") ||
+                   AnalyzerUtil.SymbolMatch(symbolMemberAccess,
+                                            type: "HttpWebRequest",
+                                            name: "ServerCertificateValidationCallback") ||
+                   AnalyzerUtil.SymbolMatch(symbolMemberAccess,
+                                            type: "ServicePointManager",
+                                            name: "CertificatePolicy");
         }
     }
 }

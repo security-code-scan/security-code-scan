@@ -12,7 +12,7 @@ namespace SecurityCodeScan.Test
     [TestClass]
     public class WeakCertificateValidationAnalyzerTest : DiagnosticVerifier
     {
-        private DiagnosticResult _expected = new DiagnosticResult
+        private DiagnosticResult Expected = new DiagnosticResult
         {
             Id = "SCS0004",
             Severity = DiagnosticSeverity.Warning,
@@ -90,8 +90,8 @@ Class weakCert
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, _expected.WithLocation(7)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBsicTest, _expected.WithLocation("Test0.vb", 6)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(7)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation("Test0.vb", 6)).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -129,8 +129,8 @@ Class weakCert
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, _expected.WithLocation(7)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBsicTest, _expected.WithLocation("Test0.vb", 6)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(7)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation("Test0.vb", 6)).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -165,8 +165,8 @@ Class weakCert
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, _expected.WithLocation(10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBsicTest, _expected.WithLocation("Test0.vb", 9)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation("Test0.vb", 9)).ConfigureAwait(false);
         }
     }
 }

@@ -63,10 +63,10 @@ End Class
             var cSharpTest = @"
 using System.Net;
 
-class weakCert {
+class WeakCert {
     public void DoGetRequest1()
     {
-/**/    ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
+        ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
 
         string url = ""https://hack.me/"";
         HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
@@ -78,7 +78,7 @@ class weakCert {
             var visualBsicTest = @"
 Imports System.Net
 
-Class weakCert
+Class WeakCert
     Public Sub DoGetRequest1()        '
         ServicePointManager.ServerCertificateValidationCallback = Function(sender, cert, chain, sslPolicyErrors)
                                                                       Return True
@@ -100,10 +100,10 @@ End Class
             var cSharpTest = @"
 using System.Net;
 
-class weakCert {
+class WeakCert {
     public void DoGetRequest1()
     {
-/**/    ServicePointManager.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
+        ServicePointManager.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
 
         string url = ""https://hack.me/"";
         HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
@@ -116,7 +116,7 @@ class weakCert {
             var visualBsicTest = @"
 Imports System.Net
 
-Class weakCert
+Class WeakCert
     Public Sub DoGetRequest1()        '
         ServicePointManager.ServerCertificateValidationCallback = Function(sender, cert, chain, sslPolicyErrors)
                                                                       Return True
@@ -139,13 +139,14 @@ End Class
             var cSharpTest = @"
 using System.Net;
 
-class weakCert {
-    public void DoGetRequest1()
+class WeakCert 
+{
+    public void DoGetRequest()
     {
-/**/    string url = ""https://hack.me/"";
+        string url = ""https://hack.me/"";
         HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-        request.GetResponse();
         request.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
+        request.GetResponse();
     }
 }
 ";
@@ -153,20 +154,20 @@ class weakCert {
             var visualBsicTest = @"
 Imports System.Net
 
-Class weakCert
-    Public Sub DoGetRequest1()        '
+Class WeakCert
+    Public Sub DoGetRequest()        '
         Dim url As String = ""https://hack.me/""
         Dim request As HttpWebRequest = DirectCast(WebRequest.Create(url), HttpWebRequest)
-        request.GetResponse()
         request.ServerCertificateValidationCallback = Function(sender, cert, chain, sslPolicyErrors)
                                                                       Return True
                                                                   End Function
+        request.GetResponse() 
     End Sub
 End Class
 ";
 
             await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation("Test0.vb", 9)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation("Test0.vb", 8)).ConfigureAwait(false);
         }
     }
 }

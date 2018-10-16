@@ -178,12 +178,31 @@ namespace SecurityCodeScan.Test.Helpers
                                                          cancellationToken,
                                                          GetAdditionalReferences(),
                                                          includeCompilerDiagnostics).ConfigureAwait(false);
-            VerifyDiagnosticResults(diagnostics, analyzers, language, expected);
+
+            await VerifyDiagnosticResults(diagnostics.Diagnostics, diagnostics.Documents, analyzers, language, cancellationToken, expected)
+                .ConfigureAwait(false);
         }
 
         #endregion
 
         #region Actual comparisons and verifications
+
+        private static async Task<string> GetSourceWithLineNumbers(IEnumerable<Document> documents,
+                                                                   CancellationToken     cancellationToken)
+        {
+            var msg = new StringBuilder(1024);
+            foreach (var document in documents)
+            {
+                msg.AppendLine($"\r\n{document.Name}");
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                foreach (var line in sourceText.Lines)
+                {
+                    msg.AppendLine($"{line.LineNumber + 1:00} {sourceText.ToString(line.Span)}");
+                }
+            }
+
+            return msg.ToString();
+        }
 
         /// <summary>
         /// Checks each of the actual Diagnostics found and
@@ -195,13 +214,16 @@ namespace SecurityCodeScan.Test.Helpers
         /// running the analyzer on the source code</param>
         /// <param name="analyzers">The analyzers that was being run on the sources</param>
         /// <param name="expectedResults">Diagnostic Results that should have appeared in the code</param>
-        private static void VerifyDiagnosticResults(ICollection<Diagnostic>            actualResults,
-                                                    ImmutableArray<DiagnosticAnalyzer> analyzers,
-                                                    string                             language,
-                                                    params DiagnosticResult[]          expectedResults)
+        private static async Task VerifyDiagnosticResults(ICollection<Diagnostic>            actualResults,
+                                                          IEnumerable<Document>              documents,
+                                                          ImmutableArray<DiagnosticAnalyzer> analyzers,
+                                                          string                             language,
+                                                          CancellationToken                  cancellationToken,
+                                                          params DiagnosticResult[]          expectedResults)
         {
             int expectedCount = expectedResults.Length;
             int actualCount   = actualResults.Count;
+            var documentsWithLineNumbers = await GetSourceWithLineNumbers(documents, cancellationToken).ConfigureAwait(false);
 
             if (expectedCount != actualCount)
             {
@@ -209,14 +231,13 @@ namespace SecurityCodeScan.Test.Helpers
                                                ? FormatDiagnostics(analyzers[0], actualResults.ToArray())
                                                : "    NONE.";
 
-                var msg =
-                    $@"Mismatch between number of diagnostics returned, expected ""{expectedCount}"" actual ""{actualCount}"" (Language:{language})
+                var msg = $@"{documentsWithLineNumbers}
+Mismatch between number of diagnostics returned, expected ""{expectedCount}"" actual ""{actualCount}"" (Language:{language})
 
 Diagnostics:
 {diagnosticsOutput}
 ";
-                Assert.IsTrue(false,
-                              msg);
+                Assert.IsTrue(false, msg);
             }
 
             //For debug purpose
@@ -232,36 +253,31 @@ Diagnostics:
 
                 var expected = expectedResults[i];
 
-                if (expected.Line == -1 && expected.Column == -1)
-                {
-                    //if (actual.Location != Location.None)
-                    //{
-                    //    Assert.IsTrue(false,
-                    //        string.Format("Expected:\nA project diagnostic with No location\nActual:\n{0}",
-                    //        FormatDiagnostics(analyzer, actual)));
-                    //}
-                }
-                else
+                if (expected.Line != -1 || expected.Column != -1)
                 {
                     VerifyDiagnosticLocation(analyzers[0],
+                                             documentsWithLineNumbers,
                                              actual,
                                              actual.Location,
                                              expected.Locations.First(),
                                              language);
+
                     var additionalLocations = actual.AdditionalLocations.ToArray();
 
                     if (additionalLocations.Length != expected.Locations.Length - 1)
                     {
                         Assert.IsTrue(false,
-                                      $@"Expected {expected.Locations.Length - 1} additional locations but got {additionalLocations.Length} for Diagnostic:
-    {FormatDiagnostics(analyzers[0], actual)}
+                                      $@"{documentsWithLineNumbers}
+Expected {expected.Locations.Length - 1} additional locations but got {additionalLocations.Length} for Diagnostic:
+{FormatDiagnostics(analyzers[0], actual)}
 (Language: {language})
- ");
+");
                     }
 
                     for (int j = 0; j < additionalLocations.Length; ++j)
                     {
                         VerifyDiagnosticLocation(analyzers[0],
+                                                 documentsWithLineNumbers,
                                                  actual,
                                                  additionalLocations[j],
                                                  expected.Locations[j + 1],
@@ -272,7 +288,8 @@ Diagnostics:
                 if (actual.Id != expected.Id)
                 {
                     Assert.IsTrue(false,
-                                  $@"Expected diagnostic id to be ""{expected.Id}"" was ""{actual.Id}""
+                                  $@"{documentsWithLineNumbers}
+Expected diagnostic id to be ""{expected.Id}"" was ""{actual.Id}""
 
 Diagnostic:
     {FormatDiagnostics(analyzers[0], actual)}
@@ -283,7 +300,8 @@ Diagnostic:
                 if (actual.Severity != expected.Severity && expected.Severity.HasValue)
                 {
                     Assert.IsTrue(false,
-                                  $@"Expected diagnostic severity to be ""{expected.Severity}"" was ""{actual.Severity}""
+                                  $@"{documentsWithLineNumbers}
+Expected diagnostic severity to be ""{expected.Severity}"" was ""{actual.Severity}""
 
 Diagnostic:
     {FormatDiagnostics(analyzers[0], actual)}
@@ -294,7 +312,8 @@ Diagnostic:
                 if (expected.Message != null && actual.GetMessage() != expected.Message)
                 {
                     Assert.IsTrue(false,
-                                  $@"Expected diagnostic message to be ""{expected.Message}"" was ""{actual.GetMessage()}""
+                                  $@"{documentsWithLineNumbers}
+Expected diagnostic message to be ""{expected.Message}"" was ""{actual.GetMessage()}""
 
 Diagnostic:
     {FormatDiagnostics(analyzers[0], actual)}
@@ -313,6 +332,7 @@ Diagnostic:
         /// <param name="actual">The Location of the Diagnostic found in the code</param>
         /// <param name="expected">The DiagnosticResultLocation that should have been found</param>
         private static void VerifyDiagnosticLocation(DiagnosticAnalyzer       analyzer,
+                                                     string                   documentsWithLineNumbers,
                                                      Diagnostic               diagnostic,
                                                      Location                 actual,
                                                      DiagnosticResultLocation expected,
@@ -322,7 +342,8 @@ Diagnostic:
 
             Assert.IsTrue(actualSpan.Path == expected.Path ||
                           (actualSpan.Path != null && actualSpan.Path.Contains("Test0.") && expected.Path.Contains("Test.")),
-                          $@"Expected diagnostic to be in file ""{expected.Path}"" was actually in file ""{actualSpan.Path}""
+                          $@"{documentsWithLineNumbers}
+Expected diagnostic to be in file ""{expected.Path}"" was actually in file ""{actualSpan.Path}""
 
 Diagnostic:
     {FormatDiagnostics(analyzer, diagnostic)}
@@ -337,7 +358,8 @@ Diagnostic:
                 if (actualLinePosition.Line + 1 != expected.Line)
                 {
                     Assert.IsTrue(false,
-                                  $@"Expected diagnostic to be on line ""{expected.Line}"" was actually on line ""{actualLinePosition.Line + 1}""
+                                  $@"{documentsWithLineNumbers}
+Expected diagnostic to be on line ""{expected.Line}"" was actually on line ""{actualLinePosition.Line + 1}""
 
 Diagnostic:
     {FormatDiagnostics(analyzer, diagnostic)}
@@ -353,7 +375,8 @@ Diagnostic:
             if (actualLinePosition.Character + 1 != expected.Column)
             {
                 Assert.IsTrue(false,
-                              $@"Expected diagnostic to start at column ""{expected.Column}"" was actually at column ""{actualLinePosition.Character + 1}""
+                              $@"{documentsWithLineNumbers}
+Expected diagnostic to start at column ""{expected.Column}"" was actually at column ""{actualLinePosition.Character + 1}""
 
 Diagnostic:
     {FormatDiagnostics(analyzer, diagnostic)}

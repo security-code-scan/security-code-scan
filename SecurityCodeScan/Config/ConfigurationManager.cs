@@ -42,7 +42,7 @@ namespace SecurityCodeScan.Config
                                  return Path.Combine(path, UserConfigName);
                              });
 
-        private readonly Version ConfigVersion = new Version(1,0);
+        private static readonly Version ConfigVersion = new Version(1,0);
 
         public ConfigData GetBuiltinConfiguration()
         {

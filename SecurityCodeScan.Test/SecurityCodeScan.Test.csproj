@@ -354,6 +354,7 @@
     <Compile Include="Tests\Config\WeakPasswordValidatorPropertyAnalyzerConfigTests.cs" />
     <Compile Include="Tests\ExternalFileAnalyzerTest.cs" />
     <Compile Include="Tests\Password\HardcodedPasswordFieldTest.cs" />
+    <Compile Include="Tests\Taint\CommandTextAnalyzerTest.cs" />
     <Compile Include="Tests\Taint\OpenRedirectAnalyzerTest.cs" />
     <Compile Include="Tests\Taint\TaintTransferTest.cs" />
     <Compile Include="Tests\Taint\UnsafeDeserializationTests.cs" />

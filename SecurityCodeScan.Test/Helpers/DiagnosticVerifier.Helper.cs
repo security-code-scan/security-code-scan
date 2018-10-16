@@ -92,7 +92,7 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="references">Additional referenced modules</param>
         /// <param name="includeCompilerDiagnostics">Get compiler diagnostics too</param>
         /// <returns>An IEnumerable of Diagnostics that surfaced in the source code, sorted by Location</returns>
-        private static async Task<Diagnostic[]> GetSortedDiagnostics(
+        private static async Task<(Diagnostic[] Diagnostics, IEnumerable<Document> Documents)> GetSortedDiagnostics(
             string[]                           sources,
             string                             language,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
@@ -102,11 +102,12 @@ namespace SecurityCodeScan.Test.Helpers
             IEnumerable<MetadataReference>     references                 = null,
             bool                               includeCompilerDiagnostics = false)
         {
-            return await GetSortedDiagnosticsFromDocuments(analyzers,
+            var documents = GetDocuments(sources, dotNetVersion, language, references);
+            return (await GetSortedDiagnosticsFromDocuments(analyzers,
                                                            options,
-                                                           GetDocuments(sources, dotNetVersion, language, references),
+                                                           documents,
                                                            cancellationToken,
-                                                           includeCompilerDiagnostics).ConfigureAwait(false);
+                                                           includeCompilerDiagnostics).ConfigureAwait(false), documents);
         }
 
         /// <summary>

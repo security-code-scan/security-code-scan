@@ -1,11 +1,9 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.VisualBasic;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Analyzers.Utils;
-using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
@@ -21,15 +19,6 @@ namespace SecurityCodeScan.Analyzers
         public override void Initialize(AnalysisContext context) { }
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Analyzer.SupportedDiagnostics;
-
-        public override void VisitAssignment(CSharpSyntax.AssignmentExpressionSyntax node,
-                                             ExecutionState                          state,
-                                             MethodBehavior                          behavior,
-                                             ISymbol                                 symbol,
-                                             VariableState                           variableRightState)
-        {
-            Analyzer.VisitAssignment(symbol, variableRightState);
-        }
 
         public override void VisitEnd(SyntaxNode node, ExecutionState state)
         {
@@ -50,15 +39,6 @@ namespace SecurityCodeScan.Analyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Analyzer.SupportedDiagnostics;
 
-        public override void VisitAssignment(VisualBasicSyntaxNode node,
-                                             ExecutionState        state,
-                                             MethodBehavior        behavior,
-                                             ISymbol               symbol,
-                                             VariableState         variableRightState)
-        {
-            Analyzer.VisitAssignment(symbol, variableRightState);
-        }
-
         public override void VisitEnd(SyntaxNode node, ExecutionState state)
         {
             Analyzer.CheckState(state);
@@ -75,40 +55,31 @@ namespace SecurityCodeScan.Analyzers
 
         public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RuleSecure, RuleHttpOnly);
 
-        public void VisitAssignment(ISymbol       symbol,
-                                    VariableState variableRightState)
-        {
-            //Looking for Assignment to Secure or HttpOnly property
-
-            if (AnalyzerUtil.SymbolMatch(symbol, "HttpCookie", "Secure"))
-            {
-                variableRightState.AddTag(VariableTag.HttpCookieSecure);
-            }
-            else if (AnalyzerUtil.SymbolMatch(symbol, "HttpCookie", "HttpOnly"))
-            {
-                variableRightState.AddTag(VariableTag.HttpCookieHttpOnly);
-            }
-        }
-
         public void CheckState(ExecutionState state)
         {
             // For every variables registered in state
-            foreach (var variableState in state.VariableStates)
+            foreach (var variableState in state.VariableStates.Values)
             {
-                var st = variableState.Value;
-
-                // Only if it is the constructor of the PasswordValidator instance
-                if (!AnalyzerUtil.SymbolMatch(state.GetSymbol(st.Node), "HttpCookie", ".ctor"))
+                var symbol = state.GetSymbol(variableState.Node);
+                if (symbol == null)
                     continue;
 
-                if (!st.Tags.Contains(VariableTag.HttpCookieSecure))
+                // Only if it is the constructor of the PasswordValidator instance
+                if (!symbol.IsConstructor() || !symbol.ContainingSymbol.ToString().Equals("System.Web.HttpCookie"))
+                    continue;
+
+                if (!variableState.PropertyStates.TryGetValue("Secure", out var secureState) ||
+                    secureState.Taint == VariableTaint.Constant && //TODO: In case of auditing mode show unknown value warning
+                    secureState.Value is bool isSecure && !isSecure)
                 {
-                    state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleSecure, st.Node.GetLocation()));
+                    state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleSecure, variableState.Node.GetLocation()));
                 }
 
-                if (!st.Tags.Contains(VariableTag.HttpCookieHttpOnly))
+                if (!variableState.PropertyStates.TryGetValue("HttpOnly", out var httpOnly) ||
+                    httpOnly.Taint == VariableTaint.Constant && //TODO: In case of auditing mode show unknown value warning
+                    httpOnly.Value is bool isHttpOnly && !isHttpOnly)
                 {
-                    state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleHttpOnly, st.Node.GetLocation()));
+                    state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleHttpOnly, variableState.Node.GetLocation()));
                 }
             }
         }

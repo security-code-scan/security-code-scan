@@ -1,4 +1,34 @@
 # Release Notes
+## 2.8.0
+**Important:** This release targets full .NET framework and **may** not run on Unix machines. Although as tested it runs fine in [microsoft/dotnet 2.1 docker container](https://hub.docker.com/r/microsoft/dotnet/) on Linux, still for Unix based Continuous Integration builds it is better to use [SecurityCodeScan.VS2017 NuGet package](https://www.nuget.org/packages/SecurityCodeScan.VS2017), that targets netstandard.
+
+Added external configuration files: per user account and per project. It allows you to customize settings from [built-in configuration](https://github.com/security-code-scan/security-code-scan/blob/master/SecurityCodeScan/Config/Main.yml) or add your specific Sinks and Behaviors. Global settings file location is `%LocalAppData%\SecurityCodeScan\config-1.0.yml` on Windows and `$XDG_DATA_HOME/.local/share` on Unix.  
+An example of user's config-1.0.yml with custom Anti CSRF token:
+```yml
+CsrfProtectionAttributes:
+  -  HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
+     AntiCsrfAttribute: MyNamespace.MyAntiCsrfAttribute
+```
+
+For project specific settings add SecurityCodeScan.config.yml into a project. Go to file properties and set the *Build Action* to *AdditionalFiles*:
+
+![image](https://user-images.githubusercontent.com/26652396/43063175-d28dc288-8e63-11e8-90eb-a7cb31900aff.png)
+
+An example of SecurityCodeScan.config.yml with custom sink function (method that shouldn't be called with untrusted data without first being sanitized):
+```yml
+Version: 1.0
+Sinks:
+  UniqueKey:
+    Namespace: MyNamespace
+    ClassName: Test
+    Member: method
+    Name: VulnerableFunctionName
+    InjectableArguments: [0]
+    Locale: SCS0001
+```
+
+Audit Mode setting (Off by default) was introduced for those interested in warnings with more false positives.
+
 ## 2.7.1
 Couple of issues related to VB.NET fixed:
 * VB.NET projects were not analyzed when using the analyzer from NuGet.

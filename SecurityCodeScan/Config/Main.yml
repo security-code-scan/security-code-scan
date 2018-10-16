@@ -278,6 +278,42 @@ Behavior:
     ArgTypes: (System.String, System.Object, System.Object, System.Object)
     TaintFromArguments: [0,1,2,3]
 
+  #String.Join
+
+  StringJoin_1:
+    Namespace: System
+    ClassName: String
+    Member: method
+    Name: Join
+    ArgTypes: (System.String, System.Collections.Generic.IEnumerable)
+    TaintFromArguments: [0,1]
+
+  StringJoin_2:
+    Namespace: System
+    ClassName: String
+    Member: method
+    Name: Join
+    ArgTypes: (System.String, params System.String[])
+    TaintFromArguments: [0,1]
+
+  StringJoin_3:
+    Namespace: System
+    ClassName: String
+    Member: method
+    Name: Join
+    ArgTypes: (System.String, System.String[], System.Int32, System.Int32)
+    TaintFromArguments: [0,1]
+
+  StringJoin_4:
+    Namespace: System
+    ClassName: String
+    Member: method
+    Name: Join
+    ArgTypes: (System.String, params System.Object[])
+    TaintFromArguments: [0,1]
+
+
+
 Sinks:
 # This is the list of sinks
 # The API is susceptible to attack if value passed is not properly sanitized.
@@ -315,6 +351,14 @@ Sinks:
   dbcommand_field:
     Namespace: System.Data.Common
     ClassName: DbCommand
+    Member: field
+    Name: CommandText
+    InjectableField: true
+    Locale: SCS0026
+
+  idbcommand_field:
+    Namespace: System.Data
+    ClassName: IDbCommand
     Member: field
     Name: CommandText
     InjectableField: true
@@ -1220,16 +1264,22 @@ Sinks:
     PasswordArguments: [1]
     LocalePass: SCS0015
 
+# Allows to define custom anti CSRF attribute
+# HttpMethodsNameSpace must be System.Web.Mvc or Microsoft.AspNetCore.Mvc.
+# AntiCsrfAttribute should be applicable to Class and Method and be inheritable. Multiple instances should not be allowed. For example:
+# [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+# public class MyCustomAntiCsrfAttribute : Attribute {}
+# Otherwise CsrfTokenAnalyzer may not work properly.
 CsrfProtectionAttributes:
-# These attributes should be applicable to Class and Method and be inheritable. Multiple instances should not be allowed.
-# Otherwise, CsrfTokenAnalyzer may not work properly
   - HttpMethodsNameSpace: System.Web.Mvc
     AntiCsrfAttribute: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
   - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
     AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
-    
+  - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
+    AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+
 PasswordFields:
-# These fiels names are case insensitive
+# These field names are case insensitive
   - PASSWORD
   - SECRETKEY
   - PWD

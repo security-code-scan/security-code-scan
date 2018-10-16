@@ -1,14 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
 using SecurityCodeScan.Config;
-using CSharp = Microsoft.CodeAnalysis.CSharp;
-using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace SecurityCodeScan.Analyzers
 {

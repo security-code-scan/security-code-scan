@@ -22,6 +22,13 @@ Behavior:
 #   TaintFromArguments: [[Index of the argument that will influence the state of the return value.]
 # <<<
 
+  Environment_GetEnvironmentVariable:
+    Namespace: System
+    ClassName: Environment
+    Member: method
+    Name: GetEnvironmentVariable
+    TaintFromArguments: [0]
+
   #MemoryStream
   MemoryStream_Constructor0:
     Namespace: System.IO

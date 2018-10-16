@@ -90,6 +90,46 @@ End Namespace
         }
 
         [TestMethod]
+        public async Task CommandInjectionFalsePositive_GetEnvironment()
+        {
+            var cSharpTest = @"
+using System;
+using System.Diagnostics;
+
+namespace VulnerableApp
+{
+    class ProcessExec
+    {
+        static void TestCommandInject(string input)
+        {
+            String environmentVar = Environment.GetEnvironmentVariable(""windir"");
+            ProcessStartInfo p = new ProcessStartInfo();
+            p.Arguments = String.Format(""{0}\\system32\\cmd.exe"", environmentVar);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System
+Imports System.Diagnostics
+
+Namespace VulnerableApp
+    Class ProcessExec
+        Private Shared Sub TestCommandInject(input As String)
+            Dim environmentVar = Environment.GetEnvironmentVariable(""windir"")
+            Dim p As New ProcessStartInfo()
+            p.Arguments = String.Format(""{0}\\system32\\cmd.exe"", environmentVar)
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
         public async Task CommandInjectionVulnerable1()
         {
             var cSharpTest = @"

@@ -20,8 +20,11 @@ namespace SecurityCodeScan.Analyzers
         public static readonly DiagnosticDescriptor RuleViewStateEncryptionMode = LocaleUtil.GetDescriptor("SCS0023");
         public static readonly DiagnosticDescriptor RuleEnableViewStateMac      = LocaleUtil.GetDescriptor("SCS0024");
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            RuleValidateRequest, RuleEnableEventValidation, RuleViewStateEncryptionMode, RuleEnableViewStateMac);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RuleValidateRequest,
+                                                                                                           RuleRequestValidationMode,
+                                                                                                           RuleEnableEventValidation,
+                                                                                                           RuleViewStateEncryptionMode,
+                                                                                                           RuleEnableViewStateMac);
 
         public override void Initialize(AnalysisContext context)
         {

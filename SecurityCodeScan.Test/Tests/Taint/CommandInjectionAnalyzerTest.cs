@@ -130,6 +130,42 @@ End Namespace
         }
 
         [TestMethod]
+        public async Task CommandInjectionFalsePositive_ProcessStartInfo()
+        {
+            var cSharpTest = @"
+using System.Diagnostics;
+
+namespace VulnerableApp
+{
+    class ProcessExec
+    {
+        static void TestCommandInject(string input)
+        {
+            ProcessStartInfo p = new ProcessStartInfo();
+            Process.Start(p);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Diagnostics
+
+Namespace VulnerableApp
+    Class ProcessExec
+        Private Shared Sub TestCommandInject(input As String)
+            Dim p = New ProcessStartInfo()
+            Process.Start(p)
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
         public async Task CommandInjectionVulnerable1()
         {
             var cSharpTest = @"

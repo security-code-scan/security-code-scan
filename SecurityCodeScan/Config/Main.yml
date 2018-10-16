@@ -29,6 +29,14 @@ Behavior:
     Name: GetEnvironmentVariable
     TaintFromArguments: [0]
 
+  ProcessStartInfo_Constructor0:
+    Namespace: System.Diagnostics
+    ClassName: ProcessStartInfo
+    Member: method
+    Name: .ctor
+    ArgTypes: ()
+    TaintFromArguments: [-1]
+
   #MemoryStream
   MemoryStream_Constructor0:
     Namespace: System.IO

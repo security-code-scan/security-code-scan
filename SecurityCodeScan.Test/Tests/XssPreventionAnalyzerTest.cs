@@ -2,11 +2,13 @@
 using System.Reflection;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using System.Web;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
+using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Test.Helpers;
 using DiagnosticVerifier = SecurityCodeScan.Test.Helpers.DiagnosticVerifier;
 
@@ -17,7 +19,13 @@ namespace SecurityCodeScan.Test
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new DiagnosticAnalyzer[] { new XssPreventionAnalyzerCSharp(), new XssPreventionAnalyzerVisualBasic() };
+            return new DiagnosticAnalyzer[]
+            {
+                new TaintAnalyzerCSharp(),
+                new TaintAnalyzerVisualBasic(),
+                new XssPreventionAnalyzerCSharp(),
+                new XssPreventionAnalyzerVisualBasic()
+            };
         }
 
         private static readonly PortableExecutableReference[] References =
@@ -29,11 +37,54 @@ namespace SecurityCodeScan.Test
             MetadataReference.CreateFromFile(typeof(HtmlEncoder).Assembly.Location),
             MetadataReference.CreateFromFile(Assembly.Load("System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")
                                                      .Location),
+            MetadataReference.CreateFromFile(typeof(HttpResponse).Assembly.Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         #region Tests that are producing diagnostics
+
+        [DataRow("System.Web", "System.String", "Response.Write(userInput)")]
+        [DataRow("System.Web", "System.Char[]", "Response.Write(userInput, x, y)")]
+        [DataTestMethod]
+        public async Task HttpResponseWrite(string @namespace, string inputType, string sink)
+        {
+            var cSharpTest = $@"
+using {@namespace};
+
+class Vulnerable
+{{
+    public static HttpResponse Response = null;
+
+    public static void Run({inputType} userInput, int x, int y)
+    {{
+        {sink};
+    }}
+}}
+            ";
+
+            inputType = inputType.Replace('[', '(').Replace(']', ')');
+            var visualBasicTest = $@"
+Imports {@namespace}
+
+Class Vulnerable
+    Public Shared Response As HttpResponse
+
+    Public Shared Sub Run(userinput As {inputType}, x As System.Int32, y As System.Int32)
+        {sink}
+    End Sub
+End Class
+            ";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0029",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+        }
 
         [TestMethod]
         public async Task UnencodedInputDataSystemWebMvc()

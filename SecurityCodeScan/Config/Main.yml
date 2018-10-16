@@ -346,6 +346,24 @@ Sinks:
 #   Locale: [Id of a localization in Messages.yml, This value can be reused for multiple sinks]
 # <<<
 
+  System.Web.HttpResponse_Write_string:
+    Namespace: System.Web
+    ClassName: HttpResponse
+    Member: method
+    Name: Write
+    ArgTypes: (System.String)
+    InjectableArguments: [0]
+    Locale: SCS0029
+
+  System.Web.HttpResponse_Write_array:
+    Namespace: System.Web
+    ClassName: HttpResponse
+    Member: method
+    Name: Write
+    ArgTypes: (System.Char[], System.Int32, System.Int32)
+    InjectableArguments: [0]
+    Locale: SCS0029
+
   # System.Data
   sqlcommand_constructor:
     Namespace: System.Data.SqlClient

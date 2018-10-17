@@ -173,6 +173,7 @@ End Class
         //[DataRow("Microsoft.AspNetCore.Mvc", "new RedirectResult(\"\", flag, flag)")]
         //[DataRow("Microsoft.AspNetCore.Mvc", "RedirectPreserveMethod(\"\")")]
         //[DataRow("Microsoft.AspNetCore.Mvc", "RedirectPermanentPreserveMethod(\"\")")]
+        [DataRow("System.Web.Mvc",           "Redirect(Url.RouteUrl(new {controller = \"Report\"}) + \"#Id\")")]
         [DataTestMethod]
         public async Task OpenRedirectControllerConst(string @namespace, string sink)
         {
@@ -188,6 +189,7 @@ class OpenRedirect : Controller
 }}
 ";
 
+            sink = sink.Replace("{", "With {.");
             var visualBasicTest = $@"
 Imports {@namespace}
 

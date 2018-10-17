@@ -22,6 +22,13 @@ Behavior:
 #   TaintFromArguments: [[Index of the argument that will influence the state of the return value.]
 # <<<
 
+  UrlHelper_RouteUrl:
+    Namespace: System.Web.Mvc
+    ClassName: UrlHelper
+    Member: method
+    Name: RouteUrl
+    TaintFromArguments: [-1]
+
   Environment_GetEnvironmentVariable:
     Namespace: System
     ClassName: Environment

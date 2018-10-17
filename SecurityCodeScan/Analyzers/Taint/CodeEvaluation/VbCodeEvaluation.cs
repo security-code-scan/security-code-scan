@@ -320,13 +320,21 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (symbol == null)
                 return new VariableState(node, VariableTaint.Unknown);
 
+            VariableState returnState;
             var behavior = symbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
-            var returnState = initialVariableState != null && !symbol.IsStatic
+            if (behavior?.TaintFromArguments.Length == 1 && behavior.TaintFromArguments[0] == -1)
+            {
+                returnState = new VariableState(node, VariableTaint.Safe);
+            }
+            else
+            {
+                returnState = initialVariableState != null && !symbol.IsStatic
                                   ? initialVariableState
                                   : new VariableState(node,
                                                       behavior?.TaintFromArguments?.Any() == true
                                                           ? VariableTaint.Safe
                                                           : VariableTaint.Unknown);
+            }
 
             for (var i = 0; i < argList?.Arguments.Count; i++)
             {

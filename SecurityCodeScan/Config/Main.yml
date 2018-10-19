@@ -463,7 +463,7 @@ Sinks:
     ClassName: SqlDataSource
     Member: method
     Name: .ctor
-    InjectableArguments: [0]
+    InjectableArguments: [1, 2]
     Locale: SCS0014
 
   sqldatasource_field:
@@ -489,6 +489,14 @@ Sinks:
     ClassName: SqlUtility
     Member: method
     Name: ExecuteDataset
+    InjectableArguments: [0]
+    Locale: SCS0014
+
+  SqlDataAdapter_constructor:
+    Namespace: System.Data.SqlClient
+    ClassName: SqlDataAdapter
+    Member: method
+    Name: .ctor
     InjectableArguments: [0]
     Locale: SCS0014
 

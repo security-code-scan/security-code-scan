@@ -316,6 +316,7 @@
     <Compile Include="Tests\Password\HardcodedPasswordFieldTest.cs" />
     <Compile Include="Tests\Taint\CommandTextAnalyzerTest.cs" />
     <Compile Include="Tests\Taint\OpenRedirectAnalyzerTest.cs" />
+    <Compile Include="Tests\Taint\SqlInjectionAnalyzerTest.cs" />
     <Compile Include="Tests\Taint\TaintTransferTest.cs" />
     <Compile Include="Tests\Taint\UnsafeDeserializationTests.cs" />
     <Compile Include="Tests\UnsafeDeserializationAnalyzerTests.cs" />

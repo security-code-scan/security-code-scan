@@ -495,8 +495,8 @@ Public Class HomeController
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, new DiagnosticResult { Id = "CS0103" }.WithLocation("Test0.cs", 4, 25)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(vbTest, new DiagnosticResult { Id = "BC30451" }.WithLocation("Test0.vb", 4, 26)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, new DiagnosticResult { Id = "CS0103" }.WithLocation(4, 25)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest, new DiagnosticResult { Id = "BC30451" }.WithLocation(4, 26)).ConfigureAwait(false);
         }
 
         [TestMethod]

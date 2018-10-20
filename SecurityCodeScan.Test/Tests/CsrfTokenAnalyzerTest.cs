@@ -54,8 +54,8 @@ End Namespace
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 9, 29)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 7, 25)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(9, 29)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(7, 25)).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -105,8 +105,8 @@ End Namespace
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 14, 29)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 12, 25)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(14, 29)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(12, 25)).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -439,8 +439,8 @@ End Namespace
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 8, 54)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 6, 25)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(8, 54)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(6, 25)).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -479,8 +479,8 @@ End Namespace
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 8, 44)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 6, 25)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(8, 44)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(6, 25)).ConfigureAwait(false);
         }
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)

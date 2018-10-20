@@ -90,7 +90,7 @@ End Class
             };
 
             await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(9, -1)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 7)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(7)).ConfigureAwait(false);
         }
     }
 }

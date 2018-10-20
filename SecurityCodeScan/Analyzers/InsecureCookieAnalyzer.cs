@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Analyzers.Utils;
+using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Analyzers
 {
@@ -68,16 +69,21 @@ namespace SecurityCodeScan.Analyzers
                 if (!symbol.IsConstructor() || !symbol.ContainingSymbol.ToString().Equals("System.Web.HttpCookie"))
                     continue;
 
+                var configuration = ConfigurationManager
+                                        .Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles);
+
                 if (!variableState.PropertyStates.TryGetValue("Secure", out var secureState) ||
-                    secureState.Taint == VariableTaint.Constant && //TODO: In case of auditing mode show unknown value warning
-                    secureState.Value is bool isSecure && !isSecure)
+                    (secureState.Taint == VariableTaint.Constant &&
+                    secureState.Value is bool isSecure && !isSecure) ||
+                    configuration.AuditMode && secureState.Taint != VariableTaint.Constant)
                 {
                     state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleSecure, variableState.Node.GetLocation()));
                 }
 
                 if (!variableState.PropertyStates.TryGetValue("HttpOnly", out var httpOnly) ||
-                    httpOnly.Taint == VariableTaint.Constant && //TODO: In case of auditing mode show unknown value warning
-                    httpOnly.Value is bool isHttpOnly && !isHttpOnly)
+                    (httpOnly.Taint == VariableTaint.Constant &&
+                    httpOnly.Value is bool isHttpOnly && !isHttpOnly) ||
+                    configuration.AuditMode && httpOnly.Taint != VariableTaint.Constant)
                 {
                     state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleHttpOnly, variableState.Node.GetLocation()));
                 }

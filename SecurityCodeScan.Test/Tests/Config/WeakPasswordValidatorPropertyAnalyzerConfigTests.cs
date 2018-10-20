@@ -18,8 +18,8 @@ namespace SecurityCodeScan.Test.Config
         {
             if (language == LanguageNames.CSharp)
                 return new DiagnosticAnalyzer[] { new WeakPasswordValidatorPropertyAnalyzerCSharp(), new TaintAnalyzerCSharp() };
-
-            return new DiagnosticAnalyzer[] { new WeakPasswordValidatorPropertyAnalyzerVisualBasic(), new TaintAnalyzerVisualBasic(), };
+            else
+                return new DiagnosticAnalyzer[] { new WeakPasswordValidatorPropertyAnalyzerVisualBasic(), new TaintAnalyzerVisualBasic() };
         }
 
         private static readonly PortableExecutableReference[] References =

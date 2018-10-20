@@ -319,6 +319,8 @@
     <Compile Include="Tests\Taint\TaintTransferTest.cs" />
     <Compile Include="Tests\Taint\UnsafeDeserializationTests.cs" />
     <Compile Include="Tests\UnsafeDeserializationAnalyzerTests.cs" />
+    <Compile Include="Tests\Utils\CSharpSyntaxNodeHelperTests.cs" />
+    <Compile Include="Tests\Utils\VBSyntaxNodeHelperTests.cs" />
     <Compile Include="Tests\WeakPasswordValidatorPropertyAnalyzerTest.cs" />
     <Compile Include="Tests\XssPreventionAnalyzerTest.cs" />
     <Compile Include="Tests\CsrfTokenAnalyzerTest.cs" />

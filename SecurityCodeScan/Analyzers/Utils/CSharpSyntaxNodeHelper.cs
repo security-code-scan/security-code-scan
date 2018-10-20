@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SecurityCodeScan.Analyzers.Utils
 {
@@ -155,7 +155,8 @@ namespace SecurityCodeScan.Analyzers.Utils
                 case SyntaxKind.SimpleMemberAccessExpression:
                     return ((MemberAccessExpressionSyntax)node).Name;
                 case SyntaxKind.ObjectCreationExpression:
-                    return ((ObjectCreationExpressionSyntax)node).Type;
+                    var compilationUnitSyntaxNode = node.Ancestors().Where(x => x.Kind() == SyntaxKind.CompilationUnit).FirstOrDefault();
+                    return (CompilationUnitSyntax)compilationUnitSyntaxNode;
                 default:
                     return null;
 

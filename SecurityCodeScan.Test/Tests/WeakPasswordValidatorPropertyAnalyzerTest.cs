@@ -33,10 +33,10 @@ namespace SecurityCodeScan.Test
 
         private const int DefaultPasswordValidatorRequiredLenght = 8;
 
-
         /// <summary>
         /// Test case where the RequiredLength field has an accepted value.
         /// </summary>
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task PasswordValidatorDeclarationOK()
         {
@@ -98,6 +98,7 @@ End Namespace
         /// <summary>
         /// Test case where the RequiredLength field is too small inside the declaration.
         /// </summary>
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task PasswordValidatorDeclarationTooSmall()
         {
@@ -161,6 +162,7 @@ End Namespace
         /// <summary>
         /// Test case where the RequiredLength field is too small but the value is affected outside of the declaration.
         /// </summary>
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task PasswordValidatorTooShort()
         {
@@ -223,6 +225,7 @@ End Namespace
         /// Test case where the RequiredLength field's value is set by a variable.
         /// However the value of the variable is not tested.
         /// </summary>
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task PasswordValidatorDeclarationWithVariable()
         {
@@ -284,6 +287,7 @@ End Namespace
         /// <summary>
         /// Test case where some properties are set outside of the constructor
         /// </summary>
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task PasswordValidatorOutOfDeclarationOK()
         {
@@ -337,6 +341,7 @@ End Namespace
         /// <summary>
         /// Test case where the PasswordValidator doesn't have enough properties set
         /// </summary>
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task PasswordValidatorNotEnoughProperties()
         {
@@ -394,6 +399,7 @@ End Namespace
         /// <summary>
         /// Test case where the RequiredLength isn't set
         /// </summary>
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task PasswordValidatorNoRequiredLengthProperty()
         {
@@ -450,6 +456,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task PasswordValidatorDeclarationAssignFalse()
         {
@@ -509,6 +516,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task PasswordValidatorDeclarationReAssignOK()
         {
@@ -573,6 +581,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task PasswordValidatorDeclarationReAssignFalse()
         {
@@ -642,6 +651,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task PasswordValidatorDeclarationReAssignRequiredLenght()
         {
@@ -700,6 +710,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task PasswordValidatorAssignUnknownValue()
         {
@@ -754,6 +765,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task IgnorePasswordValidatorDeclarationFromOtherNamespace()
         {
@@ -805,6 +817,66 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task GivenAliasDirective_DetectDiagnostic()
+        {
+            var cSharpTest = @"
+using PV = Microsoft.AspNet.Identity.PasswordValidator;
+using System.Web.Mvc;
+
+namespace WebApplicationSandbox.Controllers
+{
+    public class HomeController : Controller
+    {
+        public ActionResult Index()
+        {
+            PV pwdv = new PV
+            {
+                RequiredLength = 6,
+                RequireNonLetterOrDigit = true,
+                RequireDigit = true,
+                RequireLowercase = true,
+                RequireUppercase = true,
+            };
+
+            return View();
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports PV = Microsoft.AspNet.Identity.PasswordValidator
+Imports System.Web.Mvc
+
+Namespace WebApplicationSandbox.Controllers
+    Public Class HomeController
+        Inherits Controller
+        Public Function Index() As ActionResult
+            Dim pwdv As New PV() With { _
+                .RequireNonLetterOrDigit = True, _
+                .RequireDigit = True _
+            }
+
+            pwdv.RequiredLength = 6
+
+            Return View()
+        End Function
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "SCS0032",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
     }
 }

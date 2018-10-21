@@ -26,6 +26,21 @@ namespace SecurityCodeScan.Test.InsecureCookie
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        private DiagnosticResult[] Expected =
+        {
+            new DiagnosticResult
+            {
+                Id = "SCS0008",
+                Severity = DiagnosticSeverity.Warning
+            },
+            new DiagnosticResult
+            {
+                Id = "SCS0009",
+                Severity = DiagnosticSeverity.Warning
+            }
+        };
+
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task CookieWithoutFlags()
         {
@@ -80,26 +95,13 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected08 = new DiagnosticResult
-            {
-                Id       = "SCS0008",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            var expected09 = new DiagnosticResult
-            {
-                Id       = "SCS0009",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            DiagnosticResult[] expected = { expected08, expected09 };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest1, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest2, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest3, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest1, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest2, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest3, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task CookieWithFlags()
         {
@@ -138,6 +140,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task CookieWithFalseFlags()
         {
@@ -171,24 +174,12 @@ Namespace VulnerableApp
     End Class
 End Namespace
 ";
-            var expected08 = new DiagnosticResult
-            {
-                Id       = "SCS0008",
-                Severity = DiagnosticSeverity.Warning
-            };
 
-            var expected09 = new DiagnosticResult
-            {
-                Id       = "SCS0009",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            DiagnosticResult[] expected = { expected08, expected09 };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task CookieWithFlagsInLine()
         {
@@ -227,6 +218,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task CookieWithFalseFlagsInLine()
         {
@@ -260,24 +252,12 @@ Namespace VulnerableApp
     End Class
 End Namespace
 ";
-            var expected08 = new DiagnosticResult
-            {
-                Id       = "SCS0008",
-                Severity = DiagnosticSeverity.Warning
-            };
 
-            var expected09 = new DiagnosticResult
-            {
-                Id       = "SCS0009",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            DiagnosticResult[] expected = { expected08, expected09 };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task CookieWithOverridenFlags()
         {
@@ -324,6 +304,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected08).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task CookieWithUnknownFlags()
         {
@@ -362,6 +343,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task IgnoreCookieFromOtherNamespace()
         {
@@ -397,6 +379,40 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task GivenAliasDirective_DetectDiagnostic()
+        {
+            var cSharpTest = @"
+using Cookie = System.Web.HttpCookie;
+
+namespace VulnerableApp
+{
+    class CookieCreation
+    {
+        static void TestCookie()
+        {
+            var cookie = new Cookie(""test"");
+        }
+    }
+}
+";
+            var visualBasicTest = @"
+Imports Cookie = System.Web.HttpCookie
+
+Namespace VulnerableApp
+    Class CookieCreation
+        Private Shared Sub TestCookie()
+            Dim cookie = New Cookie(""test"")
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
     }
 }

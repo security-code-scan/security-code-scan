@@ -30,7 +30,8 @@ namespace SecurityCodeScan.Analyzers.Utils
         public abstract SyntaxNode GetNameNode(SyntaxNode node);
 
         public abstract IEnumerable<SyntaxNode> GetObjectInitializerExpressionNodes(SyntaxNode node);
-        // This will return true if the SyntaxNode is either InvocationExpression or ObjectCreationExpression (in C# or VB)
+
+        /// <summary>This will return true if the SyntaxNode is either InvocationExpression or ObjectCreationExpression (in C# or VB)</summary>
         public abstract bool IsMethodInvocationNode(SyntaxNode node);
         public abstract bool IsSimpleMemberAccessExpressionNode(SyntaxNode node);
         public abstract bool IsObjectCreationExpressionNode(SyntaxNode node);
@@ -39,11 +40,16 @@ namespace SecurityCodeScan.Analyzers.Utils
         public abstract IEnumerable<SyntaxNode> GetDescendantMemberAccessExpressionNodes(SyntaxNode node);
         public abstract IEnumerable<SyntaxNode> GetDeclarationAttributeNodes(SyntaxNode node);
         public abstract IEnumerable<SyntaxNode> GetAttributeArgumentNodes(SyntaxNode node);
+        public abstract bool IsAttributeArgument(SyntaxNode node);
+        public abstract SyntaxNode GetAttributeArgumentNode(SyntaxNode node);
 
-        // returns true if node is an ObjectCreationExpression and is under a FieldDeclaration node
+        /// <summary> returns true if node is an ObjectCreationExpression and is under a FieldDeclaration node</summary>
         public abstract bool IsObjectCreationExpressionUnderFieldDeclaration(SyntaxNode node);
-        // returns the ancestor VariableDeclarator node for an ObjectCreationExpression if 
-        // IsObjectCreationExpressionUnderFieldDeclaration(node) returns true, return null otherwise.
+
+        /// <summary>
+        /// returns the ancestor VariableDeclarator node for an ObjectCreationExpression if 
+        /// IsObjectCreationExpressionUnderFieldDeclaration(node) returns true, return null otherwise.
+        ///</summary>
         public abstract SyntaxNode GetVariableDeclaratorOfAFieldDeclarationNode(SyntaxNode objectCreationExpression);
 
         public abstract bool IsObjectConstructionForTemporaryObject(SyntaxNode node);

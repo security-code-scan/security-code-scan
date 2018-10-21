@@ -428,5 +428,15 @@ namespace SecurityCodeScan.Analyzers.Utils
             var parentKind = node.Parent?.Kind();
             return parentKind != SyntaxKind.AsNewClause && parentKind != SyntaxKind.EqualsValue;
         }
+
+        public override bool IsAttributeArgument(SyntaxNode node)
+        {
+            return node?.Kind() == SyntaxKind.SimpleArgument;
+        }
+
+        public override SyntaxNode GetAttributeArgumentNode(SyntaxNode node)
+        {
+            return ((SimpleArgumentSyntax)node)?.NameColonEquals?.Name;
+        }
     }
 }

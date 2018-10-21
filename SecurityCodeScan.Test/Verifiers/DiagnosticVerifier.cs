@@ -341,7 +341,7 @@ Diagnostic:
             var actualSpan = actual.GetLineSpan();
             var extension = language == LanguageNames.CSharp ? CSharpDefaultFileExt : VisualBasicDefaultExt;
 
-            Assert.IsTrue(actualSpan.Path == $"{expected.Path}.{extension}" || actualSpan.Path != null,
+            Assert.IsTrue(actualSpan.Path == $"{expected.Path}.{extension}",
                           $@"{documentsWithLineNumbers}
 Expected diagnostic to be in file ""{expected.Path}.{extension}"" was actually in file ""{actualSpan.Path}""
 

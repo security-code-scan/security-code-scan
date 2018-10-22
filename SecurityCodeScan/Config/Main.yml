@@ -500,6 +500,106 @@ Sinks:
     InjectableArguments: [0]
     Locale: SCS0014
 
+  Database_SqlQuery:
+    Namespace: System.Data.Entity
+    ClassName: Database
+    Member: method
+    Name: SqlQuery
+    ArgTypes: (System.Type, System.String, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0014
+
+  Database_ExecuteSqlCommand_1:
+    Namespace: System.Data.Entity
+    ClassName: Database
+    Member: method
+    Name: ExecuteSqlCommand
+    ArgTypes: (System.String, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0014
+
+  Database_ExecuteSqlCommand_2:
+    Namespace: System.Data.Entity
+    ClassName: Database
+    Member: method
+    Name: ExecuteSqlCommand
+    ArgTypes: (System.Data.Entity.TransactionalBehavior, System.String, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0014
+  
+  Database_ExecuteSqlCommandAsync_1:
+    Namespace: System.Data.Entity
+    ClassName: Database
+    Member: method
+    Name: ExecuteSqlCommandAsync
+    ArgTypes: (System.String, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0014
+
+  Database_ExecuteSqlCommandAsync_2:
+    Namespace: System.Data.Entity
+    ClassName: Database
+    Member: method
+    Name: ExecuteSqlCommandAsync
+    ArgTypes: (System.Data.Entity.TransactionalBehavior, System.String, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0014
+
+  Database_ExecuteSqlCommandAsync_3:
+    Namespace: System.Data.Entity
+    ClassName: Database
+    Member: method
+    Name: ExecuteSqlCommandAsync
+    ArgTypes: (System.String, System.Threading.CancellationToken, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0014
+
+  Database_ExecuteSqlCommandAsync_4:
+    Namespace: System.Data.Entity
+    ClassName: Database
+    Member: method
+    Name: ExecuteSqlCommandAsync
+    ArgTypes: (System.Data.Entity.TransactionalBehavior, System.String, System.Threading.CancellationToken, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0014
+
+  Database_ExecuteDataSet:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteDataSet
+    ArgTypes: (System.Data.CommandType, System.String)
+    InjectableArguments: [1]
+    Locale: SCS0014
+
+  Database_ExecuteReader:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteReader
+    ArgTypes: (System.Data.CommandType, System.String)
+    InjectableArguments: [1]
+    Locale: SCS0014
+
+  Database_ExecuteNonQuery:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteNonQuery
+    ArgTypes: (System.Data.CommandType, System.String)
+    InjectableArguments: [1]
+    Locale: SCS0014
+
+  Database_ExecuteScalar:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteScalar
+    ArgTypes: (System.Data.CommandType, System.String)
+    InjectableArguments: [1]
+    Locale: SCS0014
+
+
   # Process
 
   systemdiagnostic_process:

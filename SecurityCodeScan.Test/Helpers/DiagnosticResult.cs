@@ -53,16 +53,14 @@ namespace SecurityCodeScan.Test.Helpers
 
         public int Column => Locations.Length > 0 ? Locations[0].Column : -1;
 
-        //TODO: Find a better way to specify .vb
-
         public DiagnosticResult WithLocation(int line)
         {
-            return WithLocation("Test0.cs", line, -1);
+            return WithLocation($"{DiagnosticVerifier.DefaultFilePathPrefix}0", line, -1);
         }
 
         public DiagnosticResult WithLocation(int line, int column)
         {
-            return WithLocation("Test0.cs", line, column);
+            return WithLocation($"{DiagnosticVerifier.DefaultFilePathPrefix}0", line, column);
         }
 
         public DiagnosticResult WithLocation(string path, int line)
@@ -70,7 +68,7 @@ namespace SecurityCodeScan.Test.Helpers
             return WithLocation(path, line, -1);
         }
 
-        public DiagnosticResult WithLocation(string path, int line, int column)
+        private DiagnosticResult WithLocation(string path, int line, int column)
         {
             DiagnosticResult result = this;
             Array.Resize(ref result.LocationsField, (result.LocationsField?.Length ?? 0) + 1);

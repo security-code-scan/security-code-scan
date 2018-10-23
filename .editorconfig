@@ -161,10 +161,10 @@ csharp_preserve_single_line_blocks = true
 dotnet_naming_symbols.interface_types.applicable_kinds            = interface
 dotnet_naming_symbols.interface_types.applicable_accessibilities  = *
 
-dotnet_naming_symbols.all_types.applicable_kinds                = *
+dotnet_naming_symbols.all_types.applicable_kinds                = namespace,class,struct,enum,property,method,field,event,delegate,type_parameter,local_function
 dotnet_naming_symbols.all_types.applicable_accessibilities      = *
 
-dotnet_naming_symbols.parameter_types.applicable_kinds            = parameter
+dotnet_naming_symbols.parameter_types.applicable_kinds            = parameter,local
 
 dotnet_naming_style.pascal_style.capitalization           = pascal_case
 dotnet_naming_style.camel_style.capitalization            = camel_case

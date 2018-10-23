@@ -133,12 +133,12 @@ End Class
                 {
                     Id       = "SCS0006",
                     Severity = DiagnosticSeverity.Warning
-                }.WithLocation("Test0.cs", 9, 9),
+                }.WithLocation(9, 9),
                 new DiagnosticResult
                 {
                     Id       = "SCS0006",
                     Severity = DiagnosticSeverity.Warning
-                }.WithLocation("Test0.cs", 10, 14)
+                }.WithLocation(10, 14)
             };
             await VerifyCSharpDiagnostic(cSharpTest, expectedCSharp).ConfigureAwait(false);
 
@@ -148,12 +148,12 @@ End Class
                 {
                     Id       = "SCS0006",
                     Severity = DiagnosticSeverity.Warning
-                }.WithLocation("Test0.vb", 8, 23),
+                }.WithLocation(8, 23),
                 new DiagnosticResult
                 {
                     Id       = "SCS0006",
                     Severity = DiagnosticSeverity.Warning
-                }.WithLocation("Test0.vb", 10, 13)
+                }.WithLocation(10, 13)
             };
             await VerifyVisualBasicDiagnostic(visualBasicTest, expectedVBnet).ConfigureAwait(false);
         }

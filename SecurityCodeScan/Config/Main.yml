@@ -458,12 +458,22 @@ Sinks:
 
   # System.Web.UI.WebControls
 
-  sqldatasource_constructor:
+  SqlDataSource_constructor_1:
     Namespace: System.Web.UI.WebControls
     ClassName: SqlDataSource
     Member: method
     Name: .ctor
-    InjectableArguments: [1, 2]
+    ArgTypes: (System.String, System.String)
+    InjectableArguments: [1]
+    Locale: SCS0014
+
+  SqlDataSource_constructor_2:
+    Namespace: System.Web.UI.WebControls
+    ClassName: SqlDataSource
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.String, System.String)
+    InjectableArguments: [2]
     Locale: SCS0014
 
   sqldatasource_field:
@@ -492,21 +502,40 @@ Sinks:
     InjectableArguments: [0]
     Locale: SCS0014
 
-  SqlDataAdapter_constructor:
+  SqlDataAdapter_constructor_1:
     Namespace: System.Data.SqlClient
     ClassName: SqlDataAdapter
     Member: method
     Name: .ctor
+    ArgTypes: (System.String, System.Data.SqlClient.SqlConnection)
     InjectableArguments: [0]
     Locale: SCS0014
 
-  Database_SqlQuery:
+  SqlDataAdapter_constructor_2:
+    Namespace: System.Data.SqlClient
+    ClassName: SqlDataAdapter
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.String)
+    InjectableArguments: [0]
+    Locale: SCS0014
+
+  Database_SqlQuery_1:
     Namespace: System.Data.Entity
     ClassName: Database
     Member: method
     Name: SqlQuery
     ArgTypes: (System.Type, System.String, params System.Object[])
     InjectableArguments: [1]
+    Locale: SCS0014
+
+  Database_SqlQuery_2:
+    Namespace: System.Data.Entity
+    ClassName: Database
+    Member: method
+    Name: SqlQuery<TElement>
+    ArgTypes: (System.String, params System.Object[])
+    InjectableArguments: [0]
     Locale: SCS0014
 
   Database_ExecuteSqlCommand_1:
@@ -563,7 +592,7 @@ Sinks:
     InjectableArguments: [1]
     Locale: SCS0014
 
-  Database_ExecuteDataSet:
+  Database_ExecuteDataSet_1:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
     Member: method
@@ -572,7 +601,34 @@ Sinks:
     InjectableArguments: [1]
     Locale: SCS0014
 
-  Database_ExecuteReader:
+  Database_ExecuteDataSet_2:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteDataSet
+    ArgTypes: (System.String, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0014
+
+  Database_ExecuteDataSet_3:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteDataSet
+    ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0014
+  
+  Database_ExecuteDataSet_4:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteDataSet
+    ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
+    InjectableArguments: [2]
+    Locale: SCS0014
+
+  Database_ExecuteReader_1:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
     Member: method
@@ -581,7 +637,34 @@ Sinks:
     InjectableArguments: [1]
     Locale: SCS0014
 
-  Database_ExecuteNonQuery:
+  Database_ExecuteReader_2:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteReader
+    ArgTypes: (System.String, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0014
+
+  Database_ExecuteReader_3:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteReader
+    ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0014
+  
+  Database_ExecuteReader_4:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteReader
+    ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
+    InjectableArguments: [2]
+    Locale: SCS0014
+
+  Database_ExecuteNonQuery_1:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
     Member: method
@@ -590,7 +673,34 @@ Sinks:
     InjectableArguments: [1]
     Locale: SCS0014
 
-  Database_ExecuteScalar:
+  Database_ExecuteNonQuery_2:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteNonQuery
+    ArgTypes: (System.String, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0014
+
+  Database_ExecuteNonQuery_3:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteNonQuery
+    ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0014
+  
+  Database_ExecuteNonQuery_4:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteNonQuery
+    ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
+    InjectableArguments: [2]
+    Locale: SCS0014
+
+  Database_ExecuteScalar_1:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
     Member: method
@@ -599,6 +709,32 @@ Sinks:
     InjectableArguments: [1]
     Locale: SCS0014
 
+  Database_ExecuteScalar_2:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteScalar
+    ArgTypes: (System.String, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0014
+
+  Database_ExecuteScalar_3:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteScalar
+    ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0014
+  
+  Database_ExecuteScalar_4:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteScalar
+    ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
+    InjectableArguments: [2]
+    Locale: SCS0014
 
   # Process
 

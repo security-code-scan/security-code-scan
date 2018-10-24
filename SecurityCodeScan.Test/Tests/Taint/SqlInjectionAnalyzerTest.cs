@@ -26,25 +26,99 @@ namespace SecurityCodeScan.Test.Taint
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
 
-        [DataRow("var temp = new SqlDataAdapter(sqlQuery, new SqlConnection())")]
-        [DataRow("var temp = new SqlDataSource(\"connectionString\", sqlQuery)")]
-        [DataRow("var temp = new SqlDataSource(\"providerName\",\"connectionString\", sqlQuery)")]
-        [DataRow("var temp = new DbContext(\"connectionString\").Database.SqlQuery(null, sqlQuery, null)")]
-        [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommand(sqlQuery, parameters)")]
-        [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, sqlQuery, parameters)")]
-        [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(sqlQuery, parameters)")]
-        [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(TransactionalBehavior.DoNotEnsureTransaction, sqlQuery, parameters)")]
-        [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(sqlQuery, new CancellationToken(), parameters)")]
-        [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(TransactionalBehavior.DoNotEnsureTransaction, sqlQuery, new CancellationToken(), parameters)")]
-        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteDataSet(CommandType.Text, sqlQuery)")]
-        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteReader(CommandType.Text, sqlQuery)")]
-        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteNonQuery(CommandType.Text, sqlQuery)")]
-        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteScalar(CommandType.Text, sqlQuery)")]
+        [DataRow("var temp = new SqlDataSource()", false)]
+        [DataRow("var temp = new SqlDataSource(\"connectionString\", input)", true)]
+        [DataRow("var temp = new SqlDataSource(\"connectionString\", \"select\")", false)]
+        [DataRow("var temp = new SqlDataSource(input, input)", true)]
+        [DataRow("var temp = new SqlDataSource(input, \"select\")", false)]        
+        [DataRow("var temp = new SqlDataSource(\"providerName\",\"connectionString\", input)", true)]
+        [DataRow("var temp = new SqlDataSource(input, \"connectionString\", \"select\")", false)]
+        [DataRow("var temp = new SqlDataSource(input, input, \"select\")", false)]
+        [DataRow("var temp = new SqlDataSource(\"providerName\", input, \"select\")", false)]
+        [DataRow("var temp = new SqlDataAdapter()", false)]
+        [DataRow("var temp = new SqlDataAdapter(input, new SqlConnection())", true)]
+        [DataRow("var temp = new SqlDataAdapter(\"select\", new SqlConnection())", false)]
+        [DataRow("var temp = new SqlDataAdapter(input, \"connectionString\")", true)]
+        [DataRow("var temp = new SqlDataAdapter(\"select\", input)", false)]
+        [DataRow("var temp = new DbContext(\"connectionString\").Database.SqlQuery(null, input, null)", true)]
+        [DataRow("var temp = new DbContext(\"connectionString\").Database.SqlQuery(null, \"select\", null)", false)]
+        //[DataRow("var temp = new DbContext(\"connectionString\").Database.SqlQuery<Object>(input)", true)]
+        //[DataRow("var temp = new DbContext(\"connectionString\").Database.SqlQuery<Object>(\"select\", input)", false)]
+        [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommand(input, parameters)", true)]
+        [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommand(\"select\", parameters)", false)]
+        [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, input, parameters)", true)]
+        [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, \"select\", parameters)", false)]
+        [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(input, parameters)", true)]
+        [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(\"select\", parameters)", false)]
+        [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(TransactionalBehavior.DoNotEnsureTransaction, input, parameters)", true)]
+        [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(TransactionalBehavior.DoNotEnsureTransaction, \"select\", parameters)", false)]
+        [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(input, new CancellationToken(), parameters)", true)]
+        [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(\"select\", new CancellationToken(), parameters)", false)]
+        [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(TransactionalBehavior.DoNotEnsureTransaction, input, new CancellationToken(), parameters)", true)]
+        [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(TransactionalBehavior.DoNotEnsureTransaction, \"select\", new CancellationToken(), parameters)", false)]       
+
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteDataSet(CommandType.Text, input)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteDataSet(CommandType.Text, \"select\")", false)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteDataSet(input)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteDataSet(\"select\")", false)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteDataSet(input, parameters)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteDataSet(\"select\", parameters)", false)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteDataSet(new SqlConnection(\"\").BeginTransaction(), CommandType.Text, input)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteDataSet(new SqlConnection(\"\").BeginTransaction(), CommandType.Text, \"select\")", false)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteDataSet(new SqlConnection(\"\").BeginTransaction(),  input, parameters)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteDataSet(new SqlConnection(\"\").BeginTransaction(),  \"select\", parameters)", false)]
+
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteReader(CommandType.Text, input)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteReader(CommandType.Text, \"select\")", false)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteReader(input)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteReader(\"select\")", false)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteReader(input, parameters)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteReader(\"select\", parameters)", false)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteReader(new SqlConnection(\"\").BeginTransaction(), CommandType.Text, input)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteReader(new SqlConnection(\"\").BeginTransaction(), CommandType.Text, \"select\")", false)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteReader(new SqlConnection(\"\").BeginTransaction(),  input, parameters)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteReader(new SqlConnection(\"\").BeginTransaction(),  \"select\", parameters)", false)]
+
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteNonQuery(CommandType.Text, input)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteNonQuery(CommandType.Text, \"select\")", false)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteNonQuery(input)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteNonQuery(\"select\")", false)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteNonQuery(input, parameters)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteNonQuery(\"select\", parameters)", false)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteNonQuery(new SqlConnection(\"\").BeginTransaction(), CommandType.Text, input)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteNonQuery(new SqlConnection(\"\").BeginTransaction(), CommandType.Text, \"select\")", false)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteNonQuery(new SqlConnection(\"\").BeginTransaction(),  input, parameters)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteNonQuery(new SqlConnection(\"\").BeginTransaction(),  \"select\", parameters)", false)]
+
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteScalar(CommandType.Text, input)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteScalar(CommandType.Text, \"select\")", false)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteScalar(input)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteScalar(\"select\")", false)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteScalar(input, parameters)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteScalar(\"select\", parameters)", false)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteScalar(new SqlConnection(\"\").BeginTransaction(), CommandType.Text, input)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteScalar(new SqlConnection(\"\").BeginTransaction(), CommandType.Text, \"select\")", false)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteScalar(new SqlConnection(\"\").BeginTransaction(),  input, parameters)", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteScalar(new SqlConnection(\"\").BeginTransaction(),  \"select\", parameters)", false)]
+
+        /* Tests is conflicted with rule SCS0026
+         * 
+        [DataRow("var temp = new SqlDataAdapter(new SqlCommand(input))", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteDataSet(new SqlCommand(input))", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteDataSet(new SqlCommand(input), new SqlConnection(\"\").BeginTransaction())", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteReader(new SqlCommand(input))", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteReader(new SqlCommand(input), new SqlConnection(\"\").BeginTransaction())", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteNonQuery(new SqlCommand(input))", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteNonQuery(new SqlCommand(input), new SqlConnection(\"\").BeginTransaction())", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteScalar(new SqlCommand(input))", true)]
+        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteScalar(new SqlCommand(input), new SqlConnection(\"\").BeginTransaction())", true)]
+        */
         [DataTestMethod]
-        public async Task SqlInjectionVulnerable(string sink)
+        public async Task SqlInjectionVulnerable(string sink, bool warn)
         {
             var cSharpTest = $@"
 #pragma warning disable 8019
+    using System;
     using System.Data.SqlClient;
     using System.Data.Common;
     using System.Data;
@@ -58,7 +132,7 @@ namespace sample
 {{
     class MyFoo
     {{
-        public static void Run(string sqlQuery, params object[] parameters)
+        public static void Run(string input, params object[] parameters)
         {{
             {sink};
         }}       
@@ -68,10 +142,12 @@ namespace sample
 
             sink = sink.Replace("null", "Nothing")
                 .Replace("var ", "Dim ")
-                .Replace("new ", "New ");
-            
+                .Replace("new ", "New ")
+                .Replace("<Object>", "(Of Object)");
+
             var visualBasicTest = $@"
 #Disable Warning BC50001
+    Imports System
     Imports System.Data.SqlClient
     Imports System.Data.Common
     Imports System.Data
@@ -83,7 +159,7 @@ namespace sample
 
 Namespace sample
     Class MyFoo
-        Public Shared Sub Run(sqlQuery As System.String, ParamArray parameters() As Object)
+        Public Shared Sub Run(input As System.String, ParamArray parameters() As Object)
             {sink}
         End Sub
     End Class
@@ -93,10 +169,18 @@ End Namespace
             {
                 Id = "SCS0014",
                 Severity = DiagnosticSeverity.Warning,
-            };
+            };            
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            }
         }
 
     }

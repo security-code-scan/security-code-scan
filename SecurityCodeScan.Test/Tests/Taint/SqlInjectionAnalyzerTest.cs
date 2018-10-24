@@ -25,7 +25,7 @@ namespace SecurityCodeScan.Test.Taint
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-
+        
         [DataRow("var temp = new SqlDataSource()", false)]
         [DataRow("var temp = new SqlDataSource(\"connectionString\", input)", true)]
         [DataRow("var temp = new SqlDataSource(\"connectionString\", \"select\")", false)]
@@ -42,8 +42,8 @@ namespace SecurityCodeScan.Test.Taint
         [DataRow("var temp = new SqlDataAdapter(\"select\", input)", false)]
         [DataRow("var temp = new DbContext(\"connectionString\").Database.SqlQuery(null, input, null)", true)]
         [DataRow("var temp = new DbContext(\"connectionString\").Database.SqlQuery(null, \"select\", null)", false)]
-        //[DataRow("var temp = new DbContext(\"connectionString\").Database.SqlQuery<Object>(input)", true)]
-        //[DataRow("var temp = new DbContext(\"connectionString\").Database.SqlQuery<Object>(\"select\", input)", false)]
+        [DataRow("var temp = new DbContext(\"connectionString\").Database.SqlQuery<Object>(input)", true)]
+        [DataRow("var temp = new DbContext(\"connectionString\").Database.SqlQuery<Object>(\"select\", input)", false)]
         [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommand(input, parameters)", true)]
         [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommand(\"select\", parameters)", false)]
         [DataRow("var temp = new DbContext(\"connectionString\").Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, input, parameters)", true)]
@@ -102,17 +102,18 @@ namespace SecurityCodeScan.Test.Taint
         [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteScalar(new SqlConnection(\"\").BeginTransaction(),  \"select\", parameters)", false)]
 
         /* Tests is conflicted with rule SCS0026
-         * 
-        [DataRow("var temp = new SqlDataAdapter(new SqlCommand(input))", true)]
-        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteDataSet(new SqlCommand(input))", true)]
-        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteDataSet(new SqlCommand(input), new SqlConnection(\"\").BeginTransaction())", true)]
-        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteReader(new SqlCommand(input))", true)]
-        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteReader(new SqlCommand(input), new SqlConnection(\"\").BeginTransaction())", true)]
-        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteNonQuery(new SqlCommand(input))", true)]
-        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteNonQuery(new SqlCommand(input), new SqlConnection(\"\").BeginTransaction())", true)]
-        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteScalar(new SqlCommand(input))", true)]
-        [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteScalar(new SqlCommand(input), new SqlConnection(\"\").BeginTransaction())", true)]
-        */
+        * 
+       [DataRow("var temp = new SqlDataAdapter(new SqlCommand(input))", true)]
+       [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteDataSet(new SqlCommand(input))", true)]
+       [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteDataSet(new SqlCommand(input), new SqlConnection(\"\").BeginTransaction())", true)]
+       [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteReader(new SqlCommand(input))", true)]
+       [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteReader(new SqlCommand(input), new SqlConnection(\"\").BeginTransaction())", true)]
+       [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteNonQuery(new SqlCommand(input))", true)]
+       [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteNonQuery(new SqlCommand(input), new SqlConnection(\"\").BeginTransaction())", true)]
+       [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteScalar(new SqlCommand(input))", true)]
+       [DataRow("var temp = new SqlDatabase(\"connectionString\").ExecuteScalar(new SqlCommand(input), new SqlConnection(\"\").BeginTransaction())", true)]
+       */
+
         [DataTestMethod]
         public async Task SqlInjectionVulnerable(string sink, bool warn)
         {

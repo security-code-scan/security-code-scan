@@ -75,9 +75,9 @@ namespace SecurityCodeScan.Test.Helpers
         private static readonly CompilationOptions CSharpDefaultOptions      = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
         private static readonly CompilationOptions VisualBasicDefaultOptions = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
-        private const string DefaultFilePathPrefix = "Test";
-        private const string CSharpDefaultFileExt  = "cs";
-        private const string VisualBasicDefaultExt = "vb";
+        public const string DefaultFilePathPrefix = "Test";
+        public const string CSharpDefaultFileExt  = "cs";
+        public const string VisualBasicDefaultExt = "vb";
         private const string TestProjectName       = "TestProject";
 
         #region  Get Diagnostics
@@ -254,7 +254,7 @@ namespace SecurityCodeScan.Test.Helpers
             int count = 0;
             foreach (var source in sources)
             {
-                var newFileName = fileNamePrefix + count + "." + fileExt;
+                var newFileName = $"{fileNamePrefix}{count}.{fileExt}";
                 var documentId  = DocumentId.CreateNewId(projectId, debugName: newFileName);
                 solution        = solution.AddDocument(documentId, newFileName, SourceText.From(source));
                 count++;

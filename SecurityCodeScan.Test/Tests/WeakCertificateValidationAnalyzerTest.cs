@@ -93,7 +93,7 @@ End Class
 ";
 
             await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(7)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation("Test0.vb", 6)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation(6)).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -133,7 +133,7 @@ End Class
 ";
 
             await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(7)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation("Test0.vb", 6)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation(6)).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -171,7 +171,7 @@ End Class
 ";
 
             await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation("Test0.vb", 8)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation(8)).ConfigureAwait(false);
         }
 
 

@@ -280,11 +280,11 @@ End Namespace
 ";
 
             await VerifyCSharpDiagnostic(cSharpTest,
-                                         csErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation("Test0.cs", 10)).ToArray())
+                                         csErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation(10)).ToArray())
                 .ConfigureAwait(false);
 
             await VerifyVisualBasicDiagnostic(visualBasicTest,
-                                              vbErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation("Test0.vb", 7)).ToArray())
+                                              vbErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation(7)).ToArray())
                 .ConfigureAwait(false);
         }
 

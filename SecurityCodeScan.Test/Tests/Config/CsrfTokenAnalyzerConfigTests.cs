@@ -76,8 +76,8 @@ End Namespace
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 16, 29)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 14, 25)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(16, 29)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(14, 25)).ConfigureAwait(false);
 
             var testConfig = @"
 CsrfProtectionAttributes:
@@ -143,8 +143,8 @@ End Namespace
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 16, 29)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 14, 25)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(16, 29)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(14, 25)).ConfigureAwait(false);
 
             var testConfig = @"
 CsrfProtectionAttributes:

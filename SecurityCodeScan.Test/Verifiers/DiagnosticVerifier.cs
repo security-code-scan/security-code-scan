@@ -339,11 +339,11 @@ Diagnostic:
                                                      string                   language)
         {
             var actualSpan = actual.GetLineSpan();
+            var extension = language == LanguageNames.CSharp ? CSharpDefaultFileExt : VisualBasicDefaultExt;
 
-            Assert.IsTrue(actualSpan.Path == expected.Path ||
-                          (actualSpan.Path != null && actualSpan.Path.Contains("Test0.") && expected.Path.Contains("Test.")),
+            Assert.IsTrue(actualSpan.Path == $"{expected.Path}.{extension}",
                           $@"{documentsWithLineNumbers}
-Expected diagnostic to be in file ""{expected.Path}"" was actually in file ""{actualSpan.Path}""
+Expected diagnostic to be in file ""{expected.Path}.{extension}"" was actually in file ""{actualSpan.Path}""
 
 Diagnostic:
     {FormatDiagnostics(analyzer, diagnostic)}

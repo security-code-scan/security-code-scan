@@ -52,7 +52,7 @@ namespace sample
 ";
 
             await VerifyCSharpDiagnostic(cSharpTest,
-                                         new DiagnosticResult { Id = "SCS0026" }.WithLocation("Test0.cs", 14))
+                                         new DiagnosticResult { Id = "SCS0026" }.WithLocation(14))
                 .ConfigureAwait(false);
         }
 
@@ -89,7 +89,7 @@ End Namespace
 ";
 
             await VerifyVisualBasicDiagnostic(visualBasicTest,
-                                              new DiagnosticResult { Id = "SCS0026" }.WithLocation("Test0.vb", 12))
+                                              new DiagnosticResult { Id = "SCS0026" }.WithLocation(12))
                 .ConfigureAwait(false);
         }
     }

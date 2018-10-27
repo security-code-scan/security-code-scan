@@ -64,7 +64,7 @@ namespace SecurityCodeScan.Analyzers
                                                                                                   RulePasswordValidators,
                                                                                                   RuleRequiredPasswordValidators);
 
-        public  void CheckState(ExecutionState state)
+        public void CheckState(ExecutionState state)
         {
             // For every variables registered in state
             foreach (var variableState in state.VariableStates.Values)
@@ -93,20 +93,26 @@ namespace SecurityCodeScan.Analyzers
                 {
                     propertiesCount++;
                     var requiredLength = configuration.PasswordValidatorRequiredLength;
-                    if (requiredLenghtState.Taint == VariableTaint.Constant && //TODO: In case of auditing mode show unknown value warning
-                        requiredLenghtState.Value is int intValue && intValue < requiredLength)
+                    if ((requiredLenghtState.Taint == VariableTaint.Constant &&
+                         requiredLenghtState.Value is int intValue           && intValue < requiredLength) ||
+                        requiredLenghtState.Taint != VariableTaint.Constant && configuration.AuditMode)
+                    {
                         state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RulePasswordLength, variableState.Node.GetLocation(), requiredLength));
+                    }
                 }
 
                 foreach (var propertyName in BoolPropertyNames)
                 {
                     if (!variableState.PropertyStates.TryGetValue(propertyName, out var propertyState) ||
-                        propertyState.Taint == VariableTaint.Constant && //TODO: In case of auditing mode show unknown value warning
-                        propertyState.Value is bool isRequired && !isRequired)
+                        (propertyState.Taint == VariableTaint.Constant &&
+                        propertyState.Value is bool isRequired && !isRequired) ||
+                        propertyState.Taint != VariableTaint.Constant && configuration.AuditMode)
                     {
                         if (requiredProperties.Contains(propertyName))
+                        {
                             state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleRequiredPasswordValidators,
                                                                                      variableState.Node.GetLocation(), propertyName));
+                        }
                     }
                     else
                     {

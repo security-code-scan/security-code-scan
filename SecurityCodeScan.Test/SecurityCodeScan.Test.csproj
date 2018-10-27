@@ -46,6 +46,12 @@
       <HintPath>..\packages\Castle.Core.3.3.3\lib\net45\Castle.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
     <Reference Include="fastjson, Version=2.1.0.0, Culture=neutral, PublicKeyToken=6b75a806b86095cd, processorArchitecture=MSIL">
       <HintPath>..\packages\fastJSON.2.1.21\lib\net40\fastjson.dll</HintPath>
     </Reference>
@@ -184,6 +190,12 @@
     <Reference Include="Microsoft.Net.Http.Headers, Version=1.1.2.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Net.Http.Headers.1.1.2\lib\netstandard1.1\Microsoft.Net.Http.Headers.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Practices.EnterpriseLibrary.Common, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\EnterpriseLibrary.Common.6.0.1304.0\lib\NET45\Microsoft.Practices.EnterpriseLibrary.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.EnterpriseLibrary.Data, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\EnterpriseLibrary.Data.6.0.1304.0\lib\NET45\Microsoft.Practices.EnterpriseLibrary.Data.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\MSTest.TestFramework.1.2.0\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.dll</HintPath>
     </Reference>
@@ -304,8 +316,10 @@
   <ItemGroup>
     <Compile Include="Tests\AspxAnalyzerTest.cs" />
     <Compile Include="Tests\Audit\AuditTest.cs" />
+    <Compile Include="Tests\Audit\InsecureCookieAuditTest.cs" />
     <Compile Include="Tests\Audit\PathTraversalAnalyzerAuditTest.cs" />
     <Compile Include="Tests\Audit\WeakHashingAnalyzerAuditTest.cs" />
+    <Compile Include="Tests\Audit\WeakPasswordValidatorPropertyAuditTest.cs" />
     <Compile Include="Tests\Config\ConfigurationTest.cs" />
     <Compile Include="Tests\Config\ConfigTests.cs" />
     <Compile Include="Tests\Config\CsrfTokenAnalyzerConfigTests.cs" />
@@ -316,6 +330,7 @@
     <Compile Include="Tests\Password\HardcodedPasswordFieldTest.cs" />
     <Compile Include="Tests\Taint\CommandTextAnalyzerTest.cs" />
     <Compile Include="Tests\Taint\OpenRedirectAnalyzerTest.cs" />
+    <Compile Include="Tests\Taint\SqlInjectionAnalyzerTest.cs" />
     <Compile Include="Tests\Taint\TaintTransferTest.cs" />
     <Compile Include="Tests\Taint\UnsafeDeserializationTests.cs" />
     <Compile Include="Tests\UnsafeDeserializationAnalyzerTests.cs" />

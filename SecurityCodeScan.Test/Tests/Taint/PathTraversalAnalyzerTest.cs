@@ -92,6 +92,7 @@ namespace SecurityCodeScan.Test.Taint
         [DataRow("WriteAllText(\"c:\\aaa.txt\", path)")]
         [DataRow("File.WriteAllText(\"c:\\aaa.txt\", path, System.Text.Encoding.ASCII)")]
         [DataRow("WriteAllText(\"c:\\aaa.txt\", path, System.Text.Encoding.ASCII)")]
+        [TestCategory("Detect")]
         [DataTestMethod]
         public async Task PathTraversalMethods(string sink)
         {
@@ -200,6 +201,7 @@ End Class
         [DataRow("WriteAllText(\"c:\\aaa.txt\", \"\")")]
         [DataRow("File.WriteAllText(\"c:\\aaa.txt\", \"\", encoding)")]
         [DataRow("WriteAllText(\"c:\\aaa.txt\", \"\", encoding)")]
+        [TestCategory("Ignore")]
         [DataTestMethod]
         public async Task PathTraversalMethodsConst(string sink)
         {
@@ -277,6 +279,7 @@ End Class
         [DataRow("FileStream(\"\", FileMode.CreateNew, FileAccess.Read,         FileShare.Read, 10, fileOptions)")]
         [DataRow("FileStream(\"\", FileMode.CreateNew, fileSystemRights,        FileShare.Read, 10, FileOptions.None)")]
         [DataRow("FileStream(\"\", FileMode.CreateNew, FileSystemRights.Read,   FileShare.Read, 10, FileOptions.None, fileSecurity)")]
+        [TestCategory("Detect")]
         [DataTestMethod]
         public async Task PathTraversalNewObject(string sink)
         {
@@ -355,6 +358,7 @@ End Class
         [DataRow("FileStream(\"\", FileMode.CreateNew, FileAccess.Read,         FileShare.Read, digit, flag)")]
         [DataRow("FileStream(\"\", FileMode.CreateNew, FileAccess.Read,         FileShare.Read, digit, FileOptions.None)")]
         [DataRow("FileStream(\"\", FileMode.CreateNew, FileSystemRights.Read,   FileShare.Read, digit, FileOptions.None, default(FileSecurity))")]
+        [TestCategory("Ignore")]
         [DataTestMethod]
         public async Task PathTraversalNewObjectConst(string sink)
         {
@@ -411,6 +415,7 @@ End Class
         [DataRow("XmlReader.Create(default(TextReader), settings, default(string))")]
         [DataRow("XmlReader.Create(default(TextReader), settings, default(XmlParserContext))")]
         [DataRow("XmlReader.Create(default(XmlReader), settings)")]
+        [TestCategory("Ignore")]
         [DataTestMethod]
         public async Task PathTraversalXmlReaderConst(string sink)
         {

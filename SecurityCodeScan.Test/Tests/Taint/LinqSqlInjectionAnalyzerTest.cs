@@ -25,6 +25,7 @@ namespace SecurityCodeScan.Test.Taint
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task LinqInjectionFalsePositiveWithGeneric()
         {
@@ -73,6 +74,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task LinqInjectionVulnerableWithGeneric()
         {
@@ -129,6 +131,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task LinqInjectionFalsePositiveWithoutGeneric()
         {
@@ -172,6 +175,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task LinqInjectionVulnerableWithoutGeneric()
         {

@@ -17,6 +17,7 @@ namespace SecurityCodeScan.Test.Password
             return new DiagnosticAnalyzer[] { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic(), };
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task HardCodePasswordDerivedBytes()
         {
@@ -57,6 +58,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task HardCodePasswordDerivedBytesFalsePositive()
         {

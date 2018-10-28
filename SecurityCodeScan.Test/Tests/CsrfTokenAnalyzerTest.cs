@@ -16,6 +16,13 @@ namespace SecurityCodeScan.Test.AntiCsrf
 
         protected abstract string AntiCsrfTokenName { get; }
 
+        private DiagnosticResult Expected = new DiagnosticResult
+        {
+            Id = CsrfTokenAnalyzer.DiagnosticId,
+            Severity = DiagnosticSeverity.Warning
+        };
+
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task CsrfDetectMissingToken()
         {
@@ -47,17 +54,11 @@ Namespace VulnerableApp
     End Class
 End Namespace
 ";
-
-            var expected = new DiagnosticResult
-            {
-                Id = CsrfTokenAnalyzer.DiagnosticId,
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(9, 29)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(7, 25)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(9, 29)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7, 25)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task CsrfDetectFullNameToken()
         {
@@ -99,16 +100,11 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = CsrfTokenAnalyzer.DiagnosticId,
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(14, 29)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(12, 25)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(14, 29)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(12, 25)).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task CsrfMissingTokenOnGet()
         {
@@ -144,6 +140,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task CsrfMissingTokenOnAnonymous()
         {
@@ -181,6 +178,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task CsrfMissingTokenOnAnonymousClass()
         {
@@ -218,6 +216,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task CsrfValidateAntiForgeryTokenPresent()
         {
@@ -256,6 +255,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task CsrfValidateAntiForgeryTokenControllerPresent()
         {
@@ -294,6 +294,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task CsrfValidateAntiForgeryTokenPresentWithInlinedAttributes()
         {
@@ -403,6 +404,7 @@ End Namespace
     [TestClass]
     public class MixupCsrfTokenTest : DiagnosticVerifier
     {
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task CsrfValidateWrongAntiForgeryTokenPresent()
         {
@@ -443,6 +445,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(6, 25)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task CsrfValidateWrongAntiForgeryTokenPresent2()
         {

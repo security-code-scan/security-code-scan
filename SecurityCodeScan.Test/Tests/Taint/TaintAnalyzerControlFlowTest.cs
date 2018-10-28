@@ -25,8 +25,15 @@ namespace SecurityCodeScan.Test.Taint
             MetadataReference.CreateFromFile(typeof(System.Data.SqlClient.SqlCommand).Assembly.Location)
         };
 
+        private DiagnosticResult Expected = new DiagnosticResult
+        {
+            Id       = "SCS0026",
+            Severity = DiagnosticSeverity.Warning,
+        };
+
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task Condition1()
         {
@@ -69,16 +76,11 @@ Namespace sample
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task Condition2()
         {
@@ -120,16 +122,11 @@ Namespace sample
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task Loop1()
         {
@@ -173,16 +170,11 @@ Namespace sample
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task Loop2()
         {
@@ -224,16 +216,11 @@ Namespace sample
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task ConditionIsCSharp()
         {
@@ -259,6 +246,7 @@ namespace sample
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task Cast()
         {

@@ -43,12 +43,19 @@ namespace SecurityCodeScan.Test.Taint
             MetadataReference.CreateFromFile(typeof(ResourceReader).Assembly.Location)
         };
 
+        private DiagnosticResult Expected = new DiagnosticResult()
+        {
+            Id       = "SCS0028",
+            Severity = DiagnosticSeverity.Warning
+        };
+
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task BinaryFormatterDeepCloneNoWarning()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 
@@ -68,7 +75,7 @@ class A
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Runtime.Serialization.Formatters.Binary
 Imports System.IO
 
@@ -89,6 +96,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("Deserialize",                     "")]
         [DataRow("Deserialize",                     ", null")]
@@ -129,20 +137,15 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(12)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(9)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(12)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(9)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectBinaryMessageFormatterReadMethod()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Messaging;
 
 namespace VulnerableApp
@@ -158,7 +161,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Messaging
 
 Namespace VulnerableApp
@@ -171,16 +174,11 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(8)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("")]
         [DataRow(", null")]
@@ -219,16 +217,11 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(12)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(9)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(12)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(9)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("string")]
         [DataRow("System.IO.Stream")]
@@ -263,16 +256,11 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(8)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("Deserialize", "System.IO.Stream",               "")]
         [DataRow("ReadObject",  "System.IO.Stream",               "")]
@@ -311,16 +299,11 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(8)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("System.IO.Stream",               "")]
         [DataRow("System.Xml.XmlDictionaryReader", "")]
@@ -358,20 +341,15 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(8)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectDataContractSerializerConstructor()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System;
 using System.Runtime.Serialization;
 
@@ -387,7 +365,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System
 Imports System.Runtime.Serialization
 
@@ -400,16 +378,11 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(8)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("System.IO.Stream",               "")]
         [DataRow("System.Xml.XmlDictionaryReader", "")]
@@ -447,20 +420,15 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(8)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectDataContractJsonSerializerConstructor()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System;
 using System.Runtime.Serialization.Json;
 
@@ -476,7 +444,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System
 Imports System.Runtime.Serialization.Json
 
@@ -489,17 +457,11 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(8)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
         }
 
-
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("System.IO.Stream",     "")]
         [DataRow("System.IO.TextReader", "")]
@@ -538,20 +500,15 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(8)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectXmlSerializerConstructor()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System;
 using System.Xml.Serialization;
 
@@ -567,7 +524,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System
 Imports System.Xml.Serialization
 
@@ -580,20 +537,15 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(8)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectXmlMessageFormatterReadMethod()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Messaging;
 
 namespace VulnerableApp
@@ -609,7 +561,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Messaging
 
 Namespace VulnerableApp
@@ -622,16 +574,11 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(8)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("System.IO.Stream")]
         [DataRow("string")]
@@ -667,20 +614,15 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(8)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectJSONToObjectMethod()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using fastJSON;
 
 namespace VulnerableApp
@@ -695,7 +637,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports fastJSON
 
 Namespace VulnerableApp
@@ -707,20 +649,15 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(7)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectJSONToObjectGenericMethod()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using fastJSON;
 
 namespace VulnerableApp
@@ -735,7 +672,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports fastJSON
 
 Namespace VulnerableApp
@@ -747,16 +684,11 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(7)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("DeserializeFromString", "string",               "System.Type")]
         [DataRow("DeserializeFromReader", "System.IO.TextReader", "System.Type")]
@@ -792,16 +724,11 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, new[] { expected.WithLocation(10), expected.WithLocation(10) }).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected.WithLocation(7), expected.WithLocation(7) }).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, new[] { Expected.WithLocation(10), Expected.WithLocation(10) }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { Expected.WithLocation(7), Expected.WithLocation(7) }).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("DeserializeFromString", "string")]
         [DataRow("DeserializeFromReader", "System.IO.TextReader")]
@@ -840,17 +767,11 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(7)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7)).ConfigureAwait(false);
         }
 
-
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("DeserializeFromString", "string",               "System.Type")]
         [DataRow("DeserializeFromReader", "System.IO.TextReader", "System.Type")]
@@ -886,16 +807,11 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, new[] { expected.WithLocation(10), expected.WithLocation(10) }).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected.WithLocation(7), expected.WithLocation(7) }).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, new[] { Expected.WithLocation(10), Expected.WithLocation(10) }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { Expected.WithLocation(7), Expected.WithLocation(7) }).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("DeserializeFromString", "string")]
         [DataRow("DeserializeFromReader", "System.IO.TextReader")]
@@ -934,16 +850,11 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(7)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("DeserializeFromString", "string")]
         [DataRow("DeserializeFromStream", "System.IO.Stream")]
@@ -980,16 +891,11 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, new[] { expected.WithLocation(11), expected.WithLocation(11) }).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected.WithLocation(8), expected.WithLocation(8) }).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, new[] { Expected.WithLocation(11), Expected.WithLocation(11) }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { Expected.WithLocation(8), Expected.WithLocation(8) }).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("DeserializeFromString", "string")]
         [DataRow("DeserializeFromReader", "System.IO.TextReader")]
@@ -1028,16 +934,11 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(7)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("DeserializeFromString", "string",               "System.Type")]
         [DataRow("DeserializeFromStream", "System.Type",          "System.IO.Stream")]
@@ -1072,16 +973,11 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, new[] { expected.WithLocation(10), expected.WithLocation(10) }).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected.WithLocation(7), expected.WithLocation(7) }).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, new[] { Expected.WithLocation(10), Expected.WithLocation(10) }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { Expected.WithLocation(7), Expected.WithLocation(7) }).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("DeserializeFromString", "string")]
         [DataRow("DeserializeFromReader", "System.IO.TextReader")]
@@ -1120,16 +1016,11 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(7)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("System.IO.Stream")]
         [DataRow("string")]
@@ -1162,14 +1053,8 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult()
-            {
-                Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(7)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7)).ConfigureAwait(false);
         }
     }
 }

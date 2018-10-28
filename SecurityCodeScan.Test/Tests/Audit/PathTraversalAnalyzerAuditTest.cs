@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -74,6 +73,7 @@ namespace SecurityCodeScan.Test.Audit
         [DataRow("SetAccessControl(path, null)")]
         [DataRow("File.SetAccessControl(\"c:\\aaa.txt\", fileSecurity)")]
         [DataRow("SetAccessControl(\"c:\\aaa.txt\", fileSecurity)")]
+        [TestCategory("Detect")]
         [DataTestMethod]
         public async Task PathTraversalMethods(string sink)
         {
@@ -170,6 +170,7 @@ End Class
 
         [DataRow("File.SetAccessControl(\"c:\\aaa.txt\", null)")]
         [DataRow("SetAccessControl(\"c:\\aaa.txt\", null)")]
+        [TestCategory("Ignore")]
         [DataTestMethod]
         public async Task PathTraversalMethodsConst(string sink)
         {
@@ -221,6 +222,7 @@ End Class
         [DataRow("XmlReader.Create(textInput, new XmlReaderSettings(), default(XmlParserContext))")]
         [DataRow("XmlReader.Create(default(Stream), new XmlReaderSettings(), textInput)")]
         [DataRow("XmlReader.Create(default(TextReader), new XmlReaderSettings(), textInput)")]
+        [TestCategory("Detect")]
         [DataTestMethod]
         public async Task PathTraversalXmlReader(string sink)
         {

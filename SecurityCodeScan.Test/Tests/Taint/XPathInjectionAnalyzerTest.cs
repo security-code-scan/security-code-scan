@@ -17,11 +17,11 @@ namespace SecurityCodeScan.Test.Taint
             return new DiagnosticAnalyzer[] { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic(), };
         }
 
-        //No diagnostics expected to show up
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task XPathInjectionFalsePositive()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Xml;
 
 class XPathInjectionTP
@@ -36,7 +36,7 @@ class XPathInjectionTP
     }
 }";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Xml
 
 Class XPathInjectionTP
@@ -53,10 +53,11 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task XPathInjectionVulnerable1()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Xml;
 
 class XPathInjectionTP
@@ -71,7 +72,7 @@ class XPathInjectionTP
     }
 }";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Xml
 
 Class XPathInjectionTP

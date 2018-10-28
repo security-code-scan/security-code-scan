@@ -52,9 +52,6 @@ namespace SecurityCodeScan.Analyzers
 
             foreach (var attribute in attributes)
             {
-                if (!nodeHelper.GetNameNode(attribute).ToString().Contains("AllowHtml"))
-                    continue;
-
                 var attributeSymbols = ctx.SemanticModel.GetSymbolInfo(attribute).Symbol;
                 if (attributeSymbols == null)
                     continue;

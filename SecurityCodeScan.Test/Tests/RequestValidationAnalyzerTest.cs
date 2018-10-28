@@ -761,29 +761,31 @@ End Namespace
         }
 
         [TestCategory("Detect")]
-        [TestMethod]
-        public async Task DetectAllowHtmlAttribute()
+        [DataRow("System.Web.Mvc",                          "AllowHtml")]
+        [DataRow("AH = System.Web.Mvc.AllowHtmlAttribute",  "AH")]
+        [DataTestMethod]
+        public async Task DetectAllowHtmlAttribute(string nameSpace, string attribute)
         {
-            const string cSharpTest = @"
-using System.Web.Mvc;
+            var cSharpTest = $@"
+using {nameSpace};
 
 namespace VulnerableApp
-{
+{{
     public class TestModel
-    {
-        [AllowHtml]
-        public string TestProperty { get; set; }
-    }
-}
+    {{
+        [{attribute}]
+        public string TestProperty {{ get; set; }}
+    }}
+}}
 ";
 
-            const string visualBasicTest = @"
-Imports System.Web.Mvc
+            var visualBasicTest = $@"
+Imports {nameSpace}
 
 Namespace VulnerableApp
     Public Class TestModel
 
-        <AllowHtml>
+        <{attribute}>
         Public Property TestProperty As String
             Get
                 Return ""Test""

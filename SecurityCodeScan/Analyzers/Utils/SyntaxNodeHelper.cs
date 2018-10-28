@@ -20,13 +20,14 @@ namespace SecurityCodeScan.Analyzers.Utils
         public abstract ITypeSymbol GetClassDeclarationTypeSymbol(SyntaxNode node, SemanticModel semanticModel);
         public abstract SyntaxNode GetAssignmentLeftNode(SyntaxNode node);
         public abstract SyntaxNode GetAssignmentRightNode(SyntaxNode node);
+        public abstract SyntaxNode GetMemberAccessNode(SyntaxNode node);
         public abstract SyntaxNode GetMemberAccessExpressionNode(SyntaxNode node);
         public abstract SyntaxNode GetCallTargetNode(SyntaxNode node);
         public abstract SyntaxNode GetInvocationExpressionNode(SyntaxNode node);
         public abstract SyntaxNode GetDefaultValueForAnOptionalParameter(SyntaxNode declNode, int paramIndex);
         public abstract SyntaxNode GetAttributeArgumentExpresionNode(SyntaxNode node);
 
-        [Obsolete("Before fix it didn't handle alias directive.  Post fix it becomes inefficient.")]
+        [Obsolete("Before fix it didn't handle alias directive.  Post fix it becomes inefficient.", false)]
         public abstract SyntaxNode GetNameNode(SyntaxNode node);
 
         public abstract IEnumerable<SyntaxNode> GetObjectInitializerExpressionNodes(SyntaxNode node);

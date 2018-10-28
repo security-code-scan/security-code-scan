@@ -1,8 +1,8 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace SecurityCodeScan.Analyzers.Utils
 {
@@ -64,6 +64,16 @@ namespace SecurityCodeScan.Analyzers.Utils
                     }
 
                     break;
+            }
+
+            return null;
+        }
+
+        public override SyntaxNode GetMemberAccessNode(SyntaxNode node)
+        {
+            if (node?.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+            {
+                return ((MemberAccessExpressionSyntax)node)?.Name;
             }
 
             return null;

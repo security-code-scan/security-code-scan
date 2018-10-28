@@ -17,6 +17,7 @@ namespace SecurityCodeScan.Test
             return new DiagnosticAnalyzer[] { new WeakRandomAnalyzerCSharp(), new WeakRandomAnalyzerVisualBasic() };
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task RandomFalsePositive()
         {
@@ -56,28 +57,32 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestMethod]
-        public async Task RandomVulnerable1()
+
+        [TestCategory("Detect")]
+        [DataTestMethod]
+        [DataRow("Rndm = System.Random",    "Rndm")]
+        [DataRow("System",                  "Random")]
+        public async Task WeakRandomNumberGeneration(string alias, string name)
         {
-            var cSharpTest = @"
-using System;
+            var cSharpTest = $@"
+using {alias};
 
 class WeakRandom
-{
+{{
     static string generateWeakToken()
-    {
-        Random rnd = new Random();
+    {{
+        {name} rnd = new {name}();
         return rnd.Next().ToString(); 
-    }
-}
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
-Imports System
+            var visualBasicTest = $@"
+Imports {alias}
 
 Class WeakRandom
     Private Shared Function generateWeakToken() As String
-        Dim rnd As New Random()
+        Dim rnd As New {name}()
         Return rnd.Next().ToString()
     End Function
 End Class

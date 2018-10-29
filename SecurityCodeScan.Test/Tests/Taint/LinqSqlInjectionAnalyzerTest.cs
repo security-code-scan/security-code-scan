@@ -25,13 +25,13 @@ namespace SecurityCodeScan.Test.Taint
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-        [DataRow("ctx.ExecuteQuery<UserEntity>(input)", true)]
-        [DataRow("ctx.ExecuteQuery<UserEntity>(\"select\")", false)]
-        [DataRow("ctx.ExecuteQuery(typeof(UserEntity), input)", true)]
+        [DataRow("ctx.ExecuteQuery<UserEntity>(input)",              true)]
+        [DataRow("ctx.ExecuteQuery<UserEntity>(\"select\")",         false)]
+        [DataRow("ctx.ExecuteQuery(typeof(UserEntity), input)",      true)]
         [DataRow("ctx.ExecuteQuery(typeof(UserEntity), \"select\")", false)]
-        [DataRow("ctx.ExecuteCommand(input)", true)]
-        [DataRow("ctx.ExecuteCommand(\"select\")", false)]        
-        [DataTestMethod]        
+        [DataRow("ctx.ExecuteCommand(input)",                        true)]
+        [DataRow("ctx.ExecuteCommand(\"select\")",                   false)]
+        [DataTestMethod]
         public async Task LinqInjection(string sink, bool warn)
         {
             var cSharpTest = $@"
@@ -51,7 +51,7 @@ namespace VulnerableApp
     {{
     }}
 }}";
-            sink = sink.Replace("null", "Nothing")                
+            sink = sink.Replace("null", "Nothing")
                 .Replace("<UserEntity>", "(Of UserEntity)")
                 .Replace("typeof", "GetType");
 
@@ -75,7 +75,7 @@ End Namespace
             {
                 Id       = "SCS0002",
                 Severity = DiagnosticSeverity.Warning,
-            };            
+            };
 
             if (warn)
             {
@@ -88,6 +88,6 @@ End Namespace
                 await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
             }
         }
-       
+
     }
 }

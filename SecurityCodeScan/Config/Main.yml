@@ -789,6 +789,68 @@ Sinks:
     InjectableArguments: [0]
     Locale: SCS0003
 
+  XPathNavigator_SelectSingleNode_1:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    ArgTypes: (System.String)
+    Name: SelectSingleNode
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathNavigator_SelectSingleNode_2:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    ArgTypes: (System.String, System.Xml.IXmlNamespaceResolver)
+    Name: SelectSingleNode
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathNavigator_Select_1:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    ArgTypes: (System.String)
+    Name: Select
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathNavigator_Select_2:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    ArgTypes: (System.String, System.Xml.IXmlNamespaceResolver)
+    Name: Select
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathNavigator_Compile:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    Name: Compile
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathNavigator_Evaluate_1:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    ArgTypes: (System.String)
+    Name: Evaluate
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathNavigator_Evaluate_2:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    ArgTypes: (System.String, System.Xml.IXmlNamespaceResolver)
+    Name: Evaluate
+    InjectableArguments: [0]
+    Locale: SCS0003
+
   #Path traversal
 
   #File API

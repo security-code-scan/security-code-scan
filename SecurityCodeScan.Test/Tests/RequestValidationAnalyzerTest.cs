@@ -49,7 +49,7 @@ namespace SecurityCodeScan.Test
             Severity = DiagnosticSeverity.Warning,
             Message  = "Request validation disabled in base class"
         };
-        
+
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [TestCategory("Detect")]
@@ -88,6 +88,48 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(9, 24)).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7, 24)).ConfigureAwait(false);
+        }
+
+        [TestCategory("False Negative")]
+        [TestMethod]
+        public async Task DetectValidateInputAttribute2()
+        {
+            // if we remove the check on Node Name from CheckValidateInput, all other tests fail
+
+            const string cSharpTest = @"
+using System.Web.Mvc;
+using VI = System.Web.Mvc.ValidateInputAttribute;
+
+namespace VulnerableApp
+{
+    public class TestController
+    {
+        [HttpPost]
+        [VI(false)]
+        public ActionResult ControllerMethod(string input) {
+            return null;
+        }
+    }
+}
+";
+
+            const string visualBasicTest = @"
+Imports System.Web.Mvc
+Imports VI = System.Web.Mvc.ValidateInputAttribute
+
+Namespace VulnerableApp
+    Public Class TestController
+        <HttpPost> _
+        <VI(False)> _
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -664,7 +706,7 @@ End Namespace
 ";
 
             await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11, 32)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(11, 35)).ConfigureAwait(false); 
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(11, 35)).ConfigureAwait(false);
         }
 
         [TestCategory("Ignore")]

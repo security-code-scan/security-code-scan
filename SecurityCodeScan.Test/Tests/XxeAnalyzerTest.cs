@@ -210,6 +210,13 @@ Class Xxe
 End Class
 " : null; // todo: how to set property of a temporary object in VB?
 
+            /*
+                todo: different VB specific field declaration syntax is not recognized
+
+                e.g. this does not work:
+                Private Shared Parser As New XmlDocument()I
+             */
+
             await Verify(cSharpTest3, visualBasicTest3, Expected, expectWarnings).ConfigureAwait(false);
         }
 
@@ -314,22 +321,6 @@ End Class
 " : null; // todo: how to set property of a temporary object in VB?
 
             await Verify(cSharpTest2, visualBasicTest2, Expected, expectWarnings).ConfigureAwait(false);
-
-// todo: different VB specific field declaration syntax is not recognized
-//            var visualBasicTest4 = @"
-//Imports System.Xml
-
-//Class Xxe
-//    Private Shared Parser As New XmlDocument()
-
-//    Public Shared Sub parseUpload(path As String)
-//        Parser.Load(path)
-//    End Sub
-//End Class
-//";
-//            await VerifyVisualBasicDiagnostic(visualBasicTest4, expected, dotNetVersion: VulnerableVersion).ConfigureAwait(false);
-//            // defaults are safe starting 4.5.2
-//            await VerifyVisualBasicDiagnostic(visualBasicTest4, dotNetVersion: SafeVersion).ConfigureAwait(false);
         }
 
         private const string SecureResolverText = "new XmlSecureResolver(new XmlUrlResolver(), \"http://myLocalSite/\")";

@@ -455,6 +455,15 @@ Sinks:
     ArgTypes: (System.Type, System.String, params System.Object[])
     InjectableArguments: [1]
     Locale: SCS0002
+  
+  DataContext_ExecuteCommand:
+    Namespace: System.Data.Linq
+    ClassName: DataContext
+    Member: method
+    Name: ExecuteCommand
+    ArgTypes: (System.String, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0002
 
   # System.Web.UI.WebControls
 

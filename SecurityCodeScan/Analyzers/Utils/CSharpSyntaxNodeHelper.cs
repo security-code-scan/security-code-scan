@@ -69,7 +69,7 @@ namespace SecurityCodeScan.Analyzers.Utils
             return null;
         }
 
-        public override SyntaxNode GetMemberAccessNode(SyntaxNode node)
+        public override SyntaxNode GetMemberAccessNameNode(SyntaxNode node)
         {
             if (node?.Kind() == SyntaxKind.SimpleMemberAccessExpression)
             {

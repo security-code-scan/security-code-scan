@@ -20,7 +20,7 @@ namespace SecurityCodeScan.Analyzers.Utils
         public abstract ITypeSymbol GetClassDeclarationTypeSymbol(SyntaxNode node, SemanticModel semanticModel);
         public abstract SyntaxNode GetAssignmentLeftNode(SyntaxNode node);
         public abstract SyntaxNode GetAssignmentRightNode(SyntaxNode node);
-        public abstract SyntaxNode GetMemberAccessNode(SyntaxNode node);
+        public abstract SyntaxNode GetMemberAccessNameNode(SyntaxNode node);
         public abstract SyntaxNode GetMemberAccessExpressionNode(SyntaxNode node);
         public abstract SyntaxNode GetCallTargetNode(SyntaxNode node);
         public abstract SyntaxNode GetInvocationExpressionNode(SyntaxNode node);

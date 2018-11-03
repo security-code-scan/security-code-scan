@@ -67,7 +67,7 @@ namespace SecurityCodeScan.Analyzers
 
         protected void CheckUnvalidated(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
-            var name = nodeHelper.GetMemberAccessNode(ctx.Node);
+            var name = nodeHelper.GetMemberAccessNameNode(ctx.Node);
             if (name.ToString() != "Unvalidated")
                 return;
 

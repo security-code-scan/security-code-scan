@@ -349,7 +349,7 @@ Sinks:
 #   ArgTypes: (Optional field) [Parameter types signature]
 #   InjectableArguments : (Optional field) [Index of the argument for injectable query, starting from the left]
 #   PasswordArguments : (Optional field) [Index of the argument for password parameter, starting from the left]
-#   
+#
 #   Locale: [Id of a localization in Messages.yml, This value can be reused for multiple sinks]
 # <<<
 
@@ -455,7 +455,7 @@ Sinks:
     ArgTypes: (System.Type, System.String, params System.Object[])
     InjectableArguments: [1]
     Locale: SCS0002
-  
+
   DataContext_ExecuteCommand:
     Namespace: System.Data.Linq
     ClassName: DataContext
@@ -564,7 +564,7 @@ Sinks:
     ArgTypes: (System.Data.Entity.TransactionalBehavior, System.String, params System.Object[])
     InjectableArguments: [1]
     Locale: SCS0014
-  
+
   Database_ExecuteSqlCommandAsync_1:
     Namespace: System.Data.Entity
     ClassName: Database
@@ -627,7 +627,7 @@ Sinks:
     ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
     InjectableArguments: [1]
     Locale: SCS0014
-  
+
   Database_ExecuteDataSet_4:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
@@ -663,7 +663,7 @@ Sinks:
     ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
     InjectableArguments: [1]
     Locale: SCS0014
-  
+
   Database_ExecuteReader_4:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
@@ -699,7 +699,7 @@ Sinks:
     ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
     InjectableArguments: [1]
     Locale: SCS0014
-  
+
   Database_ExecuteNonQuery_4:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
@@ -735,7 +735,7 @@ Sinks:
     ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
     InjectableArguments: [1]
     Locale: SCS0014
-  
+
   Database_ExecuteScalar_4:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
@@ -789,6 +789,140 @@ Sinks:
     InjectableArguments: [0]
     Locale: SCS0003
 
+  XPathNavigator_SelectSingleNode_1:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    ArgTypes: (System.String)
+    Name: SelectSingleNode
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathNavigator_SelectSingleNode_2:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    ArgTypes: (System.String, System.Xml.IXmlNamespaceResolver)
+    Name: SelectSingleNode
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathNavigator_Select_1:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    ArgTypes: (System.String)
+    Name: Select
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathNavigator_Select_2:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    ArgTypes: (System.String, System.Xml.IXmlNamespaceResolver)
+    Name: Select
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathNavigator_Compile:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    Name: Compile
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathNavigator_Evaluate_1:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    ArgTypes: (System.String)
+    Name: Evaluate
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathNavigator_Evaluate_2:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    ArgTypes: (System.String, System.Xml.IXmlNamespaceResolver)
+    Name: Evaluate
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathExpression_Compile_1:
+    Namespace: System.Xml.XPath
+    ClassName: XPathExpression
+    Member: method
+    ArgTypes: (System.String)
+    Name: Compile
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathExpression_Compile_2:
+    Namespace: System.Xml.XPath
+    ClassName: XPathExpression
+    Member: method
+    ArgTypes: (System.String, System.Xml.IXmlNamespaceResolver)
+    Name: Compile
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  Extensions_XPathSelectElement_1:
+    Namespace: System.Xml.XPath
+    ClassName: Extensions
+    Member: method
+    ArgTypes: (System.Xml.Linq.XNode, System.String)
+    Name: XPathSelectElement
+    InjectableArguments: [1]
+    Locale: SCS0003
+
+  Extensions_XPathSelectElement_2:
+    Namespace: System.Xml.XPath
+    ClassName: Extensions
+    Member: method
+    ArgTypes: (System.Xml.Linq.XNode, System.String, System.Xml.IXmlNamespaceResolver)
+    Name: XPathSelectElement
+    InjectableArguments: [1]
+    Locale: SCS0003
+
+  Extensions_XPathSelectElements_1:
+    Namespace: System.Xml.XPath
+    ClassName: Extensions
+    Member: method
+    ArgTypes: (System.Xml.Linq.XNode, System.String)
+    Name: XPathSelectElements
+    InjectableArguments: [1]
+    Locale: SCS0003
+
+  Extensions_XPathSelectElements_2:
+    Namespace: System.Xml.XPath
+    ClassName: Extensions
+    Member: method
+    ArgTypes: (System.Xml.Linq.XNode, System.String, System.Xml.IXmlNamespaceResolver)
+    Name: XPathSelectElements
+    InjectableArguments: [1]
+    Locale: SCS0003
+
+  Extensions_XPathEvaluate_1:
+    Namespace: System.Xml.XPath
+    ClassName: Extensions
+    Member: method
+    ArgTypes: (System.Xml.Linq.XNode, System.String)
+    Name: XPathEvaluate
+    InjectableArguments: [1]
+    Locale: SCS0003
+
+  Extensions_XPathEvaluate_2:
+    Namespace: System.Xml.XPath
+    ClassName: Extensions
+    Member: method
+    ArgTypes: (System.Xml.Linq.XNode, System.String, System.Xml.IXmlNamespaceResolver)
+    Name: XPathEvaluate
+    InjectableArguments: [1]
+    Locale: SCS0003
+
   #Path traversal
 
   #File API
@@ -840,7 +974,7 @@ Sinks:
     Name: ReadAllText
     InjectableArguments: [0]
     Locale: SCS0018
-  
+
   File_ReadAllBytes:
     Namespace: System.IO
     ClassName: File
@@ -848,7 +982,7 @@ Sinks:
     Name: ReadAllBytes
     InjectableArguments: [0]
     Locale: SCS0018
-  
+
   File_ReadAllLines:
     Namespace: System.IO
     ClassName: File

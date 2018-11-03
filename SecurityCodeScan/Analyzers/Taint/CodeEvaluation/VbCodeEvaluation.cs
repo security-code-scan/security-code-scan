@@ -336,6 +336,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                           : VariableTaint.Unknown);
             }
 
+            bool isExtensionMethod = (symbol as IMethodSymbol)?.ReducedFrom != null;
+
             for (var i = 0; i < argList?.Arguments.Count; i++)
             {
                 var argument      = argList.Arguments[i];
@@ -350,7 +352,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 if ((argumentState.Taint == VariableTaint.Tainted ||
                      argumentState.Taint == VariableTaint.Unknown) && //Tainted values
                     //If the current parameter can be injected.
-                    Array.Exists(behavior.InjectablesArguments, element => element == i))
+                    Array.Exists(behavior.InjectablesArguments, element => element == (isExtensionMethod ? i + 1 : i)))
                 {
                     var newRule    = LocaleUtil.GetDescriptor(behavior.LocaleInjection);
                     var diagnostic = Diagnostic.Create(newRule, node.GetLocation(), GetMethodName(node), (i + 1).ToNthString());
@@ -358,13 +360,13 @@ namespace SecurityCodeScan.Analyzers.Taint
                 }
                 else if (argumentState.Taint == VariableTaint.Constant && //Hard coded value
                          //If the current parameter is a password
-                         Array.Exists(behavior.PasswordArguments, element => element == i))
+                         Array.Exists(behavior.PasswordArguments, element => element == (isExtensionMethod ? i + 1 : i)))
                 {
                     var newRule    = LocaleUtil.GetDescriptor(behavior.LocalePassword);
                     var diagnostic = Diagnostic.Create(newRule, node.GetLocation(), GetMethodName(node), (i + 1).ToNthString());
                     state.AnalysisContext.ReportDiagnostic(diagnostic);
                 }
-                else if (Array.Exists(behavior.TaintFromArguments, element => element == i))
+                else if (Array.Exists(behavior.TaintFromArguments, element => element == (isExtensionMethod ? i + 1 : i)))
                 {
                     returnState.Merge(argumentState);
                 }

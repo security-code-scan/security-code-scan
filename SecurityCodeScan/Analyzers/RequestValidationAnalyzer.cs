@@ -84,9 +84,6 @@ namespace SecurityCodeScan.Analyzers
         {
             foreach (var attribute in nodeHelper.GetDeclarationAttributeNodes(ctx.Node))
             {
-                if (!nodeHelper.GetNameNode(attribute).ToString().Contains("ValidateInput"))
-                    continue;
-
                 var hasArgumentFalse = false;
                 SyntaxNode expression = null;
                 foreach (var arg in nodeHelper.GetAttributeArgumentNodes(attribute))

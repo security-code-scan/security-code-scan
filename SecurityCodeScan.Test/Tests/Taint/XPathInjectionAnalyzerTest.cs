@@ -70,6 +70,18 @@ namespace SecurityCodeScan.Test.Taint
         [DataRow("element.XPathEvaluate(\"constant\")",             false)]
         [DataRow("element.XPathEvaluate(input, null)",               true)]
         [DataRow("element.XPathEvaluate(\"constant\", null)",       false)]
+        [DataRow("System.Xml.XPath.Extensions.XPathSelectElement(element, input)",               true)]
+        [DataRow("System.Xml.XPath.Extensions.XPathSelectElement(element, \"constant\")",        false)]
+        [DataRow("System.Xml.XPath.Extensions.XPathSelectElement(element, input, null)",         true)]
+        [DataRow("System.Xml.XPath.Extensions.XPathSelectElement(element, \"constant\", null)",  false)]
+        [DataRow("System.Xml.XPath.Extensions.XPathSelectElements(element, input)",              true)]
+        [DataRow("System.Xml.XPath.Extensions.XPathSelectElements(element, \"constant\")",       false)]
+        [DataRow("System.Xml.XPath.Extensions.XPathSelectElements(element, input, null)",        true)]
+        [DataRow("System.Xml.XPath.Extensions.XPathSelectElements(element, \"constant\", null)", false)]
+        [DataRow("System.Xml.XPath.Extensions.XPathEvaluate(element, input)",                    true)]
+        [DataRow("System.Xml.XPath.Extensions.XPathEvaluate(element, \"constant\")",             false)]
+        [DataRow("System.Xml.XPath.Extensions.XPathEvaluate(element, input, null)",              true)]
+        [DataRow("System.Xml.XPath.Extensions.XPathEvaluate(element, \"constant\", null)",       false)]
         [DataTestMethod]
         public async Task XPathInjection(string sink, bool warn)
         {
@@ -84,7 +96,7 @@ namespace sample
 {{
     class MyFoo
     {{
-        public static void Run(XmlDocument doc, XPathNavigator nav, XElement element, string input)
+        public static void Run(XmlDocument doc, XPathNavigator nav, XNode element, string input)
         {{
             {sink};
         }}
@@ -101,7 +113,7 @@ namespace sample
 
 Namespace sample
     Class MyFoo
-        Public Shared Sub Run(doc As XmlDocument, nav As XPathNavigator, element As XElement, input As System.String)
+        Public Shared Sub Run(doc As XmlDocument, nav As XPathNavigator, element As XNode, input As System.String)
             {sink}
         End Sub
     End Class

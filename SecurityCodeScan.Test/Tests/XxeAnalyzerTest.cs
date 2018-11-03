@@ -63,7 +63,7 @@ End Class
             const string cSharpTest2 = @"
 using System.Xml.XPath;
 
-class Xxe
+class Xxe2
 {
     public static void parseUpload(string path)
     {
@@ -74,7 +74,7 @@ class Xxe
             const string visualBasicTest2 = @"
 Imports System.Xml.XPath
 
-Class Xxe
+Class Xxe2
     Public Shared Sub parseUpload(path As String)
         Call New XPathDocument(path).CreateNavigator()
     End Sub
@@ -131,7 +131,7 @@ End Class
     using System.Xml;
 #pragma warning restore 8019
 
-class Xxe
+class Xxe2
 {{
     public static void parseUpload(string path)
     {{
@@ -146,7 +146,7 @@ class Xxe
     Imports System.Xml
 #Enable Warning BC50001
 
-Class Xxe
+Class Xxe2
     Public Shared Sub parseUpload(path As String)
         XmlSchema.Read({vbCreateReader}, Nothing)
     End Sub
@@ -290,7 +290,7 @@ End Class
 
 class DerivedXmlDocument : XmlDocument {{}}
 
-class Xxe
+class Xxe2
 {{
     public static void parseUpload(string text)
     {{
@@ -311,7 +311,7 @@ Class DerivedXmlDocument
     Inherits XmlDocument
 End Class
 
-Class Xxe
+Class Xxe2
     Public Shared Sub parseUpload(text As String)
 #Disable Warning BC40000
         Call New {className}().{sink}
@@ -406,7 +406,7 @@ End Class
     using Microsoft.Web.XmlTransform;
 #pragma warning restore 8019
 
-class Xxe
+class Xxe2
 {{
     public static void parseUpload(string text)
     {{
@@ -424,7 +424,7 @@ class Xxe
     Imports Microsoft.Web.XmlTransform
 #Enable Warning BC50001
 
-Class Xxe
+Class Xxe2
     Public Shared Sub parseUpload(text As String)
 #Disable Warning BC40000
         Dim xmlDoc As New {className}{constructorParams} With {{.{property} = {vbValue}}}
@@ -442,7 +442,7 @@ End Class
     using Microsoft.Web.XmlTransform;
 #pragma warning restore 8019
 
-class Xxe
+class Xxe3
 {{
     public static void parseUpload(string text)
     {{
@@ -459,7 +459,7 @@ class Xxe
     Imports Microsoft.Web.XmlTransform
 #Enable Warning BC50001
 
-Class Xxe
+Class Xxe3
     Public Shared Sub parseUpload(text As String)
 #Disable Warning BC40000
         Call New {className}{constructorParams} With {{.{property} = {vbValue}}}.{sink}
@@ -477,7 +477,7 @@ End Class
     using Microsoft.Web.XmlTransform;
 #pragma warning restore 8019
 
-class Xxe
+class Xxe4
 {{
 #pragma warning disable 618
     public static void parseUpload(string text, {className} xmlDoc)
@@ -538,7 +538,7 @@ End Class
             const string cSharpTest2 = @"
 using System.Xml;
 
-class Xxe
+class Xxe2
 {
     public static void parseUpload(string path)
     {
@@ -549,7 +549,7 @@ class Xxe
             const string visualBasicTest2 = @"
 Imports System.Xml
 
-Class Xxe
+Class Xxe2
     Public Shared Sub parseUpload(path As String)
         Call new XmlTextReader(path).Read()
     End Sub
@@ -634,7 +634,7 @@ End Class
 using System.Xml;
 using System.IO;
 
-class Xxe
+class Xxe2
 {
     public static void parseUpload(string xmlContent)
     {
@@ -646,7 +646,7 @@ class Xxe
 Imports System.Xml
 Imports System.IO
 
-Class Xxe
+Class Xxe2
     Public Shared Sub parseUpload(xmlContent As String)
         Call new XmlTextReader(new StringReader(xmlContent)).Read()
     End Sub
@@ -705,7 +705,7 @@ End Class
 using System.Xml;
 using System.IO;
 
-class Xxe
+class Xxe2
 {{
     public static void parseUpload(string xmlContent)
     {{
@@ -720,7 +720,7 @@ class Xxe
 Imports System.Xml
 Imports System.IO
 
-Class Xxe
+Class Xxe2
     Public Shared Sub parseUpload(xmlContent As String)
 #Disable Warning BC40000
         Dim reader = new XmlTextReader(new StringReader(xmlContent)) With {{.{property} = {vbValue}}}
@@ -735,7 +735,7 @@ End Class
 using System.Xml;
 using System.IO;
 
-class Xxe
+class Xxe3
 {{
     public static void parseUpload(string xmlContent)
     {{
@@ -749,7 +749,7 @@ class Xxe
 Imports System.Xml
 Imports System.IO
 
-Class Xxe
+Class Xxe3
     Public Shared Sub parseUpload(xmlContent As String)
 #Disable Warning BC40000
         Call new XmlTextReader(new StringReader(xmlContent)) With {{.{property} = {vbValue}}}.Read()
@@ -791,7 +791,7 @@ End Class
             const string cSharpTest2 = @"
 using System.Xml;
 
-class Xxe
+class Xxe2
 {
     public static void parseUpload(string path)
     {
@@ -802,7 +802,7 @@ class Xxe
             const string visualBasicTest2 = @"
 Imports System.Xml
 
-Class Xxe
+Class Xxe2
     Public Shared Sub parseUpload(path As String)
         Dim reader = XmlReader.Create(path)
     End Sub
@@ -815,7 +815,7 @@ End Class
 using System.Xml;
 using System.IO;
 
-class Xxe
+class Xxe3
 {
     public static void parseUpload(string path)
     {
@@ -828,7 +828,7 @@ class Xxe
 Imports System.Xml
 Imports System.IO
 
-Class Xxe
+Class Xxe3
     Public Shared Sub parseUpload(path As String)
         Dim reader = XmlReader.Create(new StringReader(path))
         XmlReader.Create(new StringReader(path))
@@ -841,7 +841,7 @@ End Class
             const string cSharpTest4 = @"
 using System.Xml;
 
-class Xxe
+class Xxe4
 {
     public static void parseUpload(string path)
     {
@@ -852,7 +852,7 @@ class Xxe
             const string visualBasicTest4 = @"
 Imports System.Xml
 
-Class Xxe
+Class Xxe4
     Public Shared Sub parseUpload(path As String)
         Dim reader = XmlTextReader.Create(path)
     End Sub
@@ -909,7 +909,7 @@ End Class
             var cSharpTest2 = $@"
 using System.Xml;
 
-class Xxe
+class Xxe2
 {{
     public static void parseUpload(string path)
     {{
@@ -923,7 +923,7 @@ class Xxe
             var visualBasicTest2 = $@"
 Imports System.Xml
 
-Class Xxe
+Class Xxe2
     Public Shared Sub parseUpload(path As String)
 #Disable Warning BC40000
         Dim settings = new XmlReaderSettings() With {{.{property} = {vbValue}}}
@@ -937,7 +937,7 @@ End Class
             var cSharpTest3 = $@"
 using System.Xml;
 
-class Xxe
+class Xxe3
 {{
     public static void parseUpload(string path)
     {{
@@ -950,7 +950,7 @@ class Xxe
             var visualBasicTest3 = $@"
 Imports System.Xml
 
-Class Xxe
+Class Xxe3
     Public Shared Sub parseUpload(path As String)
 #Disable Warning BC40000
         XmlReader.Create(path, new XmlReaderSettings() With {{.{property} = {vbValue}}})
@@ -959,6 +959,70 @@ Class Xxe
 End Class
 ";
             await VerifyNoWarnings(cSharpTest3, visualBasicTest3).ConfigureAwait(false);
+
+//            var cSharpTest4 = $@"
+//using System.Xml;
+
+//class Xxe4
+//{{
+//    private static XmlReaderSettings Settings = new XmlReaderSettings();
+
+//    public static void parseUpload(string path)
+//    {{
+//#pragma warning disable 618
+//        Settings.{property} = {value};
+//#pragma warning restore 618
+//        XmlReader reader = XmlReader.Create(path, Settings);
+//    }}
+//}}
+//";
+
+//            var visualBasicTest4 = $@"
+//Imports System.Xml
+
+//Class Xxe4
+//    Private Shared Settings As XmlReaderSettings = New XmlReaderSettings()
+
+//    Public Shared Sub parseUpload(path As String)
+//#Disable Warning BC40000
+//        Settings.{property} = {vbValue}
+//#Enable Warning BC40000
+//        Dim reader As XmlReader = XmlReader.Create(path, Settings)
+//    End Sub
+//End Class
+//";
+//            await VerifyNoWarnings(cSharpTest4, visualBasicTest4).ConfigureAwait(false);
+
+//            var cSharpTest5 = $@"
+//using System.Xml;
+
+//class Xxe5
+//{{
+//#pragma warning disable 618
+//    private static XmlReaderSettings Settings = new XmlReaderSettings {{{property} = {value}}};
+//#pragma warning restore 618
+
+//    public static void parseUpload(string path)
+//    {{
+//        XmlReader reader = XmlReader.Create(path, Settings);
+//    }}
+//}}
+//";
+
+//            var visualBasicTest5 = $@"
+//Imports System.Xml
+
+//Class Xxe5
+//#Disable Warning BC40000
+//    Private Shared Settings As New XmlReaderSettings With {{.{property} = {vbValue}}}
+//#Enable Warning BC40000
+
+//    Public Shared Sub parseUpload(path As String)
+//        Dim reader As XmlReader = XmlReader.Create(path, Settings)
+//    End Sub
+//End Class
+//";
+//            await VerifyNoWarnings(cSharpTest5, visualBasicTest5).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -1003,7 +1067,7 @@ End Class
             var cSharpTest2 = $@"
 using System.Xml;
 
-public class TestClass
+public class Xxe2
 {{
     public void TestMethod(string path)
     {{
@@ -1017,7 +1081,7 @@ public class TestClass
             var visualBasicTest2 = $@"
 Imports System.Xml
 
-Class Xxe
+Class Xxe2
     Public Shared Sub parseUpload(path As String)
 #Disable Warning BC40000
         Dim settings = new XmlReaderSettings() With {{.{vbDtdProcessing}}}
@@ -1031,7 +1095,7 @@ End Class
             var cSharpTest3 = $@"
 using System.Xml;
 
-public class TestClass
+public class Xxe3
 {{
     public void TestMethod(string path)
     {{
@@ -1044,7 +1108,7 @@ public class TestClass
             var visualBasicTest3 = $@"
 Imports System.Xml
 
-Class Xxe
+Class Xxe3
     Public Shared Sub parseUpload(path As String)
 #Disable Warning BC40000
         XmlReader.Create(path, new XmlReaderSettings() With {{.{vbDtdProcessing}}})
@@ -1053,6 +1117,283 @@ Class Xxe
 End Class
 ";
             await VerifyDiagnosticSafeUnsafe(cSharpTest3, visualBasicTest3, Expected).ConfigureAwait(false);
+        }
+
+        [TestCategory("False Positive")]
+        [TestMethod]
+        public async Task FalsePositives1()
+        {
+            // todo: Once fixed, try uncomment tests in XmlReaderCreateDtdProcessingDisabled
+
+            var cSharpTest4 = $@"
+using System.Xml;
+
+class Xxe4
+{{
+    private static XmlReaderSettings Settings = new XmlReaderSettings();
+
+    public static void parseUpload(string path)
+    {{
+#pragma warning disable 618
+        Settings.XmlResolver = {SecureResolverText};
+#pragma warning restore 618
+        XmlReader reader = XmlReader.Create(path, Settings);
+    }}
+}}
+";
+
+            var visualBasicTest4 = $@"
+Imports System.Xml
+
+Class Xxe4
+    Private Shared Settings As XmlReaderSettings = New XmlReaderSettings()
+
+    Public Shared Sub parseUpload(path As String)
+#Disable Warning BC40000
+        Settings.XmlResolver = {SecureResolverText}
+#Enable Warning BC40000
+        Dim reader As XmlReader = XmlReader.Create(path, Settings)
+    End Sub
+End Class
+";
+
+            await Verify(cSharpTest4, visualBasicTest4, Expected, Warnings.Always).ConfigureAwait(false);
+        }
+
+        [TestCategory("False Positive")]
+        [TestMethod]
+        public async Task FalsePositives2()
+        {
+            // todo: Once fixed, try uncomment tests in XmlReaderCreateDtdProcessingDisabled
+
+            const string cSharpTest4 = @"
+using System.Xml;
+
+class Xxe4
+{
+    private static XmlReaderSettings Settings = new XmlReaderSettings();
+
+    public static void parseUpload(string path)
+    {
+#pragma warning disable 618
+        Settings.XmlResolver = null;
+#pragma warning restore 618
+        XmlReader reader = XmlReader.Create(path, Settings);
+    }
+}
+";
+
+            const string visualBasicTest4 = @"
+Imports System.Xml
+
+Class Xxe4
+    Private Shared Settings As XmlReaderSettings = New XmlReaderSettings()
+
+    Public Shared Sub parseUpload(path As String)
+#Disable Warning BC40000
+        Settings.XmlResolver = Nothing
+#Enable Warning BC40000
+        Dim reader As XmlReader = XmlReader.Create(path, Settings)
+    End Sub
+End Class
+";
+
+            await Verify(cSharpTest4, visualBasicTest4, Expected, Warnings.Always).ConfigureAwait(false);
+        }
+
+        [TestCategory("False Positive")]
+        [TestMethod]
+        public async Task FalsePositives3()
+        {
+            // todo: Once fixed, try uncomment tests in XmlReaderCreateDtdProcessingDisabled
+
+            var cSharpTest5 = @"
+using System.Xml;
+
+class Xxe5
+{
+#pragma warning disable 618
+    private static XmlReaderSettings Settings = new XmlReaderSettings {DtdProcessing = (DtdProcessing)1};
+#pragma warning restore 618
+
+    public static void parseUpload(string path)
+    {
+        XmlReader reader = XmlReader.Create(path, Settings);
+    }
+}
+";
+
+            var visualBasicTest5 = @"
+Imports System.Xml
+
+Class Xxe5
+#Disable Warning BC40000
+    Private Shared Settings As New XmlReaderSettings With {.DtdProcessing = DirectCast(1, DtdProcessing)}
+#Enable Warning BC40000
+
+    Public Shared Sub parseUpload(path As String)
+        Dim reader As XmlReader = XmlReader.Create(path, Settings)
+    End Sub
+End Class
+";
+
+            await Verify(cSharpTest5, visualBasicTest5, Expected, Warnings.Always).ConfigureAwait(false);
+        }
+
+        [TestCategory("False Positive")]
+        [TestMethod]
+        public async Task FalsePositives4()
+        {
+            // todo: Once fixed, try uncomment tests in XmlReaderCreateDtdProcessingDisabled
+
+            var cSharpTest5 = @"
+using System.Xml;
+
+class Xxe5
+{
+#pragma warning disable 618
+    private static XmlReaderSettings Settings = new XmlReaderSettings {DtdProcessing = 0};
+#pragma warning restore 618
+
+    public static void parseUpload(string path)
+    {
+        XmlReader reader = XmlReader.Create(path, Settings);
+    }
+}
+";
+
+            var visualBasicTest5 = @"
+Imports System.Xml
+
+Class Xxe5
+#Disable Warning BC40000
+    Private Shared Settings As New XmlReaderSettings With {.DtdProcessing = 0}
+#Enable Warning BC40000
+
+    Public Shared Sub parseUpload(path As String)
+        Dim reader As XmlReader = XmlReader.Create(path, Settings)
+    End Sub
+End Class
+";
+
+            await Verify(cSharpTest5, visualBasicTest5, Expected, Warnings.Always).ConfigureAwait(false);
+        }
+
+        [TestCategory("False Positive")]
+        [TestMethod]
+        public async Task FalsePositives5()
+        {
+            // todo: Once fixed, try uncomment tests in XmlReaderCreateDtdProcessingDisabled
+
+            var cSharpTest5 = @"
+using System.Xml;
+
+class Xxe5
+{
+#pragma warning disable 618
+    private static XmlReaderSettings Settings = new XmlReaderSettings {DtdProcessing = DtdProcessing.Ignore};
+#pragma warning restore 618
+
+    public static void parseUpload(string path)
+    {
+        XmlReader reader = XmlReader.Create(path, Settings);
+    }
+}
+";
+
+            var visualBasicTest5 = @"
+Imports System.Xml
+
+Class Xxe5
+#Disable Warning BC40000
+    Private Shared Settings As New XmlReaderSettings With {.DtdProcessing = DtdProcessing.Ignore}
+#Enable Warning BC40000
+
+    Public Shared Sub parseUpload(path As String)
+        Dim reader As XmlReader = XmlReader.Create(path, Settings)
+    End Sub
+End Class
+";
+
+            await Verify(cSharpTest5, visualBasicTest5, Expected, Warnings.Always).ConfigureAwait(false);
+        }
+
+        [TestCategory("False Positive")]
+        [TestMethod]
+        public async Task FalsePositives6()
+        {
+            // todo: Once fixed, try uncomment tests in XmlReaderCreateDtdProcessingDisabled
+
+            var cSharpTest5 = @"
+using System.Xml;
+
+class Xxe5
+{
+#pragma warning disable 618
+    private static XmlReaderSettings Settings = new XmlReaderSettings {DtdProcessing = DtdProcessing.Prohibit};
+#pragma warning restore 618
+
+    public static void parseUpload(string path)
+    {
+        XmlReader reader = XmlReader.Create(path, Settings);
+    }
+}
+";
+
+            var visualBasicTest5 = @"
+Imports System.Xml
+
+Class Xxe5
+#Disable Warning BC40000
+    Private Shared Settings As New XmlReaderSettings With {.DtdProcessing = DtdProcessing.Prohibit}
+#Enable Warning BC40000
+
+    Public Shared Sub parseUpload(path As String)
+        Dim reader As XmlReader = XmlReader.Create(path, Settings)
+    End Sub
+End Class
+";
+
+            await Verify(cSharpTest5, visualBasicTest5, Expected, Warnings.Always).ConfigureAwait(false);
+        }
+
+        [TestCategory("False Positive")]
+        [TestMethod]
+        public async Task FalsePositives7()
+        {
+            // todo: Once fixed, try uncomment tests in XmlReaderCreateDtdProcessingDisabled
+
+            var cSharpTest5 = @"
+using System.Xml;
+
+class Xxe5
+{
+#pragma warning disable 618
+    private static XmlReaderSettings Settings = new XmlReaderSettings {ProhibitDtd = true};
+#pragma warning restore 618
+
+    public static void parseUpload(string path)
+    {
+        XmlReader reader = XmlReader.Create(path, Settings);
+    }
+}
+";
+
+            var visualBasicTest5 = @"
+Imports System.Xml
+
+Class Xxe5
+#Disable Warning BC40000
+    Private Shared Settings As New XmlReaderSettings With {.ProhibitDtd = True}
+#Enable Warning BC40000
+
+    Public Shared Sub parseUpload(path As String)
+        Dim reader As XmlReader = XmlReader.Create(path, Settings)
+    End Sub
+End Class
+";
+
+            await Verify(cSharpTest5, visualBasicTest5, Expected, Warnings.Always).ConfigureAwait(false);
         }
     }
 }

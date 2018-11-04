@@ -90,12 +90,10 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7, 24)).ConfigureAwait(false);
         }
 
-        [TestCategory("False Negative")]
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectValidateInputAttribute2()
         {
-            // if we remove the check on Node Name from CheckValidateInput, all other tests fail
-
             const string cSharpTest = @"
 using System.Web.Mvc;
 using VI = System.Web.Mvc.ValidateInputAttribute;
@@ -128,8 +126,8 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10, 13)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8, 13)).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]

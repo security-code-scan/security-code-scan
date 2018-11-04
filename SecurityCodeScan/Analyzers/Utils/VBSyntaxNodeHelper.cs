@@ -128,52 +128,12 @@ namespace SecurityCodeScan.Analyzers.Utils
             return null;
         }
 
-        public override SyntaxNode GetCallTargetNode(SyntaxNode node)
-        {
-            if (node == null)
-            {
-                return null;
-            }
-
-            SyntaxKind kind = node.Kind();
-            switch (kind)
-            {
-                case SyntaxKind.InvocationExpression:
-                    ExpressionSyntax callExpr = ((InvocationExpressionSyntax)node).Expression;
-                    SyntaxNode       nameNode = GetNameNode(callExpr);
-                    return nameNode ?? callExpr;
-                case SyntaxKind.ObjectCreationExpression:
-                    return ((ObjectCreationExpressionSyntax)node).Type;
-            }
-
-            return null;
-        }
-
         public override SyntaxNode GetAttributeArgumentExpresionNode(SyntaxNode node)
         {
             if (!(node is ArgumentSyntax argument))
                 return null;
 
             return argument.GetExpression();
-        }
-
-        public override SyntaxNode GetNameNode(SyntaxNode node)
-        {
-            switch (node.Kind())
-            {
-                case SyntaxKind.SimpleArgument:
-                    return ((SimpleArgumentSyntax)node).NameColonEquals?.Name;
-                case SyntaxKind.Attribute:
-                    return ((AttributeSyntax)node).Name;
-                case SyntaxKind.SimpleMemberAccessExpression:
-                    return ((MemberAccessExpressionSyntax)node).Name;
-                case SyntaxKind.ObjectCreationExpression:
-                    var compilationUnitSyntaxNode = node.Ancestors().Where(x => x.Kind() == SyntaxKind.CompilationUnit).FirstOrDefault();
-                    return (CompilationUnitSyntax)compilationUnitSyntaxNode;
-                default:
-                    return null;
-
-            }
         }
 
         public override SyntaxNode GetDefaultValueForAnOptionalParameter(SyntaxNode declNode, int paramIndex)

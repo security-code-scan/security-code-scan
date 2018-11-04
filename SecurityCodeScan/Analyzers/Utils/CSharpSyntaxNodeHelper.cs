@@ -111,24 +111,6 @@ namespace SecurityCodeScan.Analyzers.Utils
             return ((InvocationExpressionSyntax)node).Expression;
         }
 
-        public override SyntaxNode GetCallTargetNode(SyntaxNode node)
-        {
-            if (node == null)
-                return null;
-
-            SyntaxKind kind = node.Kind();
-            switch (kind)
-            {
-                case SyntaxKind.InvocationExpression:
-                    ExpressionSyntax callExpr = ((InvocationExpressionSyntax)node).Expression;
-                    return GetNameNode(callExpr) ?? callExpr;
-                case SyntaxKind.ObjectCreationExpression:
-                    return ((ObjectCreationExpressionSyntax)node).Type;
-            }
-
-            return null;
-        }
-
         public override SyntaxNode GetDefaultValueForAnOptionalParameter(SyntaxNode declNode, int paramIndex)
         {
             if (!(declNode is BaseMethodDeclarationSyntax methodDecl))
@@ -152,25 +134,6 @@ namespace SecurityCodeScan.Analyzers.Utils
                 return null;
 
             return argument.Expression;
-        }
-
-        public override SyntaxNode GetNameNode(SyntaxNode node)
-        {
-            switch (node.Kind())
-            {
-                case SyntaxKind.AttributeArgument:
-                    return ((AttributeArgumentSyntax)node).NameEquals?.Name;
-                case SyntaxKind.Attribute:
-                    return ((AttributeSyntax)node).Name;
-                case SyntaxKind.SimpleMemberAccessExpression:
-                    return ((MemberAccessExpressionSyntax)node).Name;
-                case SyntaxKind.ObjectCreationExpression:
-                    var compilationUnitSyntaxNode = node.Ancestors().Where(x => x.Kind() == SyntaxKind.CompilationUnit).FirstOrDefault();
-                    return (CompilationUnitSyntax)compilationUnitSyntaxNode;
-                default:
-                    return null;
-
-            }
         }
 
         protected override IEnumerable<SyntaxNode> GetCallArgumentExpressionNodes(SyntaxNode node, CallKind callKind)

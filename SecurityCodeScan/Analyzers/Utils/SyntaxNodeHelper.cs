@@ -22,12 +22,15 @@ namespace SecurityCodeScan.Analyzers.Utils
         public abstract SyntaxNode GetAssignmentRightNode(SyntaxNode node);
         public abstract SyntaxNode GetMemberAccessNameNode(SyntaxNode node);
         public abstract SyntaxNode GetMemberAccessExpressionNode(SyntaxNode node);
+
+        [Obsolete("Not used")]
         public abstract SyntaxNode GetCallTargetNode(SyntaxNode node);
+
         public abstract SyntaxNode GetInvocationExpressionNode(SyntaxNode node);
         public abstract SyntaxNode GetDefaultValueForAnOptionalParameter(SyntaxNode declNode, int paramIndex);
         public abstract SyntaxNode GetAttributeArgumentExpresionNode(SyntaxNode node);
 
-        [Obsolete("Before fix it didn't handle alias directive.  Post fix it becomes inefficient.", false)]
+        [Obsolete("Before fix it didn't handle alias directive.  Post fix it becomes inefficient.")]
         public abstract SyntaxNode GetNameNode(SyntaxNode node);
 
         public abstract IEnumerable<SyntaxNode> GetObjectInitializerExpressionNodes(SyntaxNode node);
@@ -43,7 +46,7 @@ namespace SecurityCodeScan.Analyzers.Utils
         public abstract IEnumerable<SyntaxNode> GetAttributeArgumentNodes(SyntaxNode node);
         public abstract bool IsAttributeArgument(SyntaxNode node);
         public abstract SyntaxNode GetAttributeArgumentNode(SyntaxNode node);
-
+        
         /// <summary> returns true if node is an ObjectCreationExpression and is under a FieldDeclaration node</summary>
         public abstract bool IsObjectCreationExpressionUnderFieldDeclaration(SyntaxNode node);
 

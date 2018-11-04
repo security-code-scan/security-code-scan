@@ -18,6 +18,7 @@ namespace SecurityCodeScan.Test.Config
                                               new UnknownPasswordApiAnalyzerCSharp(), new UnknownPasswordApiAnalyzerVisualBasic() };
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task AddPotentialPasswordFieldName()
         {

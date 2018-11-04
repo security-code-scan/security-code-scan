@@ -23,8 +23,15 @@ namespace SecurityCodeScan.Test.Taint
             MetadataReference.CreateFromFile(typeof(System.Data.SqlClient.SqlCommand).Assembly.Location)
         };
 
+        private DiagnosticResult Expected = new DiagnosticResult
+        {
+            Id       = "SCS0026",
+            Severity = DiagnosticSeverity.Warning,
+        };
+
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task MethodMemberAccessWithVb()
         {
@@ -44,6 +51,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task Return()
         {
@@ -74,6 +82,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task VariableLocalForEach()
         {
@@ -127,6 +136,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task VariablePropertyNoBody()
         {
@@ -170,6 +180,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("sql",       new[] { "SCS0026" },           new[] { "SCS0026" })]
         [DataRow("xyz",       new[] { "CS0103" },            new[] { "BC30451" })]
@@ -230,6 +241,7 @@ End Namespace
                 .ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task Property()
         {
@@ -275,15 +287,11 @@ Namespace sample
     End Class
 End Namespace
 ";
-            var expected        = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task Destructor()
         {
@@ -325,15 +333,11 @@ Namespace sample
     End Class
 End Namespace
 ";
-            var expected        = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task VariableTransferSimple()
         {
@@ -377,6 +381,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task VariableConcatenationLocal()
         {
@@ -415,6 +420,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataRow("\"\"",                      "stringConst")]
         [DataRow("\"\"",                      "MyFoo.stringConst")]
         [DataRow("\"\"",                      "sample.MyFoo.stringConst")]
@@ -470,15 +476,12 @@ Namespace sample
 End Namespace
 ";
             // todo: methods are not expanded yet
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task VariableConcatenationFieldReadonlyBackReference()
         {
@@ -512,6 +515,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task VariableConcatenationPropertyReadonlyBackReference()
         {
@@ -555,6 +559,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [DataRow("\"\"", "stringConst")]
         [DataRow("\"\"", "MyFoo.stringConst")]
         [DataRow("\"\"", "sample.MyFoo.stringConst")]
@@ -599,6 +604,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataRow("\"\"",                      "stringConst")]
         [DataRow("\"\"",                      "MyFoo.stringConst")]
         [DataRow("\"\"",                      "sample.MyFoo.stringConst")]
@@ -653,15 +659,12 @@ End Namespace
 ";
 
             // todo: readonly fields aren't assumed const because no check for assignments in constructors is implemented
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataRow("\"\"",                      "stringConst")]
         [DataRow("\"\"",                      "this.stringConst")]
         [DataRow("String.Empty",              "stringConst")]
@@ -721,16 +724,11 @@ Namespace sample
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [DataRow("\"\"",                      "stringConst")]
         [DataRow("\"\"",                      "MyFoo.stringConst")]
         [DataRow("\"\"",                      "sample.MyFoo.stringConst")]
@@ -793,6 +791,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [DataRow("\"\"", "stringConst")]
         [DataRow("\"\"", "MyFoo.stringConst")]
         [DataRow("\"\"", "sample.MyFoo.stringConst")]
@@ -851,6 +850,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataRow("\"\"",                      "stringConst")]
         [DataRow("\"\"",                      "MyFoo.stringConst")]
         [DataRow("\"\"",                      "sample.MyFoo.stringConst")]
@@ -912,15 +912,12 @@ Namespace sample
 End Namespace
 ";
             // todo: readonly fields aren't assumed const because no check for assignments in constructors is implemented
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataRow("\"\"",                      "stringConst")]
         [DataRow("\"\"",                      "this.stringConst")]
         [DataRow("String.Empty",              "stringConst")]
@@ -988,16 +985,11 @@ Namespace sample
     End Class
 End Namespace
 ";
-
-            var expected = new DiagnosticResult
-            {
-                Id = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataRow("\"\"",                      "stringConst")]
         [DataRow("\"\"",                      "MyFoo.stringConst")]
         [DataRow("\"\"",                      "sample.MyFoo.stringConst")]
@@ -1050,15 +1042,12 @@ End Namespace
 ";
 
             // todo: readonly fields aren't assumed const because no check for assignments in constructors is implemented
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataRow("\"\"",                      "stringConst")]
         [DataRow("\"\"",                      "MyFoo.stringConst")]
         [DataRow("\"\"",                      "sample.MyFoo.stringConst")]
@@ -1092,14 +1081,11 @@ namespace sample
 }}
 ";
             // todo: readonly fields aren't assumed const because no check for assignments in constructors is implemented
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [DataRow("\"\"",                      "stringConst")]
         [DataRow("\"\"",                      "MyFoo.stringConst")]
         [DataRow("\"\"",                      "sample.MyFoo.stringConst")]
@@ -1135,6 +1121,7 @@ namespace sample
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [DataRow("\"\"",                      "stringConst")]
         [DataRow("\"\"",                      "MyFoo.stringConst")]
         [DataRow("\"\"",                      "sample.MyFoo.stringConst")]
@@ -1173,6 +1160,7 @@ namespace sample
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task VariableTransferWithConcatenation()
         {
@@ -1216,6 +1204,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task VariableTransferUnsafe()
         {
@@ -1255,16 +1244,11 @@ Namespace sample
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task VariableConcatenationUnsafe()
         {
@@ -1295,16 +1279,11 @@ Namespace sample
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task VariableOverride()
         {
@@ -1349,16 +1328,11 @@ Namespace sample
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task VariableReuseFromSafeToUnknown()
         {
@@ -1397,16 +1371,11 @@ Namespace sample
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task VariableReuseFromUnknownToSafe()
         {
@@ -1445,16 +1414,11 @@ Namespace sample
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task VariableReuseFromUnknownToSafeInObject()
         {
@@ -1508,16 +1472,11 @@ Namespace sample
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task VariableReuseReplaceObject()
         {
@@ -1580,16 +1539,11 @@ Namespace sample
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task UnsafeFunctionPassedAsParameter()
         {
@@ -1627,16 +1581,11 @@ Namespace sample
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task ConfilctingLocalVariableAndObjectPropertyNames()
         {
@@ -1690,16 +1639,11 @@ Namespace sample
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [Ignore] //TODO: Copy structure state when assigned to new variable
         [TestMethod]
         public async Task StructReuseChangePropertyFromTaintedToSafe()
@@ -1760,16 +1704,11 @@ End Class
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, new [] {expected, expected, expected }).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected, expected, expected }).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, new [] {Expected, Expected, Expected }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { Expected, Expected, Expected }).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task ObjectReuseChangePropertyFromTaintedToSafe()
         {
@@ -1829,14 +1768,8 @@ End Class
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, new[] { expected, expected }).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected, expected }).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, new[] { Expected, Expected }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { Expected, Expected }).ConfigureAwait(false);
         }
     }
 }

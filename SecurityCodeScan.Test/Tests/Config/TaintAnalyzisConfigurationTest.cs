@@ -16,6 +16,7 @@ namespace SecurityCodeScan.Test.Config
             return new DiagnosticAnalyzer[] { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic() };
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task RemoveSink()
         {
@@ -65,7 +66,7 @@ Sinks:
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
-
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task AddSink()
         {
@@ -124,6 +125,7 @@ Sinks:
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task RemoveBehavior()
         {
@@ -177,6 +179,7 @@ Behavior:
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task AddBehavior()
         {
@@ -242,6 +245,7 @@ Behavior:
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task TwoDifferentProjectConfigs()
         {
@@ -336,6 +340,7 @@ Behavior:
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task AddConstantValue()
         {

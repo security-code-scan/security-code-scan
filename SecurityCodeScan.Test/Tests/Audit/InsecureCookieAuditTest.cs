@@ -29,6 +29,7 @@ namespace SecurityCodeScan.Test.Audit
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("Secure",   "HttpOnly", "SCS0008", false)]
         [DataRow("Secure",   "HttpOnly", "SCS0008", true)]

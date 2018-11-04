@@ -19,14 +19,15 @@ namespace SecurityCodeScan.Analyzers.Utils
         public abstract ITypeSymbol GetClassDeclarationTypeSymbol(SyntaxNode node, SemanticModel semanticModel);
         public abstract SyntaxNode GetAssignmentLeftNode(SyntaxNode node);
         public abstract SyntaxNode GetAssignmentRightNode(SyntaxNode node);
+        public abstract SyntaxNode GetMemberAccessNameNode(SyntaxNode node);
         public abstract SyntaxNode GetMemberAccessExpressionNode(SyntaxNode node);
-        public abstract SyntaxNode GetCallTargetNode(SyntaxNode node);
         public abstract SyntaxNode GetInvocationExpressionNode(SyntaxNode node);
         public abstract SyntaxNode GetDefaultValueForAnOptionalParameter(SyntaxNode declNode, int paramIndex);
         public abstract SyntaxNode GetAttributeArgumentExpresionNode(SyntaxNode node);
-        public abstract SyntaxNode GetNameNode(SyntaxNode node);
+
         public abstract IEnumerable<SyntaxNode> GetObjectInitializerExpressionNodes(SyntaxNode node);
-        // This will return true if the SyntaxNode is either InvocationExpression or ObjectCreationExpression (in C# or VB)
+
+        /// <summary>This will return true if the SyntaxNode is either InvocationExpression or ObjectCreationExpression (in C# or VB)</summary>
         public abstract bool IsMethodInvocationNode(SyntaxNode node);
         public abstract bool IsSimpleMemberAccessExpressionNode(SyntaxNode node);
         public abstract bool IsObjectCreationExpressionNode(SyntaxNode node);
@@ -35,11 +36,16 @@ namespace SecurityCodeScan.Analyzers.Utils
         public abstract IEnumerable<SyntaxNode> GetDescendantMemberAccessExpressionNodes(SyntaxNode node);
         public abstract IEnumerable<SyntaxNode> GetDeclarationAttributeNodes(SyntaxNode node);
         public abstract IEnumerable<SyntaxNode> GetAttributeArgumentNodes(SyntaxNode node);
-
-        // returns true if node is an ObjectCreationExpression and is under a FieldDeclaration node
+        public abstract bool IsAttributeArgument(SyntaxNode node);
+        public abstract SyntaxNode GetAttributeArgumentNode(SyntaxNode node);
+        
+        /// <summary> returns true if node is an ObjectCreationExpression and is under a FieldDeclaration node</summary>
         public abstract bool IsObjectCreationExpressionUnderFieldDeclaration(SyntaxNode node);
-        // returns the ancestor VariableDeclarator node for an ObjectCreationExpression if 
-        // IsObjectCreationExpressionUnderFieldDeclaration(node) returns true, return null otherwise.
+
+        /// <summary>
+        /// returns the ancestor VariableDeclarator node for an ObjectCreationExpression if 
+        /// IsObjectCreationExpressionUnderFieldDeclaration(node) returns true, return null otherwise.
+        ///</summary>
         public abstract SyntaxNode GetVariableDeclaratorOfAFieldDeclarationNode(SyntaxNode objectCreationExpression);
 
         public abstract bool IsObjectConstructionForTemporaryObject(SyntaxNode node);

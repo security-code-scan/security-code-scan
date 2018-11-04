@@ -25,6 +25,13 @@ namespace SecurityCodeScan.Test
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        private DiagnosticResult Expected = new DiagnosticResult
+        {
+            Id       = OutputCacheAnnotationAnalyzer.DiagnosticId,
+            Severity = DiagnosticSeverity.Warning
+        };
+
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectAnnotation1()
         {
@@ -55,16 +62,11 @@ Public Class HomeController
 End Class
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = OutputCacheAnnotationAnalyzer.DiagnosticId,
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectAnnotation2()
         {
@@ -95,16 +97,11 @@ Public Class HomeController
 End Class
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = OutputCacheAnnotationAnalyzer.DiagnosticId,
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectAnnotation3()
         {
@@ -135,16 +132,11 @@ Public Class HomeController
 End Class
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = OutputCacheAnnotationAnalyzer.DiagnosticId,
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectAnnotation4()
         {
@@ -183,16 +175,11 @@ Public Class HomeController
 End Class
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = OutputCacheAnnotationAnalyzer.DiagnosticId,
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectAnnotation5()
         {
@@ -238,16 +225,11 @@ Public Class HomeController
 End Class
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = OutputCacheAnnotationAnalyzer.DiagnosticId,
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectAnnotation6()
         {
@@ -288,16 +270,11 @@ Public Class HomeController
 End Class
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = OutputCacheAnnotationAnalyzer.DiagnosticId,
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectAnnotation7()
         {
@@ -343,16 +320,11 @@ Public Class HomeController
 End Class
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = OutputCacheAnnotationAnalyzer.DiagnosticId,
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectAnnotation8()
         {
@@ -393,14 +365,8 @@ Public Class HomeController
 End Class
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = OutputCacheAnnotationAnalyzer.DiagnosticId,
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
         // The question is if we want to go so far and detect a derived attribute since the caching logic can be altered
@@ -465,6 +431,7 @@ End Class
         //            VerifyCSharpDiagnostic(test, expected);
         //        }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task FalsePositiveInvalidDuration()
         {
@@ -499,6 +466,7 @@ End Class
             await VerifyVisualBasicDiagnostic(vbTest, new DiagnosticResult { Id = "BC30451" }.WithLocation(4, 26)).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task FalsePositive1()
         {
@@ -531,6 +499,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task FalsePositive2()
         {
@@ -565,6 +534,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task FalsePositive3()
         {
@@ -609,6 +579,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task FalsePositive4()
         {
@@ -653,6 +624,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task FalsePositive5()
         {
@@ -687,6 +659,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task FalsePositive6()
         {

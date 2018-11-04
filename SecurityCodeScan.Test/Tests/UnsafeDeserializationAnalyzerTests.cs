@@ -34,6 +34,7 @@ namespace SecurityCodeScan.Test
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectJavaScriptSerializerWithSimpleTypeResolverUsed()
         {
@@ -69,6 +70,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(6, 34)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectJavaScriptSerializerWithSimpleTypeResolverAsFieldUsed()
         {
@@ -106,6 +108,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(7, 41)).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task IgnoreJavaScriptSerializerWithNotCompilingParameterUsed()
         {
@@ -135,6 +138,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, new DiagnosticResult { Id = "BC30451" }).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task IgnoreJavaScriptSerializerUsed()
         {
@@ -164,6 +168,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("Objects")]
         [DataRow("Arrays")]
@@ -211,6 +216,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(6, 43)).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task IgnoreJSonSerializerTypeNameHandlingNoneOnProperty()
         {
@@ -248,6 +254,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         [Ignore] // todo: ignore the TypeNameHandling on deep clone (although it doesn't clone private members)
         public async Task IgnoreJSonSerializerTypeNameHandlingDeepclone()
@@ -272,6 +279,7 @@ namespace VulnerableApp
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("Objects")]
         [DataRow("Arrays")]
@@ -322,6 +330,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(9, 41)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectJSonSerializerTypeNameHandlingAllWithNamespace()
         {
@@ -364,6 +373,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(7, 41)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectJSonSerializerTypeNameHandlingAllFromConstant()
         {
@@ -410,6 +420,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(9, 41)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectJSonSerializerTypeNameHandlingAllAfterSettingsConstruction()
         {
@@ -452,6 +463,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(8, 42)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectJsonSerializerTypeNameHandlingUnknownRuntimeValue()
         {
@@ -497,6 +509,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(9, 21)).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task IgnoreJSonSerializerTypeNameHandlingNone()
         {
@@ -603,6 +616,7 @@ End Namespace
                 .ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task IgnoreJSonSerializerTypeNameHandlingNonCompilingStringValue()
         {
@@ -643,6 +657,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task IgnoreJsonSerializerTypeNameHandlingNonCompilingTypeAssigned()
         {
@@ -681,6 +696,42 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest, new DiagnosticResult { Id = "CS0029" }.WithLocation(12)).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, new DiagnosticResult { Id = "BC30311" }.WithLocation(9)).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task GivenAliasDirective_DetectDiagnostic()
+        {
+            var cSharpTest = @"
+using System.Web.Script.Serialization;
+using JSS = System.Web.Script.Serialization.JavaScriptSerializer;
+
+namespace VulnerableApp
+{
+    class Test
+    {
+        private JSS serializer = new JSS(new SimpleTypeResolver());
+    }
+}
+";
+            var visualBasicTest = @"
+Imports System.Web.Script.Serialization
+Imports JSS = System.Web.Script.Serialization.JavaScriptSerializer
+
+Namespace VulnerableApp
+    Class Test
+        Private Dim serializer = new JSS(new SimpleTypeResolver())
+    End Class
+End Namespace
+";
+            var expected = new DiagnosticResult()
+            {
+                Id = "SCS0028",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(9, 34)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(7, 34)).ConfigureAwait(false);
         }
     }
 }

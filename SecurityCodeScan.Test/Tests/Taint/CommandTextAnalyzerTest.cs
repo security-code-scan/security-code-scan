@@ -15,6 +15,7 @@ namespace SecurityCodeScan.Test.Taint
             return new List<DiagnosticAnalyzer> { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic() };
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("SqlCommand", "new SqlCommand { CommandText = sql }")]
         [DataRow("DbCommand",  "new SqlCommand { CommandText = sql }")]
@@ -56,6 +57,7 @@ namespace sample
                 .ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("SqlCommand", "New SqlCommand With \r\n{ .CommandText = sql }")]
         [DataRow("DbCommand",  "New SqlCommand With \r\n{ .CommandText = sql }")]

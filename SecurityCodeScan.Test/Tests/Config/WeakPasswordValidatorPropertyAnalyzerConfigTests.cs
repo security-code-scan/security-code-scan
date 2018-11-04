@@ -29,8 +29,9 @@ namespace SecurityCodeScan.Test.Config
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        [TestCategory("Detect")]
         [TestMethod]
-        public async Task PasswordValidatorIncreaseRequiredLenght()
+        public async Task PasswordValidatorIncreaseRequiredLength()
         {
             var cSharpTest = @"
 using Microsoft.AspNet.Identity;
@@ -90,8 +91,9 @@ PasswordValidatorRequiredLength: 9
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
-        public async Task PasswordValidatorDecreaseRequiredLenght()
+        public async Task PasswordValidatorDecreaseRequiredLength()
         {
             var cSharpTest = @"
 using Microsoft.AspNet.Identity;
@@ -152,6 +154,7 @@ PasswordValidatorRequiredLength: 7
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task PasswordValidatorIncreaseNumberOfRequiredProperties()
         {
@@ -209,6 +212,7 @@ MinimumPasswordValidatorProperties: 4
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task PasswordValidatorDecreaseNumberOfRequiredProperties()
         {
@@ -265,6 +269,7 @@ MinimumPasswordValidatorProperties: 2
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("RequireNonLetterOrDigit", 1)]
         [DataRow("RequireDigit", 1)]

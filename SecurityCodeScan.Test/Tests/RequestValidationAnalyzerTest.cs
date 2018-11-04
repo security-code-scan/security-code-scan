@@ -30,12 +30,33 @@ namespace SecurityCodeScan.Test
 #pragma warning restore 618
         };
 
+        private DiagnosticResult Expected = new DiagnosticResult
+        {
+            Id       = "SCS0017",
+            Severity = DiagnosticSeverity.Warning
+        };
+
+        private DiagnosticResult ExpectedWithMessage_ValidationIsDisabled = new DiagnosticResult
+        {
+            Id       = "SCS0017",
+            Severity = DiagnosticSeverity.Warning,
+            Message  = "Request validation is disabled"
+        };
+
+        private DiagnosticResult ExpectedWithMessage_ValidationIsDisabledInBaseClass = new DiagnosticResult
+        {
+            Id       = "SCS0017",
+            Severity = DiagnosticSeverity.Warning,
+            Message  = "Request validation disabled in base class"
+        };
+
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectValidateInputAttribute()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Web.Mvc;
 
 namespace VulnerableApp
@@ -51,7 +72,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
@@ -65,20 +86,55 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0017",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(9, 24)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(7, 24)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(9, 24)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7, 24)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task DetectValidateInputAttribute2()
+        {
+            const string cSharpTest = @"
+using System.Web.Mvc;
+using VI = System.Web.Mvc.ValidateInputAttribute;
+
+namespace VulnerableApp
+{
+    public class TestController
+    {
+        [HttpPost]
+        [VI(false)]
+        public ActionResult ControllerMethod(string input) {
+            return null;
+        }
+    }
+}
+";
+
+            const string visualBasicTest = @"
+Imports System.Web.Mvc
+Imports VI = System.Web.Mvc.ValidateInputAttribute
+
+Namespace VulnerableApp
+    Public Class TestController
+        <HttpPost> _
+        <VI(False)> _
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10, 13)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8, 13)).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectValidateInputAttributeOnClass()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Web.Mvc;
 
 namespace VulnerableApp
@@ -94,7 +150,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
@@ -108,20 +164,15 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id = "SCS0017",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(6, 20)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(5, 20)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(6, 20)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(5, 20)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectInlineValidateInputAttribute()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Web.Mvc;
 
 namespace VulnerableApp
@@ -136,7 +187,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
@@ -149,20 +200,15 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id = "SCS0017",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(8, 34)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(6, 34)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(8, 34)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(6, 34)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectValidateInputAttributeWithNamespace()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Web.Mvc;
 
 namespace VulnerableApp
@@ -178,7 +224,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
@@ -192,20 +238,15 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id = "SCS0017",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(9, 39)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(7, 39)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(9, 39)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7, 39)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectValidateInputAttributeWithContantEqualToFalse()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Web.Mvc;
 
 namespace VulnerableApp
@@ -223,7 +264,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
@@ -239,20 +280,15 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0017",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(11, 24)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(9, 24)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11, 24)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(9, 24)).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task IgnoreUnrelatedValidateInputAttribute()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Web.Mvc;
 
 namespace VulnerableApp
@@ -273,7 +309,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
@@ -297,10 +333,11 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectValidateInputAttributeWasSetOnParentClass()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Web.Mvc;
 
 namespace VulnerableApp
@@ -320,7 +357,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
@@ -340,36 +377,23 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expectedOnAttribute = new DiagnosticResult
-            {
-                Id       = "SCS0017",
-                Severity = DiagnosticSeverity.Warning,
-                Message = "Request validation is disabled"
-            };
-
-            var expectedOnMethod = new DiagnosticResult
-            {
-                Id       = "SCS0017",
-                Severity = DiagnosticSeverity.Warning,
-                Message = "Request validation disabled in base class"
-            };
-
             await VerifyCSharpDiagnostic(cSharpTest, new[]
             {
-                expectedOnAttribute.WithLocation(6, 20),
-                expectedOnMethod.WithLocation(11, 18)
+                ExpectedWithMessage_ValidationIsDisabled.WithLocation(6, 20),
+                ExpectedWithMessage_ValidationIsDisabledInBaseClass.WithLocation(11, 18)
             }).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, new []
             {
-                expectedOnAttribute.WithLocation(5, 20),
-                expectedOnMethod.WithLocation(10, 18)
+                ExpectedWithMessage_ValidationIsDisabled.WithLocation(5, 20),
+                ExpectedWithMessage_ValidationIsDisabledInBaseClass.WithLocation(10, 18)
             }).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectValidateInputAttributeWasSetOnOverridenMethod()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Web.Mvc;
 
 namespace VulnerableApp
@@ -392,7 +416,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
@@ -415,36 +439,23 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expectedOnAttribute = new DiagnosticResult
-            {
-                Id       = "SCS0017",
-                Severity = DiagnosticSeverity.Warning,
-                Message = "Request validation is disabled"
-            };
-
-            var expectedOnMethod = new DiagnosticResult
-            {
-                Id       = "SCS0017",
-                Severity = DiagnosticSeverity.Warning,
-                Message = "Request validation disabled in base class"
-            };
-
             await VerifyCSharpDiagnostic(cSharpTest, new[]
             {
-                expectedOnAttribute.WithLocation(9, 24),
-                expectedOnMethod.WithLocation(17, 38)
+                ExpectedWithMessage_ValidationIsDisabled.WithLocation(9, 24),
+                ExpectedWithMessage_ValidationIsDisabledInBaseClass.WithLocation(17, 38)
             }).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, new[]
             {
-                expectedOnAttribute.WithLocation(8, 24),
-                expectedOnMethod.WithLocation(17, 35)
+                ExpectedWithMessage_ValidationIsDisabled.WithLocation(8, 24),
+                ExpectedWithMessage_ValidationIsDisabledInBaseClass.WithLocation(17, 35)
             }).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task IgnoreValidateInputAttributeWasSetOnClassAndNoMethodEffected()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Web.Mvc;
 
 namespace VulnerableApp
@@ -465,7 +476,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
@@ -486,28 +497,22 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expectedOnAttribute = new DiagnosticResult
-            {
-                Id = "SCS0017",
-                Severity = DiagnosticSeverity.Warning,
-                Message = "Request validation is disabled"
-            };
-
             await VerifyCSharpDiagnostic(cSharpTest, new[]
             {
-                expectedOnAttribute.WithLocation(6, 20)
+                ExpectedWithMessage_ValidationIsDisabled.WithLocation(6, 20)
             }).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, new[]
             {
-                expectedOnAttribute.WithLocation(5, 20)
+                ExpectedWithMessage_ValidationIsDisabled.WithLocation(5, 20)
             }).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestCategory("ValidateInput")]
         [TestMethod]
         public async Task IgnoreOverridenValidateInputAttributeWasSetOnParentClass()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Web.Mvc;
 
 namespace VulnerableApp
@@ -528,7 +533,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
@@ -549,27 +554,21 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expectedOnAttribute = new DiagnosticResult
-            {
-                Id       = "SCS0017",
-                Severity = DiagnosticSeverity.Warning,
-                Message = "Request validation is disabled"
-            };
-
             await VerifyCSharpDiagnostic(cSharpTest, new[]
             {
-                expectedOnAttribute.WithLocation(6, 20)
+                ExpectedWithMessage_ValidationIsDisabled.WithLocation(6, 20)
             }).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, new[]
             {
-                expectedOnAttribute.WithLocation(5, 20)
+                ExpectedWithMessage_ValidationIsDisabled.WithLocation(5, 20)
             }).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task IgnoreOverridenValidateInputAttributeWasSetOnOverridenMethod()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Web.Mvc;
 
 namespace VulnerableApp
@@ -593,7 +592,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
@@ -617,27 +616,21 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expectedOnAttribute = new DiagnosticResult
-            {
-                Id = "SCS0017",
-                Severity = DiagnosticSeverity.Warning,
-                Message = "Request validation is disabled"
-            };
-
             await VerifyCSharpDiagnostic(cSharpTest, new[]
             {
-                expectedOnAttribute.WithLocation(9, 24)
+                ExpectedWithMessage_ValidationIsDisabled.WithLocation(9, 24)
             }).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, new[]
             {
-                expectedOnAttribute.WithLocation(8, 24)
+                ExpectedWithMessage_ValidationIsDisabled.WithLocation(8, 24)
             }).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectUnvalidatedProperty()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Web.Mvc;
 
 namespace VulnerableApp
@@ -653,7 +646,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
@@ -667,21 +660,15 @@ Namespace VulnerableApp
     End Class
 End Namespace
 ";
-
-            var expected = new DiagnosticResult
-            {
-                Id = "SCS0017",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(10, 32)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(9, 32)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10, 32)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(9, 32)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectUnvalidatedMethod()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Web.Mvc;
 using System.Web.Helpers;
 
@@ -698,7 +685,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Web.Mvc
 Imports System.Web.Helpers
 
@@ -716,21 +703,16 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id = "SCS0017",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(11, 32)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(11, 35)).ConfigureAwait(false); 
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11, 32)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(11, 35)).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task IgnoreUnrelatedUnvalidatedMethod()
         {
 
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Web.Mvc;
 
 namespace VulnerableApp
@@ -748,7 +730,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
@@ -769,11 +751,12 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task IgnoreUnrelatedStaticUnvalidatedMethod()
         {
 
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Web.Mvc;
 
 namespace VulnerableApp
@@ -794,7 +777,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
@@ -817,29 +800,32 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestMethod]
-        public async Task DetectAllowHtmlAttribute()
+        [TestCategory("Detect")]
+        [DataRow("System.Web.Mvc",                          "AllowHtml")]
+        [DataRow("AH = System.Web.Mvc.AllowHtmlAttribute",  "AH")]
+        [DataTestMethod]
+        public async Task DetectAllowHtmlAttribute(string nameSpace, string attribute)
         {
-            var cSharpTest = @"
-using System.Web.Mvc;
+            var cSharpTest = $@"
+using {nameSpace};
 
 namespace VulnerableApp
-{
+{{
     public class TestModel
-    {
-        [AllowHtml]
-        public string TestProperty { get; set; }
-    }
-}
+    {{
+        [{attribute}]
+        public string TestProperty {{ get; set; }}
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
-Imports System.Web.Mvc
+            var visualBasicTest = $@"
+Imports {nameSpace}
 
 Namespace VulnerableApp
     Public Class TestModel
 
-        <AllowHtml>
+        <{attribute}>
         Public Property TestProperty As String
             Get
                 Return ""Test""
@@ -851,20 +837,15 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id = "SCS0017",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(8, 10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(7, 10)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(8, 10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7, 10)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectAllowHtmlAttributeWithNamespace()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 namespace VulnerableApp
 {
     public class TestModel
@@ -875,7 +856,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Namespace VulnerableApp
     Public Class TestModel
 
@@ -891,20 +872,15 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id = "SCS0017",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(6, 10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(5, 10)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(6, 10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(5, 10)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectInlineAllowHtmlAttribute()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Web.Mvc;
 
 namespace VulnerableApp
@@ -921,7 +897,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
@@ -942,20 +918,15 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id = "SCS0017",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(12, 16)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(10, 16)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(12, 16)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(10, 16)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task DetectAllowHtmlAttributeAfterAtrributeContainingAllowHtmlInName()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System.Web.Mvc;
 
 namespace VulnerableApp
@@ -973,7 +944,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
@@ -995,20 +966,15 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id = "SCS0017",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(13, 10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(11, 10)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(13, 10)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(11, 10)).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task IgnoreUnrelatedAllowHtmlAttribute()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 namespace VulnerableApp
 {
     public class AllowHtml : System.Attribute
@@ -1023,7 +989,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Namespace VulnerableApp
     Public Class AllowHtml
         Inherits System.Attribute

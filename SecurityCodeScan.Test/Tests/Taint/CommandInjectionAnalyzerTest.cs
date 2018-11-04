@@ -17,7 +17,7 @@ namespace SecurityCodeScan.Test.Taint
             return new DiagnosticAnalyzer[] { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic(), };
         }
 
-        //No diagnostics expected to show up
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task CommandInjectionFalsePositive()
         {
@@ -53,6 +53,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task CommandInjectionFalsePositive_Filename()
         {
@@ -89,6 +90,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task CommandInjectionFalsePositive_GetEnvironment()
         {
@@ -129,6 +131,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task CommandInjectionFalsePositive_ProcessStartInfo()
         {
@@ -165,6 +168,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task CommandInjectionVulnerable1()
         {
@@ -205,6 +209,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task CommandInjectionVulnerable2()
         {

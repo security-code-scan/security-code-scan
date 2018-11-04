@@ -354,7 +354,9 @@
     <Compile Include="Tests\WeakHashingAnalyzerTest.cs" />
     <Compile Include="Tests\WeakRandomAnalyzerTest.cs" />
     <Compile Include="Tests\WebConfigAnalyzerTest.cs" />
+    <Compile Include="Tests\XxeAnalyzerTaintTest.cs" />
     <Compile Include="Tests\XxeAnalyzerTest.cs" />
+    <Compile Include="Tests\XxeAnalyzerTestBase.cs" />
     <Compile Include="Verifiers\CodeFixVerifier.cs" />
     <Compile Include="Verifiers\DiagnosticVerifier.cs" />
     <Compile Include="Helpers\CodeFixVerifier.Helper.cs" />

@@ -29,80 +29,84 @@ namespace SecurityCodeScan.Test.InsecureCookie
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-        [TestMethod]
-        public async Task CookieWithoutFlags()
+        private readonly DiagnosticResult[] Expected =
         {
-            var cSharpTest = @"
-using System.Web;
+            new DiagnosticResult
+            {
+                Id = "SCS0008",
+                Severity = DiagnosticSeverity.Warning
+            },
+            new DiagnosticResult
+            {
+                Id = "SCS0009",
+                Severity = DiagnosticSeverity.Warning
+            }
+        };
+
+        [TestCategory("Detect")]
+        [DataTestMethod]
+        [DataRow("Cookie = System.Web.HttpCookie",  "Cookie")]
+        [DataRow("System.Web",                      "HttpCookie")]
+        public async Task CookieWithoutFlags(string alias, string name)
+        {
+            var cSharpTest = $@"
+using {alias};
 
 namespace VulnerableApp
-{
+{{
     class CookieCreation
-    {
+    {{
         static void TestCookie()
-        {
-            var cookie = new HttpCookie(""test"");
-        }
-    }
-}
+        {{
+            var cookie = new {name}(""test"");
+        }}
+    }}
+}}
 ";
 
-            var visualBasicTest1 = @"
-Imports System.Web
+            var visualBasicTest1 = $@"
+Imports {alias}
 
 Namespace VulnerableApp
     Class CookieCreation
         Private Shared Sub TestCookie()
-            Dim cookie = New HttpCookie(""test"")
+            Dim cookie = New {name}(""test"")
         End Sub
     End Class
 End Namespace
 ";
 
-            var visualBasicTest2 = @"
-Imports System.Web
+            var visualBasicTest2 = $@"
+Imports {alias}
 
 Namespace VulnerableApp
     Class CookieCreation
         Private Shared Sub TestCookie()
-            Dim cookie As New HttpCookie(""test"")
+            Dim cookie As New {name}(""test"")
         End Sub
     End Class
 End Namespace
 ";
 
-            var visualBasicTest3 = @"
-Imports System.Web
+            var visualBasicTest3 = $@"
+Imports {alias}
 
 Namespace VulnerableApp
     Class CookieCreation
         Private Shared Sub TestCookie()
-            Dim cookie As HttpCookie = New HttpCookie(""test"")
+            Dim cookie As {name} = New {name}(""test"")
         End Sub
     End Class
 End Namespace
 ";
 
-            var expected08 = new DiagnosticResult
-            {
-                Id       = "SCS0008",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            var expected09 = new DiagnosticResult
-            {
-                Id       = "SCS0009",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            DiagnosticResult[] expected = { expected08, expected09 };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest1, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest2, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest3, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest1, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest2, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest3, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task CookieWithFlags()
         {
@@ -141,6 +145,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task CookieWithFalseFlags()
         {
@@ -174,24 +179,12 @@ Namespace VulnerableApp
     End Class
 End Namespace
 ";
-            var expected08 = new DiagnosticResult
-            {
-                Id       = "SCS0008",
-                Severity = DiagnosticSeverity.Warning
-            };
 
-            var expected09 = new DiagnosticResult
-            {
-                Id       = "SCS0009",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            DiagnosticResult[] expected = { expected08, expected09 };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task CookieWithFlagsInLine()
         {
@@ -230,6 +223,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task CookieWithFalseFlagsInLine()
         {
@@ -263,24 +257,12 @@ Namespace VulnerableApp
     End Class
 End Namespace
 ";
-            var expected08 = new DiagnosticResult
-            {
-                Id       = "SCS0008",
-                Severity = DiagnosticSeverity.Warning
-            };
 
-            var expected09 = new DiagnosticResult
-            {
-                Id       = "SCS0009",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            DiagnosticResult[] expected = { expected08, expected09 };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task CookieWithOverridenFlags()
         {
@@ -319,7 +301,7 @@ End Namespace
 ";
             var expected08 = new DiagnosticResult
             {
-                Id       = "SCS0008",
+                Id = "SCS0008",
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -327,6 +309,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected08).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task CookieWithUnknownFlags()
         {
@@ -365,6 +348,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Ignore")]
         [TestMethod]
         public async Task IgnoreCookieFromOtherNamespace()
         {

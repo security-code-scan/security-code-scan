@@ -41,7 +41,10 @@ namespace SecurityCodeScan.Analyzers
 
         protected void VisitAttributeArgument(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
-            var name = nodeHelper.GetNameNode(ctx.Node);
+            if (!nodeHelper.IsAttributeArgument(ctx.Node))
+                return;
+
+            var name = nodeHelper.GetAttributeArgumentNode(ctx.Node);
 
             if (name == null)
                 return;
@@ -90,10 +93,6 @@ namespace SecurityCodeScan.Analyzers
 
         protected void VisitObjectCreation(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
-            var objectCreation = nodeHelper.GetNameNode(ctx.Node);
-            if (!objectCreation.ToString().Contains("JavaScriptSerializer"))
-                return;
-
             var creationSymbols = ctx.SemanticModel.GetSymbolInfo(ctx.Node).Symbol;
             if (creationSymbols == null || creationSymbols.ContainingSymbol.ToString() != "System.Web.Script.Serialization.JavaScriptSerializer")
                 return;

@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using SecurityCodeScan.Analyzers.Utils;
 using SecurityCodeScan.Config;
@@ -30,7 +27,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (symbol.ToString().Contains("("))
             {
                 string keyExtended =
-                    $"{symbol.ContainingType.ContainingNamespace}.{symbol.ContainingType.Name}|{symbol.Name}|{ExtractGenericParameterSignature(symbol)}";
+                    $"{symbol.ContainingType.ContainingNamespace}.{symbol.ContainingType.Name}|{symbol.Name}|{ExtractGenericParameterSignature((IMethodSymbol)symbol)}";
 
                 if (injectableArguments.TryGetValue(keyExtended, out var behavior1))
                     return behavior1;
@@ -45,64 +42,26 @@ namespace SecurityCodeScan.Analyzers.Taint
             return null;
         }
 
-        private static string ExtractGenericParameterSignature(ISymbol symbol)
+        private static readonly SymbolDisplayFormat MethodFormat = new SymbolDisplayFormat(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
+            extensionMethodStyle: SymbolDisplayExtensionMethodStyle.StaticMethod,
+            parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut |
+                              SymbolDisplayParameterOptions.IncludeType);
+
+        private static string ExtractGenericParameterSignature(IMethodSymbol methodSymbol)
         {
-            // If not a method revert to the old method, just in case!
-            if (symbol.Kind != SymbolKind.Method || !(symbol is IMethodSymbol))
+            var methodSignature = methodSymbol.ToDisplayString(MethodFormat);
+            methodSignature = methodSignature.Substring(methodSignature.IndexOf('('));
+            if (methodSymbol.Language == LanguageNames.VisualBasic)
             {
-                Debug.WriteLine($"Unexpected symbol type. {symbol}");
-                var firstParenthese = symbol.ToString().IndexOf("(", StringComparison.Ordinal);
-                return symbol.ToString().Substring(firstParenthese);
+                if (methodSignature != "()")
+                    methodSignature = methodSignature.Replace("()", "[]");
+
+                methodSignature = methodSignature.Replace("ParamArray ", "params ");
             }
 
-            var    methodSymbol        = (IMethodSymbol)symbol;
-            var result = new StringBuilder("(", 200);
-            bool   isFirstParameter    = true;
-
-            foreach (IParameterSymbol parameter in methodSymbol.Parameters)
-            {
-                if (isFirstParameter)
-                {
-                    isFirstParameter = false;
-                }
-                else
-                {
-                    result.Append(", ");
-                }
-
-                switch (parameter.RefKind)
-                {
-                    case RefKind.Out:
-                        result.Append("out ");
-                        break;
-                    case RefKind.Ref:
-                        result.Append("ref ");
-                        break;
-                }
-
-                string parameterTypeString = null;
-                if (parameter.IsParams) // variable num arguments case
-                {
-                    result.Append("params ");
-                    result.Append(parameter.Type.GetTypeName().Replace("()", "[]"));
-                }
-                else
-                {
-                    parameterTypeString = parameter.Type.GetTypeName();
-                    if (parameter.Type.Kind == SymbolKind.ArrayType)
-                        parameterTypeString = parameterTypeString.Replace("()", "[]");
-                }
-
-                result.Append(parameterTypeString);
-
-                if (parameter.HasExplicitDefaultValue && parameter.ExplicitDefaultValue != null)
-                    result.Append(" = ").Append(parameter.ExplicitDefaultValue);
-            }
-
-            result.Append(")");
-            Debug.WriteLine(symbol.ToString());
-            Debug.WriteLine(result);
-            return result.ToString();
+            return methodSignature;
         }
     }
 }

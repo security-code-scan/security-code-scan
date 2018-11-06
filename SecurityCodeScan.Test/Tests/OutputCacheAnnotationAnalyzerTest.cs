@@ -67,31 +67,39 @@ End Class
         }
 
         [TestCategory("Detect")]
-        [TestMethod]
-        public async Task DetectAnnotation2()
+        [DataTestMethod]
+        [DataRow("System.Web.Mvc",                           "Nope = System.Web.Mvc.AuthorizeAttribute", "Authorize", "OutputCache")]
+        [DataRow("OC = System.Web.Mvc.OutputCacheAttribute", "Auth = System.Web.Mvc.AuthorizeAttribute", "Auth",      "OC")]
+        public async Task DetectAnnotation2(string alias1, string alias2, string authorizeAttribute, string outputCacheAttribute)
         {
-            var cSharpTest = @"
-using System.Web.Mvc;
+            var cSharpTest = $@"
+#pragma warning disable 8019
+    using {alias1};
+    using {alias2};
+#pragma warning restore 8019
 
-public class HomeController : Controller
-{
-    [Authorize]
-    [OutputCache]
-    public ActionResult Index()
-    {
+public class HomeController : System.Web.Mvc.Controller
+{{
+    [{authorizeAttribute}]
+    [{outputCacheAttribute}]
+    public System.Web.Mvc.ActionResult Index()
+    {{
         return View();
-    }
-}
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
-Imports System.Web.Mvc
+            var visualBasicTest = $@"
+#Disable Warning BC50001
+    Imports {alias1}
+    Imports {alias2}
+#Enable Warning BC50001
 
 Public Class HomeController
-    Inherits Controller
-    <Authorize> _
-    <OutputCache> _
-    Public Function Index() As ActionResult
+    Inherits System.Web.Mvc.Controller
+    <{authorizeAttribute}> _
+    <{outputCacheAttribute}> _
+    Public Function Index() As System.Web.Mvc.ActionResult
         Return View()
     End Function
 End Class

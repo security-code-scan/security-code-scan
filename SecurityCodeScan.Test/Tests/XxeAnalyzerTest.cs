@@ -32,28 +32,30 @@ namespace SecurityCodeScan.Test.XXE
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [TestCategory("Detect")]
-        [TestMethod]
-        public async Task XPathDocument()
+        [DataTestMethod]
+        [DataRow("System.Xml.XPath",                     "XPathDocument")]
+        [DataRow("Doc = System.Xml.XPath.XPathDocument", "Doc")]
+        public async Task XPathDocument(string alias, string name)
         {
-            const string cSharpTest = @"
-using System.Xml.XPath;
+            string cSharpTest = $@"
+using {alias};
 
 class Xxe
-{
+{{
     public static void parseUpload(string path)
-    {
-        var document = new XPathDocument(path);
+    {{
+        var document = new {name}(path);
         var nav = document.CreateNavigator();
-    }
-}";
+    }}
+}}";
 
-            const string visualBasicTest = @"
-Imports System.Xml.XPath
+            string visualBasicTest = $@"
+Imports {alias}
 
 Class Xxe
     Public Shared Sub parseUpload(path As String)
-        Dim document As New XPathDocument(path)
-        Dim nav As XPathNavigator = document.CreateNavigator()
+        Dim document As New {name}(path)
+        Dim nav = document.CreateNavigator()
     End Sub
 End Class
 ";

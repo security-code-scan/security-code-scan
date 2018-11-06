@@ -58,6 +58,46 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7, 25)).ConfigureAwait(false);
         }
 
+        [TestCategory("Safe")]
+        [TestMethod]
+        public async Task CsrfDetectAliasToken()
+        {
+            var cSharpTest = $@"
+using {Namespace};
+using AFT = {Namespace}.{AntiCsrfTokenName}Attribute;
+
+namespace VulnerableApp
+{{
+    public class TestController
+    {{
+        [HttpPost]
+        [AFT]
+        public ActionResult ControllerMethod(string input)
+        {{
+            return null;
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports {Namespace}
+Imports AFT = {Namespace}.{AntiCsrfTokenName}Attribute
+
+Namespace VulnerableApp
+    Public Class TestController
+        <HttpPost> _
+        <AFT> _
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
         [TestCategory("Detect")]
         [TestMethod]
         public async Task CsrfDetectFullNameToken()
@@ -67,14 +107,14 @@ using {Namespace};
 
 namespace VulnerableApp
 {{
-    public class ValidateAntiForgeryTokenAttribute : System.Attribute
+    public class {AntiCsrfTokenName}Attribute : System.Attribute
         {{
         }}
 
     public class TestController
     {{
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [{AntiCsrfTokenName}]
         public ActionResult ControllerMethod(string input) {{
             return null;
         }}
@@ -86,13 +126,13 @@ namespace VulnerableApp
 Imports {Namespace}
 
 Namespace VulnerableApp
-    Public Class ValidateAntiForgeryToken
+    Public Class {AntiCsrfTokenName}
         Inherits System.Attribute
     End Class
 
     Public Class TestController
         <HttpPost> _
-        <VulnerableApp.ValidateAntiForgeryToken> _
+        <VulnerableApp.{AntiCsrfTokenName}> _
         Public Function ControllerMethod(input As String) As ActionResult
             Return Nothing
         End Function

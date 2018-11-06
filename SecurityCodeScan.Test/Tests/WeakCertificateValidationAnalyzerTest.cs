@@ -23,7 +23,7 @@ namespace SecurityCodeScan.Test
             return new DiagnosticAnalyzer[] { new WeakCertificateValidationAnalyzerCSharp(), new WeakCertificateValidationAnalyzerVisualBasic() };
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task WeakCertFalsePositive()
         {

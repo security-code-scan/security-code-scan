@@ -16,7 +16,7 @@ namespace SecurityCodeScan.Test
             return new DiagnosticAnalyzer[] { new WeakHashingAnalyzerCSharp(), new WeakHashingAnalyzerVisualBasic() };
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task NotSHA1Create()
         {
@@ -349,7 +349,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataRow("HashAlgorithm.Create(\"System.Security.Cryptography.SHA256\")")]
         [DataRow("SHA256.Create()")]
         [DataRow("HashAlgorithm.Create(name)")]

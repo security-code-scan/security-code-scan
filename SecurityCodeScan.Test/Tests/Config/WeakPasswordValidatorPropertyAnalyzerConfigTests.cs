@@ -91,7 +91,7 @@ PasswordValidatorRequiredLength: 9
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task PasswordValidatorDecreaseRequiredLength()
         {
@@ -212,7 +212,7 @@ MinimumPasswordValidatorProperties: 4
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task PasswordValidatorDecreaseNumberOfRequiredProperties()
         {

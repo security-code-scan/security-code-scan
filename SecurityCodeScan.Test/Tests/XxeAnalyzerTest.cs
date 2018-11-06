@@ -558,7 +558,7 @@ End Class
             await VerifyDiagnosticSafeUnsafe(cSharpTest2, visualBasicTest2, Expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task XmlTextReaderDerived()
         {
@@ -655,7 +655,7 @@ End Class
             await VerifyDiagnosticSafeUnsafe(cSharpTest2, visualBasicTest2, Expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataRow("XmlResolver",   "null")]
         [DataRow("XmlResolver",   SecureResolverText)]
         [DataRow("ProhibitDtd",   "true")]
@@ -760,7 +760,7 @@ End Class
             await VerifyNoWarnings(cSharpTest3, visualBasicTest3).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task XmlReaderCreateDefaultXmlReaderSettings()
         {
@@ -862,7 +862,7 @@ End Class
             await VerifyNoWarnings(cSharpTest4, visualBasicTest4).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataRow("XmlResolver",   "null")]
         [DataRow("XmlResolver",   SecureResolverText)]
         [DataRow("ProhibitDtd",   "true")]

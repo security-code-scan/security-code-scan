@@ -23,7 +23,7 @@ namespace SecurityCodeScan.Test
             Severity = DiagnosticSeverity.Warning
         };
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task WeakCipherFalsePositive()
         {

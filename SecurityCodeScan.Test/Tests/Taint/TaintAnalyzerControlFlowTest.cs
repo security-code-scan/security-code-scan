@@ -220,7 +220,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task ConditionIsCSharp()
         {
@@ -246,7 +246,7 @@ namespace sample
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task Cast()
         {

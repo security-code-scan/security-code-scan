@@ -170,7 +170,7 @@ End Class
 
         [DataRow("File.SetAccessControl(\"c:\\aaa.txt\", null)")]
         [DataRow("SetAccessControl(\"c:\\aaa.txt\", null)")]
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataTestMethod]
         public async Task PathTraversalMethodsConst(string sink)
         {

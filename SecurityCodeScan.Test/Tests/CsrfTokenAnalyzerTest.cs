@@ -104,7 +104,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(12, 25)).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task CsrfMissingTokenOnGet()
         {
@@ -140,7 +140,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task CsrfMissingTokenOnAnonymous()
         {
@@ -178,7 +178,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task CsrfMissingTokenOnAnonymousClass()
         {
@@ -216,7 +216,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task CsrfValidateAntiForgeryTokenPresent()
         {
@@ -255,7 +255,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task CsrfValidateAntiForgeryTokenControllerPresent()
         {
@@ -294,7 +294,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task CsrfValidateAntiForgeryTokenPresentWithInlinedAttributes()
         {

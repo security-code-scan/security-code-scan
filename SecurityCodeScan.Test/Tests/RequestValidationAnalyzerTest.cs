@@ -284,7 +284,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(9, 24)).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task IgnoreUnrelatedValidateInputAttribute()
         {
@@ -707,7 +707,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(11, 35)).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task IgnoreUnrelatedUnvalidatedMethod()
         {
@@ -751,7 +751,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task IgnoreUnrelatedStaticUnvalidatedMethod()
         {
@@ -970,7 +970,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(11, 10)).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task IgnoreUnrelatedAllowHtmlAttribute()
         {

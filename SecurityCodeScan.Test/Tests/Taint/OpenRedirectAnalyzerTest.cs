@@ -74,7 +74,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataRow("System.Web",                "Response.Redirect(\"\")")]
         [DataRow("System.Web",                "Response.Redirect(\"\", flag)")]
         [DataRow("System.Web",                "Response.RedirectPermanent(\"\")")]
@@ -158,7 +158,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataRow("System.Web.Mvc",           "Redirect(\"\")")]
         [DataRow("System.Web.Mvc",           "RedirectPermanent(\"\")")]
         [DataRow("Microsoft.AspNetCore.Mvc", "Redirect(\"\")")]
@@ -254,7 +254,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataRow("Microsoft.AspNetCore.Mvc")]
         [DataTestMethod]
         public async Task OpenRedirectController2Const(string @namespace)

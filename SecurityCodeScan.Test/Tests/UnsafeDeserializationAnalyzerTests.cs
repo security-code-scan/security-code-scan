@@ -108,7 +108,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(7, 41)).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task IgnoreJavaScriptSerializerWithNotCompilingParameterUsed()
         {
@@ -138,7 +138,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, new DiagnosticResult { Id = "BC30451" }).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task IgnoreJavaScriptSerializerUsed()
         {
@@ -216,7 +216,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(6, 43)).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task IgnoreJSonSerializerTypeNameHandlingNoneOnProperty()
         {
@@ -254,7 +254,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         [Ignore] // todo: ignore the TypeNameHandling on deep clone (although it doesn't clone private members)
         public async Task IgnoreJSonSerializerTypeNameHandlingDeepclone()
@@ -509,7 +509,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(9, 21)).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task IgnoreJSonSerializerTypeNameHandlingNone()
         {
@@ -616,7 +616,7 @@ End Namespace
                 .ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task IgnoreJSonSerializerTypeNameHandlingNonCompilingStringValue()
         {
@@ -657,7 +657,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task IgnoreJsonSerializerTypeNameHandlingNonCompilingTypeAssigned()
         {

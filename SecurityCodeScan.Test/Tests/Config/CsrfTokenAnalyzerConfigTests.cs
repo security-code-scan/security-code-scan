@@ -24,7 +24,7 @@ namespace SecurityCodeScan.Test.Config
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task AddCustomCsrfAttributeForMvc()
         {
@@ -92,7 +92,7 @@ CsrfProtectionAttributes:
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task AddCustomCsrfAttributeForCore()
         {

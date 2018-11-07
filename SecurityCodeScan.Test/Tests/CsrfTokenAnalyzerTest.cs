@@ -369,6 +369,55 @@ End Namespace
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
+
+        [TestCategory("Safe")]
+        [TestMethod]
+        public async Task CsrfValidateAntiForgeryTokenNonAction()
+        {
+            var cSharpTest = $@"
+using {Namespace};
+
+namespace VulnerableApp
+{{
+    public class BaseController
+    {{
+        [HttpPost]
+        public virtual void ControllerMethod(string input) {{
+        }}
+    }}
+
+    public class TestController : BaseController
+    {{
+        [NonAction]
+        public override void ControllerMethod(string input) {{
+        }}
+    }}
+}}
+                ";
+
+            var visualBasicTest = $@"
+Imports {Namespace}
+
+Namespace VulnerableApp
+    Public Class BaseController
+        <HttpPost> _
+        Public Overridable Sub ControllerMethod(input As String)
+        End Sub
+    End Class
+
+    Public Class TestController
+        Inherits BaseController
+
+        <NonAction> _
+        Public Overrides Sub ControllerMethod(input As String)
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(9, 29)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7, 32)).ConfigureAwait(false);
+        }
     }
 
     [TestClass]

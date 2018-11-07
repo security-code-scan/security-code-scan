@@ -39,9 +39,11 @@ namespace SecurityCodeScan.Analyzers
                 $"{nameSpace}.HttpPatchAttribute",
             };
 
-            AnonymousAttribute   = $"{allowAnonymousNamespace}.AllowAnonymousAttribute";
+            AnonymousAttribute = $"{allowAnonymousNamespace}.AllowAnonymousAttribute";
+            NonActionAttribute = $"{nameSpace}.NonActionAttribute";
         }
 
+        private readonly string       NonActionAttribute;
         private readonly string       Namespace;
         private readonly string       AnonymousAttribute;
         private readonly List<string> MethodsHttp;
@@ -67,6 +69,9 @@ namespace SecurityCodeScan.Analyzers
 
             if (!symbol.HasDerivedMethodAttribute(attributeData =>
                                                       MethodsHttp.Contains(attributeData.AttributeClass.ToString())))
+                return;
+
+            if (symbol.HasDerivedMethodAttribute(attributeData => attributeData.AttributeClass.ToString() == NonActionAttribute))
                 return;
 
             if (symbol.HasDerivedMethodAttribute(HasAnonymousAttribute) ||

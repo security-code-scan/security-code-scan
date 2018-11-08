@@ -1253,6 +1253,70 @@ Sinks:
     InjectableArguments: [0, 1, 2, 3, 5, 6]
     Locale: SCS0018
 
+  # LDAP injection
+
+  DirectorySearcher_constructor_0:
+    Namespace: System.DirectoryServices
+    ClassName: DirectorySearcher
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String)
+    InjectableArguments: [0]
+    Locale: SCS0031
+
+  DirectorySearcher_constructor_1:
+    Namespace: System.DirectoryServices
+    ClassName: DirectorySearcher
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.String[])
+    InjectableArguments: [0, 1]
+    Locale: SCS0031
+
+  DirectorySearcher_constructor_2:
+    Namespace: System.DirectoryServices
+    ClassName: DirectorySearcher
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.DirectoryServices.DirectoryEntry, System.String)
+    InjectableArguments: [1]
+    Locale: SCS0031
+
+  DirectorySearcher_constructor_3:
+    Namespace: System.DirectoryServices
+    ClassName: DirectorySearcher
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.DirectoryServices.DirectoryEntry, System.String, System.String[])
+    InjectableArguments: [1, 2]
+    Locale: SCS0031
+
+  DirectorySearcher_constructor_4:
+    Namespace: System.DirectoryServices
+    ClassName: DirectorySearcher
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.String[], System.DirectoryServices.SearchScope)
+    InjectableArguments: [0, 1]
+    Locale: SCS0031
+
+  DirectorySearcher_constructor_5:
+    Namespace: System.DirectoryServices
+    ClassName: DirectorySearcher
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.DirectoryServices.DirectoryEntry, System.String, System.String[], System.DirectoryServices.SearchScope)
+    InjectableArguments: [1, 2]
+    Locale: SCS0031
+
+  DirectorySearcher_Filter:
+    Namespace: System.DirectoryServices
+    ClassName: DirectorySearcher
+    Member: field
+    Name: Filter
+    InjectableField: true
+    Locale: SCS0031
+
   # Open Redirects
 
   System.Web.HttpResponse_Redirect_string:

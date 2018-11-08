@@ -58,6 +58,58 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7, 25)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task CsrfDetectMissingTokenDerived()
+        {
+            var cSharpTest = $@"
+using {Namespace};
+
+namespace VulnerableApp
+{{
+    public class BaseController
+    {{
+        [HttpPost]
+        public virtual ActionResult ControllerMethod(string input)
+        {{
+            return null;
+        }}
+    }}
+
+    public class TestController : BaseController
+    {{
+        public override ActionResult ControllerMethod(string input)
+        {{
+            return null;
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports {Namespace}
+
+Namespace VulnerableApp
+    Public Class BaseController
+        <HttpPost> _
+        Public Overridable Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+
+    Public Class TestController
+        Inherits BaseController
+        Public Overrides Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, new[] { Expected.WithLocation(9, 37), Expected.WithLocation(17, 38) }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { Expected.WithLocation(7, 37), Expected.WithLocation(14, 35) }).ConfigureAwait(false);
+        }
+
         [TestCategory("Safe")]
         [TestMethod]
         public async Task CsrfDetectAliasToken()
@@ -89,6 +141,116 @@ Namespace VulnerableApp
         <HttpPost> _
         <AFT> _
         Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestCategory("Safe")]
+        [TestMethod]
+        public async Task CsrfDetectAliasTokenDerived1()
+        {
+            var cSharpTest = $@"
+using {Namespace};
+using AFT = {Namespace}.{AntiCsrfTokenName}Attribute;
+
+namespace VulnerableApp
+{{
+    public class BaseController
+    {{
+        [HttpPost]
+        public virtual ActionResult ControllerMethod(string input)
+        {{
+            return null;
+        }}
+    }}
+
+    public class TestController : BaseController
+    {{
+        [AFT]
+        public override ActionResult ControllerMethod(string input)
+        {{
+            return null;
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports {Namespace}
+Imports AFT = {Namespace}.{AntiCsrfTokenName}Attribute
+
+Namespace VulnerableApp
+    Public Class BaseController
+        <HttpPost> _
+        Public Overridable Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+
+    Public Class TestController
+        Inherits BaseController
+        <AFT> _
+        Public Overrides Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10, 37)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8, 37)).ConfigureAwait(false);
+        }
+
+        [TestCategory("Safe")]
+        [TestMethod]
+        public async Task CsrfDetectAliasTokenDerived2()
+        {
+            var cSharpTest = $@"
+using {Namespace};
+using AFT = {Namespace}.{AntiCsrfTokenName}Attribute;
+
+namespace VulnerableApp
+{{
+    public class BaseController
+    {{
+        [AFT]
+        public virtual ActionResult ControllerMethod(string input)
+        {{
+            return null;
+        }}
+    }}
+
+    public class TestController : BaseController
+    {{
+        [HttpPost]
+        public override ActionResult ControllerMethod(string input)
+        {{
+            return null;
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports {Namespace}
+Imports AFT = {Namespace}.{AntiCsrfTokenName}Attribute
+
+Namespace VulnerableApp
+    Public Class BaseController
+        <AFT> _
+        Public Overridable Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+
+    Public Class TestController
+        Inherits BaseController
+        <HttpPost> _
+        Public Overrides Function ControllerMethod(input As String) As ActionResult
             Return Nothing
         End Function
     End Class
@@ -275,7 +437,7 @@ namespace VulnerableApp
         }}
     }}
 }}
-                ";
+";
 
             var visualBasicTest = $@"
 Imports {Namespace}
@@ -314,7 +476,7 @@ namespace VulnerableApp
         }}
     }}
 }}
-                ";
+";
 
             var visualBasicTest = $@"
 Imports {Namespace}
@@ -324,6 +486,62 @@ Namespace VulnerableApp
     Public Class TestController
         <HttpPost> _
         Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestCategory("Safe")]
+        [TestMethod]
+        public async Task CsrfValidateAntiForgeryTokenParentControllerPresent()
+        {
+            var cSharpTest = $@"
+using {Namespace};
+
+namespace VulnerableApp
+{{
+    [{AntiCsrfTokenName}]
+    public class BaseController
+    {{
+        [HttpPost]
+        public virtual ActionResult ControllerMethod(string input)
+        {{
+            return null;
+        }}
+    }}
+
+    public class TestController : BaseController
+    {{
+        [HttpPost]
+        public override ActionResult ControllerMethod(string input)
+        {{
+            return null;
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports {Namespace}
+
+Namespace VulnerableApp
+    <{AntiCsrfTokenName}> _
+    Public Class BaseController
+        <HttpPost> _
+        Public Overridable Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+
+    Public Class TestController
+        Inherits BaseController
+        <HttpPost> _
+        Public Overrides Function ControllerMethod(input As String) As ActionResult
             Return Nothing
         End Function
     End Class
@@ -351,7 +569,7 @@ namespace VulnerableApp
         }}
     }}
 }}
-                ";
+";
 
             var visualBasicTest = $@"
 Imports {Namespace}
@@ -393,7 +611,7 @@ namespace VulnerableApp
         }}
     }}
 }}
-                ";
+";
 
             var visualBasicTest = $@"
 Imports {Namespace}
@@ -510,7 +728,7 @@ namespace VulnerableApp
         }
     }
 }
-                ";
+";
 
             var visualBasicTest = @"
 Namespace VulnerableApp
@@ -551,7 +769,7 @@ namespace VulnerableApp
         }
     }
 }
-                ";
+";
 
             var visualBasicTest = @"
 Namespace VulnerableApp

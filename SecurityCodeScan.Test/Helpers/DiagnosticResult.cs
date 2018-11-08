@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 
 namespace SecurityCodeScan.Test.Helpers
@@ -35,13 +36,9 @@ namespace SecurityCodeScan.Test.Helpers
     /// </summary>
     public struct DiagnosticResult
     {
-        private DiagnosticResultLocation[] LocationsField;
+        private List<DiagnosticResultLocation> LocationsField;
 
-        public DiagnosticResultLocation[] Locations
-        {
-            get => LocationsField ?? (LocationsField = new DiagnosticResultLocation[] { });
-            set => LocationsField = value;
-        }
+        public IReadOnlyList<DiagnosticResultLocation> Locations => LocationsField;
 
         public DiagnosticSeverity? Severity { get; set; }
 
@@ -49,9 +46,9 @@ namespace SecurityCodeScan.Test.Helpers
 
         public string Message { get; set; }
 
-        public int Line => Locations.Length > 0 ? Locations[0].Line : -1;
+        public int Line => LocationsField != null ? Locations[0].Line : -1;
 
-        public int Column => Locations.Length > 0 ? Locations[0].Column : -1;
+        public int Column => LocationsField != null ? Locations[0].Column : -1;
 
         public DiagnosticResult WithLocation(int line)
         {
@@ -63,16 +60,13 @@ namespace SecurityCodeScan.Test.Helpers
             return WithLocation($"{DiagnosticVerifier.DefaultFilePathPrefix}0", line, column);
         }
 
-        public DiagnosticResult WithLocation(string path, int line)
-        {
-            return WithLocation(path, line, -1);
-        }
-
         private DiagnosticResult WithLocation(string path, int line, int column)
         {
             DiagnosticResult result = this;
-            Array.Resize(ref result.LocationsField, (result.LocationsField?.Length ?? 0) + 1);
-            result.LocationsField[result.LocationsField.Length - 1] = new DiagnosticResultLocation(path, line, column);
+            if (result.LocationsField == null)
+                result.LocationsField = new List<DiagnosticResultLocation>(1);
+
+            result.LocationsField.Add(new DiagnosticResultLocation(path, line, column));
             return result;
         }
     }

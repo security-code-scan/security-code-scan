@@ -31,7 +31,7 @@ using {Namespace};
 
 namespace VulnerableApp
 {{
-    public class TestController
+    public class TestController : Controller
     {{
         [HttpPost]
         public ActionResult ControllerMethod(string input)
@@ -47,6 +47,8 @@ Imports {Namespace}
 
 Namespace VulnerableApp
     Public Class TestController
+        Inherits Controller
+
         <HttpPost> _
         Public Function ControllerMethod(input As String) As ActionResult
             Return Nothing
@@ -55,7 +57,7 @@ Namespace VulnerableApp
 End Namespace
 ";
             await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(9, 29)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7, 25)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(9, 25)).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -67,7 +69,7 @@ using {Namespace};
 
 namespace VulnerableApp
 {{
-    public class BaseController
+    public class BaseController : Controller
     {{
         [HttpPost]
         public virtual ActionResult ControllerMethod(string input)
@@ -91,6 +93,8 @@ Imports {Namespace}
 
 Namespace VulnerableApp
     Public Class BaseController
+        Inherits Controller
+
         <HttpPost> _
         Public Overridable Function ControllerMethod(input As String) As ActionResult
             Return Nothing
@@ -99,6 +103,7 @@ Namespace VulnerableApp
 
     Public Class TestController
         Inherits BaseController
+
         Public Overrides Function ControllerMethod(input As String) As ActionResult
             Return Nothing
         End Function
@@ -107,7 +112,7 @@ End Namespace
 ";
 
             await VerifyCSharpDiagnostic(cSharpTest, new[] { Expected.WithLocation(9, 37), Expected.WithLocation(17, 38) }).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { Expected.WithLocation(7, 37), Expected.WithLocation(14, 35) }).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { Expected.WithLocation(9, 37), Expected.WithLocation(17, 35) }).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -120,7 +125,7 @@ using AFT = {Namespace}.{AntiCsrfTokenName}Attribute;
 
 namespace VulnerableApp
 {{
-    public class TestController
+    public class TestController : Controller
     {{
         [HttpPost]
         [AFT]
@@ -138,6 +143,8 @@ Imports AFT = {Namespace}.{AntiCsrfTokenName}Attribute
 
 Namespace VulnerableApp
     Public Class TestController
+        Inherits Controller
+
         <HttpPost> _
         <AFT> _
         Public Function ControllerMethod(input As String) As ActionResult
@@ -160,7 +167,7 @@ using AFT = {Namespace}.{AntiCsrfTokenName}Attribute;
 
 namespace VulnerableApp
 {{
-    public class BaseController
+    public class BaseController : Controller
     {{
         [HttpPost]
         public virtual ActionResult ControllerMethod(string input)
@@ -186,6 +193,8 @@ Imports AFT = {Namespace}.{AntiCsrfTokenName}Attribute
 
 Namespace VulnerableApp
     Public Class BaseController
+        Inherits Controller
+
         <HttpPost> _
         Public Overridable Function ControllerMethod(input As String) As ActionResult
             Return Nothing
@@ -194,6 +203,7 @@ Namespace VulnerableApp
 
     Public Class TestController
         Inherits BaseController
+
         <AFT> _
         Public Overrides Function ControllerMethod(input As String) As ActionResult
             Return Nothing
@@ -202,7 +212,7 @@ Namespace VulnerableApp
 End Namespace
 ";
             await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10, 37)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8, 37)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(10, 37)).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -215,7 +225,7 @@ using AFT = {Namespace}.{AntiCsrfTokenName}Attribute;
 
 namespace VulnerableApp
 {{
-    public class BaseController
+    public class BaseController : Controller
     {{
         [AFT]
         public virtual ActionResult ControllerMethod(string input)
@@ -241,6 +251,8 @@ Imports AFT = {Namespace}.{AntiCsrfTokenName}Attribute
 
 Namespace VulnerableApp
     Public Class BaseController
+        Inherits Controller
+
         <AFT> _
         Public Overridable Function ControllerMethod(input As String) As ActionResult
             Return Nothing
@@ -249,6 +261,7 @@ Namespace VulnerableApp
 
     Public Class TestController
         Inherits BaseController
+
         <HttpPost> _
         Public Overrides Function ControllerMethod(input As String) As ActionResult
             Return Nothing
@@ -273,7 +286,7 @@ namespace VulnerableApp
         {{
         }}
 
-    public class TestController
+    public class TestController : Controller
     {{
         [HttpPost]
         [{AntiCsrfTokenName}]
@@ -293,6 +306,8 @@ Namespace VulnerableApp
     End Class
 
     Public Class TestController
+        Inherits Controller
+
         <HttpPost> _
         <VulnerableApp.{AntiCsrfTokenName}> _
         Public Function ControllerMethod(input As String) As ActionResult
@@ -303,7 +318,7 @@ End Namespace
 ";
 
             await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(14, 29)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(12, 25)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(14, 25)).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -315,7 +330,7 @@ using {Namespace};
 
 namespace VulnerableApp
 {{
-    public class TestController
+    public class TestController : Controller
     {{
         //[HttpGet] default
         public ActionResult ControllerMethod(string input) {{
@@ -330,6 +345,8 @@ Imports {Namespace}
 
 Namespace VulnerableApp
     Public Class TestController
+        Inherits Controller
+
         <HttpGet> _
         Public Function ControllerMethod(input As String) As ActionResult
             Return Nothing
@@ -351,7 +368,7 @@ using {Namespace};
 
 namespace VulnerableApp
 {{
-    public class TestController
+    public class TestController : Controller
     {{
         [HttpPost]
         [{AllowAnonymousNamespace}.AllowAnonymous]
@@ -367,6 +384,8 @@ Imports {Namespace}
 
 Namespace VulnerableApp
     Public Class TestController
+        Inherits Controller
+
         <HttpPost> _
         <{AllowAnonymousNamespace}.AllowAnonymous> _
         Public Function ControllerMethod(input As String) As ActionResult
@@ -390,7 +409,7 @@ using {Namespace};
 namespace VulnerableApp
 {{
     [{AllowAnonymousNamespace}.AllowAnonymous]
-    public class TestController
+    public class TestController : Controller
     {{
         [HttpPost]
         public ActionResult ControllerMethod(string input) {{
@@ -406,6 +425,8 @@ Imports {Namespace}
 Namespace VulnerableApp
     <{AllowAnonymousNamespace}.AllowAnonymous> _
     Public Class TestController
+        Inherits Controller
+
         <HttpPost> _
         Public Function ControllerMethod(input As String) As ActionResult
             Return Nothing
@@ -427,7 +448,7 @@ using {Namespace};
 
 namespace VulnerableApp
 {{
-    public class TestController
+    public class TestController : Controller
     {{
         [HttpPost]
         [{AntiCsrfTokenName}]
@@ -444,6 +465,8 @@ Imports {Namespace}
 
 Namespace VulnerableApp
     Public Class TestController
+        Inherits Controller
+
         <HttpPost> _
         <{AntiCsrfTokenName}> _
         Public Function ControllerMethod(input As String) As ActionResult
@@ -467,7 +490,7 @@ using {Namespace};
 namespace VulnerableApp
 {{
     [{AntiCsrfTokenName}]
-    public class TestController
+    public class TestController : Controller
     {{
         [HttpPost]
         public ActionResult ControllerMethod(string input) {{
@@ -484,6 +507,8 @@ Imports {Namespace}
 Namespace VulnerableApp
     <{AntiCsrfTokenName}> _
     Public Class TestController
+        Inherits Controller
+
         <HttpPost> _
         Public Function ControllerMethod(input As String) As ActionResult
             Return Nothing
@@ -506,7 +531,7 @@ using {Namespace};
 namespace VulnerableApp
 {{
     [{AntiCsrfTokenName}]
-    public class BaseController
+    public class BaseController : Controller
     {{
         [HttpPost]
         public virtual ActionResult ControllerMethod(string input)
@@ -532,6 +557,8 @@ Imports {Namespace}
 Namespace VulnerableApp
     <{AntiCsrfTokenName}> _
     Public Class BaseController
+        Inherits Controller
+
         <HttpPost> _
         Public Overridable Function ControllerMethod(input As String) As ActionResult
             Return Nothing
@@ -561,7 +588,7 @@ using {Namespace};
 
 namespace VulnerableApp
 {{
-    public class TestController
+    public class TestController : Controller
     {{
         [HttpPost, {AntiCsrfTokenName}]
         public ActionResult ControllerMethod(string input) {{
@@ -576,6 +603,8 @@ Imports {Namespace}
 
 Namespace VulnerableApp
     Public Class TestController
+        Inherits Controller
+
         <HttpPost, {AntiCsrfTokenName}> _
         Public Function ControllerMethod(input As String) As ActionResult
             Return Nothing
@@ -597,7 +626,7 @@ using {Namespace};
 
 namespace VulnerableApp
 {{
-    public class BaseController
+    public class BaseController : Controller
     {{
         [HttpPost]
         public virtual void ControllerMethod(string input) {{
@@ -618,6 +647,8 @@ Imports {Namespace}
 
 Namespace VulnerableApp
     Public Class BaseController
+        Inherits Controller
+
         <HttpPost> _
         Public Overridable Sub ControllerMethod(input As String)
         End Sub
@@ -634,7 +665,7 @@ End Namespace
 ";
 
             await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(9, 29)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7, 32)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(9, 32)).ConfigureAwait(false);
         }
     }
 
@@ -718,7 +749,7 @@ End Namespace
             var cSharpTest = @"
 namespace VulnerableApp
 {
-    public class TestController
+    public class TestController : Microsoft.AspNetCore.Mvc.Controller
     {
         [Microsoft.AspNetCore.Mvc.HttpPost]
         [System.Web.Mvc.ValidateAntiForgeryToken]
@@ -733,6 +764,8 @@ namespace VulnerableApp
             var visualBasicTest = @"
 Namespace VulnerableApp
     Public Class TestController
+        Inherits Microsoft.AspNetCore.Mvc.Controller
+
         <Microsoft.AspNetCore.Mvc.HttpPost> _
         <System.Web.Mvc.ValidateAntiForgeryToken> _
         Public Function ControllerMethod(input As String) As Microsoft.AspNetCore.Mvc.ActionResult
@@ -749,7 +782,7 @@ End Namespace
             };
 
             await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(8, 54)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(6, 25)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(8, 25)).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -759,7 +792,7 @@ End Namespace
             var cSharpTest = @"
 namespace VulnerableApp
 {
-    public class TestController
+    public class TestController : System.Web.Mvc.Controller
     {
         [System.Web.Mvc.HttpPost]
         [Microsoft.AspNetCore.Mvc.ValidateAntiForgeryToken]
@@ -774,6 +807,8 @@ namespace VulnerableApp
             var visualBasicTest = @"
 Namespace VulnerableApp
     Public Class TestController
+        Inherits System.Web.Mvc.Controller
+
         <System.Web.Mvc.HttpPost> _
         <Microsoft.AspNetCore.Mvc.ValidateAntiForgeryToken> _
         Public Function ControllerMethod(input As String) As System.Web.Mvc.ActionResult
@@ -790,7 +825,7 @@ End Namespace
             };
 
             await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(8, 44)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(6, 25)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(8, 25)).ConfigureAwait(false);
         }
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
@@ -806,7 +841,8 @@ End Namespace
         {
             MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.HttpPostAttribute).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.ValidateAntiForgeryTokenAttribute).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.ValidateAntiForgeryTokenAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.Controller).Assembly.Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;

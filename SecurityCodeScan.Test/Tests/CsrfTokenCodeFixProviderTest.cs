@@ -25,7 +25,7 @@ namespace SecurityCodeScan.Test.AntiCsrf
             var before = $@"
 using {Namespace};
 
-public class TestController
+public class TestController : Controller
 {{
 
     //Test comment
@@ -39,7 +39,7 @@ public class TestController
             var after = $@"
 using {Namespace};
 
-public class TestController
+public class TestController : Controller
 {{
 
     //Test comment

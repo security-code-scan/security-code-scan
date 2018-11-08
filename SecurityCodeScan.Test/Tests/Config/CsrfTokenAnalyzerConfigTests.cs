@@ -20,6 +20,7 @@ namespace SecurityCodeScan.Test.Config
         {
             MetadataReference.CreateFromFile(typeof(System.Web.Mvc.HttpPostAttribute).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.HttpPostAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.Controller).Assembly.Location),
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
@@ -39,7 +40,7 @@ namespace VulnerableApp
     {
     }
 
-    public class TestController
+    public class TestController : Controller
     {
         [HttpPost]
         [TestAttribute]
@@ -62,6 +63,8 @@ Namespace VulnerableApp
     End Class
 
     Public Class TestController
+        Inherits Controller
+
         <HttpPost>
         <TestAttribute>
         Public Function ControllerMethod(input As String) As ActionResult
@@ -78,7 +81,7 @@ End Namespace
             };
 
             await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(16, 29)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(14, 25)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(16, 25)).ConfigureAwait(false);
 
             var testConfig = @"
 CsrfProtectionAttributes:
@@ -107,7 +110,7 @@ namespace VulnerableApp
     {
     }
 
-    public class TestController
+    public class TestController : Controller
     {
         [HttpPost]
         [TestAttribute]
@@ -119,7 +122,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = $@"
+            var visualBasicTest = @"
 Imports System
 Imports Microsoft.AspNetCore.Mvc
 
@@ -130,6 +133,8 @@ Namespace VulnerableApp
     End Class
 
     Public Class TestController
+        Inherits Controller
+
         <HttpPost>
         <TestAttribute>
         Public Function ControllerMethod(input As String) As ActionResult
@@ -146,7 +151,7 @@ End Namespace
             };
 
             await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(16, 29)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(14, 25)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(16, 25)).ConfigureAwait(false);
 
             var testConfig = @"
 CsrfProtectionAttributes:

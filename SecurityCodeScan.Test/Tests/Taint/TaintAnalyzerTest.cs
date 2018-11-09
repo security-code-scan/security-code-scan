@@ -31,7 +31,7 @@ namespace SecurityCodeScan.Test.Taint
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task MethodMemberAccessWithVb()
         {
@@ -51,7 +51,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task Return()
         {
@@ -82,7 +82,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task VariableLocalForEach()
         {
@@ -136,7 +136,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task VariablePropertyNoBody()
         {
@@ -337,7 +337,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task VariableTransferSimple()
         {
@@ -381,7 +381,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task VariableConcatenationLocal()
         {
@@ -481,7 +481,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task VariableConcatenationFieldReadonlyBackReference()
         {
@@ -515,7 +515,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task VariableConcatenationPropertyReadonlyBackReference()
         {
@@ -559,7 +559,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataRow("\"\"", "stringConst")]
         [DataRow("\"\"", "MyFoo.stringConst")]
         [DataRow("\"\"", "sample.MyFoo.stringConst")]
@@ -728,7 +728,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataRow("\"\"",                      "stringConst")]
         [DataRow("\"\"",                      "MyFoo.stringConst")]
         [DataRow("\"\"",                      "sample.MyFoo.stringConst")]
@@ -791,7 +791,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataRow("\"\"", "stringConst")]
         [DataRow("\"\"", "MyFoo.stringConst")]
         [DataRow("\"\"", "sample.MyFoo.stringConst")]
@@ -1085,7 +1085,7 @@ namespace sample
             await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataRow("\"\"",                      "stringConst")]
         [DataRow("\"\"",                      "MyFoo.stringConst")]
         [DataRow("\"\"",                      "sample.MyFoo.stringConst")]
@@ -1121,7 +1121,7 @@ namespace sample
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataRow("\"\"",                      "stringConst")]
         [DataRow("\"\"",                      "MyFoo.stringConst")]
         [DataRow("\"\"",                      "sample.MyFoo.stringConst")]
@@ -1160,7 +1160,7 @@ namespace sample
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task VariableTransferWithConcatenation()
         {

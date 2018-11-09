@@ -17,7 +17,7 @@ namespace SecurityCodeScan.Test.Taint
             return new DiagnosticAnalyzer[] { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic(), };
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task CommandInjectionFalsePositive()
         {
@@ -53,7 +53,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task CommandInjectionFalsePositive_Filename()
         {
@@ -90,7 +90,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task CommandInjectionFalsePositive_GetEnvironment()
         {
@@ -131,7 +131,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task CommandInjectionFalsePositive_ProcessStartInfo()
         {

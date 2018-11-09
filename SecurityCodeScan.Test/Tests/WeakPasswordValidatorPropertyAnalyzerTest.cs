@@ -36,7 +36,7 @@ namespace SecurityCodeScan.Test
         /// <summary>
         /// Test case where the RequiredLength field has an accepted value.
         /// </summary>
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task PasswordValidatorDeclarationOK()
         {
@@ -225,7 +225,7 @@ End Namespace
         /// Test case where the RequiredLength field's value is set by a variable.
         /// However the value of the variable is not tested.
         /// </summary>
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task PasswordValidatorDeclarationWithVariable()
         {
@@ -287,7 +287,7 @@ End Namespace
         /// <summary>
         /// Test case where some properties are set outside of the constructor
         /// </summary>
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task PasswordValidatorOutOfDeclarationOK()
         {
@@ -516,7 +516,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task PasswordValidatorDeclarationReAssignOK()
         {
@@ -651,7 +651,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task PasswordValidatorDeclarationReAssignRequiredLenght()
         {
@@ -710,7 +710,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task PasswordValidatorAssignUnknownValue()
         {
@@ -765,7 +765,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task IgnorePasswordValidatorDeclarationFromOtherNamespace()
         {

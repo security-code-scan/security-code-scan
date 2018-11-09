@@ -48,7 +48,7 @@ namespace SecurityCodeScan.Test
                                                                    && d.GetMessage(null) == expected.Message)), Times.Once);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataRow("<%@page validateRequest=\"true\"")]
         [DataRow("<%@page VAlidateRequest=\"  TRue  \"")]
         [TestMethod]

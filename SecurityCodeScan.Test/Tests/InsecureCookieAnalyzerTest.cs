@@ -106,7 +106,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest3, Expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task CookieWithFlags()
         {
@@ -184,7 +184,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task CookieWithFlagsInLine()
         {
@@ -309,7 +309,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected08).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task CookieWithUnknownFlags()
         {
@@ -348,7 +348,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task IgnoreCookieFromOtherNamespace()
         {

@@ -51,7 +51,7 @@ namespace SecurityCodeScan.Test.Taint
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task BinaryFormatterDeepCloneNoWarning()
         {

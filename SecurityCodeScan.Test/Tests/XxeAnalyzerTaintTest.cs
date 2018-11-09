@@ -15,7 +15,7 @@ namespace SecurityCodeScan.Test.XXE
             return new DiagnosticAnalyzer[] { new XxeDiagnosticAnalyzerCSharp(), new XxeDiagnosticAnalyzerVisualBasic(), new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic(), };
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         [Ignore] // todo: taint transfer is not implemented
         public async Task XmlDocumentLoadTaint()
@@ -52,7 +52,7 @@ End Class
 
         // although the input is untrusted
         // there is not xxe or path injection
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task StringReader()
         {

@@ -201,7 +201,7 @@ End Class
         [DataRow("WriteAllText(\"c:\\aaa.txt\", \"\")")]
         [DataRow("File.WriteAllText(\"c:\\aaa.txt\", \"\", encoding)")]
         [DataRow("WriteAllText(\"c:\\aaa.txt\", \"\", encoding)")]
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataTestMethod]
         public async Task PathTraversalMethodsConst(string sink)
         {
@@ -358,7 +358,7 @@ End Class
         [DataRow("FileStream(\"\", FileMode.CreateNew, FileAccess.Read,         FileShare.Read, digit, flag)")]
         [DataRow("FileStream(\"\", FileMode.CreateNew, FileAccess.Read,         FileShare.Read, digit, FileOptions.None)")]
         [DataRow("FileStream(\"\", FileMode.CreateNew, FileSystemRights.Read,   FileShare.Read, digit, FileOptions.None, default(FileSecurity))")]
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataTestMethod]
         public async Task PathTraversalNewObjectConst(string sink)
         {
@@ -415,7 +415,7 @@ End Class
         [DataRow("XmlReader.Create(default(TextReader), settings, default(string))")]
         [DataRow("XmlReader.Create(default(TextReader), settings, default(XmlParserContext))")]
         [DataRow("XmlReader.Create(default(XmlReader), settings)")]
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataTestMethod]
         public async Task PathTraversalXmlReaderConst(string sink)
         {

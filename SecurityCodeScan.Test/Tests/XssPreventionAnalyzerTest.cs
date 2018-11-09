@@ -90,32 +90,34 @@ End Class
         }
 
         [TestCategory("Detect")]
-        [TestMethod]
-        public async Task UnencodedInputDataSystemWebMvc()
+        [DataTestMethod]
+        [DataRow("System.Web.Mvc",                       "HttpGet")]
+        [DataRow("HG = System.Web.Mvc.HttpGetAttribute", "HG")]
+        public async Task UnencodedInputDataSystemWebMvc(string alias, string attributeName)
         {
-            const string cSharpTest = @"
-using System.Web.Mvc;
+            string cSharpTest = $@"
+using {alias};
 
 namespace VulnerableApp
-{
-    public class TestController : Controller
-    {
-        [HttpGet]
+{{
+    public class TestController : System.Web.Mvc.Controller
+    {{
+        [{attributeName}]
         public string Get(int sensibleData)
-        {
+        {{
             return ""value "" + sensibleData;
-        }
-    }
-}
+        }}
+    }}
+}}
             ";
 
-            const string visualBasicTest = @"
-Imports System.Web.Mvc
+            string visualBasicTest = $@"
+Imports {alias}
 
 Namespace VulnerableApp
     Public Class TestController
-        Inherits Controller
-        <HttpGet> _
+        Inherits System.Web.Mvc.Controller
+        <{attributeName}> _
         Public Function [Get](sensibleData As Integer) As String
             Return ""value "" & sensibleData.ToString()
         End Function
@@ -211,7 +213,7 @@ End Namespace
 
         #region Tests that are not producing diagnostics
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task BaseNotController()
         {
@@ -256,7 +258,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task NoSymbolReturnType()
         {
@@ -300,7 +302,7 @@ End Namespace
                                                         }).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task Void()
         {
@@ -338,7 +340,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, new DiagnosticResult { Id = "BC42105" }).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task EncodedSensibleDataWithTemporaryVariable()
         {
@@ -380,7 +382,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task EncodedSensibleDataOnReturn()
         {
@@ -420,7 +422,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task ReturnEncodedData()
         {
@@ -460,7 +462,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task EncodedDataWithSameVariableUsage()
         {
@@ -502,7 +504,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task MethodWithOtherReturningTypeThanString()
         {
@@ -544,7 +546,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task PrivateMethod()
         {

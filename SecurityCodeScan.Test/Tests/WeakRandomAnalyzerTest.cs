@@ -17,7 +17,7 @@ namespace SecurityCodeScan.Test
             return new DiagnosticAnalyzer[] { new WeakRandomAnalyzerCSharp(), new WeakRandomAnalyzerVisualBasic() };
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task RandomFalsePositive()
         {

@@ -18,7 +18,7 @@ namespace SecurityCodeScan.Test.Password
             return new DiagnosticAnalyzer[] { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic(), new UnknownPasswordApiAnalyzerCSharp(), new UnknownPasswordApiAnalyzerVisualBasic() };
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataRow("null")]
         [DataRow("String.Empty")]
         [DataRow("\"\"")]

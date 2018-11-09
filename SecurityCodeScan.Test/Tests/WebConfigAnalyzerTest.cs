@@ -45,7 +45,7 @@ namespace SecurityCodeScan.Test
                                                                    && d.GetMessage(null) == expected.Message)));
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataRow("<pages validateRequest=\"true\"></pages>")]
         [DataRow("<pages validateRequest=\" True \"></pages>")]
         [DataRow("<pages></pages>")]
@@ -100,7 +100,7 @@ namespace SecurityCodeScan.Test
                                                                    && d.GetMessage(null) == expected.Message)));
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataRow("<httpRuntime requestValidationMode=\"4.0\"></httpRuntime>")]
         [DataRow("<httpRuntime requestValidationMode=\"4.5\"></httpRuntime>")]
         [DataRow("<httpRuntime></httpRuntime>")]
@@ -173,7 +173,7 @@ namespace SecurityCodeScan.Test
                                                                    && d.GetMessage(null) == expected2.Message)), Times.Once);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataRow("<httpRuntime requestValidationMode=\"4.0\"></httpRuntime>")]
         [DataRow("<httpRuntime requestValidationMode=\"4.5\"></httpRuntime>")]
         [DataRow("<httpRuntime></httpRuntime>")]
@@ -229,7 +229,7 @@ namespace SecurityCodeScan.Test
                                                                    && d.GetMessage(null) == expected.Message)), Times.Once);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataRow("<pages enableEventValidation=\"true\"></pages>")]
         [DataRow("<pages enableEventValidation=\" True \"></pages>")]
         [DataRow("<pages></pages>")]
@@ -305,7 +305,7 @@ namespace SecurityCodeScan.Test
                                                                    && d.GetMessage(null) == expected.Message)), Times.Once);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataRow("<pages viewStateEncryptionMode=\"Always\"></pages>")]
         [DataRow("<pages viewStateEncryptionMode=\"always\"></pages>")]
         [TestMethod]
@@ -358,7 +358,7 @@ namespace SecurityCodeScan.Test
                                                                    && d.GetMessage(null) == expected.Message)), Times.Once);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataRow("<pages enableViewStateMac=\"true\"></pages>")]
         [DataRow("<pages enableViewStateMac=\" True \"></pages>")]
         [DataRow("<pages></pages>")]

@@ -39,16 +39,20 @@ namespace SecurityCodeScan.Analyzers
                 $"{nameSpace}.HttpPatchAttribute",
             };
 
-            AnonymousAttribute   = $"{allowAnonymousNamespace}.AllowAnonymousAttribute";
+            AnonymousAttribute = $"{allowAnonymousNamespace}.AllowAnonymousAttribute";
+            NonActionAttribute = $"{nameSpace}.NonActionAttribute";
+            Controller         = $"{nameSpace}.Controller";
         }
 
+        private readonly string       Controller;
+        private readonly string       NonActionAttribute;
         private readonly string       Namespace;
         private readonly string       AnonymousAttribute;
         private readonly List<string> MethodsHttp;
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSymbolAction(VisitMethods, SymbolKind.Method);
+            context.RegisterSymbolAction(VisitClass, SymbolKind.NamedType);
         }
 
         private bool HasAntiForgeryToken(AttributeData attributeData, string antiForgeryAttribute)
@@ -61,32 +65,48 @@ namespace SecurityCodeScan.Analyzers
             return attributeData.AttributeClass.ToString() == AnonymousAttribute;
         }
 
-        private void VisitMethods(SymbolAnalysisContext ctx)
+        private void VisitClass(SymbolAnalysisContext ctx)
         {
-            var symbol = (IMethodSymbol)ctx.Symbol;
-
-            if (!symbol.HasDerivedMethodAttribute(attributeData =>
-                                                      MethodsHttp.Contains(attributeData.AttributeClass.ToString())))
+            var classSymbol = (ITypeSymbol)ctx.Symbol;
+            if (!classSymbol.IsDerivedFrom(Controller))
                 return;
 
-            if (symbol.HasDerivedMethodAttribute(HasAnonymousAttribute) ||
-                symbol.ReceiverType.HasDerivedClassAttribute(HasAnonymousAttribute))
-                return;
-
-            var antiforgeryAttributeExists = false;
             var antiForgeryAttributes = ConfigurationManager.Instance.GetAntiCsrfAttributes(ctx.Options.AdditionalFiles, Namespace);
+
+            foreach (var member in classSymbol.GetMembers())
+            {
+                if (!(member is IMethodSymbol methodSymbol))
+                    continue;
+
+                if (!methodSymbol.HasDerivedMethodAttribute(attributeData =>
+                                                                MethodsHttp.Contains(attributeData.AttributeClass.ToString())))
+                    continue;
+
+                if (methodSymbol.HasDerivedMethodAttribute(attributeData => attributeData.AttributeClass.ToString() == NonActionAttribute))
+                    continue;
+
+                if (methodSymbol.HasDerivedMethodAttribute(HasAnonymousAttribute) ||
+                    methodSymbol.ReceiverType.HasDerivedClassAttribute(HasAnonymousAttribute))
+                    continue;
+
+                if (!AntiforgeryAttributeExists(methodSymbol, antiForgeryAttributes))
+                    ctx.ReportDiagnostic(Diagnostic.Create(Rule, methodSymbol.Locations[0]));
+            }
+        }
+
+        private bool AntiforgeryAttributeExists(IMethodSymbol methodSymbol, IEnumerable<string> antiForgeryAttributes)
+        {
             foreach (var antiForgeryAttribute in antiForgeryAttributes)
             {
-                if (symbol.ReceiverType.HasDerivedClassAttribute(attributeData => HasAntiForgeryToken(attributeData, antiForgeryAttribute)) ||
-                    symbol.HasDerivedMethodAttribute(attributeData => HasAntiForgeryToken(attributeData, antiForgeryAttribute)))
+                if (methodSymbol.ReceiverType.HasDerivedClassAttribute(attributeData =>
+                                                                           HasAntiForgeryToken(attributeData, antiForgeryAttribute)) ||
+                    methodSymbol.HasDerivedMethodAttribute(attributeData => HasAntiForgeryToken(attributeData, antiForgeryAttribute)))
                 {
-                    antiforgeryAttributeExists = true;
-                    break;
+                    return true;
                 }
             }
 
-            if (!antiforgeryAttributeExists)
-                ctx.ReportDiagnostic(Diagnostic.Create(Rule, symbol.Locations[0]));
+            return false;
         }
     }
 }

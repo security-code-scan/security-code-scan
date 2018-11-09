@@ -195,7 +195,7 @@ class PathTraversal
             await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task TransferSqlInitializerSafe()
         {
@@ -292,7 +292,7 @@ End Namespace
                 .ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task TransferPathInitializerSafe()
         {
@@ -348,7 +348,7 @@ End Class
         [DataRow("File.OpenRead(Path.InvalidPathChars.ToString())")]
         [DataRow("File.OpenRead(Path.PathSeparator.ToString())")]
         [DataRow("File.OpenRead(Path.VolumeSeparatorChar.ToString())")]
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataTestMethod]
         public async Task TransferPathSafe(string method)
         {
@@ -418,7 +418,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task TransferStringConstructorSafe()
         {
@@ -540,7 +540,7 @@ End Class
             await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task TransferStringInterpolatedSafe()
         {
@@ -604,7 +604,7 @@ class SqlTransferTesting
             await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataTestMethod]
         [DataRow("String[]", "")]
         [DataRow("String[]", ", 0, 2")]
@@ -653,7 +653,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Ignore")]
+        [TestCategory("Safe")]
         [DataTestMethod]
         [DataRow("string", false)]
         [DataRow("object", true)]

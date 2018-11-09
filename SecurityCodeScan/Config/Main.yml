@@ -1344,7 +1344,7 @@ Sinks:
     InjectableArguments: [0]
     Locale: SCS0031
 
-	DirectoryEntry_Path:
+  DirectoryEntry_Path:
     Namespace: System.DirectoryServices
     ClassName: DirectoryEntry
     Member: field

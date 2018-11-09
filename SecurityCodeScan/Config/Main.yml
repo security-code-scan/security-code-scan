@@ -1317,6 +1317,41 @@ Sinks:
     InjectableField: true
     Locale: SCS0031
 
+  DirectoryEntry_constructor_0:
+    Namespace: System.DirectoryServices
+    ClassName: DirectoryEntry
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String)
+    InjectableArguments: [0]
+    Locale: SCS0031
+
+  DirectoryEntry_constructor_1:
+    Namespace: System.DirectoryServices
+    ClassName: DirectoryEntry
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.String, System.String)
+    InjectableArguments: [0]
+    Locale: SCS0031
+
+  DirectoryEntry_constructor_2:
+    Namespace: System.DirectoryServices
+    ClassName: DirectoryEntry
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.String, System.String, System.DirectoryServices.AuthenticationTypes)
+    InjectableArguments: [0]
+    Locale: SCS0031
+
+	DirectoryEntry_Path:
+    Namespace: System.DirectoryServices
+    ClassName: DirectoryEntry
+    Member: field
+    Name: Path
+    InjectableField: true
+    Locale: SCS0031
+
   # Open Redirects
 
   System.Web.HttpResponse_Redirect_string:

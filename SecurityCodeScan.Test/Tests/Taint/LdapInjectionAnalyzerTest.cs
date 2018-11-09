@@ -25,33 +25,30 @@ namespace SecurityCodeScan.Test.Taint
 
         [DataRow("new DirectorySearcher(input)", true)]
         [DataRow("new DirectorySearcher(\"constant\")", false)]
-        
-        [DataRow("new DirectorySearcher(input, propertiesToLoad)", true)]
         [DataRow("new DirectorySearcher(input, null)", true)]
         [DataRow("new DirectorySearcher(\"constant\", propertiesToLoad)", true)]
         [DataRow("new DirectorySearcher(\"constant\", null)", false)]
-        
         [DataRow("new DirectorySearcher(entry, input)", true)]
         [DataRow("new DirectorySearcher(entry, \"constant\")", false)]
-
-        [DataRow("new DirectorySearcher(entry, input, propertiesToLoad)", true)]
         [DataRow("new DirectorySearcher(entry, input, null)", true)]
         [DataRow("new DirectorySearcher(entry, \"constant\", propertiesToLoad)", true)]
         [DataRow("new DirectorySearcher(entry, \"constant\", null)", false)]
-        
-        [DataRow("new DirectorySearcher(input, propertiesToLoad, scope)", true)]
-        [DataRow("new DirectorySearcher(input, null, scope)", true)]
+		[DataRow("new DirectorySearcher(input, null, scope)", true)]
         [DataRow("new DirectorySearcher(\"constant\", propertiesToLoad, scope)", true)]
         [DataRow("new DirectorySearcher(\"constant\", null, scope)", false)]
-
-        [DataRow("new DirectorySearcher(entry, input, propertiesToLoad, scope)", true)]
         [DataRow("new DirectorySearcher(entry, input, null, scope)", true)]
         [DataRow("new DirectorySearcher(entry, \"constant\", propertiesToLoad, scope)", true)]
         [DataRow("new DirectorySearcher(entry, \"constant\", null, scope)", false)]
-        
         [DataRow("new DirectorySearcher(); temp.Filter = input", true)]
         [DataRow("new DirectorySearcher(); temp.Filter = \"constant\"", false)]
-
+        [DataRow("new DirectoryEntry(input)", true)]
+        [DataRow("new DirectoryEntry(\"constant\")", false)]
+        [DataRow("new DirectoryEntry(input, \"\", \"\")", true)]
+        [DataRow("new DirectoryEntry(\"constant\", \"\", \"\")", false)]
+        [DataRow("new DirectoryEntry(input, \"\", \"\", AuthenticationTypes.None)", true)]
+        [DataRow("new DirectoryEntry(\"constant\", \"username\", \"password\", AuthenticationTypes.None)", false)]
+        [DataRow("new DirectoryEntry(); temp.Path = input", true)]
+        [DataRow("new DirectoryEntry(); temp.Path = \"constant\"", false)]
         [DataTestMethod]
         public async Task LdapInjection(string sink, bool warn)
         {
@@ -71,12 +68,9 @@ namespace sample
     }}
 }}
 ";
-
             sink = sink.Replace("null", "Nothing")
                 .Replace(";", "\r\n")
-                .Replace("var ", "Dim ")
-                .Replace("new ", "New ")
-                .Replace("<Object>", "(Of Object)");
+                .Replace("new ", "New ");
 
             var visualBasicTest = $@"
 #Disable Warning BC50001

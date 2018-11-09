@@ -10,7 +10,7 @@ using SecurityCodeScan.Test.Helpers;
 namespace SecurityCodeScan.Test.Config
 {
     [TestClass]
-    public class UnknownPasswordApiAnalyzerConfigTest : ConfigurationTest
+    public class UnknownPasswordApiAnalyzerConfigTest : DiagnosticVerifier
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
@@ -58,7 +58,7 @@ End Namespace
 PasswordFields: [TestPassword]
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0015",
@@ -71,7 +71,7 @@ PasswordFields: [TestPassword]
 PasswordFields: [TeStPassWORD]
 ";
 
-            optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }

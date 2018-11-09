@@ -16,9 +16,9 @@ namespace SecurityCodeScan.Test.AntiCsrf
 
         protected abstract string AntiCsrfTokenName { get; }
 
-        private DiagnosticResult Expected = new DiagnosticResult
+        protected DiagnosticResult Expected = new DiagnosticResult
         {
-            Id = CsrfTokenAnalyzer.DiagnosticId,
+            Id = CsrfTokenDiagnosticAnalyzer.DiagnosticId,
             Severity = DiagnosticSeverity.Warning
         };
 
@@ -687,12 +687,14 @@ End Namespace
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new[] { new MvcCsrfTokenAnalyzer() };
+            if (language == LanguageNames.CSharp)
+                return new DiagnosticAnalyzer[] { new MvcCsrfTokenAnalyzerCSharp() };
+            else
+                return new DiagnosticAnalyzer[] { new MvcCsrfTokenAnalyzerVBasic() };
         }
     }
 
-    [TestClass]
-    public class CoreCsrfTokenAnalyzerTest : CsrfTokenAnalyzerTest
+    public class CoreCsrfTokenAnalyzerBaseTest : CsrfTokenAnalyzerTest
     {
         protected override string Namespace => "Microsoft.AspNetCore.Mvc";
 
@@ -711,7 +713,259 @@ End Namespace
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new[] { new CoreCsrfTokenAnalyzer() };
+            if (language == LanguageNames.CSharp)
+                return new DiagnosticAnalyzer[] { new CoreCsrfTokenAnalyzerCSharp() };
+            else
+                return new DiagnosticAnalyzer[] { new CoreCsrfTokenAnalyzerVBasic() };
+        }
+    }
+
+    [TestClass]
+    public class CoreCsrfTokenAnalyzerTest : CoreCsrfTokenAnalyzerBaseTest
+    {
+        private const string ExpectedMessage = "Controller method is vulnerable to CSRF";
+
+        [TestMethod]
+        public async Task CsrfValidateAntiForgeryTokenFromBody()
+        {
+            var cSharpTest = $@"
+using {Namespace};
+
+namespace VulnerableApp
+{{
+    public class TestController : Controller
+    {{
+        [HttpPost]
+        public virtual void ControllerMethod([FromBody]string input) {{
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports {Namespace}
+
+Namespace VulnerableApp
+    Public Class TestController
+        Inherits Controller
+
+        <HttpPost> _
+        Public Overridable Sub ControllerMethod(<FromBody> input As String)
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task CsrfValidateAntiForgeryTokenIgnoreOnBaseClass()
+        {
+            var cSharpTest = $@"
+using {Namespace};
+
+namespace VulnerableApp
+{{
+    [IgnoreAntiforgeryTokenAttribute]
+    public class BaseController : Controller
+    {{
+        [HttpPost]
+        public virtual void ControllerMethod(string input) {{
+        }}
+    }}
+
+    public class TestController : BaseController
+    {{
+        [HttpPost]
+        public override void ControllerMethod(string input) {{
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports {Namespace}
+
+Namespace VulnerableApp
+    <IgnoreAntiforgeryTokenAttribute> _
+    Public Class BaseController
+        Inherits Controller
+
+        <HttpPost> _
+        Public Overridable Sub ControllerMethod(input As String)
+        End Sub
+    End Class
+
+    Public Class TestController
+        Inherits BaseController
+
+        <HttpPost> _
+        Public Overrides Sub ControllerMethod(input As String)
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task CsrfValidateAntiForgeryTokenIgnoreOnClass()
+        {
+            var cSharpTest = $@"
+using {Namespace};
+
+namespace VulnerableApp
+{{
+    public class BaseController : Controller
+    {{
+        [HttpPost]
+        public virtual void ControllerMethod(string input) {{
+        }}
+    }}
+
+    [IgnoreAntiforgeryTokenAttribute]
+    public class TestController : BaseController
+    {{
+        [HttpPost]
+        public override void ControllerMethod(string input) {{
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports {Namespace}
+
+Namespace VulnerableApp
+    Public Class BaseController
+        Inherits Controller
+
+        <HttpPost> _
+        Public Overridable Sub ControllerMethod(input As String)
+        End Sub
+    End Class
+
+    <IgnoreAntiforgeryTokenAttribute> _
+    Public Class TestController
+        Inherits BaseController
+
+        <HttpPost> _
+        Public Overrides Sub ControllerMethod(input As String)
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(9, 29).WithMessage(ExpectedMessage)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(9, 32).WithMessage(ExpectedMessage)).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task CsrfValidateAntiForgeryTokenIgnoreOnBaseMethod()
+        {
+            var cSharpTest = $@"
+using {Namespace};
+
+namespace VulnerableApp
+{{
+    public class BaseController : Controller
+    {{
+        [HttpPost]
+        [IgnoreAntiforgeryTokenAttribute]
+        public virtual void ControllerMethod(string input) {{
+        }}
+    }}
+
+    public class TestController : BaseController
+    {{
+        [HttpPost]
+        public override void ControllerMethod(string input) {{
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports {Namespace}
+
+Namespace VulnerableApp
+    Public Class BaseController
+        Inherits Controller
+
+        <HttpPost> _
+        <IgnoreAntiforgeryTokenAttribute> _
+        Public Overridable Sub ControllerMethod(input As String)
+        End Sub
+    End Class
+
+    Public Class TestController
+        Inherits BaseController
+
+        <HttpPost> _
+        Public Overrides Sub ControllerMethod(input As String)
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task CsrfValidateAntiForgeryTokenIgnoreOnMethod()
+        {
+            var cSharpTest = $@"
+using {Namespace};
+
+namespace VulnerableApp
+{{
+    public class BaseController : Controller
+    {{
+        [HttpPost]
+        public virtual void ControllerMethod(string input) {{
+        }}
+    }}
+
+    public class TestController : BaseController
+    {{
+        [HttpPost]
+        [IgnoreAntiforgeryTokenAttribute]
+        public override void ControllerMethod(string input) {{
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports {Namespace}
+
+Namespace VulnerableApp
+    Public Class BaseController
+        Inherits Controller
+
+        <HttpPost> _
+        Public Overridable Sub ControllerMethod(input As String)
+        End Sub
+    End Class
+
+    Public Class TestController
+        Inherits BaseController
+
+        <HttpPost> _
+        <IgnoreAntiforgeryTokenAttribute> _
+        Public Overrides Sub ControllerMethod(input As String)
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(9, 29).WithMessage(ExpectedMessage)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(9, 32).WithMessage(ExpectedMessage)).ConfigureAwait(false);
         }
     }
 
@@ -735,7 +989,10 @@ End Namespace
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new[] { new CoreCsrfTokenAnalyzer() };
+            if (language == LanguageNames.CSharp)
+                return new DiagnosticAnalyzer[] { new CoreCsrfTokenAnalyzerCSharp() };
+            else
+                return new DiagnosticAnalyzer[] { new CoreCsrfTokenAnalyzerVBasic() };
         }
     }
 
@@ -777,7 +1034,7 @@ End Namespace
 
             var expected = new DiagnosticResult
             {
-                Id       = CsrfTokenAnalyzer.DiagnosticId,
+                Id       = CsrfTokenDiagnosticAnalyzer.DiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -820,7 +1077,7 @@ End Namespace
 
             var expected = new DiagnosticResult
             {
-                Id       = CsrfTokenAnalyzer.DiagnosticId,
+                Id       = CsrfTokenDiagnosticAnalyzer.DiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -830,11 +1087,10 @@ End Namespace
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new CsrfTokenAnalyzer[]
-            {
-                new CoreCsrfTokenAnalyzer(),
-                new MvcCsrfTokenAnalyzer()
-            };
+            if (language == LanguageNames.CSharp)
+                return new DiagnosticAnalyzer[] { new CoreCsrfTokenAnalyzerCSharp(), new MvcCsrfTokenAnalyzerCSharp() };
+            else
+                return new DiagnosticAnalyzer[] { new CoreCsrfTokenAnalyzerVBasic(), new MvcCsrfTokenAnalyzerVBasic() };
         }
 
         private static readonly PortableExecutableReference[] References =

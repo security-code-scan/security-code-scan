@@ -10,7 +10,7 @@ using SecurityCodeScan.Test.Helpers;
 namespace SecurityCodeScan.Test.Audit
 {
     [TestClass]
-    public class WeakHashingAnalyzerAuditTest : ConfigurationTest
+    public class WeakHashingAnalyzerAuditTest : DiagnosticVerifier
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
@@ -55,7 +55,7 @@ End Class
 AuditMode: {auditMode}
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest,
                                          auditMode ? new [] {expected} : null,

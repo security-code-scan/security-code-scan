@@ -2,16 +2,16 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Config;
+using SecurityCodeScan.Test.Helpers;
 
 namespace SecurityCodeScan.Test.Config
 {
     [TestClass]
-    public class ConfigTest : ConfigurationTest
+    public class ConfigTest : DiagnosticVerifier
     {
         public ConfigTest()
         {
@@ -30,7 +30,7 @@ namespace SecurityCodeScan.Test.Config
         [TestMethod]
         public void EmptyUserConfig_NoChanges()
         {
-            var options   = CreateAnalyzersOptionsWithConfig("");
+            var options   = ConfigurationTest.CreateAnalyzersOptionsWithConfig("");
             var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
 
             //ensuring that field count matches count of properties tested below (test should fail and be updated if someone adds new field in Configuration)
@@ -50,7 +50,7 @@ namespace SecurityCodeScan.Test.Config
         [TestMethod]
         public void MergingUserConfig_NoChanges()
         {
-            var options   = CreateAnalyzersOptionsWithConfig("Sinks:");
+            var options   = ConfigurationTest.CreateAnalyzersOptionsWithConfig("Sinks:");
             var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
 
             // ensuring that field count matches count of properties tested below
@@ -70,7 +70,7 @@ namespace SecurityCodeScan.Test.Config
         [TestMethod]
         public void DifferentConfigVersion_ChangesIgnored()
         {
-            var options   = CreateAnalyzersOptionsWithConfig("MinimumPasswordValidatorProperties: 0", new Version(1,2));
+            var options   = ConfigurationTest.CreateAnalyzersOptionsWithConfig("MinimumPasswordValidatorProperties: 0", new Version(1,2));
             var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
 
             Assert.AreNotEqual(StartupConfiguration.MinimumPasswordValidatorProperties, 0);

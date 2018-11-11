@@ -1,8 +1,8 @@
 ﻿Sinks:
 
-  #Path traversal
+# Path traversal
 
-  #File API
+ # File API
 
   File_AppendAllLines:
     Namespace: System.IO
@@ -68,7 +68,7 @@
     InjectableArguments: [0, 1]
     Locale: SCS0018
 
-  #XmlReader
+ # XmlReader
 
   XmlReader_Create_uri:
     Namespace: System.Xml

@@ -18,56 +18,47 @@ namespace SecurityCodeScan.Test.Taint
 
         private static readonly PortableExecutableReference[] References =
         {
-            MetadataReference.CreateFromFile(typeof(System.Data.SQLite.SQLiteCommand).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(System.Data.SQLite.SQLiteCommand).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.Data.Sqlite.SqliteCommand).Assembly.Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [TestCategory("Detect")]
         [DataTestMethod]
-        [DataRow("SQLiteCommand", "new SQLiteCommand { CommandText = sql }", true)]
-        [DataRow("DbCommand",     "new SQLiteCommand { CommandText = sql }", true)]
-        [DataRow("IDbCommand",    "new SQLiteCommand { CommandText = sql }", true)]
-        [DataRow("SQLiteCommand", "new SQLiteCommand(); sqlCommand.CommandText = sql", true)]
-        [DataRow("DbCommand",     "new SQLiteCommand(); sqlCommand.CommandText = sql", true)]
-        [DataRow("IDbCommand",    "new SQLiteCommand(); sqlCommand.CommandText = sql", true)]
-        [DataRow("SQLiteCommand", "Create(); sqlCommand.CommandText = sql", true)]
+        [DataRow("SqliteCommand", "Microsoft.Data.Sqlite")]
+        [DataRow("SQLiteCommand", "System.Data.SQLite")]
+        [DataRow("SqlCommand",    "System.Data.SqlClient")]
+        public async Task SqlInjectionCommandText(string type, string ns)
+        {
+            var options = new[]
+            {
+                new { value = "sql", warn        = true },
+                new { value = "\"select\"", warn = false },
+            };
 
-        [DataRow("SqlCommand",    "new SqlCommand { CommandText = sql }", true)]
-        [DataRow("DbCommand",     "new SqlCommand { CommandText = sql }", true)]
-        [DataRow("IDbCommand",    "new SqlCommand { CommandText = sql }", true)]
-        [DataRow("SqlCommand",    "new SqlCommand(); sqlCommand.CommandText = sql", true)]
-        [DataRow("DbCommand",     "new SqlCommand(); sqlCommand.CommandText = sql", true)]
-        [DataRow("IDbCommand",    "new SqlCommand(); sqlCommand.CommandText = sql", true)]
-        [DataRow("SqlCommand",    "Create(); sqlCommand.CommandText = sql", true)]
-        [DataRow("DbCommand",     "Create(); sqlCommand.CommandText = sql", true)]
-        [DataRow("IDbCommand",    "Create(); sqlCommand.CommandText = sql", true)]
+            foreach (var option in options)
+            {
+                foreach (var row in new[] { type, "DbCommand", "IDbCommand" })
+                {
+                    await CommandTextUnsafeCSharpWorker(row, $"new {type} {{ CommandText = {option.value} }}",         option.warn, ns);
+                    await CommandTextUnsafeCSharpWorker(row, $"new {type}(); sqlCommand.CommandText = {option.value}", option.warn, ns);
+                    await CommandTextUnsafeCSharpWorker(row, $"Create(); sqlCommand.CommandText = {option.value}",     option.warn, ns);
 
-        [DataRow("SQLiteCommand", "new SQLiteCommand { CommandText = \"select\" }",           false)]
-        [DataRow("DbCommand",     "new SQLiteCommand { CommandText = \"select\" }",           false)]
-        [DataRow("IDbCommand",    "new SQLiteCommand { CommandText = \"select\" }",           false)]
-        [DataRow("SQLiteCommand", "new SQLiteCommand(); sqlCommand.CommandText = \"select\"", false)]
-        [DataRow("DbCommand",     "new SQLiteCommand(); sqlCommand.CommandText = \"select\"", false)]
-        [DataRow("IDbCommand",    "new SQLiteCommand(); sqlCommand.CommandText = \"select\"", false)]
-        [DataRow("SQLiteCommand", "Create(); sqlCommand.CommandText = \"select\"",            false)]
+                    await CommandTextUnsafeVBasicWorker(row, $"New {type} With \r\n{{ .CommandText = {option.value} }}", option.warn, ns);
+                    await CommandTextUnsafeVBasicWorker(row, $"New {type}\r\nsqlCommand.CommandText =  {option.value}",  option.warn, ns);
+                    await CommandTextUnsafeVBasicWorker(row, $"Create\r\nsqlCommand.CommandText =  {option.value}",      option.warn, ns);
+                }
+            }
+        }
 
-        [DataRow("SqlCommand", "new SqlCommand { CommandText = \"select\" }",           false)]
-        [DataRow("DbCommand",  "new SqlCommand { CommandText = \"select\" }",           false)]
-        [DataRow("IDbCommand", "new SqlCommand { CommandText = \"select\" }",           false)]
-        [DataRow("SqlCommand", "new SqlCommand(); sqlCommand.CommandText = \"select\"", false)]
-        [DataRow("DbCommand",  "new SqlCommand(); sqlCommand.CommandText = \"select\"", false)]
-        [DataRow("IDbCommand", "new SqlCommand(); sqlCommand.CommandText = \"select\"", false)]
-        [DataRow("SqlCommand", "Create(); sqlCommand.CommandText = \"select\"",         false)]
-        [DataRow("DbCommand",  "Create(); sqlCommand.CommandText = \"select\"",         false)]
-        [DataRow("IDbCommand", "Create(); sqlCommand.CommandText = \"select\"",         false)]
-        public async Task CommandTextUnsafeCSharp(string type, string factory, bool warn)
+        public async Task CommandTextUnsafeCSharpWorker(string type, string factory, bool warn, string ns)
         {
             var cSharpTest = $@"
 #pragma warning disable 8019
-    using System.Data.SqlClient;
     using System.Data.Common;
     using System.Data;
-    using System.Data.SQLite;
+    using {ns};
 #pragma warning restore 8019
 
 namespace sample
@@ -90,7 +81,7 @@ namespace sample
             if (warn)
             {
                 await VerifyCSharpDiagnostic(cSharpTest,
-                                             new DiagnosticResult { Id = "SCS0026" }.WithLocation(15))
+                                             new DiagnosticResult { Id = "SCS0026" }.WithLocation(14))
                     .ConfigureAwait(false);
             }
             else
@@ -99,51 +90,13 @@ namespace sample
             }
         }
 
-        [TestCategory("Detect")]
-        [DataTestMethod]
-        [DataRow("SQLiteCommand", "New SQLiteCommand With \r\n{ .CommandText = sql }", true)]
-        [DataRow("DbCommand",     "New SQLiteCommand With \r\n{ .CommandText = sql }", true)]
-        [DataRow("IDbCommand",    "New SQLiteCommand With \r\n{ .CommandText = sql }", true)]
-        [DataRow("SQLiteCommand", "New SQLiteCommand\r\nsqlCommand.CommandText = sql", true)]
-        [DataRow("DbCommand",     "New SQLiteCommand\r\nsqlCommand.CommandText = sql", true)]
-        [DataRow("IDbCommand",    "New SQLiteCommand\r\nsqlCommand.CommandText = sql", true)]
-        [DataRow("SQLiteCommand", "Create\r\nsqlCommand.CommandText = sql", true)]
-
-        [DataRow("SqlCommand", "New SqlCommand With \r\n{ .CommandText = sql }", true)]
-        [DataRow("DbCommand",  "New SqlCommand With \r\n{ .CommandText = sql }", true)]
-        [DataRow("IDbCommand", "New SqlCommand With \r\n{ .CommandText = sql }", true)]
-        [DataRow("SqlCommand", "New SqlCommand\r\nsqlCommand.CommandText = sql", true)]
-        [DataRow("DbCommand",  "New SqlCommand\r\nsqlCommand.CommandText = sql", true)]
-        [DataRow("IDbCommand", "New SqlCommand\r\nsqlCommand.CommandText = sql", true)]
-        [DataRow("SqlCommand", "Create()\r\nsqlCommand.CommandText = sql", true)]
-        [DataRow("DbCommand",  "Create()\r\nsqlCommand.CommandText = sql", true)]
-        [DataRow("IDbCommand", "Create()\r\nsqlCommand.CommandText = sql", true)]
-
-        [DataRow("SQLiteCommand", "New SQLiteCommand With \r\n{ .CommandText = \"select\" }", false)]
-        [DataRow("DbCommand",     "New SQLiteCommand With \r\n{ .CommandText = \"select\" }", false)]
-        [DataRow("IDbCommand",    "New SQLiteCommand With \r\n{ .CommandText = \"select\" }", false)]
-        [DataRow("SQLiteCommand", "New SQLiteCommand\r\nsqlCommand.CommandText = \"select\"", false)]
-        [DataRow("DbCommand",     "New SQLiteCommand\r\nsqlCommand.CommandText = \"select\"", false)]
-        [DataRow("IDbCommand",    "New SQLiteCommand\r\nsqlCommand.CommandText = \"select\"", false)]
-        [DataRow("SQLiteCommand", "Create\r\nsqlCommand.CommandText = \"select\"",            false)]
-
-        [DataRow("SqlCommand", "New SqlCommand With \r\n{ .CommandText = \"select\" }", false)]
-        [DataRow("DbCommand",  "New SqlCommand With \r\n{ .CommandText = \"select\" }", false)]
-        [DataRow("IDbCommand", "New SqlCommand With \r\n{ .CommandText = \"select\" }", false)]
-        [DataRow("SqlCommand", "New SqlCommand\r\nsqlCommand.CommandText = \"select\"", false)]
-        [DataRow("DbCommand",  "New SqlCommand\r\nsqlCommand.CommandText = \"select\"", false)]
-        [DataRow("IDbCommand", "New SqlCommand\r\nsqlCommand.CommandText = \"select\"", false)]
-        [DataRow("SqlCommand", "Create()\r\nsqlCommand.CommandText = \"select\"",       false)]
-        [DataRow("DbCommand",  "Create()\r\nsqlCommand.CommandText = \"select\"",       false)]
-        [DataRow("IDbCommand", "Create()\r\nsqlCommand.CommandText = \"select\"",       false)]
-        public async Task CommandTextUnsafeVBasic(string type, string factory, bool warn)
+        public async Task CommandTextUnsafeVBasicWorker(string type, string factory, bool warn, string ns)
         {
             var visualBasicTest = $@"
 #Disable Warning BC50001
-    Imports System.Data.SqlClient
     Imports System.Data.Common
     Imports System.Data
-    Imports System.Data.SQLite
+    Imports {ns}
 #Enable Warning BC50001
 
 Namespace sample
@@ -162,7 +115,7 @@ End Namespace
             if (warn)
             {
                 await VerifyVisualBasicDiagnostic(visualBasicTest,
-                                                  new DiagnosticResult { Id = "SCS0026" }.WithLocation(13))
+                                                  new DiagnosticResult { Id = "SCS0026" }.WithLocation(12))
                     .ConfigureAwait(false);
             }
             else

@@ -408,6 +408,24 @@ Sinks:
 
 # SQL Injection
 
+ # Microsoft.Data.Sqlite
+
+  MicrosoftDataSqlite_sqlcommand_constructor:
+    Namespace: Microsoft.Data.Sqlite
+    ClassName: SqliteCommand
+    Member: method
+    Name: .ctor
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  MicrosoftDataSqlite_sqlcommand_field:
+    Namespace: Microsoft.Data.Sqlite
+    ClassName: SqliteCommand
+    Member: field
+    Name: CommandText
+    InjectableField: true
+    Locale: SCS0026
+
  # System.Data.SQLite
 
   SystemDataSQLite_Execute:

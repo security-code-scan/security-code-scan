@@ -23,7 +23,8 @@ namespace SecurityCodeScan.Test.Taint
             MetadataReference.CreateFromFile(typeof(Microsoft.Practices.EnterpriseLibrary.Data.Sql.SqlDatabase).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.DbContext).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.RelationalQueryableExtensions).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(System.Data.SQLite.SQLiteCommand).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(System.Data.SQLite.SQLiteCommand).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.Data.Sqlite.SqliteCommand).Assembly.Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
@@ -337,6 +338,7 @@ End Namespace
             }
         }
 
+        // todo: EF Core 2.0
         [DataRow("new SampleContext().Test.FromSql(input)", true)]
         [DataRow("new SampleContext().Test.FromSql(input, null)", true)]
         [DataRow("new SampleContext().Test.FromSql(\"select\")", false)]
@@ -389,6 +391,66 @@ End Namespace
             var expected = new DiagnosticResult
             {
                 Id = "SCS0035",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            }
+        }
+
+        // todo: 2.0
+        [DataRow("new SqliteCommand()",                                                                              false)]
+        [DataRow("new SqliteCommand(input)",                                                                         true)]
+        [DataRow("new SqliteCommand(\"select\")",                                                                    false)]
+        [DataRow("new SqliteCommand(input, null)",                                                                   true)]
+        [DataRow("new SqliteCommand(\"select\", new SqliteConnection())",                                            false)]
+        [DataRow("new SqliteCommand(input, null, null)",                                                             true)]
+        [DataRow("new SqliteCommand(\"select\", new SqliteConnection(), new SqliteConnection().BeginTransaction())", false)]
+        [DataTestMethod]
+        public async Task MicrosoftSqlite(string sink, bool warn)
+        {
+            var cSharpTest = $@"
+using Microsoft.Data.Sqlite;
+
+namespace sample
+{{
+    class MyFoo
+    {{
+        public static void Run(string input, params object[] parameters)
+        {{
+            {sink};
+        }}
+    }}
+}}
+";
+
+            sink = sink.Replace("null", "Nothing")
+                       .Replace("var ", "Dim ")
+                       .Replace("new ", "New ")
+                       .Replace("<Object>", "(Of Object)");
+
+            var visualBasicTest = $@"
+Imports Microsoft.Data.Sqlite
+
+Namespace sample
+    Class MyFoo
+        Public Shared Sub Run(input As System.String, ParamArray parameters() As Object)
+            Dim temp = {sink}
+        End Sub
+    End Class
+End Namespace
+";
+            var expected = new DiagnosticResult
+            {
+                Id = "SCS0026",
                 Severity = DiagnosticSeverity.Warning,
             };
 

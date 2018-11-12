@@ -661,6 +661,33 @@ Sinks:
     InjectableArguments: [1]
     Locale: SCS0035
 
+  RelationalQueryableExtensions_FromSql_1:
+    Namespace: Microsoft.EntityFrameworkCore
+    ClassName: RelationalQueryableExtensions
+    Member: method
+    ArgTypes: (System.Linq.IQueryable, System.String, params System.Object[])
+    Name: FromSql
+    InjectableArguments: [1]
+    Locale: SCS0035
+
+  RelationalQueryableExtensions_FromSql_2:
+    Namespace: Microsoft.EntityFrameworkCore
+    ClassName: RelationalQueryableExtensions
+    Member: method
+    ArgTypes: (System.Linq.IQueryable, Microsoft.EntityFrameworkCore.RawSqlString, params System.Object[])
+    Name: FromSql
+    InjectableArguments: [1]
+    Locale: SCS0035
+
+  RelationalQueryableExtensions_FromSql_3:
+    Namespace: Microsoft.EntityFrameworkCore
+    ClassName: RelationalQueryableExtensions
+    Member: method
+    ArgTypes: (System.Linq.IQueryable, System.FormattableString, params System.Object[])
+    Name: FromSql
+    InjectableArguments: [1]
+    Locale: SCS0035
+
  # Microsoft.Practices.EnterpriseLibrary.Data
 
   Database_ExecuteDataSet_1:

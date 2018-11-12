@@ -20,7 +20,9 @@ namespace SecurityCodeScan.Test.Taint
         {            
             MetadataReference.CreateFromFile(typeof(System.Web.UI.WebControls.SqlDataSource).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(System.Data.Entity.DbContext).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(Microsoft.Practices.EnterpriseLibrary.Data.Sql.SqlDatabase).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(Microsoft.Practices.EnterpriseLibrary.Data.Sql.SqlDatabase).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.DbContext).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.RelationalQueryableExtensions).Assembly.Location),
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
@@ -304,6 +306,73 @@ End Namespace
             var expected = new DiagnosticResult
             {
                 Id = warningId,
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            }
+        }
+
+        [DataRow("new SampleContext().Test.FromSql(input)", true)]
+        [DataRow("new SampleContext().Test.FromSql(input, null)", true)]
+        [DataRow("new SampleContext().Test.FromSql(\"select\")", false)]
+        [DataRow("new SampleContext().Test.FromSql(\"select\", null)", false)]
+        [DataTestMethod]
+        public async Task SqlInjectionEntityFrameworkCore(string sink, bool warn)
+        {
+            var cSharpTest = $@"
+    using Microsoft.EntityFrameworkCore;
+
+namespace sample
+{{
+    public class SampleContext : DbContext
+    {{
+        public DbSet<string> Test {{ get; set; }}
+    }}
+
+    class MyFoo
+    {{
+        public static void Run(string input, params object[] parameters)
+        {{
+            {sink};
+        }}
+    }}
+}}
+";
+
+            sink = sink.Replace("null", "Nothing")
+                       .Replace("var ", "Dim ")
+                       .Replace("new ", "New ")
+                       .Replace("<Object>", "(Of Object)");
+
+            var visualBasicTest = $@"
+    Imports Microsoft.EntityFrameworkCore
+
+Namespace sample
+    Public Class SampleContext
+        Inherits DbContext
+
+        Public Property Test As DbSet(Of String)
+    End Class
+
+    Class MyFoo
+        Public Shared Sub Run(input As System.String, ParamArray parameters() As Object)
+            Dim temp = {sink}
+        End Sub
+    End Class
+End Namespace
+";
+            var expected = new DiagnosticResult
+            {
+                Id = "SCS0035",
                 Severity = DiagnosticSeverity.Warning,
             };
 

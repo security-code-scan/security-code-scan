@@ -23,6 +23,7 @@ namespace SecurityCodeScan.Test.Taint
             MetadataReference.CreateFromFile(typeof(Microsoft.Practices.EnterpriseLibrary.Data.Sql.SqlDatabase).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.DbContext).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.RelationalQueryableExtensions).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Data.SQLite.SQLiteCommand).Assembly.Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
@@ -240,6 +241,19 @@ End Namespace
         [DataRow("new SqlDatabase(\"connectionString\").ExecuteScalar(new SqlConnection(\"\").BeginTransaction(), input, parameters)", true, "SCS0036")]
         [DataRow("new SqlDatabase(\"connectionString\").ExecuteScalar(new SqlConnection(\"\").BeginTransaction(), \"select\", parameters)", false, null)]
 
+        [DataRow("new SQLiteCommand()",                                                                              false, null)]
+        [DataRow("new SQLiteCommand(new SQLiteConnection())",                                                        false, null)]
+        [DataRow("new SQLiteCommand(input)",                                                                         true,  "SCS0026")]
+        [DataRow("new SQLiteCommand(\"select\")",                                                                    false, null)]
+        [DataRow("new SQLiteCommand(input, new SQLiteConnection())",                                                 true,  "SCS0026")]
+        [DataRow("new SQLiteCommand(\"select\", new SQLiteConnection())",                                            false, null)]
+        [DataRow("new SQLiteCommand(input, new SQLiteConnection(), new SQLiteConnection().BeginTransaction())",      true,  "SCS0026")]
+        [DataRow("new SQLiteCommand(\"select\", new SQLiteConnection(), new SQLiteConnection().BeginTransaction())", false, null)]
+        [DataRow("SQLiteCommand.Execute(input, SQLiteExecuteType.Reader, CommandBehavior.Default, null)",            true,  "SCS0026")]
+        [DataRow("SQLiteCommand.Execute(\"select\", SQLiteExecuteType.Reader, CommandBehavior.Default, null)",       false, null)]
+        [DataRow("SQLiteCommand.Execute(input, SQLiteExecuteType.Reader, null)",                                     true,  "SCS0026")]
+        [DataRow("SQLiteCommand.Execute(\"select\", SQLiteExecuteType.Reader, null)",                                false, null)]
+
         // Tests below are covered by SCS0026
         [DataRow("new SqlDataAdapter(new SqlCommand(input))", true, "SCS0026")]
         [DataRow("new SqlDatabase(\"connectionString\").ExecuteDataSet(new SqlCommand(input))", true, "SCS0026")]
@@ -264,6 +278,7 @@ End Namespace
     using System.Data.Entity;
     using System.Threading;
     using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
+    using System.Data.SQLite;
 #pragma warning restore 8019
 
 namespace sample
@@ -293,6 +308,7 @@ namespace sample
     Imports System.Data.Entity
     Imports System.Threading
     Imports Microsoft.Practices.EnterpriseLibrary.Data.Sql
+    Imports System.Data.SQLite
 #Enable Warning BC50001
 
 Namespace sample
@@ -329,7 +345,7 @@ End Namespace
         public async Task SqlInjectionEntityFrameworkCore(string sink, bool warn)
         {
             var cSharpTest = $@"
-    using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace sample
 {{
@@ -354,7 +370,7 @@ namespace sample
                        .Replace("<Object>", "(Of Object)");
 
             var visualBasicTest = $@"
-    Imports Microsoft.EntityFrameworkCore
+Imports Microsoft.EntityFrameworkCore
 
 Namespace sample
     Public Class SampleContext

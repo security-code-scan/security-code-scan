@@ -408,6 +408,51 @@ Sinks:
 
 # SQL Injection
 
+ # System.Data.SQLite
+
+  SystemDataSQLite_Execute:
+    Namespace: System.Data.SQLite
+    ClassName: SQLiteCommand
+    Member: method
+    Name: Execute
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  SystemDataSQLite_sqlcommand_constructor1:
+    Namespace: System.Data.SQLite
+    ClassName: SQLiteCommand
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.Data.SQLite.SQLiteConnection, System.Data.SQLite.SQLiteTransaction)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  SystemDataSQLite_sqlcommand_constructor2:
+    Namespace: System.Data.SQLite
+    ClassName: SQLiteCommand
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.Data.SQLite.SQLiteConnection)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  SystemDataSQLite_sqlcommand_constructor3:
+    Namespace: System.Data.SQLite
+    ClassName: SQLiteCommand
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  SystemDataSQLite_sqlcommand_field:
+    Namespace: System.Data.SQLite
+    ClassName: SQLiteCommand
+    Member: field
+    Name: CommandText
+    InjectableField: true
+    Locale: SCS0026
+
  # System.Data
 
   SqlDataAdapter_constructor_1:

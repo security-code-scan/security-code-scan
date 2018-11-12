@@ -16,7 +16,7 @@ def writeGroup(outFile, rulesDir, groupMdFile, group):
         outFile.write('<div id="SCS{}"></div>\n\n'.format(md))
         appendFile(outFile, os.path.join(rulesDir, md + ".md"))
 
-sqliGroup = ["0002", "0014", "0020", "0025", "0026"]
+sqliGroup = ["0002", "0014", "0020", "0025", "0026", "0035", "0036"]
 injectionGroup = ["0001", "0003", "0007", "0018", "0029", "0031"]
 cryptoGroup = ["0004", "0005", "0006", "0010", "0011", "0012", "0013"]
 cookiesGroup = ["0008", "0009"]

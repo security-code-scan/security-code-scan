@@ -9,11 +9,14 @@ using SecurityCodeScan.Test.Helpers;
 namespace SecurityCodeScan.Test.Config
 {
     [TestClass]
-    public class CsrfProtectionConfigurationTests : ConfigurationTest
+    public class CsrfProtectionConfigurationTests : DiagnosticVerifier
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new DiagnosticAnalyzer[]{ new CoreCsrfTokenAnalyzer(), new MvcCsrfTokenAnalyzer() };
+            if (language == LanguageNames.CSharp)
+                return new DiagnosticAnalyzer[] { new CoreCsrfTokenAnalyzerCSharp(), new MvcCsrfTokenAnalyzerCSharp() };
+            else
+                return new DiagnosticAnalyzer[] { new CoreCsrfTokenAnalyzerVBasic(), new MvcCsrfTokenAnalyzerVBasic() };
         }
 
         private static readonly PortableExecutableReference[] References =
@@ -76,7 +79,7 @@ End Namespace
 
             var expected = new DiagnosticResult
             {
-                Id       = CsrfTokenAnalyzer.DiagnosticId,
+                Id       = CsrfTokenDiagnosticAnalyzer.DiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -89,7 +92,7 @@ CsrfProtectionAttributes:
      AntiCsrfAttribute: VulnerableApp.TestAttribute
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
@@ -146,7 +149,7 @@ End Namespace
 
             var expected = new DiagnosticResult
             {
-                Id       = CsrfTokenAnalyzer.DiagnosticId,
+                Id       = CsrfTokenDiagnosticAnalyzer.DiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
@@ -159,7 +162,7 @@ CsrfProtectionAttributes:
      AntiCsrfAttribute: VulnerableApp.TestAttribute
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);

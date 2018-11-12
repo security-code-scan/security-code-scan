@@ -12,7 +12,7 @@ using SecurityCodeScan.Test.Helpers;
 namespace SecurityCodeScan.Test.Config
 {
     [TestClass]
-    public class WeakPasswordValidatorPropertyAnalyzerConfigTests : ConfigurationTest
+    public class WeakPasswordValidatorPropertyAnalyzerConfigTests : DiagnosticVerifier
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
@@ -80,7 +80,7 @@ End Namespace
 PasswordValidatorRequiredLength: 9
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0032",
@@ -148,7 +148,7 @@ End Namespace
 PasswordValidatorRequiredLength: 7
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
@@ -201,7 +201,7 @@ End Namespace
 MinimumPasswordValidatorProperties: 4
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0033",
@@ -263,7 +263,7 @@ End Namespace
 MinimumPasswordValidatorProperties: 2
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
@@ -324,7 +324,7 @@ MinimumPasswordValidatorProperties: 0
 PasswordValidatorRequiredProperties: [{properties}]
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             expected = new DiagnosticResult
             {
                 Id       = "SCS0034",

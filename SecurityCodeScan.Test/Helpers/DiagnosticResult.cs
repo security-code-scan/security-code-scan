@@ -50,6 +50,13 @@ namespace SecurityCodeScan.Test.Helpers
 
         public int Column => LocationsField != null ? Locations[0].Column : -1;
 
+        public DiagnosticResult WithMessage(string message)
+        {
+            DiagnosticResult result = this;
+            result.Message = message;
+            return result;
+        }
+
         public DiagnosticResult WithLocation(int line)
         {
             return WithLocation($"{DiagnosticVerifier.DefaultFilePathPrefix}0", line, -1);

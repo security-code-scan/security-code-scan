@@ -317,6 +317,7 @@
   <ItemGroup>
     <Compile Include="Tests\AspxAnalyzerTest.cs" />
     <Compile Include="Tests\Audit\AuditTest.cs" />
+    <Compile Include="Tests\Audit\CsrfTokenAnalyzerAuditTest.cs" />
     <Compile Include="Tests\Audit\InsecureCookieAuditTest.cs" />
     <Compile Include="Tests\Audit\PathTraversalAnalyzerAuditTest.cs" />
     <Compile Include="Tests\Audit\WeakHashingAnalyzerAuditTest.cs" />

@@ -10,7 +10,7 @@ using SecurityCodeScan.Test.Helpers;
 namespace SecurityCodeScan.Test.Audit
 {
     [TestClass]
-    public class PathTraversalAnalyzerAuditTest : AuditTest
+    public class PathTraversalAnalyzerAuditTest : DiagnosticVerifier
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
@@ -128,11 +128,11 @@ End Class
 
             await VerifyCSharpDiagnostic(cSharpTest,
                                          expected,
-                                         await GetAuditModeConfigOptions()).ConfigureAwait(false);
+                                         await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
 
             await VerifyVisualBasicDiagnostic(visualBasicTest,
                                               expected,
-                                              await GetAuditModeConfigOptions()).ConfigureAwait(false);
+                                              await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
         }
 
         [DataRow("File.AppendAllLines(\"c:\\aaa.txt\", null)")]
@@ -213,8 +213,8 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
 
             // no warnings with config too
-            await VerifyCSharpDiagnostic(cSharpTest, options:await GetAuditModeConfigOptions()).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, options:await GetAuditModeConfigOptions()).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, options:await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, options:await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
         }
 
         [DataRow("XmlReader.Create(textInput)")]
@@ -268,11 +268,11 @@ End Class
 
             await VerifyCSharpDiagnostic(cSharpTest,
                                          expected,
-                                         await GetAuditModeConfigOptions()).ConfigureAwait(false);
+                                         await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
 
             await VerifyVisualBasicDiagnostic(visualBasicTest,
                                               expected,
-                                              await GetAuditModeConfigOptions()).ConfigureAwait(false);
+                                              await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
         }
     }
 }

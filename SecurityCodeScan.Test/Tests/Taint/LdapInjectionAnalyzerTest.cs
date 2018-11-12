@@ -33,7 +33,7 @@ namespace SecurityCodeScan.Test.Taint
         [DataRow("new DirectorySearcher(entry, input, null)", true)]
         [DataRow("new DirectorySearcher(entry, \"constant\", propertiesToLoad)", true)]
         [DataRow("new DirectorySearcher(entry, \"constant\", null)", false)]
-		[DataRow("new DirectorySearcher(input, null, scope)", true)]
+        [DataRow("new DirectorySearcher(input, null, scope)", true)]
         [DataRow("new DirectorySearcher(\"constant\", propertiesToLoad, scope)", true)]
         [DataRow("new DirectorySearcher(\"constant\", null, scope)", false)]
         [DataRow("new DirectorySearcher(entry, input, null, scope)", true)]

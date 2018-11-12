@@ -1,11 +1,40 @@
 ﻿# Set to 'true' to see more warnings
 AuditMode: false
 
+# Allows to define custom anti CSRF attribute
+# HttpMethodsNameSpace must be System.Web.Mvc or Microsoft.AspNetCore.Mvc.
+# AntiCsrfAttribute should be applicable to Class and Method and be inheritable. Multiple instances should not be allowed. For example:
+# [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+# public class MyCustomAntiCsrfAttribute : Attribute {}
+# Otherwise CsrfTokenAnalyzer may not work properly.
+CsrfProtectionAttributes:
+  - HttpMethodsNameSpace: System.Web.Mvc
+    AntiCsrfAttribute: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
+  - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
+    AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
+  - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
+    AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+
 PasswordValidatorRequiredLength: 8
 MinimumPasswordValidatorProperties: 3
 
 # Possible values: RequiredLength, RequireUppercase, RequireDigit, RequireLowercase, RequireNonLetterOrDigit
 PasswordValidatorRequiredProperties: [RequiredLength]
+
+PasswordFields:
+# These field names are case insensitive
+  - PASSWORD
+  - SECRETKEY
+  - PWD
+
+ConstantFields:
+  - "System.String.Empty"
+  - "System.IntPtr.Zero"
+  - "System.IO.Path.AltDirectorySeparatorChar"
+  - "System.IO.Path.DirectorySeparatorChar"
+  - "System.IO.Path.InvalidPathChars"
+  - "System.IO.Path.PathSeparator"
+  - "System.IO.Path.VolumeSeparatorChar"
 
 Behavior:
 # This is the definition of API that conserve the state of variable received.
@@ -44,7 +73,8 @@ Behavior:
     ArgTypes: ()
     TaintFromArguments: [-1]
 
-  #MemoryStream
+# MemoryStream
+
   MemoryStream_Constructor0:
     Namespace: System.IO
     ClassName: MemoryStream
@@ -53,7 +83,8 @@ Behavior:
     ArgTypes: ()
     TaintFromArguments: [-1]
 
-  #Directory
+# Directory
+
   Directory_GetCurrentDirectory:
     Namespace: System.IO
     ClassName: Directory
@@ -62,7 +93,8 @@ Behavior:
     ArgTypes: ()
     TaintFromArguments: [-1]
 
-  #Path
+# Path
+
   Path_ChangeExtension:
     Namespace: System.IO
     ClassName: Path
@@ -207,8 +239,9 @@ Behavior:
     ArgTypes: (System.String)
     TaintFromArguments: [0]
 
-  #string constructors
-  #https://msdn.microsoft.com/en-us/library/system.string.string(v=vs.110).aspx
+# string constructors
+# https://msdn.microsoft.com/en-us/library/system.string.string(v=vs.110).aspx
+
   StringConstructor_1:
     Namespace: System
     ClassName: String
@@ -233,8 +266,8 @@ Behavior:
     ArgTypes: (System.Char[], System.Int32, System.Int32)
     TaintFromArguments: [0]
 
-  #String.Format
-  #https://msdn.microsoft.com/en-us/library/system.string.format(v=vs.110).aspx
+# String.Format
+# https://msdn.microsoft.com/en-us/library/system.string.format(v=vs.110).aspx
 
   StringFormat_1:
     Namespace: System
@@ -300,7 +333,7 @@ Behavior:
     ArgTypes: (System.String, System.Object, System.Object, System.Object)
     TaintFromArguments: [0,1,2,3]
 
-  #String.Join
+# String.Join
 
   StringJoin_1:
     Namespace: System
@@ -353,6 +386,8 @@ Sinks:
 #   Locale: [Id of a localization in Messages.yml, This value can be reused for multiple sinks]
 # <<<
 
+# XSS
+
   System.Web.HttpResponse_Write_string:
     Namespace: System.Web
     ClassName: HttpResponse
@@ -371,7 +406,28 @@ Sinks:
     InjectableArguments: [0]
     Locale: SCS0029
 
-  # System.Data
+# SQL Injection
+
+ # System.Data
+
+  SqlDataAdapter_constructor_1:
+    Namespace: System.Data.SqlClient
+    ClassName: SqlDataAdapter
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.Data.SqlClient.SqlConnection)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  SqlDataAdapter_constructor_2:
+    Namespace: System.Data.SqlClient
+    ClassName: SqlDataAdapter
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.String)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
   sqlcommand_constructor:
     Namespace: System.Data.SqlClient
     ClassName: SqlCommand
@@ -403,6 +459,8 @@ Sinks:
     Name: CommandText
     InjectableField: true
     Locale: SCS0026
+
+ # OLE DB
 
   oledbcommand_constructor:
     Namespace: System.Data.OleDb
@@ -436,7 +494,7 @@ Sinks:
     InjectableArguments: [0]
     Locale: SCS0025
 
-  # System.Data.Linq
+ # System.Data.Linq
 
   DataContext_ExecuteQuery_0:
     Namespace: System.Data.Linq
@@ -465,7 +523,7 @@ Sinks:
     InjectableArguments: [0]
     Locale: SCS0002
 
-  # System.Web.UI.WebControls
+ # System.Web.UI.WebControls
 
   SqlDataSource_constructor_1:
     Namespace: System.Web.UI.WebControls
@@ -501,7 +559,7 @@ Sinks:
     InjectableField: true
     Locale: SCS0014
 
-  # Microsoft.Whos.Framework.Data
+ # Microsoft.Whos.Framework.Data
 
   sqlutility_method:
     Namespace: Microsoft.Whos.Framework.Data
@@ -511,23 +569,7 @@ Sinks:
     InjectableArguments: [0]
     Locale: SCS0014
 
-  SqlDataAdapter_constructor_1:
-    Namespace: System.Data.SqlClient
-    ClassName: SqlDataAdapter
-    Member: method
-    Name: .ctor
-    ArgTypes: (System.String, System.Data.SqlClient.SqlConnection)
-    InjectableArguments: [0]
-    Locale: SCS0014
-
-  SqlDataAdapter_constructor_2:
-    Namespace: System.Data.SqlClient
-    ClassName: SqlDataAdapter
-    Member: method
-    Name: .ctor
-    ArgTypes: (System.String, System.String)
-    InjectableArguments: [0]
-    Locale: SCS0014
+ # Entity Framework
 
   Database_SqlQuery_1:
     Namespace: System.Data.Entity
@@ -536,7 +578,7 @@ Sinks:
     Name: SqlQuery
     ArgTypes: (System.Type, System.String, params System.Object[])
     InjectableArguments: [1]
-    Locale: SCS0014
+    Locale: SCS0035
 
   Database_SqlQuery_2:
     Namespace: System.Data.Entity
@@ -545,7 +587,7 @@ Sinks:
     Name: SqlQuery
     ArgTypes: (System.String, params System.Object[])
     InjectableArguments: [0]
-    Locale: SCS0014
+    Locale: SCS0035
 
   Database_ExecuteSqlCommand_1:
     Namespace: System.Data.Entity
@@ -554,7 +596,7 @@ Sinks:
     Name: ExecuteSqlCommand
     ArgTypes: (System.String, params System.Object[])
     InjectableArguments: [0]
-    Locale: SCS0014
+    Locale: SCS0035
 
   Database_ExecuteSqlCommand_2:
     Namespace: System.Data.Entity
@@ -563,7 +605,7 @@ Sinks:
     Name: ExecuteSqlCommand
     ArgTypes: (System.Data.Entity.TransactionalBehavior, System.String, params System.Object[])
     InjectableArguments: [1]
-    Locale: SCS0014
+    Locale: SCS0035
 
   Database_ExecuteSqlCommandAsync_1:
     Namespace: System.Data.Entity
@@ -572,7 +614,7 @@ Sinks:
     Name: ExecuteSqlCommandAsync
     ArgTypes: (System.String, params System.Object[])
     InjectableArguments: [0]
-    Locale: SCS0014
+    Locale: SCS0035
 
   Database_ExecuteSqlCommandAsync_2:
     Namespace: System.Data.Entity
@@ -581,7 +623,7 @@ Sinks:
     Name: ExecuteSqlCommandAsync
     ArgTypes: (System.Data.Entity.TransactionalBehavior, System.String, params System.Object[])
     InjectableArguments: [1]
-    Locale: SCS0014
+    Locale: SCS0035
 
   Database_ExecuteSqlCommandAsync_3:
     Namespace: System.Data.Entity
@@ -590,7 +632,7 @@ Sinks:
     Name: ExecuteSqlCommandAsync
     ArgTypes: (System.String, System.Threading.CancellationToken, params System.Object[])
     InjectableArguments: [0]
-    Locale: SCS0014
+    Locale: SCS0035
 
   Database_ExecuteSqlCommandAsync_4:
     Namespace: System.Data.Entity
@@ -599,7 +641,9 @@ Sinks:
     Name: ExecuteSqlCommandAsync
     ArgTypes: (System.Data.Entity.TransactionalBehavior, System.String, System.Threading.CancellationToken, params System.Object[])
     InjectableArguments: [1]
-    Locale: SCS0014
+    Locale: SCS0035
+
+ # Microsoft.Practices.EnterpriseLibrary.Data
 
   Database_ExecuteDataSet_1:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -608,7 +652,7 @@ Sinks:
     Name: ExecuteDataSet
     ArgTypes: (System.Data.CommandType, System.String)
     InjectableArguments: [1]
-    Locale: SCS0014
+    Locale: SCS0036
 
   Database_ExecuteDataSet_2:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -617,7 +661,7 @@ Sinks:
     Name: ExecuteDataSet
     ArgTypes: (System.String, params System.Object[])
     InjectableArguments: [0]
-    Locale: SCS0014
+    Locale: SCS0036
 
   Database_ExecuteDataSet_3:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -626,7 +670,7 @@ Sinks:
     Name: ExecuteDataSet
     ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
     InjectableArguments: [1]
-    Locale: SCS0014
+    Locale: SCS0036
 
   Database_ExecuteDataSet_4:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -635,7 +679,7 @@ Sinks:
     Name: ExecuteDataSet
     ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
     InjectableArguments: [2]
-    Locale: SCS0014
+    Locale: SCS0036
 
   Database_ExecuteReader_1:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -644,7 +688,7 @@ Sinks:
     Name: ExecuteReader
     ArgTypes: (System.Data.CommandType, System.String)
     InjectableArguments: [1]
-    Locale: SCS0014
+    Locale: SCS0036
 
   Database_ExecuteReader_2:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -653,7 +697,7 @@ Sinks:
     Name: ExecuteReader
     ArgTypes: (System.String, params System.Object[])
     InjectableArguments: [0]
-    Locale: SCS0014
+    Locale: SCS0036
 
   Database_ExecuteReader_3:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -662,7 +706,7 @@ Sinks:
     Name: ExecuteReader
     ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
     InjectableArguments: [1]
-    Locale: SCS0014
+    Locale: SCS0036
 
   Database_ExecuteReader_4:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -671,7 +715,7 @@ Sinks:
     Name: ExecuteReader
     ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
     InjectableArguments: [2]
-    Locale: SCS0014
+    Locale: SCS0036
 
   Database_ExecuteNonQuery_1:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -680,7 +724,7 @@ Sinks:
     Name: ExecuteNonQuery
     ArgTypes: (System.Data.CommandType, System.String)
     InjectableArguments: [1]
-    Locale: SCS0014
+    Locale: SCS0036
 
   Database_ExecuteNonQuery_2:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -689,7 +733,7 @@ Sinks:
     Name: ExecuteNonQuery
     ArgTypes: (System.String, params System.Object[])
     InjectableArguments: [0]
-    Locale: SCS0014
+    Locale: SCS0036
 
   Database_ExecuteNonQuery_3:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -698,7 +742,7 @@ Sinks:
     Name: ExecuteNonQuery
     ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
     InjectableArguments: [1]
-    Locale: SCS0014
+    Locale: SCS0036
 
   Database_ExecuteNonQuery_4:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -707,7 +751,7 @@ Sinks:
     Name: ExecuteNonQuery
     ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
     InjectableArguments: [2]
-    Locale: SCS0014
+    Locale: SCS0036
 
   Database_ExecuteScalar_1:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -716,7 +760,7 @@ Sinks:
     Name: ExecuteScalar
     ArgTypes: (System.Data.CommandType, System.String)
     InjectableArguments: [1]
-    Locale: SCS0014
+    Locale: SCS0036
 
   Database_ExecuteScalar_2:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -725,7 +769,7 @@ Sinks:
     Name: ExecuteScalar
     ArgTypes: (System.String, params System.Object[])
     InjectableArguments: [0]
-    Locale: SCS0014
+    Locale: SCS0036
 
   Database_ExecuteScalar_3:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -734,7 +778,7 @@ Sinks:
     Name: ExecuteScalar
     ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
     InjectableArguments: [1]
-    Locale: SCS0014
+    Locale: SCS0036
 
   Database_ExecuteScalar_4:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -743,7 +787,7 @@ Sinks:
     Name: ExecuteScalar
     ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
     InjectableArguments: [2]
-    Locale: SCS0014
+    Locale: SCS0036
 
   # Process
 
@@ -771,7 +815,7 @@ Sinks:
     InjectableField: true
     Locale: SCS0001
 
-   #XPath
+# XPath
 
   XmlNode_SelectNodes:
     Namespace: System.Xml
@@ -923,9 +967,9 @@ Sinks:
     InjectableArguments: [1]
     Locale: SCS0003
 
-  #Path traversal
+# Path traversal
 
-  #File API
+ # File API
 
   File_Delete:
     Namespace: System.IO
@@ -1031,7 +1075,7 @@ Sinks:
     InjectableArguments: [0, 1]
     Locale: SCS0018
 
-  #StreamReader
+ # StreamReader
 
   StreamReader_Create_path:
     Namespace: System.IO
@@ -1078,7 +1122,7 @@ Sinks:
     InjectableArguments: [0]
     Locale: SCS0018
 
-  #StreamWriter
+ # StreamWriter
 
   StreamWriter1:
     Namespace: System.IO
@@ -1116,7 +1160,7 @@ Sinks:
     InjectableArguments: [0, 1]
     Locale: SCS0018
 
-  #FileStream
+ # FileStream
 
   FileStream_Constructor1:
     Namespace: System.IO
@@ -1253,7 +1297,7 @@ Sinks:
     InjectableArguments: [0, 1, 2, 3, 5, 6]
     Locale: SCS0018
 
-  # LDAP injection
+# LDAP injection
 
   DirectorySearcher_constructor_0:
     Namespace: System.DirectoryServices
@@ -1352,7 +1396,7 @@ Sinks:
     InjectableField: true
     Locale: SCS0031
 
-  # Open Redirects
+# Open Redirects
 
   System.Web.HttpResponse_Redirect_string:
      Namespace: System.Web
@@ -1515,8 +1559,8 @@ Sinks:
       InjectableField: true
       Locale: SCS0027
 
+# Deserialization
 
-  #Deserialization
   BinaryFormatter_Deserialize:
      Namespace: System.Runtime.Serialization.Formatters.Binary
      ClassName: BinaryFormatter
@@ -1773,7 +1817,8 @@ Sinks:
     InjectableField: true
     Locale: SCS0028
 
-#Password
+# Password
+
   PasswordDeriveBytes:
     Namespace: System.Security.Cryptography
     ClassName: PasswordDeriveBytes
@@ -1789,32 +1834,3 @@ Sinks:
     Name: .ctor
     PasswordArguments: [1]
     LocalePass: SCS0015
-
-# Allows to define custom anti CSRF attribute
-# HttpMethodsNameSpace must be System.Web.Mvc or Microsoft.AspNetCore.Mvc.
-# AntiCsrfAttribute should be applicable to Class and Method and be inheritable. Multiple instances should not be allowed. For example:
-# [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-# public class MyCustomAntiCsrfAttribute : Attribute {}
-# Otherwise CsrfTokenAnalyzer may not work properly.
-CsrfProtectionAttributes:
-  - HttpMethodsNameSpace: System.Web.Mvc
-    AntiCsrfAttribute: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
-  - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
-    AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
-  - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
-    AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
-
-PasswordFields:
-# These field names are case insensitive
-  - PASSWORD
-  - SECRETKEY
-  - PWD
-
-ConstantFields:
-  - "System.String.Empty"
-  - "System.IntPtr.Zero"
-  - "System.IO.Path.AltDirectorySeparatorChar"
-  - "System.IO.Path.DirectorySeparatorChar"
-  - "System.IO.Path.InvalidPathChars"
-  - "System.IO.Path.PathSeparator"
-  - "System.IO.Path.VolumeSeparatorChar"

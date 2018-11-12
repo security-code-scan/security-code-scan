@@ -12,7 +12,7 @@ using SecurityCodeScan.Test.Helpers;
 namespace SecurityCodeScan.Test.Audit
 {
     [TestClass]
-    public class WeakPasswordValidatorPropertyAuditTest : ConfigurationTest
+    public class WeakPasswordValidatorPropertyAuditTest : DiagnosticVerifier
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
@@ -78,7 +78,7 @@ MinimumPasswordValidatorProperties: 1
 PasswordValidatorRequiredProperties: [{property}]
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest,
                                          auditMode ? new[] { expected } : null,
@@ -145,7 +145,7 @@ MinimumPasswordValidatorProperties: 1
 PasswordValidatorRequiredProperties: [{property}]
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest,
                                          auditMode ? new[] { expected } : null,

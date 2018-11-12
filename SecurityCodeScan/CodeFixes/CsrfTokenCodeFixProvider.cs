@@ -18,7 +18,7 @@ namespace SecurityCodeScan.CodeFixes
     public class CsrfTokenCodeFixProvider : CodeFixProvider
     {
         private const          string                 CreateAnnotationTitle = "Add [ValidateAntiForgeryToken] validation";
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CsrfTokenAnalyzer.DiagnosticId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CsrfTokenDiagnosticAnalyzer.DiagnosticId);
 
         public sealed override FixAllProvider GetFixAllProvider()
         {

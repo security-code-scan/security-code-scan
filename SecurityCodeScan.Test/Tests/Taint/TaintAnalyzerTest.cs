@@ -1131,7 +1131,8 @@ namespace sample
         [DataRow("new string('x', 3)",        "stringConst")]
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
-        [DataTestMethod, Ignore] // todo: add C# 7.0 support
+        [DataTestMethod]
+        [Ignore("add C# 7.0 support")]
         public async Task VariableConcatenationPropertyExpressionBodyGetCSharp(string initializer, string accessor)
         {
             var cSharpTest = $@"
@@ -1644,7 +1645,7 @@ End Namespace
         }
 
         [TestCategory("Detect")]
-        [Ignore] //TODO: Copy structure state when assigned to new variable
+        [Ignore("Copy structure state when assigned to new variable")]
         [TestMethod]
         public async Task StructReuseChangePropertyFromTaintedToSafe()
         {

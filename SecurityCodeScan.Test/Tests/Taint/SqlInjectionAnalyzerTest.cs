@@ -25,6 +25,136 @@ namespace SecurityCodeScan.Test.Taint
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        [TestMethod]
+        [Ignore("Full taint analysis is needed")]
+        public async Task SqlInjectionEnterpriseLibraryDataParametrized()
+        {
+            var cSharpTest = @"
+using System.Data;
+using System.Data.Common;
+using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
+
+namespace sample
+{
+    class MyFoo
+    {
+        public MyFoo()
+        {
+            m_db = new SqlDatabase("""");
+        }
+
+        private SqlDatabase m_db;
+
+        private SqlDatabase GetDataBase() { return m_db; }
+
+        public void Run(string input)
+        {
+            var db = GetDataBase();
+            DbCommand cmd = db.GetSqlStringCommand(""SELECT * FROM Users WHERE username = @username and role='user'"");
+            db.AddInParameter(cmd, ""@username"", DbType.String, input);
+            db.ExecuteDataSet(cmd);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data
+Imports System.Data.Common
+Imports Microsoft.Practices.EnterpriseLibrary.Data.Sql
+
+Namespace sample
+    Class MyFoo
+        Public Sub New()
+            m_db = New SqlDatabase("""")
+        End Sub
+
+        Private m_db As SqlDatabase
+
+        Private Function GetDataBase() As SqlDatabase
+            Return m_db
+        End Function
+
+        Public Sub Run(input As System.String)
+            Dim db = GetDataBase()
+            Dim cmd As DbCommand = db.GetSqlStringCommand(""SELECT * FROM Users WHERE username = @username and role='user'"")
+            db.AddInParameter(cmd, ""@username"", DbType.String, input)
+            db.ExecuteDataSet(cmd)
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        [Ignore("Full taint analysis is needed")]
+        public async Task SqlInjectionEnterpriseLibraryDataGetSqlStringCommandUnsafe()
+        {
+            var cSharpTest = @"
+using System.Data.Common;
+using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
+
+namespace sample
+{
+    class MyFoo
+    {
+        public MyFoo()
+        {
+            m_db = new SqlDatabase("""");
+        }
+
+        private SqlDatabase m_db;
+
+        private SqlDatabase GetDataBase() { return m_db; }
+
+        public void Run(string input)
+        {
+            var db = GetDataBase();
+            DbCommand cmd = db.GetSqlStringCommand(""SELECT * FROM Users WHERE username = '"" + input + ""' and role='user'"");
+            db.ExecuteDataSet(cmd);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.Common
+Imports Microsoft.Practices.EnterpriseLibrary.Data.Sql
+
+Namespace sample
+    Class MyFoo
+        Public Sub New()
+            m_db = New SqlDatabase("""")
+        End Sub
+
+        Private m_db As SqlDatabase
+
+        Private Function GetDataBase() As SqlDatabase
+            Return m_db
+        End Function
+
+        Public Sub Run(input As System.String)
+            Dim db = GetDataBase()
+            Dim cmd As DbCommand = db.GetSqlStringCommand(""SELECT * FROM Users WHERE username = '"" + input + ""' and role='user'"")
+            db.ExecuteDataSet(cmd)
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0036",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+        }
+
         [DataRow("new SqlDataSource()", false, null)]
         [DataRow("new SqlDataSource(\"connectionString\", input)", true, "SCS0014")]
         [DataRow("new SqlDataSource(\"connectionString\", \"select\")", false, null)]

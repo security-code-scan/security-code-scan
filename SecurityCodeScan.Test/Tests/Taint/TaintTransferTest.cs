@@ -154,7 +154,7 @@ End Class
 
         [TestCategory("Detect")]
         [TestMethod]
-        [Ignore] // todo: stream passed to Foo should be tainted
+        [Ignore("stream passed to Foo should be tainted")]
         public async Task TaintPassedArgument()
         {
             var cSharpTest = @"

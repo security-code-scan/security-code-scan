@@ -169,14 +169,22 @@ End Namespace
         [DataRow("new SqlDataAdapter(\"select\", new SqlConnection())", false, null)]
         [DataRow("new SqlDataAdapter(input, \"connectionString\")", true, "SCS0026")]
         [DataRow("new SqlDataAdapter(\"select\", input)", false, null)]
-        [DataRow("new DbContext(\"connectionString\").Database.SqlQuery(null, input, null)", true, "SCS0035")]
-        [DataRow("new DbContext(\"connectionString\").Database.SqlQuery(null, \"select\", null)", false, null)]
-        [DataRow("new DbContext(\"connectionString\").Database.SqlQuery<Object>(input)", true, "SCS0035")]
+
+        [DataRow("new DbContext(\"connectionString\").Set(null).SqlQuery(input, null)",          true,  "SCS0035")]
+        [DataRow("new DbContext(\"connectionString\").Set(null).SqlQuery(\"select\", null)",     false, null)]
+        [DataRow("new DbContext(\"connectionString\").Set<Object>().SqlQuery(input, null)",      true,  "SCS0035")]
+        [DataRow("new DbContext(\"connectionString\").Set<Object>().SqlQuery(\"select\", null)", false, null)]
+
+        [DataRow("new DbContext(\"connectionString\").Database.SqlQuery(null, input, null)",         true,  "SCS0035")]
+        [DataRow("new DbContext(\"connectionString\").Database.SqlQuery(null, \"select\", null)",    false, null)]
+        [DataRow("new DbContext(\"connectionString\").Database.SqlQuery<Object>(input)",             true,  "SCS0035")]
         [DataRow("new DbContext(\"connectionString\").Database.SqlQuery<Object>(\"select\", input)", false, null)]
+
         [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommand(input, parameters)", true, "SCS0035")]
         [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommand(\"select\", parameters)", false, null)]
         [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, input, parameters)", true, "SCS0035")]
         [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, \"select\", parameters)", false, null)]
+
         [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(input, parameters)", true, "SCS0035")]
         [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(\"select\", parameters)", false, null)]
         [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(TransactionalBehavior.DoNotEnsureTransaction, input, parameters)", true, "SCS0035")]

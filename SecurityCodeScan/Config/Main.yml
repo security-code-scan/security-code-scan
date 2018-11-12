@@ -589,6 +589,24 @@ Sinks:
     InjectableArguments: [0]
     Locale: SCS0035
 
+  DbSet_SqlQuery_1:
+    Namespace: System.Data.Entity
+    ClassName: DbSet
+    Member: method
+    Name: SqlQuery
+    ArgTypes: (System.Type, System.String, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0035
+
+  DbSet_SqlQuery_2:
+    Namespace: System.Data.Entity
+    ClassName: DbSet
+    Member: method
+    Name: SqlQuery
+    ArgTypes: (System.String, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0035
+
   Database_ExecuteSqlCommand_1:
     Namespace: System.Data.Entity
     ClassName: Database

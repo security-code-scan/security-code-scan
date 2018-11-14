@@ -9,21 +9,26 @@ using SecurityCodeScan.Test.Helpers;
 namespace SecurityCodeScan.Test.Config
 {
     [TestClass]
-    public class CsrfProtectionConfigurationTests : ConfigurationTest
+    public class CsrfProtectionConfigurationTests : DiagnosticVerifier
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new DiagnosticAnalyzer[]{ new CoreCsrfTokenAnalyzer(), new MvcCsrfTokenAnalyzer() };
+            if (language == LanguageNames.CSharp)
+                return new DiagnosticAnalyzer[] { new CoreCsrfTokenAnalyzerCSharp(), new MvcCsrfTokenAnalyzerCSharp() };
+            else
+                return new DiagnosticAnalyzer[] { new CoreCsrfTokenAnalyzerVBasic(), new MvcCsrfTokenAnalyzerVBasic() };
         }
 
         private static readonly PortableExecutableReference[] References =
         {
             MetadataReference.CreateFromFile(typeof(System.Web.Mvc.HttpPostAttribute).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.HttpPostAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.Controller).Assembly.Location),
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task AddCustomCsrfAttributeForMvc()
         {
@@ -38,7 +43,7 @@ namespace VulnerableApp
     {
     }
 
-    public class TestController
+    public class TestController : Controller
     {
         [HttpPost]
         [TestAttribute]
@@ -61,6 +66,8 @@ Namespace VulnerableApp
     End Class
 
     Public Class TestController
+        Inherits Controller
+
         <HttpPost>
         <TestAttribute>
         Public Function ControllerMethod(input As String) As ActionResult
@@ -72,12 +79,12 @@ End Namespace
 
             var expected = new DiagnosticResult
             {
-                Id       = CsrfTokenAnalyzer.DiagnosticId,
+                Id       = CsrfTokenDiagnosticAnalyzer.DiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 16, 29)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 14, 25)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(16, 29)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(16, 25)).ConfigureAwait(false);
 
             var testConfig = @"
 CsrfProtectionAttributes:
@@ -85,12 +92,13 @@ CsrfProtectionAttributes:
      AntiCsrfAttribute: VulnerableApp.TestAttribute
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task AddCustomCsrfAttributeForCore()
         {
@@ -105,7 +113,7 @@ namespace VulnerableApp
     {
     }
 
-    public class TestController
+    public class TestController : Controller
     {
         [HttpPost]
         [TestAttribute]
@@ -117,7 +125,7 @@ namespace VulnerableApp
 }
 ";
 
-            var visualBasicTest = $@"
+            var visualBasicTest = @"
 Imports System
 Imports Microsoft.AspNetCore.Mvc
 
@@ -128,6 +136,8 @@ Namespace VulnerableApp
     End Class
 
     Public Class TestController
+        Inherits Controller
+
         <HttpPost>
         <TestAttribute>
         Public Function ControllerMethod(input As String) As ActionResult
@@ -139,12 +149,12 @@ End Namespace
 
             var expected = new DiagnosticResult
             {
-                Id       = CsrfTokenAnalyzer.DiagnosticId,
+                Id       = CsrfTokenDiagnosticAnalyzer.DiagnosticId,
                 Severity = DiagnosticSeverity.Warning
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation("Test0.cs", 16, 29)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation("Test0.vb", 14, 25)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(16, 29)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(16, 25)).ConfigureAwait(false);
 
             var testConfig = @"
 CsrfProtectionAttributes:
@@ -152,7 +162,7 @@ CsrfProtectionAttributes:
      AntiCsrfAttribute: VulnerableApp.TestAttribute
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);

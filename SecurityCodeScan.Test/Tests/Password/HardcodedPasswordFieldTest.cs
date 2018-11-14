@@ -18,6 +18,7 @@ namespace SecurityCodeScan.Test.Password
             return new DiagnosticAnalyzer[] { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic(), new UnknownPasswordApiAnalyzerCSharp(), new UnknownPasswordApiAnalyzerVisualBasic() };
         }
 
+        [TestCategory("Safe")]
         [DataRow("null")]
         [DataRow("String.Empty")]
         [DataRow("\"\"")]
@@ -89,6 +90,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task HardCodePasswordAssignment()
         {
@@ -131,6 +133,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task HardCodePasswordInitializer()
         {

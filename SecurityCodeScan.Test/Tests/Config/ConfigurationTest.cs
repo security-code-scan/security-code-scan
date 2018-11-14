@@ -6,18 +6,16 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
-using SecurityCodeScan.Test.Helpers;
 
 namespace SecurityCodeScan.Test.Config
 {
-    public abstract class ConfigurationTest : DiagnosticVerifier
+    public class ConfigurationTest
     {
         private const string ConfigName = "SecurityCodeScan.config.yml";
         private static readonly Version ConfigVersion = new Version(1,0);
         private const string ConfigText = "Version: {0}\r\n{1}";
 
-        protected static AnalyzerOptions CreateAnalyzersOptionsWithConfig(string  configSource,
-                                                                          Version version = null)
+        public static AnalyzerOptions CreateAnalyzersOptionsWithConfig(string  configSource, Version version = null)
         {
             var configText = string.Format(ConfigText, version != null ? version : ConfigVersion, configSource);
 

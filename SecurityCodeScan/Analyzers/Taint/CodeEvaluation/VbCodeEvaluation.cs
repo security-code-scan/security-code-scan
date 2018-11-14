@@ -320,13 +320,23 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (symbol == null)
                 return new VariableState(node, VariableTaint.Unknown);
 
+            VariableState returnState;
             var behavior = symbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
-            var returnState = initialVariableState != null && !symbol.IsStatic
+            if (behavior?.TaintFromArguments.Length == 1 && behavior.TaintFromArguments[0] == -1)
+            {
+                returnState = new VariableState(node, VariableTaint.Safe);
+            }
+            else
+            {
+                returnState = initialVariableState != null && !symbol.IsStatic
                                   ? initialVariableState
                                   : new VariableState(node,
                                                       behavior?.TaintFromArguments?.Any() == true
                                                           ? VariableTaint.Safe
                                                           : VariableTaint.Unknown);
+            }
+
+            bool isExtensionMethod = (symbol as IMethodSymbol)?.ReducedFrom != null;
 
             for (var i = 0; i < argList?.Arguments.Count; i++)
             {
@@ -342,7 +352,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 if ((argumentState.Taint == VariableTaint.Tainted ||
                      argumentState.Taint == VariableTaint.Unknown) && //Tainted values
                     //If the current parameter can be injected.
-                    Array.Exists(behavior.InjectablesArguments, element => element == i))
+                    Array.Exists(behavior.InjectablesArguments, element => element == (isExtensionMethod ? i + 1 : i)))
                 {
                     var newRule    = LocaleUtil.GetDescriptor(behavior.LocaleInjection);
                     var diagnostic = Diagnostic.Create(newRule, node.GetLocation(), GetMethodName(node), (i + 1).ToNthString());
@@ -350,13 +360,13 @@ namespace SecurityCodeScan.Analyzers.Taint
                 }
                 else if (argumentState.Taint == VariableTaint.Constant && //Hard coded value
                          //If the current parameter is a password
-                         Array.Exists(behavior.PasswordArguments, element => element == i))
+                         Array.Exists(behavior.PasswordArguments, element => element == (isExtensionMethod ? i + 1 : i)))
                 {
                     var newRule    = LocaleUtil.GetDescriptor(behavior.LocalePassword);
                     var diagnostic = Diagnostic.Create(newRule, node.GetLocation(), GetMethodName(node), (i + 1).ToNthString());
                     state.AnalysisContext.ReportDiagnostic(diagnostic);
                 }
-                else if (Array.Exists(behavior.TaintFromArguments, element => element == i))
+                else if (Array.Exists(behavior.TaintFromArguments, element => element == (isExtensionMethod ? i + 1 : i)))
                 {
                     returnState.Merge(argumentState);
                 }

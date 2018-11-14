@@ -23,6 +23,7 @@ namespace SecurityCodeScan.Test
             return new DiagnosticAnalyzer[] { new WeakCertificateValidationAnalyzerCSharp(), new WeakCertificateValidationAnalyzerVisualBasic() };
         }
 
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task WeakCertFalsePositive()
         {
@@ -57,6 +58,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBsicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task WeakCertVulnerable1()
         {
@@ -91,9 +93,10 @@ End Class
 ";
 
             await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(7)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation("Test0.vb", 6)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation(6)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task WeakCertVulnerable2()
         {
@@ -130,9 +133,10 @@ End Class
 ";
 
             await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(7)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation("Test0.vb", 6)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation(6)).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task Given_HttpWebRequestServerCertificateValidationCallback_ThenWeakCertVulnerableWarning()
         {
@@ -167,7 +171,48 @@ End Class
 ";
 
             await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation("Test0.vb", 8)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation(8)).ConfigureAwait(false);
+        }
+
+
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task GivenAliasDirective_DetectDiagnostic()
+        {
+            var cSharpTest = @"
+using System.Net;
+using Rqst = System.Net.HttpWebRequest;
+
+class OkCert {
+    public void DoGetRequest1()
+    {
+        ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
+
+        string url = ""https://hack.me/"";
+        Rqst request = (Rqst)WebRequest.Create(url);
+        request.GetResponse();
+    }
+}
+";
+
+            var visualBsicTest = @"
+Imports System.Net
+Imports Rqst = System.Net.HttpWebRequest
+
+Class OkCert
+    Public Sub DoGetRequest1()
+        ServicePointManager.ServerCertificateValidationCallback = Function(sender, cert, chain, sslPolicyErrors)
+                                                                      Return True
+                                                                  End Function
+        Dim url As String = ""https://hack.me/""
+        Dim request As Rqst = DirectCast(WebRequest.Create(url), Rqst)
+        request.GetResponse()
+    End Sub
+End Class
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected).ConfigureAwait(false);
         }
     }
 }

@@ -63,7 +63,6 @@ namespace SecurityCodeScan.Analyzers
 
             foreach (var member in classSymbol.GetMembers())
             {
-
                 if(!(member is IMethodSymbol methodSymbol))
                     continue;
 

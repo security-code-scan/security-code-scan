@@ -17,6 +17,7 @@ namespace SecurityCodeScan.Test
             return new DiagnosticAnalyzer[] { new WeakCipherModeAnalyzerCSharp(), new WeakCipherModeAnalyzerVisualBasic() };
         }
 
+        [TestCategory("Detect")]
         [DataRow("CipherMode.ECB", "SCS0012")]
         [DataRow("CipherMode.OFB", "SCS0013")]
         [DataRow("CipherMode.CBC", "SCS0011")]
@@ -73,10 +74,11 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task WeakCipherModeECB()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System;
 using System.IO;
 using System.Security.Cryptography;
@@ -104,7 +106,7 @@ class WeakCipherMode
 }
 ";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System
 Imports System.IO
 Imports System.Security.Cryptography
@@ -139,10 +141,11 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task WeakCipherModeOFB()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System;
 using System.IO;
 using System.Security.Cryptography;
@@ -168,7 +171,7 @@ class WeakCipherMode
     }
 }";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System
 Imports System.IO
 Imports System.Security.Cryptography
@@ -202,10 +205,11 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task WeakCipherModeCBC()
         {
-            var cSharpTest = @"
+            const string cSharpTest = @"
 using System;
 using System.IO;
 using System.Security.Cryptography;
@@ -254,7 +258,7 @@ class WeakCipherMode
     }
 }";
 
-            var visualBasicTest = @"
+            const string visualBasicTest = @"
 Imports System
 Imports System.IO
 Imports System.Security.Cryptography
@@ -306,7 +310,5 @@ End Class
             await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
-
-        //TODO: Add tests to trigger the analyzer. 
     }
 }

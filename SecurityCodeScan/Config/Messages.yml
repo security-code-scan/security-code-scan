@@ -9,7 +9,7 @@
 #   description: [Description of the diagnostic]
 # <<<
 
-#Injections
+# Injections
 
 SCS0001:
   class: TaintAnalyzer
@@ -44,6 +44,18 @@ SCS0026:
   title_assignment: Possible SQL injection
   description: The dynamic value passed in the SQL query should be validated.
 
+SCS0035:
+  class: TaintAnalyzer
+  title: "Possible SQL injection in {1} argument passed to '{0}'"
+  title_assignment: Possible SQL injection
+  description: The dynamic value passed in the SQL query should be validated.
+
+SCS0036:
+  class: TaintAnalyzer
+  title: "Possible SQL injection in {1} argument passed to '{0}'"
+  title_assignment: Possible SQL injection
+  description: The dynamic value passed in the SQL query should be validated.
+
 SCS0027:
   class: TaintAnalyzer
   title: "Open redirect: possibly unvalidated input in {1} argument passed to '{0}'"
@@ -60,7 +72,13 @@ SCS0028:
   title: "Unsafe deserialization possible from {1} argument passed to '{0}'"
   title_analyzer: "Type information used to serialize and deserialize objects"
   description: Deserialization from untrusted source is unsafe.
-  
+
+SCS0031:
+  class: TaintAnalyzer
+  title: "Possible LDAP injection in {1} argument passed to '{0}'"
+  title_assignment: Possible LDAP injection
+  description: The dynamic value passed in the LDAP query should be validated.
+
 # Various
 
 SCS0004:
@@ -83,7 +101,7 @@ SCS0009:
   title: The cookie is missing security flag HttpOnly
   description: It is recommended to specify the HttpOnly flag to new cookie.
 
-#Crypto
+# Crypto
 
 SCS0005:
   class: WeakRandomAnalyzer
@@ -121,6 +139,10 @@ SCS0016:
   class: CsrfTokenAnalyzer
   title: Controller method is vulnerable to CSRF
   description: The annotation [ValidateAntiForgeryToken] is missing. It can be ignored/suppressed if .NET Core AutoValidateAntiforgeryToken is set up globally.
+  title_audit: CSRF token validation is explicitly disabled, review if the controller method is vulnerable to CSRF
+  description_audit: The validation is explicitly disabled with [IgnoreAntiforgeryToken] directly or either in base class or method.
+  title_frombody_audit: Review if the JSON endpoint doesn't accept text/plain
+  description_frombody_audit: If there is code to accept text/plain the endpoint might be vulnerable to CSRF.
 
 SCS0017:
   class: RequestValidationDisableAnalyzer
@@ -138,7 +160,7 @@ SCS0019:
   title: OutputCache annotation is disabling authorization checks
   description: Having the annotation [OutputCache] will disable the annotation [Authorize] for the requests following the first one.
 
-#Configuration issues
+# Configuration issues
 
 SCS0021:
   class: ValidateRequestFalse
@@ -171,7 +193,7 @@ SCS0029:
   title: Potential XSS vulnerability
   description: The endpoint returns a variable from the client input that has not been encoded.
 
-#Password Validator
+# Password Validator
 
 SCS0015:
   class: TaintAnalyzer

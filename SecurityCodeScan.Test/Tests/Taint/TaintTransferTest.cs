@@ -105,6 +105,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataRow("static")]
         [DataRow("")]
         [DataTestMethod]
@@ -151,8 +152,9 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
-        [Ignore] // todo: stream passed to Foo should be tainted
+        [Ignore("stream passed to Foo should be tainted")]
         public async Task TaintPassedArgument()
         {
             var cSharpTest = @"
@@ -193,6 +195,7 @@ class PathTraversal
             await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task TransferSqlInitializerSafe()
         {
@@ -227,6 +230,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("sql",       new[] { "SCS0026" },           new[] { "SCS0026" })]
         [DataRow("xyz",       new[] { "CS0103" },            new[] { "BC30451" })]
@@ -280,14 +284,15 @@ End Namespace
 ";
 
             await VerifyCSharpDiagnostic(cSharpTest,
-                                         csErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation("Test0.cs", 10)).ToArray())
+                                         csErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation(10)).ToArray())
                 .ConfigureAwait(false);
 
             await VerifyVisualBasicDiagnostic(visualBasicTest,
-                                              vbErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation("Test0.vb", 7)).ToArray())
+                                              vbErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation(7)).ToArray())
                 .ConfigureAwait(false);
         }
 
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task TransferPathInitializerSafe()
         {
@@ -343,6 +348,7 @@ End Class
         [DataRow("File.OpenRead(Path.InvalidPathChars.ToString())")]
         [DataRow("File.OpenRead(Path.PathSeparator.ToString())")]
         [DataRow("File.OpenRead(Path.VolumeSeparatorChar.ToString())")]
+        [TestCategory("Safe")]
         [DataTestMethod]
         public async Task TransferPathSafe(string method)
         {
@@ -376,6 +382,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task MemberCallWithoutArguments()
         {
@@ -411,6 +418,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task TransferStringConstructorSafe()
         {
@@ -446,6 +454,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task TransferStringFormatUnSafe1()
         {
@@ -488,6 +497,7 @@ End Class
             await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task TransferStringFormatUnSafe2()
         {
@@ -530,6 +540,7 @@ End Class
             await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task TransferStringInterpolatedSafe()
         {
@@ -565,6 +576,7 @@ End Class
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task TransferStringInterpolatedUnSafe()
         {
@@ -592,6 +604,7 @@ class SqlTransferTesting
             await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Safe")]
         [DataTestMethod]
         [DataRow("String[]", "")]
         [DataRow("String[]", ", 0, 2")]
@@ -640,6 +653,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Safe")]
         [DataTestMethod]
         [DataRow("string", false)]
         [DataRow("object", true)]
@@ -687,6 +701,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("String[]", "")]
         [DataRow("String[]", ", 0, 2")]
@@ -742,6 +757,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("string", false)]
         [DataRow("object", true)]

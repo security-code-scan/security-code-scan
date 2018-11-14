@@ -9,13 +9,14 @@ using SecurityCodeScan.Test.Helpers;
 namespace SecurityCodeScan.Test.Config
 {
     [TestClass]
-    public class TaintAnalyzisConfigurationTest : ConfigurationTest
+    public class TaintAnalyzisConfigurationTest : DiagnosticVerifier
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             return new DiagnosticAnalyzer[] { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic() };
         }
 
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task RemoveSink()
         {
@@ -59,13 +60,13 @@ Sinks:
   sqlcommand_constructor:
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
-
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task AddSink()
         {
@@ -114,7 +115,7 @@ Sinks:
     Locale: SCS0001
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0001",
@@ -124,6 +125,7 @@ Sinks:
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task RemoveBehavior()
         {
@@ -166,7 +168,7 @@ Behavior:
   MemoryStream_Constructor0:
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0028",
@@ -177,6 +179,7 @@ Behavior:
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task AddBehavior()
         {
@@ -236,12 +239,13 @@ Behavior:
     TaintFromArguments: [-1]
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task TwoDifferentProjectConfigs()
         {
@@ -301,7 +305,7 @@ Sinks:
     Locale: SCS0001
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0001",
@@ -330,12 +334,13 @@ Behavior:
     TaintFromArguments: [-1]
 ";
 
-            optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task AddConstantValue()
         {
@@ -383,7 +388,7 @@ End Namespace
 ConstantFields: [sample.Test.Safe]
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);

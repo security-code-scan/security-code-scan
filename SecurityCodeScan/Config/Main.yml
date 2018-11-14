@@ -1,11 +1,40 @@
 ﻿# Set to 'true' to see more warnings
 AuditMode: false
 
+# Allows to define custom anti CSRF attribute
+# HttpMethodsNameSpace must be System.Web.Mvc or Microsoft.AspNetCore.Mvc.
+# AntiCsrfAttribute should be applicable to Class and Method and be inheritable. Multiple instances should not be allowed. For example:
+# [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+# public class MyCustomAntiCsrfAttribute : Attribute {}
+# Otherwise CsrfTokenAnalyzer may not work properly.
+CsrfProtectionAttributes:
+  - HttpMethodsNameSpace: System.Web.Mvc
+    AntiCsrfAttribute: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
+  - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
+    AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
+  - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
+    AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+
 PasswordValidatorRequiredLength: 8
 MinimumPasswordValidatorProperties: 3
 
 # Possible values: RequiredLength, RequireUppercase, RequireDigit, RequireLowercase, RequireNonLetterOrDigit
 PasswordValidatorRequiredProperties: [RequiredLength]
+
+PasswordFields:
+# These field names are case insensitive
+  - PASSWORD
+  - SECRETKEY
+  - PWD
+
+ConstantFields:
+  - "System.String.Empty"
+  - "System.IntPtr.Zero"
+  - "System.IO.Path.AltDirectorySeparatorChar"
+  - "System.IO.Path.DirectorySeparatorChar"
+  - "System.IO.Path.InvalidPathChars"
+  - "System.IO.Path.PathSeparator"
+  - "System.IO.Path.VolumeSeparatorChar"
 
 Behavior:
 # This is the definition of API that conserve the state of variable received.
@@ -22,7 +51,30 @@ Behavior:
 #   TaintFromArguments: [[Index of the argument that will influence the state of the return value.]
 # <<<
 
-  #MemoryStream
+  UrlHelper_RouteUrl:
+    Namespace: System.Web.Mvc
+    ClassName: UrlHelper
+    Member: method
+    Name: RouteUrl
+    TaintFromArguments: [-1]
+
+  Environment_GetEnvironmentVariable:
+    Namespace: System
+    ClassName: Environment
+    Member: method
+    Name: GetEnvironmentVariable
+    TaintFromArguments: [0]
+
+  ProcessStartInfo_Constructor0:
+    Namespace: System.Diagnostics
+    ClassName: ProcessStartInfo
+    Member: method
+    Name: .ctor
+    ArgTypes: ()
+    TaintFromArguments: [-1]
+
+# MemoryStream
+
   MemoryStream_Constructor0:
     Namespace: System.IO
     ClassName: MemoryStream
@@ -31,7 +83,8 @@ Behavior:
     ArgTypes: ()
     TaintFromArguments: [-1]
 
-  #Directory
+# Directory
+
   Directory_GetCurrentDirectory:
     Namespace: System.IO
     ClassName: Directory
@@ -40,7 +93,8 @@ Behavior:
     ArgTypes: ()
     TaintFromArguments: [-1]
 
-  #Path
+# Path
+
   Path_ChangeExtension:
     Namespace: System.IO
     ClassName: Path
@@ -185,8 +239,9 @@ Behavior:
     ArgTypes: (System.String)
     TaintFromArguments: [0]
 
-  #string constructors
-  #https://msdn.microsoft.com/en-us/library/system.string.string(v=vs.110).aspx
+# string constructors
+# https://msdn.microsoft.com/en-us/library/system.string.string(v=vs.110).aspx
+
   StringConstructor_1:
     Namespace: System
     ClassName: String
@@ -211,8 +266,8 @@ Behavior:
     ArgTypes: (System.Char[], System.Int32, System.Int32)
     TaintFromArguments: [0]
 
-  #String.Format
-  #https://msdn.microsoft.com/en-us/library/system.string.format(v=vs.110).aspx
+# String.Format
+# https://msdn.microsoft.com/en-us/library/system.string.format(v=vs.110).aspx
 
   StringFormat_1:
     Namespace: System
@@ -278,7 +333,7 @@ Behavior:
     ArgTypes: (System.String, System.Object, System.Object, System.Object)
     TaintFromArguments: [0,1,2,3]
 
-  #String.Join
+# String.Join
 
   StringJoin_1:
     Namespace: System
@@ -327,11 +382,115 @@ Sinks:
 #   ArgTypes: (Optional field) [Parameter types signature]
 #   InjectableArguments : (Optional field) [Index of the argument for injectable query, starting from the left]
 #   PasswordArguments : (Optional field) [Index of the argument for password parameter, starting from the left]
-#   
+#
 #   Locale: [Id of a localization in Messages.yml, This value can be reused for multiple sinks]
 # <<<
 
-  # System.Data
+# XSS
+
+  System.Web.HttpResponse_Write_string:
+    Namespace: System.Web
+    ClassName: HttpResponse
+    Member: method
+    Name: Write
+    ArgTypes: (System.String)
+    InjectableArguments: [0]
+    Locale: SCS0029
+
+  System.Web.HttpResponse_Write_array:
+    Namespace: System.Web
+    ClassName: HttpResponse
+    Member: method
+    Name: Write
+    ArgTypes: (System.Char[], System.Int32, System.Int32)
+    InjectableArguments: [0]
+    Locale: SCS0029
+
+# SQL Injection
+
+ # Microsoft.Data.Sqlite
+
+  MicrosoftDataSqlite_sqlcommand_constructor:
+    Namespace: Microsoft.Data.Sqlite
+    ClassName: SqliteCommand
+    Member: method
+    Name: .ctor
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  MicrosoftDataSqlite_sqlcommand_field:
+    Namespace: Microsoft.Data.Sqlite
+    ClassName: SqliteCommand
+    Member: field
+    Name: CommandText
+    InjectableField: true
+    Locale: SCS0026
+
+ # System.Data.SQLite
+
+  SystemDataSQLite_Execute:
+    Namespace: System.Data.SQLite
+    ClassName: SQLiteCommand
+    Member: method
+    Name: Execute
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  SystemDataSQLite_sqlcommand_constructor1:
+    Namespace: System.Data.SQLite
+    ClassName: SQLiteCommand
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.Data.SQLite.SQLiteConnection, System.Data.SQLite.SQLiteTransaction)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  SystemDataSQLite_sqlcommand_constructor2:
+    Namespace: System.Data.SQLite
+    ClassName: SQLiteCommand
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.Data.SQLite.SQLiteConnection)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  SystemDataSQLite_sqlcommand_constructor3:
+    Namespace: System.Data.SQLite
+    ClassName: SQLiteCommand
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  SystemDataSQLite_sqlcommand_field:
+    Namespace: System.Data.SQLite
+    ClassName: SQLiteCommand
+    Member: field
+    Name: CommandText
+    InjectableField: true
+    Locale: SCS0026
+
+ # System.Data
+
+  SqlDataAdapter_constructor_1:
+    Namespace: System.Data.SqlClient
+    ClassName: SqlDataAdapter
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.Data.SqlClient.SqlConnection)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  SqlDataAdapter_constructor_2:
+    Namespace: System.Data.SqlClient
+    ClassName: SqlDataAdapter
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.String)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
   sqlcommand_constructor:
     Namespace: System.Data.SqlClient
     ClassName: SqlCommand
@@ -363,6 +522,8 @@ Sinks:
     Name: CommandText
     InjectableField: true
     Locale: SCS0026
+
+ # OLE DB
 
   oledbcommand_constructor:
     Namespace: System.Data.OleDb
@@ -396,7 +557,7 @@ Sinks:
     InjectableArguments: [0]
     Locale: SCS0025
 
-  # System.Data.Linq
+ # System.Data.Linq
 
   DataContext_ExecuteQuery_0:
     Namespace: System.Data.Linq
@@ -416,14 +577,33 @@ Sinks:
     InjectableArguments: [1]
     Locale: SCS0002
 
-  # System.Web.UI.WebControls
+  DataContext_ExecuteCommand:
+    Namespace: System.Data.Linq
+    ClassName: DataContext
+    Member: method
+    Name: ExecuteCommand
+    ArgTypes: (System.String, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0002
 
-  sqldatasource_constructor:
+ # System.Web.UI.WebControls
+
+  SqlDataSource_constructor_1:
     Namespace: System.Web.UI.WebControls
     ClassName: SqlDataSource
     Member: method
     Name: .ctor
-    InjectableArguments: [0]
+    ArgTypes: (System.String, System.String)
+    InjectableArguments: [1]
+    Locale: SCS0014
+
+  SqlDataSource_constructor_2:
+    Namespace: System.Web.UI.WebControls
+    ClassName: SqlDataSource
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.String, System.String)
+    InjectableArguments: [2]
     Locale: SCS0014
 
   sqldatasource_field:
@@ -442,7 +622,7 @@ Sinks:
     InjectableField: true
     Locale: SCS0014
 
-  # Microsoft.Whos.Framework.Data
+ # Microsoft.Whos.Framework.Data
 
   sqlutility_method:
     Namespace: Microsoft.Whos.Framework.Data
@@ -451,6 +631,271 @@ Sinks:
     Name: ExecuteDataset
     InjectableArguments: [0]
     Locale: SCS0014
+
+ # Entity Framework
+
+  Database_SqlQuery_1:
+    Namespace: System.Data.Entity
+    ClassName: Database
+    Member: method
+    Name: SqlQuery
+    ArgTypes: (System.Type, System.String, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0035
+
+  Database_SqlQuery_2:
+    Namespace: System.Data.Entity
+    ClassName: Database
+    Member: method
+    Name: SqlQuery
+    ArgTypes: (System.String, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0035
+
+  DbSet_SqlQuery_1:
+    Namespace: System.Data.Entity
+    ClassName: DbSet
+    Member: method
+    Name: SqlQuery
+    ArgTypes: (System.Type, System.String, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0035
+
+  DbSet_SqlQuery_2:
+    Namespace: System.Data.Entity
+    ClassName: DbSet
+    Member: method
+    Name: SqlQuery
+    ArgTypes: (System.String, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0035
+
+  Database_ExecuteSqlCommand_1:
+    Namespace: System.Data.Entity
+    ClassName: Database
+    Member: method
+    Name: ExecuteSqlCommand
+    ArgTypes: (System.String, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0035
+
+  Database_ExecuteSqlCommand_2:
+    Namespace: System.Data.Entity
+    ClassName: Database
+    Member: method
+    Name: ExecuteSqlCommand
+    ArgTypes: (System.Data.Entity.TransactionalBehavior, System.String, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0035
+
+  Database_ExecuteSqlCommandAsync_1:
+    Namespace: System.Data.Entity
+    ClassName: Database
+    Member: method
+    Name: ExecuteSqlCommandAsync
+    ArgTypes: (System.String, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0035
+
+  Database_ExecuteSqlCommandAsync_2:
+    Namespace: System.Data.Entity
+    ClassName: Database
+    Member: method
+    Name: ExecuteSqlCommandAsync
+    ArgTypes: (System.Data.Entity.TransactionalBehavior, System.String, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0035
+
+  Database_ExecuteSqlCommandAsync_3:
+    Namespace: System.Data.Entity
+    ClassName: Database
+    Member: method
+    Name: ExecuteSqlCommandAsync
+    ArgTypes: (System.String, System.Threading.CancellationToken, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0035
+
+  Database_ExecuteSqlCommandAsync_4:
+    Namespace: System.Data.Entity
+    ClassName: Database
+    Member: method
+    Name: ExecuteSqlCommandAsync
+    ArgTypes: (System.Data.Entity.TransactionalBehavior, System.String, System.Threading.CancellationToken, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0035
+
+  RelationalQueryableExtensions_FromSql_1:
+    Namespace: Microsoft.EntityFrameworkCore
+    ClassName: RelationalQueryableExtensions
+    Member: method
+    ArgTypes: (System.Linq.IQueryable, System.String, params System.Object[])
+    Name: FromSql
+    InjectableArguments: [1]
+    Locale: SCS0035
+
+  RelationalQueryableExtensions_FromSql_2:
+    Namespace: Microsoft.EntityFrameworkCore
+    ClassName: RelationalQueryableExtensions
+    Member: method
+    ArgTypes: (System.Linq.IQueryable, Microsoft.EntityFrameworkCore.RawSqlString, params System.Object[])
+    Name: FromSql
+    InjectableArguments: [1]
+    Locale: SCS0035
+
+  RelationalQueryableExtensions_FromSql_3:
+    Namespace: Microsoft.EntityFrameworkCore
+    ClassName: RelationalQueryableExtensions
+    Member: method
+    ArgTypes: (System.Linq.IQueryable, System.FormattableString, params System.Object[])
+    Name: FromSql
+    InjectableArguments: [1]
+    Locale: SCS0035
+
+ # Microsoft.Practices.EnterpriseLibrary.Data
+
+  Database_ExecuteDataSet_1:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteDataSet
+    ArgTypes: (System.Data.CommandType, System.String)
+    InjectableArguments: [1]
+    Locale: SCS0036
+
+  Database_ExecuteDataSet_2:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteDataSet
+    ArgTypes: (System.String, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0036
+
+  Database_ExecuteDataSet_3:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteDataSet
+    ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0036
+
+  Database_ExecuteDataSet_4:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteDataSet
+    ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
+    InjectableArguments: [2]
+    Locale: SCS0036
+
+  Database_ExecuteReader_1:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteReader
+    ArgTypes: (System.Data.CommandType, System.String)
+    InjectableArguments: [1]
+    Locale: SCS0036
+
+  Database_ExecuteReader_2:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteReader
+    ArgTypes: (System.String, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0036
+
+  Database_ExecuteReader_3:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteReader
+    ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0036
+
+  Database_ExecuteReader_4:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteReader
+    ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
+    InjectableArguments: [2]
+    Locale: SCS0036
+
+  Database_ExecuteNonQuery_1:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteNonQuery
+    ArgTypes: (System.Data.CommandType, System.String)
+    InjectableArguments: [1]
+    Locale: SCS0036
+
+  Database_ExecuteNonQuery_2:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteNonQuery
+    ArgTypes: (System.String, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0036
+
+  Database_ExecuteNonQuery_3:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteNonQuery
+    ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0036
+
+  Database_ExecuteNonQuery_4:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteNonQuery
+    ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
+    InjectableArguments: [2]
+    Locale: SCS0036
+
+  Database_ExecuteScalar_1:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteScalar
+    ArgTypes: (System.Data.CommandType, System.String)
+    InjectableArguments: [1]
+    Locale: SCS0036
+
+  Database_ExecuteScalar_2:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteScalar
+    ArgTypes: (System.String, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0036
+
+  Database_ExecuteScalar_3:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteScalar
+    ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0036
+
+  Database_ExecuteScalar_4:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Member: method
+    Name: ExecuteScalar
+    ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
+    InjectableArguments: [2]
+    Locale: SCS0036
 
   # Process
 
@@ -478,7 +923,7 @@ Sinks:
     InjectableField: true
     Locale: SCS0001
 
-   #XPath
+# XPath
 
   XmlNode_SelectNodes:
     Namespace: System.Xml
@@ -496,9 +941,143 @@ Sinks:
     InjectableArguments: [0]
     Locale: SCS0003
 
-  #Path traversal
+  XPathNavigator_SelectSingleNode_1:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    ArgTypes: (System.String)
+    Name: SelectSingleNode
+    InjectableArguments: [0]
+    Locale: SCS0003
 
-  #File API
+  XPathNavigator_SelectSingleNode_2:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    ArgTypes: (System.String, System.Xml.IXmlNamespaceResolver)
+    Name: SelectSingleNode
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathNavigator_Select_1:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    ArgTypes: (System.String)
+    Name: Select
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathNavigator_Select_2:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    ArgTypes: (System.String, System.Xml.IXmlNamespaceResolver)
+    Name: Select
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathNavigator_Compile:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    Name: Compile
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathNavigator_Evaluate_1:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    ArgTypes: (System.String)
+    Name: Evaluate
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathNavigator_Evaluate_2:
+    Namespace: System.Xml.XPath
+    ClassName: XPathNavigator
+    Member: method
+    ArgTypes: (System.String, System.Xml.IXmlNamespaceResolver)
+    Name: Evaluate
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathExpression_Compile_1:
+    Namespace: System.Xml.XPath
+    ClassName: XPathExpression
+    Member: method
+    ArgTypes: (System.String)
+    Name: Compile
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  XPathExpression_Compile_2:
+    Namespace: System.Xml.XPath
+    ClassName: XPathExpression
+    Member: method
+    ArgTypes: (System.String, System.Xml.IXmlNamespaceResolver)
+    Name: Compile
+    InjectableArguments: [0]
+    Locale: SCS0003
+
+  Extensions_XPathSelectElement_1:
+    Namespace: System.Xml.XPath
+    ClassName: Extensions
+    Member: method
+    ArgTypes: (System.Xml.Linq.XNode, System.String)
+    Name: XPathSelectElement
+    InjectableArguments: [1]
+    Locale: SCS0003
+
+  Extensions_XPathSelectElement_2:
+    Namespace: System.Xml.XPath
+    ClassName: Extensions
+    Member: method
+    ArgTypes: (System.Xml.Linq.XNode, System.String, System.Xml.IXmlNamespaceResolver)
+    Name: XPathSelectElement
+    InjectableArguments: [1]
+    Locale: SCS0003
+
+  Extensions_XPathSelectElements_1:
+    Namespace: System.Xml.XPath
+    ClassName: Extensions
+    Member: method
+    ArgTypes: (System.Xml.Linq.XNode, System.String)
+    Name: XPathSelectElements
+    InjectableArguments: [1]
+    Locale: SCS0003
+
+  Extensions_XPathSelectElements_2:
+    Namespace: System.Xml.XPath
+    ClassName: Extensions
+    Member: method
+    ArgTypes: (System.Xml.Linq.XNode, System.String, System.Xml.IXmlNamespaceResolver)
+    Name: XPathSelectElements
+    InjectableArguments: [1]
+    Locale: SCS0003
+
+  Extensions_XPathEvaluate_1:
+    Namespace: System.Xml.XPath
+    ClassName: Extensions
+    Member: method
+    ArgTypes: (System.Xml.Linq.XNode, System.String)
+    Name: XPathEvaluate
+    InjectableArguments: [1]
+    Locale: SCS0003
+
+  Extensions_XPathEvaluate_2:
+    Namespace: System.Xml.XPath
+    ClassName: Extensions
+    Member: method
+    ArgTypes: (System.Xml.Linq.XNode, System.String, System.Xml.IXmlNamespaceResolver)
+    Name: XPathEvaluate
+    InjectableArguments: [1]
+    Locale: SCS0003
+
+# Path traversal
+
+ # File API
 
   File_Delete:
     Namespace: System.IO
@@ -547,7 +1126,7 @@ Sinks:
     Name: ReadAllText
     InjectableArguments: [0]
     Locale: SCS0018
-  
+
   File_ReadAllBytes:
     Namespace: System.IO
     ClassName: File
@@ -555,7 +1134,7 @@ Sinks:
     Name: ReadAllBytes
     InjectableArguments: [0]
     Locale: SCS0018
-  
+
   File_ReadAllLines:
     Namespace: System.IO
     ClassName: File
@@ -604,7 +1183,7 @@ Sinks:
     InjectableArguments: [0, 1]
     Locale: SCS0018
 
-  #StreamReader
+ # StreamReader
 
   StreamReader_Create_path:
     Namespace: System.IO
@@ -651,7 +1230,7 @@ Sinks:
     InjectableArguments: [0]
     Locale: SCS0018
 
-  #StreamWriter
+ # StreamWriter
 
   StreamWriter1:
     Namespace: System.IO
@@ -689,7 +1268,7 @@ Sinks:
     InjectableArguments: [0, 1]
     Locale: SCS0018
 
-  #FileStream
+ # FileStream
 
   FileStream_Constructor1:
     Namespace: System.IO
@@ -826,7 +1405,106 @@ Sinks:
     InjectableArguments: [0, 1, 2, 3, 5, 6]
     Locale: SCS0018
 
-  # Open Redirects
+# LDAP injection
+
+  DirectorySearcher_constructor_0:
+    Namespace: System.DirectoryServices
+    ClassName: DirectorySearcher
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String)
+    InjectableArguments: [0]
+    Locale: SCS0031
+
+  DirectorySearcher_constructor_1:
+    Namespace: System.DirectoryServices
+    ClassName: DirectorySearcher
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.String[])
+    InjectableArguments: [0, 1]
+    Locale: SCS0031
+
+  DirectorySearcher_constructor_2:
+    Namespace: System.DirectoryServices
+    ClassName: DirectorySearcher
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.DirectoryServices.DirectoryEntry, System.String)
+    InjectableArguments: [1]
+    Locale: SCS0031
+
+  DirectorySearcher_constructor_3:
+    Namespace: System.DirectoryServices
+    ClassName: DirectorySearcher
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.DirectoryServices.DirectoryEntry, System.String, System.String[])
+    InjectableArguments: [1, 2]
+    Locale: SCS0031
+
+  DirectorySearcher_constructor_4:
+    Namespace: System.DirectoryServices
+    ClassName: DirectorySearcher
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.String[], System.DirectoryServices.SearchScope)
+    InjectableArguments: [0, 1]
+    Locale: SCS0031
+
+  DirectorySearcher_constructor_5:
+    Namespace: System.DirectoryServices
+    ClassName: DirectorySearcher
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.DirectoryServices.DirectoryEntry, System.String, System.String[], System.DirectoryServices.SearchScope)
+    InjectableArguments: [1, 2]
+    Locale: SCS0031
+
+  DirectorySearcher_Filter:
+    Namespace: System.DirectoryServices
+    ClassName: DirectorySearcher
+    Member: field
+    Name: Filter
+    InjectableField: true
+    Locale: SCS0031
+
+  DirectoryEntry_constructor_0:
+    Namespace: System.DirectoryServices
+    ClassName: DirectoryEntry
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String)
+    InjectableArguments: [0]
+    Locale: SCS0031
+
+  DirectoryEntry_constructor_1:
+    Namespace: System.DirectoryServices
+    ClassName: DirectoryEntry
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.String, System.String)
+    InjectableArguments: [0]
+    Locale: SCS0031
+
+  DirectoryEntry_constructor_2:
+    Namespace: System.DirectoryServices
+    ClassName: DirectoryEntry
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.String, System.String, System.DirectoryServices.AuthenticationTypes)
+    InjectableArguments: [0]
+    Locale: SCS0031
+
+  DirectoryEntry_Path:
+    Namespace: System.DirectoryServices
+    ClassName: DirectoryEntry
+    Member: field
+    Name: Path
+    InjectableField: true
+    Locale: SCS0031
+
+# Open Redirects
 
   System.Web.HttpResponse_Redirect_string:
      Namespace: System.Web
@@ -989,8 +1667,8 @@ Sinks:
       InjectableField: true
       Locale: SCS0027
 
+# Deserialization
 
-  #Deserialization
   BinaryFormatter_Deserialize:
      Namespace: System.Runtime.Serialization.Formatters.Binary
      ClassName: BinaryFormatter
@@ -1247,7 +1925,8 @@ Sinks:
     InjectableField: true
     Locale: SCS0028
 
-#Password
+# Password
+
   PasswordDeriveBytes:
     Namespace: System.Security.Cryptography
     ClassName: PasswordDeriveBytes
@@ -1263,32 +1942,3 @@ Sinks:
     Name: .ctor
     PasswordArguments: [1]
     LocalePass: SCS0015
-
-# Allows to define custom anti CSRF attribute
-# HttpMethodsNameSpace must be System.Web.Mvc or Microsoft.AspNetCore.Mvc.
-# AntiCsrfAttribute should be applicable to Class and Method and be inheritable. Multiple instances should not be allowed. For example:
-# [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-# public class MyCustomAntiCsrfAttribute : Attribute {}
-# Otherwise CsrfTokenAnalyzer may not work properly.
-CsrfProtectionAttributes:
-  - HttpMethodsNameSpace: System.Web.Mvc
-    AntiCsrfAttribute: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
-  - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
-    AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
-  - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
-    AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
-
-PasswordFields:
-# These field names are case insensitive
-  - PASSWORD
-  - SECRETKEY
-  - PWD
-
-ConstantFields:
-  - "System.String.Empty"
-  - "System.IntPtr.Zero"
-  - "System.IO.Path.AltDirectorySeparatorChar"
-  - "System.IO.Path.DirectorySeparatorChar"
-  - "System.IO.Path.InvalidPathChars"
-  - "System.IO.Path.PathSeparator"
-  - "System.IO.Path.VolumeSeparatorChar"

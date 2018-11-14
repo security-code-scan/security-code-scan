@@ -228,7 +228,7 @@ namespace SecurityCodeScan.Test.Helpers
             if (expectedCount != actualCount)
             {
                 string diagnosticsOutput = actualResults.Any()
-                                               ? FormatDiagnostics(analyzers[0], actualResults.ToArray())
+                                               ? FormatDiagnostics(analyzers, actualResults.ToArray())
                                                : "    NONE.";
 
                 var msg = $@"{documentsWithLineNumbers}
@@ -255,7 +255,7 @@ Diagnostics:
 
                 if (expected.Line != -1 || expected.Column != -1)
                 {
-                    VerifyDiagnosticLocation(analyzers[0],
+                    VerifyDiagnosticLocation(analyzers,
                                              documentsWithLineNumbers,
                                              actual,
                                              actual.Location,
@@ -264,19 +264,19 @@ Diagnostics:
 
                     var additionalLocations = actual.AdditionalLocations.ToArray();
 
-                    if (additionalLocations.Length != expected.Locations.Length - 1)
+                    if (additionalLocations.Length != expected.Locations.Count - 1)
                     {
                         Assert.IsTrue(false,
                                       $@"{documentsWithLineNumbers}
-Expected {expected.Locations.Length - 1} additional locations but got {additionalLocations.Length} for Diagnostic:
-{FormatDiagnostics(analyzers[0], actual)}
+Expected {expected.Locations.Count - 1} additional locations but got {additionalLocations.Length} for Diagnostic:
+{FormatDiagnostics(analyzers, actual)}
 (Language: {language})
 ");
                     }
 
                     for (int j = 0; j < additionalLocations.Length; ++j)
                     {
-                        VerifyDiagnosticLocation(analyzers[0],
+                        VerifyDiagnosticLocation(analyzers,
                                                  documentsWithLineNumbers,
                                                  actual,
                                                  additionalLocations[j],
@@ -292,7 +292,7 @@ Expected {expected.Locations.Length - 1} additional locations but got {additiona
 Expected diagnostic id to be ""{expected.Id}"" was ""{actual.Id}""
 
 Diagnostic:
-    {FormatDiagnostics(analyzers[0], actual)}
+    {FormatDiagnostics(analyzers, actual)}
 (Language: {language})
  ");
                 }
@@ -304,7 +304,7 @@ Diagnostic:
 Expected diagnostic severity to be ""{expected.Severity}"" was ""{actual.Severity}""
 
 Diagnostic:
-    {FormatDiagnostics(analyzers[0], actual)}
+    {FormatDiagnostics(analyzers, actual)}
 (Language: {language})
  ");
                 }
@@ -316,7 +316,7 @@ Diagnostic:
 Expected diagnostic message to be ""{expected.Message}"" was ""{actual.GetMessage()}""
 
 Diagnostic:
-    {FormatDiagnostics(analyzers[0], actual)}
+    {FormatDiagnostics(analyzers, actual)}
 (Language: {language})
  ");
                 }
@@ -327,26 +327,22 @@ Diagnostic:
         /// Helper method to VerifyDiagnosticResult that checks the location of a diagnostic and
         /// compares it with the location in the expected DiagnosticResult.
         /// </summary>
-        /// <param name="analyzer">The analyzer that was being run on the sources</param>
-        /// <param name="diagnostic">The diagnostic that was found in the code</param>
-        /// <param name="actual">The Location of the Diagnostic found in the code</param>
-        /// <param name="expected">The DiagnosticResultLocation that should have been found</param>
-        private static void VerifyDiagnosticLocation(DiagnosticAnalyzer       analyzer,
-                                                     string                   documentsWithLineNumbers,
-                                                     Diagnostic               diagnostic,
-                                                     Location                 actual,
-                                                     DiagnosticResultLocation expected,
-                                                     string                   language)
+        private static void VerifyDiagnosticLocation(ImmutableArray<DiagnosticAnalyzer> analyzers,
+                                                     string                             documentsWithLineNumbers,
+                                                     Diagnostic                         diagnostic,
+                                                     Location                           actual,
+                                                     DiagnosticResultLocation           expected,
+                                                     string                             language)
         {
             var actualSpan = actual.GetLineSpan();
+            var extension = language == LanguageNames.CSharp ? CSharpDefaultFileExt : VisualBasicDefaultExt;
 
-            Assert.IsTrue(actualSpan.Path == expected.Path ||
-                          (actualSpan.Path != null && actualSpan.Path.Contains("Test0.") && expected.Path.Contains("Test.")),
+            Assert.IsTrue(actualSpan.Path == $"{expected.Path}.{extension}",
                           $@"{documentsWithLineNumbers}
-Expected diagnostic to be in file ""{expected.Path}"" was actually in file ""{actualSpan.Path}""
+Expected diagnostic to be in file ""{expected.Path}.{extension}"" was actually in file ""{actualSpan.Path}""
 
 Diagnostic:
-    {FormatDiagnostics(analyzer, diagnostic)}
+    {FormatDiagnostics(analyzers, diagnostic)}
 (Language: {language})
  ");
 
@@ -362,7 +358,7 @@ Diagnostic:
 Expected diagnostic to be on line ""{expected.Line}"" was actually on line ""{actualLinePosition.Line + 1}""
 
 Diagnostic:
-    {FormatDiagnostics(analyzer, diagnostic)}
+    {FormatDiagnostics(analyzers, diagnostic)}
 (Language: {language})
  ");
                 }
@@ -379,7 +375,7 @@ Diagnostic:
 Expected diagnostic to start at column ""{expected.Column}"" was actually at column ""{actualLinePosition.Character + 1}""
 
 Diagnostic:
-    {FormatDiagnostics(analyzer, diagnostic)}
+    {FormatDiagnostics(analyzers, diagnostic)}
 (Language: {language})
  ");
             }
@@ -392,25 +388,32 @@ Diagnostic:
         /// <summary>
         /// Helper method to format a Diagnostic into an easily readable string
         /// </summary>
-        /// <param name="analyzer">The analyzer that this verifier tests</param>
-        /// <param name="diagnostics">The Diagnostics to be formatted</param>
         /// <returns>The Diagnostics formatted as a string</returns>
-        private static string FormatDiagnostics(DiagnosticAnalyzer analyzer, params Diagnostic[] diagnostics)
+        private static string FormatDiagnostics(ImmutableArray<DiagnosticAnalyzer> analyzers, params Diagnostic[] diagnostics)
         {
             var builder = new StringBuilder();
             for (int i = 0; i < diagnostics.Length; ++i)
             {
                 builder.AppendLine("// " + diagnostics[i]);
+                FormatDiagnostic(builder, analyzers, diagnostics[i], i == diagnostics.Length - 1);
+            }
 
+            return builder.ToString();
+        }
+
+        private static void FormatDiagnostic(StringBuilder builder, ImmutableArray<DiagnosticAnalyzer> analyzers, Diagnostic diagnostic, bool lastDiagnostic)
+        {
+            foreach (var analyzer in analyzers)
+            {
                 var analyzerType = analyzer.GetType();
                 var rules        = analyzer.SupportedDiagnostics;
 
                 foreach (var rule in rules)
                 {
-                    if (rule == null || rule.Id != diagnostics[i].Id)
+                    if (rule.Id != diagnostic.Id)
                         continue;
 
-                    var location = diagnostics[i].Location;
+                    var location = diagnostic.Location;
                     if (location == Location.None)
                     {
                         builder.AppendFormat("GetGlobalResult({0}.{1})", analyzerType.Name, rule.Id);
@@ -418,32 +421,25 @@ Diagnostic:
                     else
                     {
                         Assert.IsTrue(location.IsInSource,
-                                      $"Test base does not currently handle diagnostics in metadata locations. Diagnostic in metadata: {diagnostics[i]}\r\n");
+                                      $"Test base does not currently handle diagnostics in metadata locations. Diagnostic in metadata: {diagnostic}\r\n");
 
-                        string resultMethodName = diagnostics[i].Location.SourceTree.FilePath.EndsWith(".cs")
+                        string resultMethodName = diagnostic.Location.SourceTree.FilePath.EndsWith(".cs")
                                                       ? "GetCSharpResultAt"
                                                       : "GetBasicResultAt";
-                        var    linePosition     = diagnostics[i].Location.GetLineSpan().StartLinePosition;
+                        var linePosition = diagnostic.Location.GetLineSpan().StartLinePosition;
 
-                        builder.AppendFormat("{0}({1}, {2}, {3}.{4})",
-                                             resultMethodName,
-                                             linePosition.Line      + 1,
-                                             linePosition.Character + 1,
-                                             analyzerType.Name,
-                                             rule.Id);
+                        builder.Append($"{resultMethodName}({linePosition.Line + 1}, {linePosition.Character + 1}, {analyzerType.Name}.{rule.Id})");
                     }
 
-                    if (i != diagnostics.Length - 1)
+                    if (!lastDiagnostic)
                     {
                         builder.Append(',');
                     }
 
                     builder.AppendLine();
-                    break;
+                    return;
                 }
             }
-
-            return builder.ToString();
         }
 
         #endregion

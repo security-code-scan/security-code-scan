@@ -16,6 +16,7 @@ namespace SecurityCodeScan.Test
             return new DiagnosticAnalyzer[] { new WeakHashingAnalyzerCSharp(), new WeakHashingAnalyzerVisualBasic() };
         }
 
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task NotSHA1Create()
         {
@@ -53,6 +54,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataRow("MD5",  "MD5.Create")]
         [DataRow("SHA1", "SHA1.Create")]
         [DataTestMethod]
@@ -94,6 +96,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected, expected }).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataRow("MD5",  "MD5.Create")]
         [DataRow("SHA1", "SHA1.Create")]
         [DataTestMethod]
@@ -133,12 +136,12 @@ End Class
                 {
                     Id       = "SCS0006",
                     Severity = DiagnosticSeverity.Warning
-                }.WithLocation("Test0.cs", 9, 9),
+                }.WithLocation(9, 9),
                 new DiagnosticResult
                 {
                     Id       = "SCS0006",
                     Severity = DiagnosticSeverity.Warning
-                }.WithLocation("Test0.cs", 10, 14)
+                }.WithLocation(10, 14)
             };
             await VerifyCSharpDiagnostic(cSharpTest, expectedCSharp).ConfigureAwait(false);
 
@@ -148,16 +151,17 @@ End Class
                 {
                     Id       = "SCS0006",
                     Severity = DiagnosticSeverity.Warning
-                }.WithLocation("Test0.vb", 8, 23),
+                }.WithLocation(8, 23),
                 new DiagnosticResult
                 {
                     Id       = "SCS0006",
                     Severity = DiagnosticSeverity.Warning
-                }.WithLocation("Test0.vb", 10, 13)
+                }.WithLocation(10, 13)
             };
             await VerifyVisualBasicDiagnostic(visualBasicTest, expectedVBnet).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataRow("MD5",  "MD5.Create")]
         [DataRow("SHA1", "SHA1.Create")]
         [DataTestMethod]
@@ -201,6 +205,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected, expected }).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataRow("MD5", "MD5.Create")]
         [DataRow("SHA1", "SHA1.Create")]
         [DataTestMethod]
@@ -239,6 +244,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataRow("MD5")]
         [DataRow("SHA1")]
         [DataRow("MD5Cng")]
@@ -287,6 +293,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataRow("MD5.Create()")]
         [DataRow("new MD5CryptoServiceProvider()")]
         [DataRow("new MD5Cng()")]
@@ -342,6 +349,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Safe")]
         [DataRow("HashAlgorithm.Create(\"System.Security.Cryptography.SHA256\")")]
         [DataRow("SHA256.Create()")]
         [DataRow("HashAlgorithm.Create(name)")]
@@ -387,6 +395,47 @@ End Class
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task GivenAliasDirective_DetectDiagnostic()
+        {
+            var cSharpTest = @"
+using System.Security.Cryptography;
+using SH = System.Security.Cryptography.SHA1CryptoServiceProvider;
+
+namespace VulnerableApp
+{
+    class Test
+    {
+        static void Foo()
+        {
+            SHA1 sha = new SH();
+        }
+    }
+}
+";
+
+            var visualBasicTest = $@"
+Imports SH = System.Security.Cryptography.SHA1CryptoServiceProvider
+
+Class WeakHashing
+    Private Shared Sub foo()
+        Dim sha As New SH()
+    End Sub
+End Class
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "SCS0006",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+
         }
     }
 }

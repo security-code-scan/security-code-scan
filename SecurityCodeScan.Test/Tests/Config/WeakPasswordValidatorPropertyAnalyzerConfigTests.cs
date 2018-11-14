@@ -12,14 +12,14 @@ using SecurityCodeScan.Test.Helpers;
 namespace SecurityCodeScan.Test.Config
 {
     [TestClass]
-    public class WeakPasswordValidatorPropertyAnalyzerConfigTests : ConfigurationTest
+    public class WeakPasswordValidatorPropertyAnalyzerConfigTests : DiagnosticVerifier
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
                 return new DiagnosticAnalyzer[] { new WeakPasswordValidatorPropertyAnalyzerCSharp(), new TaintAnalyzerCSharp() };
-
-            return new DiagnosticAnalyzer[] { new WeakPasswordValidatorPropertyAnalyzerVisualBasic(), new TaintAnalyzerVisualBasic(), };
+            else
+                return new DiagnosticAnalyzer[] { new WeakPasswordValidatorPropertyAnalyzerVisualBasic(), new TaintAnalyzerVisualBasic() };
         }
 
         private static readonly PortableExecutableReference[] References =
@@ -29,8 +29,9 @@ namespace SecurityCodeScan.Test.Config
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        [TestCategory("Detect")]
         [TestMethod]
-        public async Task PasswordValidatorIncreaseRequiredLenght()
+        public async Task PasswordValidatorIncreaseRequiredLength()
         {
             var cSharpTest = @"
 using Microsoft.AspNet.Identity;
@@ -79,7 +80,7 @@ End Namespace
 PasswordValidatorRequiredLength: 9
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0032",
@@ -90,8 +91,9 @@ PasswordValidatorRequiredLength: 9
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Safe")]
         [TestMethod]
-        public async Task PasswordValidatorDecreaseRequiredLenght()
+        public async Task PasswordValidatorDecreaseRequiredLength()
         {
             var cSharpTest = @"
 using Microsoft.AspNet.Identity;
@@ -146,12 +148,13 @@ End Namespace
 PasswordValidatorRequiredLength: 7
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task PasswordValidatorIncreaseNumberOfRequiredProperties()
         {
@@ -198,7 +201,7 @@ End Namespace
 MinimumPasswordValidatorProperties: 4
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0033",
@@ -209,6 +212,7 @@ MinimumPasswordValidatorProperties: 4
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task PasswordValidatorDecreaseNumberOfRequiredProperties()
         {
@@ -259,12 +263,13 @@ End Namespace
 MinimumPasswordValidatorProperties: 2
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("RequireNonLetterOrDigit", 1)]
         [DataRow("RequireDigit", 1)]
@@ -319,7 +324,7 @@ MinimumPasswordValidatorProperties: 0
 PasswordValidatorRequiredProperties: [{properties}]
 ";
 
-            var optionsWithProjectConfig = CreateAnalyzersOptionsWithConfig(testConfig);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             expected = new DiagnosticResult
             {
                 Id       = "SCS0034",

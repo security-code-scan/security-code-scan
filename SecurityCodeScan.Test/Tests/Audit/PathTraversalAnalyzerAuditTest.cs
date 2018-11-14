@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -11,7 +10,7 @@ using SecurityCodeScan.Test.Helpers;
 namespace SecurityCodeScan.Test.Audit
 {
     [TestClass]
-    public class PathTraversalAnalyzerAuditTest : AuditTest
+    public class PathTraversalAnalyzerAuditTest : DiagnosticVerifier
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
@@ -74,6 +73,7 @@ namespace SecurityCodeScan.Test.Audit
         [DataRow("SetAccessControl(path, null)")]
         [DataRow("File.SetAccessControl(\"c:\\aaa.txt\", fileSecurity)")]
         [DataRow("SetAccessControl(\"c:\\aaa.txt\", fileSecurity)")]
+        [TestCategory("Detect")]
         [DataTestMethod]
         public async Task PathTraversalMethods(string sink)
         {
@@ -128,11 +128,11 @@ End Class
 
             await VerifyCSharpDiagnostic(cSharpTest,
                                          expected,
-                                         await GetAuditModeConfigOptions()).ConfigureAwait(false);
+                                         await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
 
             await VerifyVisualBasicDiagnostic(visualBasicTest,
                                               expected,
-                                              await GetAuditModeConfigOptions()).ConfigureAwait(false);
+                                              await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
         }
 
         [DataRow("File.AppendAllLines(\"c:\\aaa.txt\", null)")]
@@ -170,6 +170,7 @@ End Class
 
         [DataRow("File.SetAccessControl(\"c:\\aaa.txt\", null)")]
         [DataRow("SetAccessControl(\"c:\\aaa.txt\", null)")]
+        [TestCategory("Safe")]
         [DataTestMethod]
         public async Task PathTraversalMethodsConst(string sink)
         {
@@ -212,8 +213,8 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
 
             // no warnings with config too
-            await VerifyCSharpDiagnostic(cSharpTest, options:await GetAuditModeConfigOptions()).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, options:await GetAuditModeConfigOptions()).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, options:await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, options:await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
         }
 
         [DataRow("XmlReader.Create(textInput)")]
@@ -221,6 +222,7 @@ End Class
         [DataRow("XmlReader.Create(textInput, new XmlReaderSettings(), default(XmlParserContext))")]
         [DataRow("XmlReader.Create(default(Stream), new XmlReaderSettings(), textInput)")]
         [DataRow("XmlReader.Create(default(TextReader), new XmlReaderSettings(), textInput)")]
+        [TestCategory("Detect")]
         [DataTestMethod]
         public async Task PathTraversalXmlReader(string sink)
         {
@@ -266,11 +268,11 @@ End Class
 
             await VerifyCSharpDiagnostic(cSharpTest,
                                          expected,
-                                         await GetAuditModeConfigOptions()).ConfigureAwait(false);
+                                         await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
 
             await VerifyVisualBasicDiagnostic(visualBasicTest,
                                               expected,
-                                              await GetAuditModeConfigOptions()).ConfigureAwait(false);
+                                              await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
         }
     }
 }

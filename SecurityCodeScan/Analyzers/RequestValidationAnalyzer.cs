@@ -52,9 +52,6 @@ namespace SecurityCodeScan.Analyzers
 
             foreach (var attribute in attributes)
             {
-                if (!nodeHelper.GetNameNode(attribute).ToString().Contains("AllowHtml"))
-                    continue;
-
                 var attributeSymbols = ctx.SemanticModel.GetSymbolInfo(attribute).Symbol;
                 if (attributeSymbols == null)
                     continue;
@@ -70,7 +67,7 @@ namespace SecurityCodeScan.Analyzers
 
         protected void CheckUnvalidated(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
-            var name = nodeHelper.GetNameNode(ctx.Node);
+            var name = nodeHelper.GetMemberAccessNameNode(ctx.Node);
             if (name.ToString() != "Unvalidated")
                 return;
 
@@ -87,9 +84,6 @@ namespace SecurityCodeScan.Analyzers
         {
             foreach (var attribute in nodeHelper.GetDeclarationAttributeNodes(ctx.Node))
             {
-                if (!nodeHelper.GetNameNode(attribute).ToString().Contains("ValidateInput"))
-                    continue;
-
                 var hasArgumentFalse = false;
                 SyntaxNode expression = null;
                 foreach (var arg in nodeHelper.GetAttributeArgumentNodes(attribute))

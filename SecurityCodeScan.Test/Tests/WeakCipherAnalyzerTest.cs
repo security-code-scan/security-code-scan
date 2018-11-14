@@ -17,6 +17,13 @@ namespace SecurityCodeScan.Test
             return new DiagnosticAnalyzer[] { new WeakCipherAnalyzerCSharp(), new WeakCipherAnalyzerVisualBasic() };
         }
 
+        private DiagnosticResult Expected = new DiagnosticResult
+        {
+            Id       = "SCS0010",
+            Severity = DiagnosticSeverity.Warning
+        };
+
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task WeakCipherFalsePositive()
         {
@@ -92,6 +99,7 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task WeakCipherVulnerableDES()
         {
@@ -167,16 +175,11 @@ Class WeakCipherAlgorithm
 End Class
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0010",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task WeakCipherVulnerableRC2()
         {
@@ -257,16 +260,11 @@ Class WeakCipherAlgorithm
 End Class
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0010",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task WeakCipherVulnerableDES2()
         {
@@ -346,16 +344,11 @@ Class WeakCipherAlgorithm
 End Class
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0010",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task WeakCipherVulnerableRC2_2()
         {
@@ -435,14 +428,95 @@ Class WeakCipherAlgorithm
 End Class
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0010",
-                Severity = DiagnosticSeverity.Warning
-            };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
+
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task GivenAliasDirective_DetectDiagnostic()
+        {
+            var cSharpTest = @"
+using System.IO;
+using System.Security.Cryptography;
+using CS = System.Security.Cryptography.CryptoStream;
+
+class WeakCipherAlgorithm
+{
+    private static void EncryptData(string inName, string outName, byte[] desKey, byte[] desIV)
+    {
+        //Create the file streams to handle the input and output files.
+        FileStream fin = new FileStream(inName, FileMode.Open, FileAccess.Read);
+        FileStream fout = new FileStream(outName, FileMode.OpenOrCreate, FileAccess.Write);
+        fout.SetLength(0);
+
+        //Create variables to help with read and write. 
+        byte[] bin = new byte[100]; //This is intermediate storage for the encryption. 
+        long rdlen = 0;              //This is the total number of bytes written. 
+        long totlen = fin.Length;    //This is the total length of the input file. 
+        int len;                     //This is the number of bytes to be written at a time.
+
+        DES des = new DESCryptoServiceProvider();
+        CS encStream = new CS(fout, des.CreateEncryptor(desKey, desIV), CryptoStreamMode.Write);
+
+
+        //Read from the input file, then encrypt and write to the output file. 
+        while (rdlen < totlen)
+        {
+            len = fin.Read(bin, 0, 100);
+            encStream.Write(bin, 0, len);
+            rdlen = rdlen + len;
+        }
+
+        encStream.Close();
+        fout.Close();
+        fin.Close();
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.IO
+Imports System.Security.Cryptography
+Imports CS = System.Security.Cryptography.CryptoStream
+
+Class WeakCipherAlgorithm
+    Private Shared Sub EncryptData(inName As String, outName As String, desKey As Byte(), desIV As Byte())
+        'Create the file streams to handle the input and output files.
+        Dim fin As New FileStream(inName, FileMode.Open, FileAccess.Read)
+        Dim fout As New FileStream(outName, FileMode.OpenOrCreate, FileAccess.Write)
+        fout.SetLength(0)
+
+        'Create variables to help with read and write. 
+        Dim bin As Byte() = New Byte(99) {}
+        'This is intermediate storage for the encryption. 
+        Dim rdlen As Long = 0
+        'This is the total number of bytes written. 
+        Dim totlen As Long = fin.Length
+        'This is the total length of the input file. 
+        Dim len As Integer
+        'This is the number of bytes to be written at a time.
+        Dim des As DES = New DESCryptoServiceProvider()
+        Dim encStream As New CS(fout, des.CreateEncryptor(desKey, desIV), CryptoStreamMode.Write)
+
+
+        'Read from the input file, then encrypt and write to the output file. 
+        While rdlen < totlen
+            len = fin.Read(bin, 0, 100)
+            encStream.Write(bin, 0, len)
+            rdlen = rdlen + len
+        End While
+
+        encStream.Close()
+        fout.Close()
+        fin.Close()
+    End Sub
+End Class
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+        }
+
     }
 }

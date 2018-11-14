@@ -13,6 +13,7 @@ namespace SecurityCodeScan.Test
     {
         public AspxAnalyzerTest() : base(new HtmlValidateRequestAnalyzer()) { }
 
+        [TestCategory("Detect")]
         [DataRow("<%@page validateRequest=\"false\"")]
         [DataRow("<%  @page validateRequest=\"false\"")]
         [DataRow("<% @   page validateRequest=\"false\"")]
@@ -22,7 +23,7 @@ namespace SecurityCodeScan.Test
         [DataTestMethod]
         public async Task HtmlValidateRequestVulnerable(string element)
         {
-            string html = $@"
+            var html = $@"
 {element} Title=""About"" Language=""C#"" %>
 
 <asp:Content ID=""BodyContent"" ContentPlaceHolderID=""MainContent"" runat=""server"">
@@ -47,12 +48,13 @@ namespace SecurityCodeScan.Test
                                                                    && d.GetMessage(null) == expected.Message)), Times.Once);
         }
 
+        [TestCategory("Safe")]
         [DataRow("<%@page validateRequest=\"true\"")]
         [DataRow("<%@page VAlidateRequest=\"  TRue  \"")]
         [TestMethod]
         public async Task HtmlValidateRequestSafe(string element)
         {
-            string html = $@"
+            var html = $@"
 {element} Title=""About"" Language=""C#"" %>
 
 <asp:Content ID=""BodyContent"" ContentPlaceHolderID=""MainContent"" runat=""server"">

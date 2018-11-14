@@ -1,31 +1,39 @@
-﻿using SecurityCodeScan.Analyzers.Utils;
+﻿using System.Collections.Immutable;
+using System.Collections.ObjectModel;
+using SecurityCodeScan.Analyzers.Utils;
 
 namespace SecurityCodeScan.Analyzers.Taint
 {
     public class MethodBehavior
     {
-        public int[]  InjectablesArguments { get; }
-        public int[]  PasswordArguments    { get; }
-        public int[]  TaintFromArguments   { get; }
-        public string LocaleInjection      { get; }
-        public string LocalePassword       { get; }
-        public bool   IsInjectableField    { get; }
-        public bool   IsPasswordField      { get; }
+        public ReadOnlyDictionary<int, ulong> InjectableArguments { get; }
+        public ImmutableHashSet<int>          PasswordArguments   { get; }
+        public ReadOnlyDictionary<int, ulong> TaintFromArguments  { get; }
+        public ReadOnlyDictionary<int, object> PreConditions      { get; }
+        public ReadOnlyDictionary<int, ulong> PostConditions      { get; }
+        public string                         LocaleInjection     { get; }
+        public string                         LocalePassword      { get; }
+        public ulong                          InjectableField     { get; }
+        public bool                           IsPasswordField     { get; }
 
-        public MethodBehavior(int[] injectablesArguments,
-                              int[] passwordArguments,
-                              int[] taintFromArguments,
-                              string localeInjection,
-                              string localePassword,
-                              bool isInjectableField,
-                              bool isPasswordField)
+        public MethodBehavior(ReadOnlyDictionary<int, ulong>  injectableArguments,
+                              ImmutableHashSet<int>           passwordArguments,
+                              ReadOnlyDictionary<int, ulong>  taintFromArguments,
+                              ReadOnlyDictionary<int, object> preConditions,
+                              ReadOnlyDictionary<int, ulong>  postConditions,
+                              string                          localeInjection,
+                              string                          localePassword,
+                              ulong                           injectableField,
+                              bool                            isPasswordField)
         {
-            InjectablesArguments = injectablesArguments ?? EmptyArray<int>.Value;
-            PasswordArguments    = passwordArguments ?? EmptyArray<int>.Value;
-            TaintFromArguments   = taintFromArguments ?? EmptyArray<int>.Value;
+            InjectableArguments  = injectableArguments ?? EmptyDictionary<int, ulong>.Value;
+            PasswordArguments    = passwordArguments   ?? ImmutableHashSet<int>.Empty;
+            TaintFromArguments   = taintFromArguments  ?? EmptyDictionary<int, ulong>.Value;
+            PostConditions       = postConditions      ?? EmptyDictionary<int, ulong>.Value;
+            PreConditions        = preConditions       ?? EmptyDictionary<int, object>.Value;
             LocaleInjection      = localeInjection;
             LocalePassword       = localePassword;
-            IsInjectableField    = isInjectableField;
+            InjectableField      = injectableField;
             IsPasswordField      = isPasswordField;
         }
     }

@@ -42,11 +42,7 @@ namespace SecurityCodeScan.Analyzers.Locale
                     {
                         LocaleString[$"{key.Value}_{child.Key}"] = ((YamlScalarNode)child.Value).Value;
                     }
-
-                    //Logger.Log(key.Value);
                 }
-
-                //Logger.Log(LocaleString.Count + " locales loaded.");
             }
         }
 

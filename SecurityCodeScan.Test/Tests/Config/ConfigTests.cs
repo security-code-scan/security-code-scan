@@ -34,7 +34,7 @@ namespace SecurityCodeScan.Test.Config
             var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
 
             //ensuring that field count matches count of properties tested below (test should fail and be updated if someone adds new field in Configuration)
-            Assert.AreEqual(9, typeof(Configuration).GetFields().Length);
+            Assert.AreEqual(10, typeof(Configuration).GetFields().Length);
 
             Assert.AreEqual(StartupConfiguration.AuditMode,                                 newConfig.AuditMode);
             Assert.AreEqual(StartupConfiguration.Behavior.Count,                            newConfig.Behavior.Count);
@@ -45,6 +45,7 @@ namespace SecurityCodeScan.Test.Config
             Assert.AreEqual(StartupConfiguration.PasswordFields.Count,                      newConfig.PasswordFields.Count);
             Assert.AreEqual(StartupConfiguration.ConstantFields.Count,                      newConfig.ConstantFields.Count);
             Assert.AreEqual(StartupConfiguration.AntiCsrfAttributes.Count,                  newConfig.AntiCsrfAttributes.Count);
+            Assert.AreEqual(StartupConfiguration.SanitizerTypeNameToBit.Count,              newConfig.SanitizerTypeNameToBit.Count);
         }
 
         [TestMethod]
@@ -54,7 +55,7 @@ namespace SecurityCodeScan.Test.Config
             var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
 
             // ensuring that field count matches count of properties tested below
-            Assert.AreEqual(9, typeof(Configuration).GetFields().Length);
+            Assert.AreEqual(10, typeof(Configuration).GetFields().Length);
 
             Assert.AreEqual(StartupConfiguration.AuditMode,                                 newConfig.AuditMode);
             Assert.AreEqual(StartupConfiguration.Behavior.Count,                            newConfig.Behavior.Count);
@@ -65,6 +66,7 @@ namespace SecurityCodeScan.Test.Config
             Assert.AreEqual(StartupConfiguration.PasswordFields.Count,                      newConfig.PasswordFields.Count);
             Assert.AreEqual(StartupConfiguration.ConstantFields.Count,                      newConfig.ConstantFields.Count);
             Assert.AreEqual(StartupConfiguration.AntiCsrfAttributes.Count,                  newConfig.AntiCsrfAttributes.Count);
+            Assert.AreEqual(StartupConfiguration.SanitizerTypeNameToBit.Count, newConfig.SanitizerTypeNameToBit.Count);
         }
 
         [TestMethod]
@@ -75,6 +77,60 @@ namespace SecurityCodeScan.Test.Config
 
             Assert.AreNotEqual(StartupConfiguration.MinimumPasswordValidatorProperties, 0);
             Assert.AreEqual(StartupConfiguration.MinimumPasswordValidatorProperties, newConfig.MinimumPasswordValidatorProperties);
+        }
+
+        [DataTestMethod]
+        [DataRow(" ()",                                     true)]
+        [DataRow("() ",                                     true)]
+        [DataRow("",                                        true)]
+        [DataRow("(",                                       true)]
+        [DataRow(")",                                       true)]
+        [DataRow("((",                                      true)]
+        [DataRow("))",                                      true)]
+        [DataRow(")(",                                      true)]
+        [DataRow("())",                                     true)]
+        [DataRow("(System.String)",                         false)]
+        [DataRow("( System.String)",                        true)]
+        [DataRow("(System.String aaa)",                     true)]
+        [DataRow("(string)",                                true)]
+        [DataRow("(System.String,  System.String)",         true)]
+        [DataRow("(System.String, System.String)",          false)]
+        [DataRow("(System.String, out System.String)",      false)]
+        [DataRow("(this System.String, System.String)",     true)]
+        [DataRow("(System.String, params System.String[])", false)]
+        [DataRow("(System.String[])",                       false)]
+        public void ArgTypesValidation(string payload, bool shouldThrow)
+        {
+            var options   = ConfigurationTest.CreateAnalyzersOptionsWithConfig($@"
+Behavior:
+  Bla:
+    Namespace: NS
+    ClassName: CL
+    Member: method
+    Name: Foo
+    ArgTypes: ""{payload}""
+");
+
+            if (shouldThrow)
+                Assert.ThrowsException<Exception>(() => Manager.GetProjectConfiguration(options.AdditionalFiles));
+            else
+                Manager.GetProjectConfiguration(options.AdditionalFiles);
+        }
+
+        [DataTestMethod]
+        [DataRow("[aaa]",     false)]
+        [DataRow("[aaa,aaa]", true)]
+        [DataRow("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59]", true)]
+        [DataRow("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58]",    false)]
+        public void SanitizerTypesValidation(string payload, bool shouldThrow)
+        {
+            var options = ConfigurationTest.CreateAnalyzersOptionsWithConfig($@"
+SanitizerTypes: {payload}");
+
+            if (shouldThrow)
+                Assert.ThrowsException<Exception>(() => Manager.GetProjectConfiguration(options.AdditionalFiles));
+            else
+                Manager.GetProjectConfiguration(options.AdditionalFiles);
         }
     }
 }

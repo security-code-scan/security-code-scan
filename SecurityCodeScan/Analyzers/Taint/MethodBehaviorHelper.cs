@@ -59,6 +59,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     methodSignature = methodSignature.Replace("()", "[]");
 
                 methodSignature = methodSignature.Replace("ParamArray ", "params ");
+                methodSignature = methodSignature.Replace("ByRef ", "out ");
             }
 
             return methodSignature;

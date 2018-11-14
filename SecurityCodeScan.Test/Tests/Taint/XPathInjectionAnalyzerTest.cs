@@ -103,7 +103,7 @@ namespace sample
     }}
 }}
 ";
-            sink = sink.Replace("null", "Nothing").Replace("new ", "New ");
+            sink = sink.CSharpReplaceToVBasic();
             var visualBasicTest = $@"
 #Disable Warning BC50001
     Imports System.Xml

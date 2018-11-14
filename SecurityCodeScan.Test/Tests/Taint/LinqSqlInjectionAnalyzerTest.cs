@@ -25,17 +25,20 @@ namespace SecurityCodeScan.Test.Taint
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-        [DataRow("ctx.ExecuteQuery<UserEntity>(input)",              true)]
-        [DataRow("ctx.ExecuteQuery<UserEntity>(\"select\")",         false)]
-        [DataRow("ctx.ExecuteQuery(typeof(UserEntity), input)",      true)]
-        [DataRow("ctx.ExecuteQuery(typeof(UserEntity), \"select\")", false)]
+        [DataRow("ctx.ExecuteQuery<Object>(input)",              true)]
+        [DataRow("ctx.ExecuteQuery<Object>(\"select\")",         false)]
+        [DataRow("ctx.ExecuteQuery(typeof(Object), input)",      true)]
+        [DataRow("ctx.ExecuteQuery(typeof(Object), \"select\")", false)]
         [DataRow("ctx.ExecuteCommand(input)",                        true)]
         [DataRow("ctx.ExecuteCommand(\"select\")",                   false)]
         [DataTestMethod]
         public async Task LinqInjection(string sink, bool warn)
         {
             var cSharpTest = $@"
-using System.Data.Linq;
+#pragma warning disable 8019
+    using System.Data.Linq;
+    using System;
+#pragma warning restore 8019
 
 namespace VulnerableApp
 {{
@@ -46,17 +49,14 @@ namespace VulnerableApp
             return 0;
         }}
     }}
-
-    class UserEntity
-    {{
-    }}
 }}";
-            sink = sink.Replace("null", "Nothing")
-                .Replace("<UserEntity>", "(Of UserEntity)")
-                .Replace("typeof", "GetType");
+            sink = sink.CSharpReplaceToVBasic();
 
             var visualBasicTest = $@"
-Imports System.Data.Linq
+#Disable Warning BC50001
+    Imports System.Data.Linq
+    Imports System
+#Enable Warning BC50001
 
 Namespace VulnerableApp
     Public Class LyncInjectionTP
@@ -66,8 +66,6 @@ Namespace VulnerableApp
         End Function
     End Class
 
-    Class UserEntity
-    End Class
 End Namespace
         ";
 

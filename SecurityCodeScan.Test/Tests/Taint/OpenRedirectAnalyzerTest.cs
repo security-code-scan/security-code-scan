@@ -20,10 +20,11 @@ namespace SecurityCodeScan.Test.Taint
         private static readonly PortableExecutableReference[] References =
         {
             MetadataReference.CreateFromFile(typeof(System.Web.HttpResponse).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.ActionResult).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Http.HttpResponse).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.Controller).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ControllerBase).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.ActionResult).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.IUrlHelper).Assembly.Location),
         };
 
         private DiagnosticResult Expected = new DiagnosticResult
@@ -171,7 +172,7 @@ End Class
         //[DataRow("Microsoft.AspNetCore.Mvc", "new RedirectResult(\"\", flag, flag)")]
         //[DataRow("Microsoft.AspNetCore.Mvc", "RedirectPreserveMethod(\"\")")]
         //[DataRow("Microsoft.AspNetCore.Mvc", "RedirectPermanentPreserveMethod(\"\")")]
-        [DataRow("System.Web.Mvc",           "Redirect(Url.RouteUrl(new {controller = \"Report\"}) + \"#Id\")")]
+        [DataRow("System.Web.Mvc",           "Redirect(Url.RouteUrl(new {controller = input}) + \"#Id\")")]
         [DataTestMethod]
         public async Task OpenRedirectControllerConst(string @namespace, string sink)
         {
@@ -180,21 +181,21 @@ using {@namespace};
 
 class OpenRedirect : Controller
 {{
-    public ActionResult Run(bool flag)
+    public ActionResult Run(bool flag, string input)
     {{
         return {sink};
     }}
 }}
 ";
 
-            sink = sink.Replace("{", "With {.");
+            sink = sink.CSharpReplaceToVBasic();
             var visualBasicTest = $@"
 Imports {@namespace}
 
 Public Class OpenRedirect
     Inherits Controller
 
-    Public Function Run(flag As Boolean) as ActionResult
+    Public Function Run(flag As Boolean, input As System.String) as ActionResult
         Return {sink}
     End Function
 End Class
@@ -255,19 +256,20 @@ End Class
         }
 
         [TestCategory("Safe")]
-        [DataRow("Microsoft.AspNetCore.Mvc")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "Url = \"\"")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "Url = Url.RouteUrl(input)")]
         [DataTestMethod]
-        public async Task OpenRedirectController2Const(string @namespace)
+        public async Task OpenRedirectController2Const(string @namespace, string sink)
         {
             var cSharpTest1 = $@"
 using {@namespace};
 
 class OpenRedirect : Controller
 {{
-    public ActionResult Run()
+    public ActionResult Run(string input)
     {{
         var a = new RedirectResult("""");
-        a.Url = """";
+        a.{sink};
         return a;
     }}
 }}
@@ -280,7 +282,7 @@ class OpenRedirect : Controller
 {{
     public ActionResult Run(string input)
     {{
-        return new RedirectResult("""") {{Url = """"}};
+        return new RedirectResult("""") {{{sink}}};
     }}
 }}
 ";
@@ -291,9 +293,9 @@ Imports {@namespace}
 Public Class OpenRedirect
     Inherits Controller
 
-    Public Function Run() as ActionResult
+    Public Function Run(input As String) as ActionResult
         Dim a As New RedirectResult("""")
-        a.Url = """"
+        a.{sink}
         Return a
     End Function
 End Class

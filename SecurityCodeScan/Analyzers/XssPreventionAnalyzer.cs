@@ -82,7 +82,8 @@ namespace SecurityCodeScan.Analyzers
 
                     if (!inputVariableIsEncoded)
                     {
-                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, method.GetLocation()));
+                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, inputVariable.Locations[0]));
+                        break;
                     }
                 }
             }
@@ -168,7 +169,8 @@ namespace SecurityCodeScan.Analyzers
 
                     if (!inputVariableIsEncoded)
                     {
-                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, method.GetLocation()));
+                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, inputVariable.Locations[0]));
+                        break;
                     }
                 }
             }

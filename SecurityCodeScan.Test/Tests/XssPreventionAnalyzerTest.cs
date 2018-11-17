@@ -71,7 +71,7 @@ class Vulnerable
 }}
             ";
 
-            inputType = inputType.Replace('[', '(').Replace(']', ')');
+            inputType = inputType.CSharpReplaceToVBasic();
 
             var visualBasicTest = $@"
 Imports {@namespace}
@@ -103,9 +103,9 @@ namespace VulnerableApp
     public class TestController : System.Web.Mvc.Controller
     {{
         [{attributeName}]
-        public string Get(int sensibleData)
+        public string Get(int inputData)
         {{
-            return ""value "" + sensibleData;
+            return ""value "" + inputData;
         }}
     }}
 }}
@@ -118,8 +118,8 @@ Namespace VulnerableApp
     Public Class TestController
         Inherits System.Web.Mvc.Controller
         <{attributeName}> _
-        Public Function [Get](sensibleData As Integer) As String
-            Return ""value "" & sensibleData.ToString()
+        Public Function [Get](inputData As Integer) As String
+            Return ""value "" & inputData.ToString()
         End Function
     End Class
 End Namespace
@@ -140,10 +140,10 @@ namespace VulnerableApp
 {
     public class TestController : Controller
     {
-        [HttpGet(""{sensibleData}"")]
-        public string Get(int sensibleData)
+        [HttpGet(""{inputData}"")]
+        public string Get(int inputData)
         {
-            return ""value "" + sensibleData;
+            return ""value "" + inputData;
         }
     }
 }
@@ -155,9 +155,9 @@ Imports Microsoft.AspNetCore.Mvc
 Namespace VulnerableApp
     Public Class TestController
         Inherits Controller
-        <HttpGet(""{sensibleData}"")> _
-        Public Function [Get](sensibleData As Integer) As String
-            Return ""value "" & sensibleData.ToString()
+        <HttpGet(""{inputData}"")> _
+        Public Function [Get](inputData As Integer) As String
+            Return ""value "" & inputData.ToString()
         End Function
     End Class
 End Namespace
@@ -178,12 +178,12 @@ namespace VulnerableApp
 {
     public class TestController : Controller
     {
-        [HttpGet(""{sensibleData}"")]
+        [HttpGet(""{inputData}"")]
         // using 'virtual' to make 'public' not the only modifier
         // using 'System.String' instead of 'string' to see if it is handled
-        public virtual System.String Get(int sensibleData)
+        public virtual System.String Get(int inputData)
         {
-            return ""value "" + sensibleData;
+            return ""value "" + inputData;
         }
     }
 }
@@ -197,9 +197,9 @@ Namespace VulnerableApp
         Inherits Controller
         ' using Overridable to make Public not the only modifier
         ' using System.String instead of String to see if it is handled
-        <HttpGet(""{sensibleData}"")> _
-        Public Overridable Function [Get](sensibleData As Integer) As System.String
-            Return ""value "" & sensibleData.ToString()
+        <HttpGet(""{inputData}"")> _
+        Public Overridable Function [Get](inputData As Integer) As System.String
+            Return ""value "" & inputData.ToString()
         End Function
     End Class
 End Namespace
@@ -228,10 +228,10 @@ namespace VulnerableApp
 
     public class TestController : Controller
     {
-        [HttpGet(""{sensibleData}"")]
-        public string Get(int sensibleData)
+        [HttpGet(""{inputData}"")]
+        public string Get(int inputData)
         {
-            return ""value "" + sensibleData;
+            return ""value "" + inputData;
         }
     }
 }
@@ -246,9 +246,9 @@ Namespace VulnerableApp
 
     Public Class TestController
         Inherits Controller
-        <HttpGet(""{sensibleData}"")> _
-        Public Function [Get](sensibleData As Integer) As String
-            Return ""value "" & sensibleData.ToString()
+        <HttpGet(""{inputData}"")> _
+        Public Function [Get](inputData As Integer) As String
+            Return ""value "" & inputData.ToString()
         End Function
     End Class
 End Namespace
@@ -269,8 +269,8 @@ namespace VulnerableApp
 {
     public class TestController : Controller
     {
-        [HttpGet(""{sensibleData}"")]
-        public xxx Get(int sensibleData)
+        [HttpGet(""{inputData}"")]
+        public xxx Get(int inputData)
         {
         }
     }
@@ -283,8 +283,8 @@ Imports Microsoft.AspNetCore.Mvc
 Namespace VulnerableApp
     Public Class TestController
         Inherits Controller
-        <HttpGet(""{sensibleData}"")> _
-        Public Function [Get](sensibleData As Integer) As XXX
+        <HttpGet(""{inputData}"")> _
+        Public Function [Get](inputData As Integer) As XXX
         End Function
     End Class
 End Namespace
@@ -314,8 +314,8 @@ namespace VulnerableApp
     public class TestController : Controller
     {
         // see if 'void' is handled
-        [HttpGet(""{sensibleData}"")]
-        public void Get(int sensibleData)
+        [HttpGet(""{inputData}"")]
+        public void Get(int inputData)
         {
         }
     }
@@ -329,8 +329,8 @@ Namespace VulnerableApp
     Public Class TestController
         Inherits Controller
         ' see if Void is handled
-        <HttpGet(""{sensibleData}"")> _
-        Public Function [Get](sensibleData As Integer)
+        <HttpGet(""{inputData}"")> _
+        Public Function [Get](inputData As Integer)
         End Function
     End Class
 End Namespace
@@ -342,7 +342,7 @@ End Namespace
 
         [TestCategory("Safe")]
         [TestMethod]
-        public async Task EncodedSensibleDataWithTemporaryVariable()
+        public async Task EncodedInputDataWithTemporaryVariable()
         {
             const string cSharpTest = @"
 using Microsoft.AspNetCore.Mvc;
@@ -352,10 +352,10 @@ namespace VulnerableApp
 {
     public class TestController : Controller
     {
-        [HttpGet(""{sensibleData}"")]
-        public string Get(string sensibleData)
+        [HttpGet(""{inputData}"")]
+        public string Get(string inputData)
         {
-            string temporary_variable = HtmlEncoder.Default.Encode(sensibleData);
+            string temporary_variable = HtmlEncoder.Default.Encode(inputData);
             return ""value "" + temporary_variable;
         }
     }
@@ -369,9 +369,9 @@ Imports System.Text.Encodings.Web
 Namespace VulnerableApp
     Public Class TestController
         Inherits Controller
-        <HttpGet(""{ sensibleData}"")> _
-        Public Function [Get](sensibleData As String) As String
-            Dim temporary_variable As String = HtmlEncoder.[Default].Encode(sensibleData)
+        <HttpGet(""{ inputData}"")> _
+        Public Function [Get](inputData As String) As String
+            Dim temporary_variable As String = HtmlEncoder.[Default].Encode(inputData)
             Return ""value "" & temporary_variable
         End Function
     End Class
@@ -384,7 +384,7 @@ End Namespace
 
         [TestCategory("Safe")]
         [TestMethod]
-        public async Task EncodedSensibleDataOnReturn()
+        public async Task EncodedInputDataOnReturn()
         {
             const string cSharpTest = @"
 using Microsoft.AspNetCore.Mvc;
@@ -394,10 +394,10 @@ namespace VulnerableApp
 {
     public class TestController : Controller
     {
-        [HttpGet(""{sensibleData}"")]
-        public string Get(string sensibleData)
+        [HttpGet(""{inputData}"")]
+        public string Get(string inputData)
         {
-            return ""value "" + HtmlEncoder.Default.Encode(sensibleData);
+            return ""value "" + HtmlEncoder.Default.Encode(inputData);
         }
     }
 }
@@ -410,9 +410,9 @@ Imports Microsoft.AspNetCore.Mvc
 Namespace VulnerableApp
     Public Class TestController
         Inherits Controller
-        <HttpGet(""{ sensibleData}"")> _
-        Public Function [Get](sensibleData As String) As String
-            Return ""value "" & HtmlEncoder.[Default].Encode(sensibleData)
+        <HttpGet(""{ inputData}"")> _
+        Public Function [Get](inputData As String) As String
+            Return ""value "" & HtmlEncoder.[Default].Encode(inputData)
         End Function
     End Class
 End Namespace
@@ -434,10 +434,10 @@ namespace VulnerableApp
 {
     public class TestController : Controller
     {
-        [HttpGet(""{sensibleData}"")]
-        public string Get(string sensibleData)
+        [HttpGet(""{inputData}"")]
+        public string Get(string inputData)
         {
-            return HtmlEncoder.Default.Encode(""value "" + sensibleData);
+            return HtmlEncoder.Default.Encode(""value "" + inputData);
         }
     }
 }
@@ -450,9 +450,9 @@ Imports Microsoft.AspNetCore.Mvc
 Namespace VulnerableApp
     Public Class TestController
         Inherits Controller
-        <HttpGet(""{ sensibleData}"")> _
-        Public Function [Get](sensibleData As String) As String
-            Return HtmlEncoder.[Default].Encode(""value "" & sensibleData)
+        <HttpGet(""{ inputData}"")> _
+        Public Function [Get](inputData As String) As String
+            Return HtmlEncoder.[Default].Encode(""value "" & inputData)
         End Function
     End Class
 End Namespace
@@ -474,11 +474,11 @@ namespace VulnerableApp
 {
     public class TestController : Controller
     {
-        [HttpGet(""{sensibleData}"")]
-        public string Get(string sensibleData)
+        [HttpGet(""{inputData}"")]
+        public string Get(string inputData)
         {
-            sensibleData = HtmlEncoder.Default.Encode(""value "" + sensibleData);
-            return ""value "" + HtmlEncoder.Default.Encode(sensibleData);
+            inputData = HtmlEncoder.Default.Encode(""value "" + inputData);
+            return ""value "" + HtmlEncoder.Default.Encode(inputData);
         }
     }
 }
@@ -491,10 +491,10 @@ Imports Microsoft.AspNetCore.Mvc
 Namespace VulnerableApp
     Public Class TestController
         Inherits Controller
-        <HttpGet(""{ sensibleData}"")> _
-        Public Function [Get](sensibleData As String) As String
-            sensibleData = HtmlEncoder.[Default].Encode(""value "" & sensibleData)
-            Return ""value "" & HtmlEncoder.[Default].Encode(sensibleData)
+        <HttpGet(""{ inputData}"")> _
+        Public Function [Get](inputData As String) As String
+            inputData = HtmlEncoder.[Default].Encode(""value "" & inputData)
+            Return ""value "" & HtmlEncoder.[Default].Encode(inputData)
         End Function
     End Class
 End Namespace
@@ -557,10 +557,10 @@ namespace VulnerableApp
 {
     public class TestController : Controller
     {
-        [HttpGet(""{sensibleData}"")]
-        private string Get(int sensibleData)
+        [HttpGet(""{inputData}"")]
+        private string Get(int inputData)
         {
-            return ""value "" + sensibleData;
+            return ""value "" + inputData;
         }
     }
 }
@@ -572,9 +572,9 @@ Imports Microsoft.AspNetCore.Mvc
 Namespace VulnerableApp
     Public Class TestController
         Inherits Controller
-        <HttpGet(""{sensibleData}"")> _
-        Private Function[Get](sensibleData As Integer) As String
-            Return ""value "" + sensibleData
+        <HttpGet(""{inputData}"")> _
+        Private Function[Get](inputData As Integer) As String
+            Return ""value "" + inputData
         End Function
     End Class
 End Namespace

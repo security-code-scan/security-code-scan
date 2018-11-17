@@ -37,7 +37,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// </summary>
         public void Merge(VariableState secondState)
         {
-            ResolveTaint(secondState.Taint);
+            MergeTaint(secondState.Taint);
 
             if (secondState.Taint == Constant)
                 Value = secondState.Value;
@@ -54,35 +54,74 @@ namespace SecurityCodeScan.Analyzers.Taint
             }
         }
 
-        public void ResolveTaint(VariableTaint newTaint)
+        public void ApplySanitizer(ulong newTaint)
         {
+            if ((newTaint & (ulong)(Unknown & Tainted)) != 0)
+                throw new ArgumentOutOfRangeException();
+
+            if (Taint == Constant)
+                return;
+
+            Taint |= (VariableTaint)newTaint;
+        }
+
+        public void MergeTaint(VariableTaint newTaint)
+        {
+            if (newTaint == Unset)
+                return;
+
+            if (((Taint & Constant) != 0ul) && ((Taint & Safe) != 0ul))
+                throw new ArgumentOutOfRangeException(); // precondition
+
+            if (((newTaint & Constant) != 0ul) && ((newTaint & Safe) != 0ul))
+                throw new ArgumentOutOfRangeException();
+
             if (Taint == Unset)
             {
                 Taint = newTaint;
             }
+            else if (Taint != Safe && newTaint != Safe &&
+                     (Taint & (Unknown | Tainted)) != 0ul && ((Taint & Safe) != 0ul) &&
+                     (newTaint & (Unknown | Tainted)) != 0ul && ((newTaint & Safe) != 0ul))
+            {
+                if (((Taint & Tainted) != 0ul) || ((newTaint & Tainted) != 0ul))
+                    Taint = Tainted | (Taint & newTaint & Safe);
+                else
+                    Taint = Unknown | (Taint & newTaint & Safe);
+            }
+            else if ((Taint    == Constant && ((newTaint & Unknown) != 0ul) ||
+                     (newTaint == Constant && ((Taint & Unknown) != 0ul))))
+            {
+                Taint = Unknown | ((Taint | newTaint) & Safe);
+            }
+            else if ((Taint    == Constant && ((newTaint & Tainted) != 0ul) ||
+                     (newTaint == Constant && ((Taint & Tainted) != 0ul))))
+            {
+                Taint = Tainted | ((Taint | newTaint) & Safe);
+            }
+            else if ((Taint == Safe && ((newTaint & (Unknown | Tainted)) != 0ul)))
+            {
+                Taint = newTaint;
+            }
+            else if ((newTaint == Safe && ((Taint & (Unknown | Tainted)) != 0ul)))
+            {
+                //Taint = Taint;
+            }
+            else if(((newTaint & Tainted) != 0ul) || ((Taint & Tainted) != 0ul))
+            {
+                Taint = Tainted;
+            }
+            else if (((newTaint & Unknown) != 0ul) || ((Taint & Unknown) != 0ul))
+            {
+                Taint = Unknown;
+            }
+            else if (Taint == Constant && newTaint == Constant)
+            {
+                Taint = Constant;
+            }
             else
             {
-                switch (newTaint)
-                {
-                    case Tainted:
-                        Taint = Tainted;
-                        break;
-                    case Unknown:
-                        if (Taint != Tainted)
-                            Taint = Unknown;
-
-                        break;
-                    case Safe:
-                        if (Taint != Tainted && Taint != Unknown)
-                            Taint = Safe;
-
-                        break;
-                    case Constant:
-                    case Unset:
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                Taint = Safe;
             }
         }
 
@@ -101,24 +140,25 @@ namespace SecurityCodeScan.Analyzers.Taint
             Properties = secondState.Properties;
         }
 
-        public VariableState AddOrMergeProperty(string identifier, VariableState secondState)
+        public void AddOrMergeProperty(string identifier, VariableState secondState)
         {
             if (PropertyStates.ContainsKey(identifier))
             {
                 PropertyStates[identifier].Replace(secondState);
-                ResolveTaint(secondState.Taint);
+                MergeTaint(secondState.Taint);
             }
             else
             {
                 Properties.Add(identifier, secondState);
             }
-
-            return this;
         }
 
         public override string ToString()
         {
-            return Taint.ToString();
+            if (Taint == Unset || Taint == Unknown || Taint == Tainted || Taint == Constant || Taint == Safe)
+                return Taint.ToString();
+
+            return $"{(ulong)Taint}";
         }
     }
 }

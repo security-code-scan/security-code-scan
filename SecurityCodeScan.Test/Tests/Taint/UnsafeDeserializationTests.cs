@@ -121,7 +121,7 @@ namespace VulnerableApp
 }}
 ";
 
-            var vbAdditionalParams = additionalParams.Replace("null", "Nothing");
+            var vbAdditionalParams = additionalParams.CSharpReplaceToVBasic();
 
             var visualBasicTest = $@"
 Imports System.IO
@@ -201,7 +201,7 @@ namespace VulnerableApp
 }}
 ";
 
-            var vbAdditionalParams = additionalParams.Replace("null", "Nothing");
+            var vbAdditionalParams = additionalParams.CSharpReplaceToVBasic();
 
             var visualBasicTest = $@"
 Imports System.IO

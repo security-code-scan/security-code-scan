@@ -25,7 +25,7 @@ namespace SecurityCodeScan.Test.Password
         [DataTestMethod]
         public async Task HardCodePasswordFalsePositive(string value)
         {
-            var vbValue = value.Replace("null", "Nothing");
+            var vbValue = value.CSharpReplaceToVBasic();
 
             var cSharpTest = $@"
 using System;

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -97,7 +96,6 @@ class PathTraversal
 }}
 ";
 
-            sink = sink.Replace("null", "Nothing");
             var visualBasicTest = $@"
 #Disable Warning BC50001
     Imports System
@@ -111,7 +109,7 @@ Class PathTraversal
     Public Shared Sub Run(path As String, contents As IEnumerable(Of String), flag As Boolean, fileMode As FileMode,
                           access as FileAccess, share As FileShare, bytes As Byte(), fileSecurity As FileSecurity,
                           fileOptions As FileOptions)
-        {sink}
+        {sink.CSharpReplaceToVBasic()}
     End Sub
 End Class
 ";
@@ -192,7 +190,6 @@ class PathTraversal
 }}
 ";
 
-            sink = sink.Replace("null", "Nothing");
             var visualBasicTest = $@"
 #Disable Warning BC50001
     Imports System
@@ -204,7 +201,7 @@ class PathTraversal
 
 Class PathTraversal
     Public Shared Sub Run(flag As Boolean, digit As Int32, encoding As System.Text.Encoding)
-        {sink}
+        {sink.CSharpReplaceToVBasic()}
     End Sub
 End Class
 ";
@@ -241,8 +238,6 @@ class PathTraversal
 }}
 ";
 
-            sink = sink.Replace("null", "Nothing");
-            sink = Regex.Replace(sink, "default\\(([^\\)]*)\\)", "DirectCast(Nothing, $1)");
             var visualBasicTest = $@"
 #Disable Warning BC50001
     Imports System.IO
@@ -251,7 +246,7 @@ class PathTraversal
 
 Class PathTraversal
     Public Shared Sub Run(textInput As String, streamInput As Stream, textReaderInput As TextReader, xmlReaderInput As XmlReader)
-        Dim reader As XMLReader = {sink}
+        Dim reader As XMLReader = {sink.CSharpReplaceToVBasic()}
     End Sub
 End Class
 ";

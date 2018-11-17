@@ -1,26 +1,29 @@
-﻿namespace SecurityCodeScan.Analyzers.Taint
+﻿using System;
+
+namespace SecurityCodeScan.Analyzers.Taint
 {
-    public enum VariableTaint
+    [Flags]
+    public enum VariableTaint : ulong
     {
         /// <summary>
         /// Value is not determined
         /// </summary>
-        Unset,
+        Unset    = 0b000,
         /// <summary>
-        /// Constant string
+        /// Value from unknown source
         /// </summary>
-        Constant,
+        Unknown  = 0b001,
         /// <summary>
-        /// Value that are safe to use
+        /// Value from known insecure source
         /// </summary>
-        Safe,
+        Tainted  = 0b010,
         /// <summary>
-        /// Value obtain from an external sources
+        /// Constant hardcoded value
         /// </summary>
-        Unknown,
+        Constant = 0b100,
         /// <summary>
-        /// Value taken from input source.
+        /// Trusted value
         /// </summary>
-        Tainted
+        Safe = UInt64.MaxValue & ~0b111ul, // set last three bits to zero, all other bits are used by sanitizers. Safe == bits of all possible sanitizers set.
     }
 }

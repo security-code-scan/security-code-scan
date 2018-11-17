@@ -294,10 +294,7 @@ namespace sample
 }}
 ";
 
-            sink = sink.Replace("null", "Nothing")
-                .Replace("var ", "Dim ")
-                .Replace("new ", "New ")
-                .Replace("<Object>", "(Of Object)");
+            sink = sink.CSharpReplaceToVBasic();
 
             var visualBasicTest = $@"
 #Disable Warning BC50001
@@ -366,10 +363,7 @@ namespace sample
 }}
 ";
 
-            sink = sink.Replace("null", "Nothing")
-                       .Replace("var ", "Dim ")
-                       .Replace("new ", "New ")
-                       .Replace("<Object>", "(Of Object)");
+            sink = sink.CSharpReplaceToVBasic();
 
             var visualBasicTest = $@"
 Imports Microsoft.EntityFrameworkCore
@@ -432,10 +426,7 @@ namespace sample
 }}
 ";
 
-            sink = sink.Replace("null", "Nothing")
-                       .Replace("var ", "Dim ")
-                       .Replace("new ", "New ")
-                       .Replace("<Object>", "(Of Object)");
+            sink = sink.CSharpReplaceToVBasic();
 
             var visualBasicTest = $@"
 Imports Microsoft.Data.Sqlite

@@ -24,10 +24,10 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             var injectableArguments = GetMethodInjectableArguments(additionalFiles);
             // First try to find specific overload
-            if (symbol.ToString().Contains("("))
+            if (symbol is IMethodSymbol methodSymbol)
             {
                 string keyExtended =
-                    $"{symbol.ContainingType.ContainingNamespace}.{symbol.ContainingType.Name}|{symbol.Name}|{ExtractGenericParameterSignature((IMethodSymbol)symbol)}";
+                    $"{symbol.ContainingType.ContainingNamespace}.{symbol.ContainingType.Name}|{symbol.Name}|{ExtractGenericParameterSignature(methodSymbol)}";
 
                 if (injectableArguments.TryGetValue(keyExtended, out var behavior1))
                     return behavior1;
@@ -59,6 +59,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     methodSignature = methodSignature.Replace("()", "[]");
 
                 methodSignature = methodSignature.Replace("ParamArray ", "params ");
+                methodSignature = methodSignature.Replace("ByRef ", "out ");
             }
 
             return methodSignature;

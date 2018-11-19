@@ -36,6 +36,12 @@ ConstantFields:
   - "System.IO.Path.PathSeparator"
   - "System.IO.Path.VolumeSeparatorChar"
 
+SanitizerTypes:
+  - LocalUrl
+  - HtmlEscaped
+  - LdapFilterEncoded
+  - LdapDistinguishedNameEncoded
+
 Behavior:
 # This is the definition of API that conserve the state of variable received.
 # By considering those API, the flow analysis will be much more accurate.
@@ -51,12 +57,118 @@ Behavior:
 #   TaintFromArguments: [[Index of the argument that will influence the state of the return value.]
 # <<<
 
+  Uri_TryCreate:
+    Namespace: System
+    ClassName: Uri
+    Member: method
+    Name: TryCreate
+    ArgTypes: (System.String, System.UriKind, out System.Uri)
+    PreConditions: [1: [Value: 2]]
+    PostConditions: [-1: Validator, 2: LocalUrl]
+
   UrlHelper_RouteUrl:
     Namespace: System.Web.Mvc
     ClassName: UrlHelper
     Member: method
     Name: RouteUrl
-    TaintFromArguments: [-1]
+    TaintFromArguments: [0, 1, 2, 3]
+    PostConditions: [-1: LocalUrl]
+
+  UrlHelper_IsLocalUrl:
+    Namespace: System.Web.Mvc
+    ClassName: UrlHelper
+    Member: method
+    Name: IsLocalUrl
+    PostConditions: [-1: Validator, 0: LocalUrl]
+
+  UrlHelperCore_IsLocalUrl:
+    Namespace: Microsoft.AspNetCore.Mvc
+    ClassName: IUrlHelper
+    Member: method
+    Name: IsLocalUrl
+    PostConditions: [-1: Validator, 0: LocalUrl]
+
+  UrlHelperCore_RouteUrl:
+    Namespace: Microsoft.AspNetCore.Mvc
+    ClassName: UrlHelperExtensions
+    Member: method
+    Name: RouteUrl
+    TaintFromArguments: [1, 2, 3, 4, 5]
+    PostConditions: [-1: LocalUrl]
+
+  Encoder_LdapDistinguishedNameEncode:
+    Namespace: Microsoft.Security.Application
+    ClassName: Encoder
+    Member: method
+    Name: LdapDistinguishedNameEncode
+    TaintFromArguments: [0]
+    PostConditions: [-1: LdapDistinguishedNameEncoded]
+
+  Encoder_HtmlEncode:
+    Namespace: Microsoft.Security.Application
+    ClassName: Encoder
+    Member: method
+    Name: HtmlEncode
+    TaintFromArguments: [0]
+    PostConditions: [-1: HtmlEscaped]
+
+  HttpServerUtility_HtmlEncode1:
+    Namespace: System.Web
+    ClassName: HttpServerUtility
+    Member: method
+    Name: HtmlEncode
+    ArgTypes: (System.String)
+    TaintFromArguments: [0]
+    PostConditions: [-1: HtmlEscaped]
+
+  HttpServerUtility_HtmlEncode2:
+    Namespace: System.Web
+    ClassName: HttpServerUtility
+    Member: method
+    Name: HtmlEncode
+    ArgTypes: (System.String, System.IO.TextWriter)
+    PostConditions: [1: HtmlEscaped]
+
+  System.Text.Encodings.Web_HtmlEncoder_Encode1:
+    Namespace: System.Text.Encodings.Web
+    ClassName: TextEncoder
+    Member: method
+    Name: Encode
+    ArgTypes: (System.String)
+    TaintFromArguments: [0]
+    PostConditions: [-1: HtmlEscaped]
+
+  System.Text.Encodings.Web_HtmlEncoder_Encode2:
+    Namespace: System.Text.Encodings.Web
+    ClassName: TextEncoder
+    Member: method
+    Name: Encode
+    ArgTypes: (System.IO.TextWriter, System.String)
+    PostConditions: [0: HtmlEscaped]
+
+  System.Text.Encodings.Web_HtmlEncoder_Encode3:
+    Namespace: System.Text.Encodings.Web
+    ClassName: TextEncoder
+    Member: method
+    Name: Encode
+    ArgTypes: (System.IO.TextWriter, System.String, System.Int32, System.Int32)
+    PostConditions: [0: HtmlEscaped]
+
+  System.Text.Encodings.Web_HtmlEncoder_Encode4:
+    Namespace: System.Text.Encodings.Web
+    ClassName: TextEncoder
+    Member: method
+    Name: Encode
+    ArgTypes: (System.IO.TextWriter, System.Char[], System.Int32, System.Int32)
+    PostConditions: [0: HtmlEscaped]
+
+  Encoder_LdapFilterEncode:
+    Namespace: Microsoft.Security.Application
+    ClassName: Encoder
+    Member: method
+    Name: LdapFilterEncode
+    TaintFromArguments: [0]
+    PostConditions: [-1: LdapFilterEncoded]
 
   Environment_GetEnvironmentVariable:
     Namespace: System
@@ -71,7 +183,7 @@ Behavior:
     Member: method
     Name: .ctor
     ArgTypes: ()
-    TaintFromArguments: [-1]
+    PostConditions: [-1]
 
 # MemoryStream
 
@@ -81,7 +193,7 @@ Behavior:
     Member: method
     Name: .ctor
     ArgTypes: ()
-    TaintFromArguments: [-1]
+    PostConditions: [-1]
 
 # Directory
 
@@ -91,7 +203,7 @@ Behavior:
     Member: method
     Name: GetCurrentDirectory
     ArgTypes: ()
-    TaintFromArguments: [-1]
+    PostConditions: [-1]
 
 # Path
 
@@ -181,7 +293,7 @@ Behavior:
     Member: method
     Name: GetInvalidFileNameChars
     ArgTypes: ()
-    TaintFromArguments: [-1]
+    PostConditions: [-1]
 
   Path_GetInvalidPathChars:
     Namespace: System.IO
@@ -189,7 +301,7 @@ Behavior:
     Member: method
     Name: GetInvalidPathChars
     ArgTypes: ()
-    TaintFromArguments: [-1]
+    PostConditions: [-1]
 
   Path_GetPathRoot:
     Namespace: System.IO
@@ -205,7 +317,7 @@ Behavior:
     Member: method
     Name: GetRandomFileName
     ArgTypes: ()
-    TaintFromArguments: [-1]
+    PostConditions: [-1]
 
   Path_GetTempFileName:
     Namespace: System.IO
@@ -213,7 +325,7 @@ Behavior:
     Member: method
     Name: GetTempFileName
     ArgTypes: ()
-    TaintFromArguments: [-1]
+    PostConditions: [-1]
 
   Path_GetTempPath:
     Namespace: System.IO
@@ -221,7 +333,7 @@ Behavior:
     Member: method
     Name: GetTempPath
     ArgTypes: ()
-    TaintFromArguments: [-1]
+    PostConditions: [-1]
 
   Path_HasExtension:
     Namespace: System.IO
@@ -394,7 +506,7 @@ Sinks:
     Member: method
     Name: Write
     ArgTypes: (System.String)
-    InjectableArguments: [0]
+    InjectableArguments: [0: HtmlEscaped]
     Locale: SCS0029
 
   System.Web.HttpResponse_Write_array:
@@ -403,10 +515,91 @@ Sinks:
     Member: method
     Name: Write
     ArgTypes: (System.Char[], System.Int32, System.Int32)
-    InjectableArguments: [0]
+    InjectableArguments: [0: HtmlEscaped]
+    Locale: SCS0029
+
+  System.Web.HttpResponseBase_Write_string:
+    Namespace: System.Web
+    ClassName: HttpResponseBase
+    Member: method
+    Name: Write
+    ArgTypes: (System.String)
+    InjectableArguments: [0: HtmlEscaped]
+    Locale: SCS0029
+
+  System.Web.HttpResponseBase_Write_array:
+    Namespace: System.Web
+    ClassName: HttpResponseBase
+    Member: method
+    Name: Write
+    ArgTypes: (System.Char[], System.Int32, System.Int32)
+    InjectableArguments: [0: HtmlEscaped]
     Locale: SCS0029
 
 # SQL Injection
+
+ # Microsoft.Data.Sqlite
+
+  MicrosoftDataSqlite_sqlcommand_constructor:
+    Namespace: Microsoft.Data.Sqlite
+    ClassName: SqliteCommand
+    Member: method
+    Name: .ctor
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  MicrosoftDataSqlite_sqlcommand_field:
+    Namespace: Microsoft.Data.Sqlite
+    ClassName: SqliteCommand
+    Member: field
+    Name: CommandText
+    InjectableField: true
+    Locale: SCS0026
+
+ # System.Data.SQLite
+
+  SystemDataSQLite_Execute:
+    Namespace: System.Data.SQLite
+    ClassName: SQLiteCommand
+    Member: method
+    Name: Execute
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  SystemDataSQLite_sqlcommand_constructor1:
+    Namespace: System.Data.SQLite
+    ClassName: SQLiteCommand
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.Data.SQLite.SQLiteConnection, System.Data.SQLite.SQLiteTransaction)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  SystemDataSQLite_sqlcommand_constructor2:
+    Namespace: System.Data.SQLite
+    ClassName: SQLiteCommand
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String, System.Data.SQLite.SQLiteConnection)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  SystemDataSQLite_sqlcommand_constructor3:
+    Namespace: System.Data.SQLite
+    ClassName: SQLiteCommand
+    Member: method
+    Name: .ctor
+    ArgTypes: (System.String)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  SystemDataSQLite_sqlcommand_field:
+    Namespace: System.Data.SQLite
+    ClassName: SQLiteCommand
+    Member: field
+    Name: CommandText
+    InjectableField: true
+    Locale: SCS0026
 
  # System.Data
 
@@ -589,6 +782,24 @@ Sinks:
     InjectableArguments: [0]
     Locale: SCS0035
 
+  DbSet_SqlQuery_1:
+    Namespace: System.Data.Entity
+    ClassName: DbSet
+    Member: method
+    Name: SqlQuery
+    ArgTypes: (System.Type, System.String, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0035
+
+  DbSet_SqlQuery_2:
+    Namespace: System.Data.Entity
+    ClassName: DbSet
+    Member: method
+    Name: SqlQuery
+    ArgTypes: (System.String, params System.Object[])
+    InjectableArguments: [0]
+    Locale: SCS0035
+
   Database_ExecuteSqlCommand_1:
     Namespace: System.Data.Entity
     ClassName: Database
@@ -640,6 +851,33 @@ Sinks:
     Member: method
     Name: ExecuteSqlCommandAsync
     ArgTypes: (System.Data.Entity.TransactionalBehavior, System.String, System.Threading.CancellationToken, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0035
+
+  RelationalQueryableExtensions_FromSql_1:
+    Namespace: Microsoft.EntityFrameworkCore
+    ClassName: RelationalQueryableExtensions
+    Member: method
+    ArgTypes: (System.Linq.IQueryable, System.String, params System.Object[])
+    Name: FromSql
+    InjectableArguments: [1]
+    Locale: SCS0035
+
+  RelationalQueryableExtensions_FromSql_2:
+    Namespace: Microsoft.EntityFrameworkCore
+    ClassName: RelationalQueryableExtensions
+    Member: method
+    ArgTypes: (System.Linq.IQueryable, Microsoft.EntityFrameworkCore.RawSqlString, params System.Object[])
+    Name: FromSql
+    InjectableArguments: [1]
+    Locale: SCS0035
+
+  RelationalQueryableExtensions_FromSql_3:
+    Namespace: Microsoft.EntityFrameworkCore
+    ClassName: RelationalQueryableExtensions
+    Member: method
+    ArgTypes: (System.Linq.IQueryable, System.FormattableString, params System.Object[])
+    Name: FromSql
     InjectableArguments: [1]
     Locale: SCS0035
 
@@ -1305,7 +1543,7 @@ Sinks:
     Member: method
     Name: .ctor
     ArgTypes: (System.String)
-    InjectableArguments: [0]
+    InjectableArguments: [0: LdapFilterEncoded]
     Locale: SCS0031
 
   DirectorySearcher_constructor_1:
@@ -1314,7 +1552,7 @@ Sinks:
     Member: method
     Name: .ctor
     ArgTypes: (System.String, System.String[])
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0: LdapFilterEncoded, 1]
     Locale: SCS0031
 
   DirectorySearcher_constructor_2:
@@ -1323,7 +1561,7 @@ Sinks:
     Member: method
     Name: .ctor
     ArgTypes: (System.DirectoryServices.DirectoryEntry, System.String)
-    InjectableArguments: [1]
+    InjectableArguments: [1: LdapFilterEncoded]
     Locale: SCS0031
 
   DirectorySearcher_constructor_3:
@@ -1332,7 +1570,7 @@ Sinks:
     Member: method
     Name: .ctor
     ArgTypes: (System.DirectoryServices.DirectoryEntry, System.String, System.String[])
-    InjectableArguments: [1, 2]
+    InjectableArguments: [1: LdapFilterEncoded, 2]
     Locale: SCS0031
 
   DirectorySearcher_constructor_4:
@@ -1341,7 +1579,7 @@ Sinks:
     Member: method
     Name: .ctor
     ArgTypes: (System.String, System.String[], System.DirectoryServices.SearchScope)
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0: LdapFilterEncoded, 1]
     Locale: SCS0031
 
   DirectorySearcher_constructor_5:
@@ -1350,7 +1588,7 @@ Sinks:
     Member: method
     Name: .ctor
     ArgTypes: (System.DirectoryServices.DirectoryEntry, System.String, System.String[], System.DirectoryServices.SearchScope)
-    InjectableArguments: [1, 2]
+    InjectableArguments: [1: LdapFilterEncoded, 2]
     Locale: SCS0031
 
   DirectorySearcher_Filter:
@@ -1358,7 +1596,7 @@ Sinks:
     ClassName: DirectorySearcher
     Member: field
     Name: Filter
-    InjectableField: true
+    InjectableField: LdapFilterEncoded
     Locale: SCS0031
 
   DirectoryEntry_constructor_0:
@@ -1367,7 +1605,7 @@ Sinks:
     Member: method
     Name: .ctor
     ArgTypes: (System.String)
-    InjectableArguments: [0]
+    InjectableArguments: [0: LdapDistinguishedNameEncoded]
     Locale: SCS0031
 
   DirectoryEntry_constructor_1:
@@ -1376,7 +1614,7 @@ Sinks:
     Member: method
     Name: .ctor
     ArgTypes: (System.String, System.String, System.String)
-    InjectableArguments: [0]
+    InjectableArguments: [0: LdapDistinguishedNameEncoded]
     Locale: SCS0031
 
   DirectoryEntry_constructor_2:
@@ -1385,7 +1623,7 @@ Sinks:
     Member: method
     Name: .ctor
     ArgTypes: (System.String, System.String, System.String, System.DirectoryServices.AuthenticationTypes)
-    InjectableArguments: [0]
+    InjectableArguments: [0: LdapDistinguishedNameEncoded]
     Locale: SCS0031
 
   DirectoryEntry_Path:
@@ -1393,7 +1631,7 @@ Sinks:
     ClassName: DirectoryEntry
     Member: field
     Name: Path
-    InjectableField: true
+    InjectableField: LdapDistinguishedNameEncoded
     Locale: SCS0031
 
 # Open Redirects
@@ -1404,7 +1642,7 @@ Sinks:
      Member: method
      Name: Redirect
      ArgTypes: (System.String)
-     InjectableArguments: [0]
+     InjectableArguments: [0: LocalUrl]
      Locale: SCS0027
 
   System.Web.HttpResponse_Redirect_string_bool:
@@ -1413,7 +1651,7 @@ Sinks:
      Member: method
      Name: Redirect
      ArgTypes: (System.String, System.Boolean)
-     InjectableArguments: [0]
+     InjectableArguments: [0: LocalUrl]
      Locale: SCS0027
 
   System.Web.HttpResponse_RedirectPermanent_string:
@@ -1422,7 +1660,7 @@ Sinks:
      Member: method
      Name: RedirectPermanent
      ArgTypes: (System.String)
-     InjectableArguments: [0]
+     InjectableArguments: [0: LocalUrl]
      Locale: SCS0027
 
   System.Web.HttpResponse_RedirectPermanent_string_bool:
@@ -1431,7 +1669,7 @@ Sinks:
      Member: method
      Name: RedirectPermanent
      ArgTypes: (System.String, System.Boolean)
-     InjectableArguments: [0]
+     InjectableArguments: [0: LocalUrl]
      Locale: SCS0027
 
   Microsoft.AspNetCore.Http.HttpResponse_Redirect_string:
@@ -1440,7 +1678,7 @@ Sinks:
      Member: method
      Name: Redirect
      ArgTypes: (System.String)
-     InjectableArguments: [0]
+     InjectableArguments: [0: LocalUrl]
      Locale: SCS0027
 
   Microsoft.AspNetCore.Http.HttpResponse_Redirect_string_bool:
@@ -1449,7 +1687,7 @@ Sinks:
      Member: method
      Name: Redirect
      ArgTypes: (System.String, System.Boolean)
-     InjectableArguments: [0]
+     InjectableArguments: [0: LocalUrl]
      Locale: SCS0027
 
   Controller_Redirect_string:
@@ -1458,7 +1696,7 @@ Sinks:
       Member: method
       Name: Redirect
       ArgTypes: (System.String)
-      InjectableArguments: [0]
+      InjectableArguments: [0: LocalUrl]
       Locale: SCS0027
 
   Controller_RedirectPermanent_string:
@@ -1467,7 +1705,7 @@ Sinks:
       Member: method
       Name: RedirectPermanent
       ArgTypes: (System.String)
-      InjectableArguments: [0]
+      InjectableArguments: [0: LocalUrl]
       Locale: SCS0027
 
   AspNetCore_Controller_Redirect_string:
@@ -1476,7 +1714,7 @@ Sinks:
       Member: method
       Name: Redirect
       ArgTypes: (System.String)
-      InjectableArguments: [0]
+      InjectableArguments: [0: LocalUrl]
       Locale: SCS0027
 
   AspNetCore_Controller_RedirectPermanent_string:
@@ -1485,7 +1723,7 @@ Sinks:
       Member: method
       Name: RedirectPermanent
       ArgTypes: (System.String)
-      InjectableArguments: [0]
+      InjectableArguments: [0: LocalUrl]
       Locale: SCS0027
 
   AspNetCore_Controller_RedirectPreserveMethod_string:
@@ -1494,7 +1732,7 @@ Sinks:
       Member: method
       Name: RedirectPreserveMethod
       ArgTypes: (System.String)
-      InjectableArguments: [0]
+      InjectableArguments: [0: LocalUrl]
       Locale: SCS0027
 
   AspNetCore_Controller_RedirectPermanentPreserveMethod_string:
@@ -1503,7 +1741,7 @@ Sinks:
       Member: method
       Name: RedirectPermanentPreserveMethod
       ArgTypes: (System.String)
-      InjectableArguments: [0]
+      InjectableArguments: [0: LocalUrl]
       Locale: SCS0027
 
   Controller_RedirectResult_string:
@@ -1512,7 +1750,7 @@ Sinks:
       Member: method
       Name: .ctor
       ArgTypes: (System.String)
-      InjectableArguments: [0]
+      InjectableArguments: [0: LocalUrl]
       Locale: SCS0027
 
   Controller_RedirectResult_string_bool:
@@ -1521,7 +1759,7 @@ Sinks:
       Member: method
       Name: .ctor
       ArgTypes: (System.String, System.Boolean)
-      InjectableArguments: [0]
+      InjectableArguments: [0: LocalUrl]
       Locale: SCS0027
 
   AspNetCore_RedirectResult_string:
@@ -1530,7 +1768,7 @@ Sinks:
       Member: method
       Name: .ctor
       ArgTypes: (System.String)
-      InjectableArguments: [0]
+      InjectableArguments: [0: LocalUrl]
       Locale: SCS0027
 
   AspNetCore_RedirectResult_string_bool:
@@ -1539,7 +1777,7 @@ Sinks:
       Member: method
       Name: .ctor
       ArgTypes: (System.String, System.Boolean)
-      InjectableArguments: [0]
+      InjectableArguments: [0: LocalUrl]
       Locale: SCS0027
 
   AspNetCore_RedirectResult_string_bool_bool:
@@ -1548,7 +1786,7 @@ Sinks:
       Member: method
       Name: .ctor
       ArgTypes: (System.String, System.Boolean, System.Boolean)
-      InjectableArguments: [0]
+      InjectableArguments: [0: LocalUrl]
       Locale: SCS0027
 
   AspNetCore_RedirectResult_Url:
@@ -1556,7 +1794,7 @@ Sinks:
       ClassName: RedirectResult
       Member: field
       Name: Url
-      InjectableField: true
+      InjectableField: LocalUrl
       Locale: SCS0027
 
 # Deserialization

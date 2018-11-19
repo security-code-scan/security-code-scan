@@ -17,7 +17,7 @@ namespace SecurityCodeScan.Test.XXE
 
         [TestCategory("Safe")]
         [TestMethod]
-        [Ignore] // todo: taint transfer is not implemented
+        [Ignore("taint transfer is not implemented")]
         public async Task XmlDocumentLoadTaint()
         {
             const string cSharpTest = @"

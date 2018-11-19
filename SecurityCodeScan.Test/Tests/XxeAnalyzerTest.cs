@@ -92,7 +92,7 @@ End Class
         [DataTestMethod]
         public async Task XmlSchemaRead(string createReader, Warnings expectWarnings)
         {
-            string vbCreateReader = createReader.Replace("(){", "() With {.");
+            string vbCreateReader = createReader.CSharpReplaceToVBasic();
 
             var cSharpTest = $@"
 #pragma warning disable 8019
@@ -359,8 +359,7 @@ End Class
         [DataTestMethod]
         public async Task XmlDocumentBased(string className, string constructorParams, string property, string value, string sink, Warnings expectWarnings)
         {
-            var vbValue = value.Replace("null", "Nothing");
-            vbValue = Regex.Replace(vbValue, @"^\(([^\)]*)\)(.*)", "DirectCast($2, $1)", RegexOptions.Multiline);
+            var vbValue = value.CSharpReplaceToVBasic();
 
             var cSharpTest = $@"
 #pragma warning disable 8019
@@ -668,8 +667,7 @@ End Class
         [DataTestMethod]
         public async Task XmlTextReaderStringSafeSettings(string property, string value)
         {
-            var vbValue = value.Replace("null", "Nothing");
-            vbValue = Regex.Replace(vbValue, @"^\(([^\)]*)\)(.*)", "DirectCast($2, $1)", RegexOptions.Multiline);
+            var vbValue = value.CSharpReplaceToVBasic();
 
             var cSharpTest = $@"
 using System.Xml;
@@ -875,8 +873,7 @@ End Class
         [DataTestMethod]
         public async Task XmlReaderCreateDtdProcessingDisabled(string property, string value)
         {
-            var vbValue = value.Replace("null", "Nothing");
-            vbValue = Regex.Replace(vbValue, @"^\(([^\)]*)\)(.*)", "DirectCast($2, $1)", RegexOptions.Multiline);
+            var vbValue = value.CSharpReplaceToVBasic();
 
             var cSharpTest = $@"
 using System.Xml;
@@ -1034,7 +1031,7 @@ End Class
         [DataTestMethod]
         public async Task XmlReaderCreateDtdProcessingEnabled(string dtdProcessing)
         {
-            var vbDtdProcessing = Regex.Replace(dtdProcessing, "\\(([^\\)]*)\\)(.*)", "DirectCast($2, $1)");
+            var vbDtdProcessing = dtdProcessing.CSharpReplaceToVBasic();
 
             var cSharpTest = $@"
 using System.Xml;

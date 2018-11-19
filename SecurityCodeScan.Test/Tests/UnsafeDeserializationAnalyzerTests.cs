@@ -256,7 +256,7 @@ End Namespace
 
         [TestCategory("Safe")]
         [TestMethod]
-        [Ignore] // todo: ignore the TypeNameHandling on deep clone (although it doesn't clone private members)
+        [Ignore("ignore the TypeNameHandling on deep clone (although it doesn't clone private members)")]
         public async Task IgnoreJSonSerializerTypeNameHandlingDeepclone()
         {
             var cSharpTest = @"

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers.Taint;
@@ -15,24 +16,49 @@ namespace SecurityCodeScan.Test.Taint
             return new List<DiagnosticAnalyzer> { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic() };
         }
 
+        private static readonly PortableExecutableReference[] References =
+        {
+            MetadataReference.CreateFromFile(typeof(System.Data.SQLite.SQLiteCommand).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.Data.Sqlite.SqliteCommand).Assembly.Location)
+        };
+
+        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
+
         [TestCategory("Detect")]
         [DataTestMethod]
-        [DataRow("SqlCommand", "new SqlCommand { CommandText = sql }")]
-        [DataRow("DbCommand",  "new SqlCommand { CommandText = sql }")]
-        [DataRow("IDbCommand", "new SqlCommand { CommandText = sql }")]
-        [DataRow("SqlCommand", "new SqlCommand(); sqlCommand.CommandText = sql")]
-        [DataRow("DbCommand",  "new SqlCommand(); sqlCommand.CommandText = sql")]
-        [DataRow("IDbCommand", "new SqlCommand(); sqlCommand.CommandText = sql")]
-        [DataRow("SqlCommand", "Create(); sqlCommand.CommandText = sql")]
-        [DataRow("DbCommand",  "Create(); sqlCommand.CommandText = sql")]
-        [DataRow("IDbCommand", "Create(); sqlCommand.CommandText = sql")]
-        public async Task CommandTextUnSafeCSharp(string type, string factory)
+        [DataRow("SqliteCommand", "Microsoft.Data.Sqlite")]
+        [DataRow("SQLiteCommand", "System.Data.SQLite")]
+        [DataRow("SqlCommand",    "System.Data.SqlClient")]
+        public async Task SqlInjectionCommandText(string type, string ns)
+        {
+            var options = new[]
+            {
+                new { value = "sql", warn        = true },
+                new { value = "\"select\"", warn = false },
+            };
+
+            foreach (var option in options)
+            {
+                foreach (var row in new[] { type, "DbCommand", "IDbCommand" })
+                {
+                    await CommandTextUnsafeCSharpWorker(row, $"new {type} {{ CommandText = {option.value} }}",         option.warn, ns);
+                    await CommandTextUnsafeCSharpWorker(row, $"new {type}(); sqlCommand.CommandText = {option.value}", option.warn, ns);
+                    await CommandTextUnsafeCSharpWorker(row, $"Create(); sqlCommand.CommandText = {option.value}",     option.warn, ns);
+
+                    await CommandTextUnsafeVBasicWorker(row, $"New {type} With \r\n{{ .CommandText = {option.value} }}", option.warn, ns);
+                    await CommandTextUnsafeVBasicWorker(row, $"New {type}\r\nsqlCommand.CommandText =  {option.value}",  option.warn, ns);
+                    await CommandTextUnsafeVBasicWorker(row, $"Create\r\nsqlCommand.CommandText =  {option.value}",      option.warn, ns);
+                }
+            }
+        }
+
+        public async Task CommandTextUnsafeCSharpWorker(string type, string factory, bool warn, string ns)
         {
             var cSharpTest = $@"
 #pragma warning disable 8019
-    using System.Data.SqlClient;
     using System.Data.Common;
     using System.Data;
+    using {ns};
 #pragma warning restore 8019
 
 namespace sample
@@ -52,29 +78,25 @@ namespace sample
 }}
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest,
-                                         new DiagnosticResult { Id = "SCS0026" }.WithLocation(14))
-                .ConfigureAwait(false);
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest,
+                                             new DiagnosticResult { Id = "SCS0026" }.WithLocation(14))
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            }
         }
 
-        [TestCategory("Detect")]
-        [DataTestMethod]
-        [DataRow("SqlCommand", "New SqlCommand With \r\n{ .CommandText = sql }")]
-        [DataRow("DbCommand",  "New SqlCommand With \r\n{ .CommandText = sql }")]
-        [DataRow("IDbCommand", "New SqlCommand With \r\n{ .CommandText = sql }")]
-        [DataRow("SqlCommand", "New SqlCommand\r\nsqlCommand.CommandText = sql")]
-        [DataRow("DbCommand",  "New SqlCommand\r\nsqlCommand.CommandText = sql")]
-        [DataRow("IDbCommand", "New SqlCommand\r\nsqlCommand.CommandText = sql")]
-        [DataRow("SqlCommand", "Create()\r\nsqlCommand.CommandText = sql")]
-        [DataRow("DbCommand",  "Create()\r\nsqlCommand.CommandText = sql")]
-        [DataRow("IDbCommand", "Create()\r\nsqlCommand.CommandText = sql")]
-        public async Task CommandTextUnSafeVBasic(string type, string factory)
+        public async Task CommandTextUnsafeVBasicWorker(string type, string factory, bool warn, string ns)
         {
             var visualBasicTest = $@"
 #Disable Warning BC50001
-    Imports System.Data.SqlClient
     Imports System.Data.Common
     Imports System.Data
+    Imports {ns}
 #Enable Warning BC50001
 
 Namespace sample
@@ -90,9 +112,16 @@ Namespace sample
 End Namespace
 ";
 
-            await VerifyVisualBasicDiagnostic(visualBasicTest,
-                                              new DiagnosticResult { Id = "SCS0026" }.WithLocation(12))
-                .ConfigureAwait(false);
+            if (warn)
+            {
+                await VerifyVisualBasicDiagnostic(visualBasicTest,
+                                                  new DiagnosticResult { Id = "SCS0026" }.WithLocation(12))
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            }
         }
     }
 }

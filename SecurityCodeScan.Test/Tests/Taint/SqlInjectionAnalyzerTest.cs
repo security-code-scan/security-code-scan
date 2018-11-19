@@ -20,10 +20,144 @@ namespace SecurityCodeScan.Test.Taint
         {            
             MetadataReference.CreateFromFile(typeof(System.Web.UI.WebControls.SqlDataSource).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(System.Data.Entity.DbContext).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(Microsoft.Practices.EnterpriseLibrary.Data.Sql.SqlDatabase).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(Microsoft.Practices.EnterpriseLibrary.Data.Sql.SqlDatabase).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.DbContext).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.RelationalQueryableExtensions).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Data.SQLite.SQLiteCommand).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.Data.Sqlite.SqliteCommand).Assembly.Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
+
+        [TestMethod]
+        [Ignore("Full taint analysis is needed")]
+        public async Task SqlInjectionEnterpriseLibraryDataParametrized()
+        {
+            var cSharpTest = @"
+using System.Data;
+using System.Data.Common;
+using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
+
+namespace sample
+{
+    class MyFoo
+    {
+        public MyFoo()
+        {
+            m_db = new SqlDatabase("""");
+        }
+
+        private SqlDatabase m_db;
+
+        private SqlDatabase GetDataBase() { return m_db; }
+
+        public void Run(string input)
+        {
+            var db = GetDataBase();
+            DbCommand cmd = db.GetSqlStringCommand(""SELECT * FROM Users WHERE username = @username and role='user'"");
+            db.AddInParameter(cmd, ""@username"", DbType.String, input);
+            db.ExecuteDataSet(cmd);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data
+Imports System.Data.Common
+Imports Microsoft.Practices.EnterpriseLibrary.Data.Sql
+
+Namespace sample
+    Class MyFoo
+        Public Sub New()
+            m_db = New SqlDatabase("""")
+        End Sub
+
+        Private m_db As SqlDatabase
+
+        Private Function GetDataBase() As SqlDatabase
+            Return m_db
+        End Function
+
+        Public Sub Run(input As System.String)
+            Dim db = GetDataBase()
+            Dim cmd As DbCommand = db.GetSqlStringCommand(""SELECT * FROM Users WHERE username = @username and role='user'"")
+            db.AddInParameter(cmd, ""@username"", DbType.String, input)
+            db.ExecuteDataSet(cmd)
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        [Ignore("Full taint analysis is needed")]
+        public async Task SqlInjectionEnterpriseLibraryDataGetSqlStringCommandUnsafe()
+        {
+            var cSharpTest = @"
+using System.Data.Common;
+using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
+
+namespace sample
+{
+    class MyFoo
+    {
+        public MyFoo()
+        {
+            m_db = new SqlDatabase("""");
+        }
+
+        private SqlDatabase m_db;
+
+        private SqlDatabase GetDataBase() { return m_db; }
+
+        public void Run(string input)
+        {
+            var db = GetDataBase();
+            DbCommand cmd = db.GetSqlStringCommand(""SELECT * FROM Users WHERE username = '"" + input + ""' and role='user'"");
+            db.ExecuteDataSet(cmd);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.Common
+Imports Microsoft.Practices.EnterpriseLibrary.Data.Sql
+
+Namespace sample
+    Class MyFoo
+        Public Sub New()
+            m_db = New SqlDatabase("""")
+        End Sub
+
+        Private m_db As SqlDatabase
+
+        Private Function GetDataBase() As SqlDatabase
+            Return m_db
+        End Function
+
+        Public Sub Run(input As System.String)
+            Dim db = GetDataBase()
+            Dim cmd As DbCommand = db.GetSqlStringCommand(""SELECT * FROM Users WHERE username = '"" + input + ""' and role='user'"")
+            db.ExecuteDataSet(cmd)
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0036",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+        }
 
         [DataRow("new SqlDataSource()", false, null)]
         [DataRow("new SqlDataSource(\"connectionString\", input)", true, "SCS0014")]
@@ -39,14 +173,22 @@ namespace SecurityCodeScan.Test.Taint
         [DataRow("new SqlDataAdapter(\"select\", new SqlConnection())", false, null)]
         [DataRow("new SqlDataAdapter(input, \"connectionString\")", true, "SCS0026")]
         [DataRow("new SqlDataAdapter(\"select\", input)", false, null)]
-        [DataRow("new DbContext(\"connectionString\").Database.SqlQuery(null, input, null)", true, "SCS0035")]
-        [DataRow("new DbContext(\"connectionString\").Database.SqlQuery(null, \"select\", null)", false, null)]
-        [DataRow("new DbContext(\"connectionString\").Database.SqlQuery<Object>(input)", true, "SCS0035")]
+
+        [DataRow("new DbContext(\"connectionString\").Set(null).SqlQuery(input, null)",          true,  "SCS0035")]
+        [DataRow("new DbContext(\"connectionString\").Set(null).SqlQuery(\"select\", null)",     false, null)]
+        [DataRow("new DbContext(\"connectionString\").Set<Object>().SqlQuery(input, null)",      true,  "SCS0035")]
+        [DataRow("new DbContext(\"connectionString\").Set<Object>().SqlQuery(\"select\", null)", false, null)]
+
+        [DataRow("new DbContext(\"connectionString\").Database.SqlQuery(null, input, null)",         true,  "SCS0035")]
+        [DataRow("new DbContext(\"connectionString\").Database.SqlQuery(null, \"select\", null)",    false, null)]
+        [DataRow("new DbContext(\"connectionString\").Database.SqlQuery<Object>(input)",             true,  "SCS0035")]
         [DataRow("new DbContext(\"connectionString\").Database.SqlQuery<Object>(\"select\", input)", false, null)]
+
         [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommand(input, parameters)", true, "SCS0035")]
         [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommand(\"select\", parameters)", false, null)]
         [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, input, parameters)", true, "SCS0035")]
         [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, \"select\", parameters)", false, null)]
+
         [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(input, parameters)", true, "SCS0035")]
         [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(\"select\", parameters)", false, null)]
         [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(TransactionalBehavior.DoNotEnsureTransaction, input, parameters)", true, "SCS0035")]
@@ -100,6 +242,19 @@ namespace SecurityCodeScan.Test.Taint
         [DataRow("new SqlDatabase(\"connectionString\").ExecuteScalar(new SqlConnection(\"\").BeginTransaction(), input, parameters)", true, "SCS0036")]
         [DataRow("new SqlDatabase(\"connectionString\").ExecuteScalar(new SqlConnection(\"\").BeginTransaction(), \"select\", parameters)", false, null)]
 
+        [DataRow("new SQLiteCommand()",                                                                              false, null)]
+        [DataRow("new SQLiteCommand(new SQLiteConnection())",                                                        false, null)]
+        [DataRow("new SQLiteCommand(input)",                                                                         true,  "SCS0026")]
+        [DataRow("new SQLiteCommand(\"select\")",                                                                    false, null)]
+        [DataRow("new SQLiteCommand(input, new SQLiteConnection())",                                                 true,  "SCS0026")]
+        [DataRow("new SQLiteCommand(\"select\", new SQLiteConnection())",                                            false, null)]
+        [DataRow("new SQLiteCommand(input, new SQLiteConnection(), new SQLiteConnection().BeginTransaction())",      true,  "SCS0026")]
+        [DataRow("new SQLiteCommand(\"select\", new SQLiteConnection(), new SQLiteConnection().BeginTransaction())", false, null)]
+        [DataRow("SQLiteCommand.Execute(input, SQLiteExecuteType.Reader, CommandBehavior.Default, null)",            true,  "SCS0026")]
+        [DataRow("SQLiteCommand.Execute(\"select\", SQLiteExecuteType.Reader, CommandBehavior.Default, null)",       false, null)]
+        [DataRow("SQLiteCommand.Execute(input, SQLiteExecuteType.Reader, null)",                                     true,  "SCS0026")]
+        [DataRow("SQLiteCommand.Execute(\"select\", SQLiteExecuteType.Reader, null)",                                false, null)]
+
         // Tests below are covered by SCS0026
         [DataRow("new SqlDataAdapter(new SqlCommand(input))", true, "SCS0026")]
         [DataRow("new SqlDatabase(\"connectionString\").ExecuteDataSet(new SqlCommand(input))", true, "SCS0026")]
@@ -124,6 +279,7 @@ namespace SecurityCodeScan.Test.Taint
     using System.Data.Entity;
     using System.Threading;
     using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
+    using System.Data.SQLite;
 #pragma warning restore 8019
 
 namespace sample
@@ -138,10 +294,7 @@ namespace sample
 }}
 ";
 
-            sink = sink.Replace("null", "Nothing")
-                .Replace("var ", "Dim ")
-                .Replace("new ", "New ")
-                .Replace("<Object>", "(Of Object)");
+            sink = sink.CSharpReplaceToVBasic();
 
             var visualBasicTest = $@"
 #Disable Warning BC50001
@@ -153,6 +306,7 @@ namespace sample
     Imports System.Data.Entity
     Imports System.Threading
     Imports Microsoft.Practices.EnterpriseLibrary.Data.Sql
+    Imports System.Data.SQLite
 #Enable Warning BC50001
 
 Namespace sample
@@ -166,6 +320,128 @@ End Namespace
             var expected = new DiagnosticResult
             {
                 Id = warningId,
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            }
+        }
+
+        // todo: EF Core 2.0
+        [DataRow("new SampleContext().Test.FromSql(input)", true)]
+        [DataRow("new SampleContext().Test.FromSql(input, null)", true)]
+        [DataRow("new SampleContext().Test.FromSql(\"select\")", false)]
+        [DataRow("new SampleContext().Test.FromSql(\"select\", null)", false)]
+        [DataTestMethod]
+        public async Task SqlInjectionEntityFrameworkCore(string sink, bool warn)
+        {
+            var cSharpTest = $@"
+using Microsoft.EntityFrameworkCore;
+
+namespace sample
+{{
+    public class SampleContext : DbContext
+    {{
+        public DbSet<string> Test {{ get; set; }}
+    }}
+
+    class MyFoo
+    {{
+        public static void Run(string input, params object[] parameters)
+        {{
+            {sink};
+        }}
+    }}
+}}
+";
+
+            sink = sink.CSharpReplaceToVBasic();
+
+            var visualBasicTest = $@"
+Imports Microsoft.EntityFrameworkCore
+
+Namespace sample
+    Public Class SampleContext
+        Inherits DbContext
+
+        Public Property Test As DbSet(Of String)
+    End Class
+
+    Class MyFoo
+        Public Shared Sub Run(input As System.String, ParamArray parameters() As Object)
+            Dim temp = {sink}
+        End Sub
+    End Class
+End Namespace
+";
+            var expected = new DiagnosticResult
+            {
+                Id = "SCS0035",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            }
+        }
+
+        // todo: 2.0
+        [DataRow("new SqliteCommand()",                                                                              false)]
+        [DataRow("new SqliteCommand(input)",                                                                         true)]
+        [DataRow("new SqliteCommand(\"select\")",                                                                    false)]
+        [DataRow("new SqliteCommand(input, null)",                                                                   true)]
+        [DataRow("new SqliteCommand(\"select\", new SqliteConnection())",                                            false)]
+        [DataRow("new SqliteCommand(input, null, null)",                                                             true)]
+        [DataRow("new SqliteCommand(\"select\", new SqliteConnection(), new SqliteConnection().BeginTransaction())", false)]
+        [DataTestMethod]
+        public async Task MicrosoftSqlite(string sink, bool warn)
+        {
+            var cSharpTest = $@"
+using Microsoft.Data.Sqlite;
+
+namespace sample
+{{
+    class MyFoo
+    {{
+        public static void Run(string input, params object[] parameters)
+        {{
+            {sink};
+        }}
+    }}
+}}
+";
+
+            sink = sink.CSharpReplaceToVBasic();
+
+            var visualBasicTest = $@"
+Imports Microsoft.Data.Sqlite
+
+Namespace sample
+    Class MyFoo
+        Public Shared Sub Run(input As System.String, ParamArray parameters() As Object)
+            Dim temp = {sink}
+        End Sub
+    End Class
+End Namespace
+";
+            var expected = new DiagnosticResult
+            {
+                Id = "SCS0026",
                 Severity = DiagnosticSeverity.Warning,
             };
 

@@ -106,7 +106,7 @@ End Class
         }
 
         [TestCategory("Detect")]
-        [DataRow("static")]
+        [DataRow("static ")]
         [DataRow("")]
         [DataTestMethod]
         public async Task MemberFunction(string modifier)
@@ -116,27 +116,27 @@ using System.IO;
 
 class PathTraversal
 {{
-    private {modifier} byte[] GetBytes()
+    private {modifier}byte[] GetBytes()
     {{
         return new byte[1];
     }}
 
-    public {modifier} void Run()
+    public {modifier}void Run()
     {{
         File.WriteAllBytes(""a.txt"", GetBytes());
     }}
 }}
 ";
 
-            modifier = modifier.Replace("static", "Shared");
+            modifier = modifier.CSharpReplaceToVBasic();
             var visualBasicTest = $@"
 Imports System.IO
 
 Class PathTraversal
-    Private {modifier} Function GetBytes() As System.Byte()
+    Private {modifier}Function GetBytes() As System.Byte()
         return New System.Byte(1) {{}}
     End Function
-    Public {modifier} Sub Run()
+    Public {modifier}Sub Run()
         File.WriteAllBytes(""a.txt"", GetBytes())
     End Sub
 End Class
@@ -154,7 +154,7 @@ End Class
 
         [TestCategory("Detect")]
         [TestMethod]
-        [Ignore] // todo: stream passed to Foo should be tainted
+        [Ignore("stream passed to Foo should be tainted")]
         public async Task TaintPassedArgument()
         {
             var cSharpTest = @"
@@ -365,7 +365,7 @@ class PathTraversal
     }}
 }}
 ";
-            method = method.Replace("new []", "");
+            method = method.CSharpReplaceToVBasic();
             var visualBasicTest = $@"
 Imports System.IO
 
@@ -631,7 +631,7 @@ namespace sample
 }}
 ";
 
-            dataType = dataType.Replace('[', '(').Replace(']', ')');
+            dataType = dataType.CSharpReplaceToVBasic();
 
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
@@ -679,7 +679,7 @@ namespace sample
 }}
 ";
 
-            dataType = dataType.Replace('[', '(').Replace(']', ')');
+            dataType = dataType.CSharpReplaceToVBasic();
 
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
@@ -728,7 +728,7 @@ namespace sample
 }}
 ";
 
-            dataType = dataType.Replace('[', '(').Replace(']', ')');
+            dataType = dataType.CSharpReplaceToVBasic();
 
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
@@ -783,7 +783,7 @@ namespace sample
 }}
 ";
 
-            dataType = dataType.Replace('[', '(').Replace(']', ')');
+            dataType = dataType.CSharpReplaceToVBasic();
 
             var visualBasicTest = $@"
 Imports System.Data.SqlClient

@@ -193,7 +193,9 @@ namespace SecurityCodeScan.Analyzers
                 return null;
             }
 
-            var value = (string)argValue.Value;
+            if (!(argValue.Value is string value))
+                return null;
+
             switch (value)
             {
                 case WeakHashingAnalyzer.Sha1TypeName:

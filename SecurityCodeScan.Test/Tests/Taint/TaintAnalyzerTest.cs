@@ -584,7 +584,7 @@ namespace sample
 }}
 ";
 
-            initializer = initializer.Replace("new ", "New ").Replace("'", "\"");
+            initializer = initializer.CSharpReplaceToVBasic();
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
 
@@ -639,7 +639,7 @@ namespace sample
 }}
 ";
 
-            initializer = initializer.Replace("new ", "New ").Replace("'", "\"");
+            initializer = initializer.CSharpReplaceToVBasic();
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
 #Disable Warning BC50001
@@ -701,8 +701,8 @@ namespace sample
 }}
 ";
 
-            initializer = initializer.Replace("new ", "New ").Replace("'", "\"");
-            accessor    = accessor.Replace("this.", "Me.");
+            initializer = initializer.CSharpReplaceToVBasic();
+            accessor    = accessor.CSharpReplaceToVBasic();
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
 #Disable Warning BC50001
@@ -765,7 +765,7 @@ namespace sample
 }}
 ";
 
-            initializer         = initializer.Replace("new ", "New ").Replace("'", "\"");
+            initializer         = initializer.CSharpReplaceToVBasic();
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
 #Disable Warning BC50001
@@ -823,7 +823,7 @@ namespace sample
 }}
 ";
 
-            initializer         = initializer.Replace("new ", "New ").Replace("'", "\"");
+            initializer         = initializer.CSharpReplaceToVBasic();
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
 #Disable Warning BC50001
@@ -888,7 +888,7 @@ namespace sample
 }}
 ";
 
-            initializer         = initializer.Replace("new ", "New ").Replace("'", "\"");
+            initializer         = initializer.CSharpReplaceToVBasic();
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
 #Disable Warning BC50001
@@ -958,8 +958,8 @@ namespace sample
 }}
 ";
 
-            initializer = initializer.Replace("new ", "New ").Replace("'", "\"");
-            accessor    = accessor.Replace("this.", "Me.");
+            initializer = initializer.CSharpReplaceToVBasic();
+            accessor    = accessor.CSharpReplaceToVBasic();
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
 #Disable Warning BC50001
@@ -1023,7 +1023,7 @@ namespace sample
 }}
 ";
 
-            initializer = initializer.Replace("new ", "New ").Replace("'", "\"");
+            initializer = initializer.CSharpReplaceToVBasic();
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
 #Disable Warning BC50001
@@ -1131,7 +1131,8 @@ namespace sample
         [DataRow("new string('x', 3)",        "stringConst")]
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
-        [DataTestMethod, Ignore] // todo: add C# 7.0 support
+        [DataTestMethod]
+        [Ignore("add C# 7.0 support")]
         public async Task VariableConcatenationPropertyExpressionBodyGetCSharp(string initializer, string accessor)
         {
             var cSharpTest = $@"
@@ -1587,7 +1588,7 @@ End Namespace
 
         [TestCategory("Detect")]
         [TestMethod]
-        public async Task ConfilctingLocalVariableAndObjectPropertyNames()
+        public async Task ConflictingLocalVariableAndObjectPropertyNames()
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
@@ -1644,7 +1645,7 @@ End Namespace
         }
 
         [TestCategory("Detect")]
-        [Ignore] //TODO: Copy structure state when assigned to new variable
+        [Ignore("Copy structure state when assigned to new variable")]
         [TestMethod]
         public async Task StructReuseChangePropertyFromTaintedToSafe()
         {
@@ -1770,6 +1771,58 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest, new[] { Expected, Expected }).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { Expected, Expected }).ConfigureAwait(false);
+        }
+
+        [TestCategory("Safe")]
+        [TestMethod]
+        public async Task VariableStateMerge()
+        {
+            var cSharpTest = @"
+namespace sample
+{
+    class EventArgs
+    {
+        public Items Item = null;
+    }
+
+    class Items
+    {
+        public bool Checked = false;
+    }
+
+    class SqlConstant
+    {
+        protected void OnDrawItem (EventArgs e)
+        {
+            e.Item.Checked = true;
+            e.Item.Checked = false;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Namespace sample
+    Friend Class EventArgs
+        Public Item As Items = Nothing
+    End Class
+
+    Friend Class Items
+        Public Checked As Boolean = False
+    End Class
+
+    Friend Class SqlConstant
+        Protected Sub OnDrawItem(ByVal e As EventArgs)
+            e.Item.Checked = True
+            e.Item.Checked = False
+        End Sub
+    End Class
+End Namespace
+";
+
+            // should be no exception
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
     }
 }

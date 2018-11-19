@@ -310,7 +310,5 @@ End Class
             await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
-
-        //TODO: Add tests to trigger the analyzer. 
     }
 }

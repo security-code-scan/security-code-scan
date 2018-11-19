@@ -55,34 +55,35 @@ namespace SecurityCodeScan.Analyzers
                 DataFlowAnalysis flow = ctx.SemanticModel.AnalyzeDataFlow(methodStatements.First(),
                                                                           methodStatements.Last());
 
-                // Returns from the Data Flow Analysis of sensible data 
-                // Sensible data is: Data passed as a parameter that is also returned as is by the method
-                var sensibleVariables = flow.DataFlowsIn.Union(flow.VariablesDeclared.Except(flow.AlwaysAssigned))
+                // Returns from the Data Flow Analysis of input data 
+                // Dangerous data is: Data passed as a parameter that is also returned as is by the method
+                var inputVariables = flow.DataFlowsIn.Union(flow.VariablesDeclared.Except(flow.AlwaysAssigned))
                                                          .Union(flow.WrittenInside)
                                                          .Intersect(flow.WrittenOutside)
                                                          .ToArray();
 
-                if (!sensibleVariables.Any())
+                if (!inputVariables.Any())
                     continue;
 
-                foreach (ISymbol sensibleVariable in sensibleVariables)
+                foreach (ISymbol inputVariable in inputVariables)
                 {
-                    bool sensibleVariableIsEncoded = false;
+                    bool inputVariableIsEncoded = false;
                     foreach (CSharpSyntax.InvocationExpressionSyntax methodInvocation in methodInvocations)
                     {
                         var arguments = methodInvocation.ArgumentList.Arguments;
                         if (!arguments.Any())
                             continue;
 
-                        if (arguments.First().ToString().Contains(sensibleVariable.Name))
+                        if (arguments.First().ToString().Contains(inputVariable.Name))
                         {
-                            sensibleVariableIsEncoded = true;
+                            inputVariableIsEncoded = true;
                         }
                     }
 
-                    if (!sensibleVariableIsEncoded)
+                    if (!inputVariableIsEncoded)
                     {
-                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, method.GetLocation()));
+                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, inputVariable.Locations[0]));
+                        break;
                     }
                 }
             }
@@ -141,34 +142,35 @@ namespace SecurityCodeScan.Analyzers
                 DataFlowAnalysis flow = ctx.SemanticModel.AnalyzeDataFlow(methodStatements.First(),
                                                                           methodStatements.Last());
 
-                // Returns from the Data Flow Analysis of sensible data 
-                // Sensible data is: Data passed as a parameter that is also returned as is by the method
-                var sensibleVariables = flow.DataFlowsIn.Union(flow.VariablesDeclared.Except(flow.AlwaysAssigned))
+                // Returns from the Data Flow Analysis of input data 
+                // Dangerous data is: Data passed as a parameter that is also returned as is by the method
+                var inputVariables = flow.DataFlowsIn.Union(flow.VariablesDeclared.Except(flow.AlwaysAssigned))
                                                         .Union(flow.WrittenInside)
                                                         .Intersect(flow.WrittenOutside)
                                                         .ToArray();
 
-                if (!sensibleVariables.Any())
+                if (!inputVariables.Any())
                     continue;
 
-                foreach (ISymbol sensibleVariable in sensibleVariables)
+                foreach (ISymbol inputVariable in inputVariables)
                 {
-                    bool sensibleVariableIsEncoded = false;
+                    bool inputVariableIsEncoded = false;
                     foreach (VBSyntax.InvocationExpressionSyntax methodInvocation in methodInvocations)
                     {
                         var arguments = methodInvocation.ArgumentList.Arguments;
                         if (!arguments.Any())
                             continue;
 
-                        if (arguments.First().ToString().Contains(sensibleVariable.Name))
+                        if (arguments.First().ToString().Contains(inputVariable.Name))
                         {
-                            sensibleVariableIsEncoded = true;
+                            inputVariableIsEncoded = true;
                         }
                     }
 
-                    if (!sensibleVariableIsEncoded)
+                    if (!inputVariableIsEncoded)
                     {
-                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, method.GetLocation()));
+                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, inputVariable.Locations[0]));
+                        break;
                     }
                 }
             }

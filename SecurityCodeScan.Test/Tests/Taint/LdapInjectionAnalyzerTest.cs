@@ -68,9 +68,6 @@ namespace sample
     }}
 }}
 ";
-            sink = sink.Replace("null", "Nothing")
-                .Replace(";", "\r\n")
-                .Replace("new ", "New ");
 
             var visualBasicTest = $@"
 #Disable Warning BC50001
@@ -80,7 +77,7 @@ namespace sample
 Namespace sample
     Class MyFoo
         Public Shared Sub Run(input As System.String, propertiesToLoad() As System.String, entry As DirectoryEntry, scope As SearchScope )
-            Dim temp = {sink}
+            Dim temp = {sink.CSharpReplaceToVBasic()}
         End Sub
     End Class
 End Namespace

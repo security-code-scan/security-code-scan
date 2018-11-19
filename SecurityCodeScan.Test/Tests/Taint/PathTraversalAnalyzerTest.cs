@@ -116,7 +116,7 @@ class PathTraversal
 }}
 ";
 
-            sink = sink.Replace("null", "Nothing");
+            sink = sink.CSharpReplaceToVBasic();
             var visualBasicTest = $@"
 #Disable Warning BC50001
     Imports System
@@ -223,7 +223,7 @@ class PathTraversal
 }}
 ";
 
-            sink = sink.Replace("null", "Nothing");
+            sink = sink.CSharpReplaceToVBasic();
             var visualBasicTest = $@"
 #Disable Warning BC50001
     Imports System
@@ -302,8 +302,7 @@ class PathTraversal
 }}
 ";
 
-            sink = sink.Replace("null", "Nothing");
-            sink = Regex.Replace(sink, "default\\(([^\\)]*)\\)", "DirectCast(Nothing, $1)");
+            sink = sink.CSharpReplaceToVBasic();
             var visualBasicTest = $@"
 Imports System
 Imports System.IO
@@ -381,7 +380,6 @@ class PathTraversal
 }}
 ";
 
-            sink = Regex.Replace(sink, "default\\(([^\\)]*)\\)", "DirectCast(Nothing, $1)");
             var visualBasicTest = $@"
 #Disable Warning BC50001
     Imports System
@@ -393,7 +391,7 @@ class PathTraversal
 Class PathTraversal
     Public Shared Sub Run(flag As Boolean, digit As Int32, encoding As System.Text.Encoding)
 #Disable Warning BC40000
-        Dim sr As New {sink}
+        Dim sr As New {sink.CSharpReplaceToVBasic()}
 #Enable Warning BC40000
     End Sub
 End Class
@@ -434,8 +432,7 @@ class PathTraversal
 }}
 ";
 
-            sink                = sink.Replace("null", "Nothing");
-            sink                = Regex.Replace(sink, "default\\(([^\\)]*)\\)", "DirectCast(Nothing, $1)");
+            sink = sink.CSharpReplaceToVBasic();
             var visualBasicTest = $@"
 #Disable Warning BC50001
     Imports System.IO

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using SecurityCodeScan.Analyzers.Taint;
@@ -42,7 +43,69 @@ namespace SecurityCodeScan.Config
                                  return Path.Combine(path, UserConfigName);
                              });
 
-        private static readonly Version ConfigVersion = new Version(1,0);
+        private static readonly Version ConfigVersion = new Version(2,0);
+
+        private readonly char[] Parenthesis = { '(', ')' };
+
+        private void ValidateArgTypes(IEnumerable<MethodBehaviorData> methods)
+        {
+            if (methods == null)
+                return;
+
+            foreach (var method in methods)
+            {
+                if (method?.ArgTypes == null)
+                    continue;
+
+                var argTypes = method.ArgTypes;
+                if (argTypes.Length == 0)
+                    throw new Exception($"Do not specify 'ArgTypes:' in {method.Namespace}.{method.ClassName}.{method.Name} to match any overload");
+
+                if (argTypes.Trim() != argTypes)
+                    throw new Exception($"Leading or trailing white space in {method.Namespace}.{method.ClassName}.{method.Name}");
+
+                if (argTypes[0] != '(' || argTypes[argTypes.Length - 1] != ')')
+                    throw new Exception($"Invalid parenthesis in {method.Namespace}.{method.ClassName}.{method.Name}");
+
+                argTypes = argTypes.Substring(1, argTypes.Length - 2);
+                if (argTypes.IndexOfAny(Parenthesis) != -1)
+                    throw new Exception($"Parenthesis detected inside of 'ArgTypes:' in {method.Namespace}.{method.ClassName}.{method.Name}");
+
+                if (argTypes != string.Empty)
+                {
+                    foreach (var argType in argTypes.Split(new[] { ", " }, StringSplitOptions.None))
+                    {
+                        if (argType.Trim() != argType)
+                            throw new Exception(
+                                $"Leading or trailing white space in argument of {method.Namespace}.{method.ClassName}.{method.Name}");
+
+                        if (!argType.Contains("."))
+                            throw new Exception($"Argument type lacks namespace in {method.Namespace}.{method.ClassName}.{method.Name}");
+
+                        if (argType.Contains("this "))
+                            throw new Exception($"'this' keyword should be omitted in {method.Namespace}.{method.ClassName}.{method.Name}");
+
+                        var arg = argType;
+                        if (argType.Contains("params "))
+                            arg = argType.Replace("params ", "");
+                        if (argType.Contains("out "))
+                            arg = argType.Replace("out ", "");
+
+                        if (arg.Contains(" "))
+                            throw new Exception($"Argument name should be omitted in {method.Namespace}.{method.ClassName}.{method.Name}");
+                    }
+                }
+            }
+        }
+
+        private T DeserializeAndValidate<T>(StreamReader reader) where T : ConfigData
+        {
+            var deserializer = new Deserializer();
+            var data = deserializer.Deserialize<T>(reader);
+            ValidateArgTypes(data.Behavior?.Values);
+            ValidateArgTypes(data.Sinks?.Values);
+            return data;
+        }
 
         public ConfigData GetBuiltinConfiguration()
         {
@@ -52,8 +115,7 @@ namespace SecurityCodeScan.Config
             {
                 using (var reader = new StreamReader(stream))
                 {
-                    var deserializer = new Deserializer();
-                    return deserializer.Deserialize<ConfigData>(reader);
+                    return DeserializeAndValidate<ConfigData>(reader);
                 }
             }
         }
@@ -66,8 +128,7 @@ namespace SecurityCodeScan.Config
 
             using (var reader = File.OpenText (filePath))
             {
-                var deserializer = new Deserializer();
-                return deserializer.Deserialize<ConfigData>(reader);
+                return DeserializeAndValidate<ConfigData>(reader);
             }
         }
 
@@ -80,13 +141,16 @@ namespace SecurityCodeScan.Config
                 if (Path.GetFileName(file.Path) != ConfigName)
                     continue;
 
-                var deserializer  = new Deserializer();
-                var projectConfig = deserializer.Deserialize<ProjectConfigData>(file.GetText().ToString());
-                if (new Version(projectConfig.Version) != ConfigVersion)
-                    return null;
+                using (var reader = new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(file.GetText().ToString()))))
+                {
+                    var projectConfig = DeserializeAndValidate<ProjectConfigData>(reader);
 
-                path = file.Path;
-                return projectConfig;
+                    if (new Version(projectConfig.Version) != ConfigVersion)
+                        return null;
+
+                    path = file.Path;
+                    return projectConfig;
+                }
             }
 
             return null;
@@ -185,23 +249,26 @@ namespace SecurityCodeScan.Config
         public List<CsrfProtectionData>               CsrfProtectionAttributes            { get; set; }
         public List<string>                           PasswordFields                      { get; set; }
         public List<string>                           ConstantFields                      { get; set; }
+        public List<string>                           SanitizerTypes                      { get; set; }
     }
 
     internal class MethodBehaviorData
     {
-        public string ClassName           { get; set; }
+        public string   ClassName           { get; set; }
         // TODO: use member field in taint analysis or remove it completely
-        public string Member              { get; set; }
-        public string Name                { get; set; }
-        public string Namespace           { get; set; }
-        public string ArgTypes            { get; set; }
-        public int[]  InjectableArguments { get; set; }
-        public int[]  PasswordArguments   { get; set; }
-        public int[]  TaintFromArguments  { get; set; }
-        public string Locale              { get; set; }
-        public string LocalePass          { get; set; }
-        public bool   InjectableField     { get; set; }
-        public bool   IsPasswordField     { get; set; }
+        public string   Member              { get; set; }
+        public string   Name                { get; set; }
+        public string   Namespace           { get; set; }
+        public string   ArgTypes            { get; set; }
+        public object[] InjectableArguments { get; set; }
+        public int[]    PasswordArguments   { get; set; }
+        public object[] TaintFromArguments  { get; set; }
+        public object[] PreConditions       { get; set; }
+        public object[] PostConditions      { get; set; }
+        public string   Locale              { get; set; }
+        public string   LocalePass          { get; set; }
+        public object   InjectableField     { get; set; }
+        public bool     IsPasswordField     { get; set; }
     }
 
     internal class CsrfProtectionData

@@ -21,7 +21,7 @@ public class ExternalFileAnalyzerTest
     protected async Task<Mock<Action<Diagnostic>>> Analyze(string source, string path, CancellationToken cancellationToken = default(CancellationToken))
     {
         var additionalTextMock = new Mock<AdditionalText>();
-        additionalTextMock.Setup(text => text.Path).Returns(path); //The path is read when the diagnostic is report
+        additionalTextMock.Setup(text => text.Path).Returns(path); //The path is read when the diagnostic is reported
         additionalTextMock.Setup(text => text.GetText(cancellationToken)).Returns(SourceText.From(source));
 
         var diagnosticReportMock = new Mock<Action<Diagnostic>>(MockBehavior.Loose); //Will record the reported diagnostic...
@@ -29,7 +29,7 @@ public class ExternalFileAnalyzerTest
                             .Callback<Diagnostic>(diagnostic =>
                             {
                                 if (diagnostic != null)
-                                    Logger.LogMessage($"Was: \"{diagnostic.GetMessage()}\"");
+                                    Logger.LogMessage("Was: \"{0}\"", diagnostic.GetMessage());
                             });
 
         var compilation = new CompilationAnalysisContext(null,

@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
+using System.Linq;
 using SecurityCodeScan.Analyzers.Taint;
 
 namespace SecurityCodeScan.Config
@@ -13,6 +17,7 @@ namespace SecurityCodeScan.Config
             AntiCsrfAttributes                  = new Dictionary<string, List<string>>();
             PasswordFields                      = new HashSet<string>();
             ConstantFields                      = new HashSet<string>();
+            SanitizerTypeNameToBit              = new Dictionary<string, ulong>(62);
         }
 
         public Configuration(Configuration config)
@@ -26,10 +31,14 @@ namespace SecurityCodeScan.Config
             AntiCsrfAttributes                  = new Dictionary<string, List<string>>(config.AntiCsrfAttributes);
             PasswordFields                      = new HashSet<string>(config.PasswordFields);
             ConstantFields                      = new HashSet<string>(config.ConstantFields);
+            SanitizerTypeNameToBit              = new Dictionary<string, ulong>(config.SanitizerTypeNameToBit);
         }
 
         public Configuration(ConfigData configData) : this()
         {
+            if (configData.SanitizerTypes != null)
+                RegisterSanitizerTypes(configData.SanitizerTypes);
+
             AuditMode                          = configData.AuditMode                          ?? false;
             MinimumPasswordValidatorProperties = configData.MinimumPasswordValidatorProperties ?? 0;
             PasswordValidatorRequiredLength    = configData.PasswordValidatorRequiredLength    ?? 0;
@@ -77,9 +86,13 @@ namespace SecurityCodeScan.Config
         public Dictionary<string, List<string>>                         AntiCsrfAttributes;
         public HashSet<string>                                          PasswordFields;
         public HashSet<string>                                          ConstantFields;
+        public Dictionary<string, ulong>                                SanitizerTypeNameToBit;
 
         public void MergeWith(ConfigData config)
         {
+            if (config.SanitizerTypes != null)
+                RegisterSanitizerTypes(config.SanitizerTypes);
+
             if (config.AuditMode.HasValue)
                 AuditMode = config.AuditMode.Value;
 
@@ -144,18 +157,147 @@ namespace SecurityCodeScan.Config
             }
         }
 
-        public static KeyValuePair<string, MethodBehavior> CreateBehavior(MethodBehaviorData behavior)
+        private void RegisterSanitizerTypes(List<string> typeNames)
+        {
+            var availableBit = 1ul << 3;
+            foreach (var registeredBit in SanitizerTypeNameToBit.Values)
+            {
+                if (availableBit <= registeredBit)
+                    availableBit = registeredBit;
+            }
+
+            foreach (var typeName in typeNames)
+            {
+                if (SanitizerTypeNameToBit.ContainsKey(typeName))
+                    throw new Exception("Duplicate sanitizer type");
+
+                if (availableBit == 0ul)
+                    throw new Exception("Max number of sanitizer types reached");
+
+                SanitizerTypeNameToBit[typeName] = availableBit;
+                availableBit                     = availableBit << 1;
+            }
+        }
+
+        private ReadOnlyDictionary<int, object> GetPreConditions(object[] arguments)
+        {
+            if (arguments == null || !arguments.Any())
+                return null;
+
+            var preConditions = new Dictionary<int, object>(arguments.Length);
+            foreach (var argument in arguments)
+            {
+                if (argument is Dictionary<object, object> d && d.Count == 1)
+                {
+                    var obj = d.First();
+                    var idx = int.Parse((string)obj.Key);
+                    var conditions = (List<object>)obj.Value;
+                    if (conditions.Count == 1)
+                    {
+                        if (conditions[0] is Dictionary<object, object> conditionsDictionary &&
+                            conditionsDictionary.Count == 1)
+                        {
+                            var condition = conditionsDictionary.First();
+                            if ((string)condition.Key == "Value")
+                            {
+                                var value = (string)condition.Value;
+                                if (int.TryParse(value, out var intVal))
+                                    preConditions.Add(idx, intVal);
+                                else
+                                    preConditions.Add(idx, value);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    throw new Exception("Unknown argument");
+                }
+            }
+
+            return new ReadOnlyDictionary<int, object>(preConditions);
+        }
+
+        private ReadOnlyDictionary<int, ulong> GetArguments(object[] arguments)
+        {
+            if (arguments == null || !arguments.Any())
+                return null;
+
+            var outArguments = new Dictionary<int, ulong>(arguments.Length);
+            foreach (var argument in arguments)
+            {
+                if (argument is string s)
+                {
+                    outArguments.Add(int.Parse(s), (ulong)VariableTaint.Safe);
+                }
+                else if (argument is Dictionary<object, object> d && d.Count == 1)
+                {
+                    var indexToTaintType = d.First();
+                    if (indexToTaintType.Value is string sanitizerType)
+                    {
+                        var i = int.Parse((string)indexToTaintType.Key);
+                        ulong sanitizerBit;
+                        if (i == -1 && sanitizerType == "Validator") // todo: introduce Validators section in yaml
+                            sanitizerBit = 0ul;
+                        else
+                            sanitizerBit = SanitizerTypeNameToBit[sanitizerType];
+
+                        outArguments.Add(i, sanitizerBit);
+                    }
+                    else if (indexToTaintType.Value is List<object> sanitizerTypes)
+                    {
+                        ulong bits = 0ul;
+                        foreach (var type in sanitizerTypes)
+                        {
+                            bits |= SanitizerTypeNameToBit[(string)type];
+                        }
+
+                        outArguments.Add(int.Parse((string)indexToTaintType.Key), bits);
+                    }
+                    else
+                    {
+                        throw new Exception("Unknown sanitizer type");
+                    }
+                }
+                else
+                {
+                    throw new Exception("Unknown behavior argument");
+                }
+            }
+
+            return new ReadOnlyDictionary<int, ulong>(outArguments);
+        }
+
+        private ulong GetField(object value)
+        {
+            if (value == null)
+                return 0ul;
+
+            if (value is string s)
+            {
+                if (s == "true")
+                    return (ulong)VariableTaint.Safe;
+
+                return SanitizerTypeNameToBit[s];
+            }
+
+            throw new Exception("Unknown injectable argument");
+        }
+
+        public KeyValuePair<string, MethodBehavior> CreateBehavior(MethodBehaviorData behavior)
         {
             var key = behavior.ArgTypes != null ?
                           $"{behavior.Namespace}.{behavior.ClassName}|{behavior.Name}|{behavior.ArgTypes}" : //With arguments types discriminator
                           $"{behavior.Namespace}.{behavior.ClassName}|{behavior.Name}";                      //Minimalist configuration
 
-            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(behavior.InjectableArguments,
-                                                                                    behavior.PasswordArguments,
-                                                                                    behavior.TaintFromArguments,
+            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetArguments(behavior.InjectableArguments),
+                                                                                    behavior.PasswordArguments?.ToImmutableHashSet(),
+                                                                                    GetArguments(behavior.TaintFromArguments),
+                                                                                    GetPreConditions(behavior.PreConditions),
+                                                                                    GetArguments(behavior.PostConditions),
                                                                                     behavior.Locale,
                                                                                     behavior.LocalePass,
-                                                                                    behavior.InjectableField,
+                                                                                    GetField(behavior.InjectableField),
                                                                                     behavior.IsPasswordField));
         }
 

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 
@@ -172,5 +174,10 @@ namespace SecurityCodeScan.Analyzers.Utils
     internal static class EmptyArray<T>
     {
         public static readonly T[] Value = new T[0];
+    }
+
+    internal static class EmptyDictionary<TKey, TVal>
+    {
+        public static readonly ReadOnlyDictionary<TKey, TVal> Value = new ReadOnlyDictionary<TKey, TVal>(new Dictionary<TKey, TVal>());
     }
 }

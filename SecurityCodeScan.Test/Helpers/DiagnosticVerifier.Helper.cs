@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 
 namespace SecurityCodeScan.Test.Helpers
 {
@@ -102,6 +103,11 @@ namespace SecurityCodeScan.Test.Helpers
             IEnumerable<MetadataReference>     references                 = null,
             bool                               includeCompilerDiagnostics = false)
         {
+            foreach (var source in sources)
+            {
+                Logger.LogMessage("{0}", source);
+            }
+
             var documents = GetDocuments(sources, dotNetVersion, language, references);
             return (await GetSortedDiagnosticsFromDocuments(analyzers,
                                                            options,

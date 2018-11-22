@@ -22,7 +22,8 @@ namespace SecurityCodeScan.Test.Taint
 
         private static readonly PortableExecutableReference[] References =
         {
-            MetadataReference.CreateFromFile(typeof(System.Data.SqlClient.SqlCommand).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(System.Data.SqlClient.SqlCommand).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location)
         };
 
         private DiagnosticResult Expected = new DiagnosticResult
@@ -39,12 +40,13 @@ namespace SecurityCodeScan.Test.Taint
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant
+    class SqlConstant : Controller
     {
-        public static void Run(string input)
+        public void Run(string input)
         {
             string username = input;
             var variable1 = username;
@@ -60,10 +62,13 @@ namespace sample
 
             var visualBasicTest = @"
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Class SqlConstant
-        Public Shared Sub Run(input As String)
+        Inherits Controller
+
+        Public Sub Run(input As String)
             Dim username As String = input
             Dim variable1 = username
             Dim variable2 = variable1
@@ -86,12 +91,13 @@ End Namespace
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant
+    class SqlConstant : Controller
     {
-        public static void Run(string input)
+        public void Run(string input)
         {
             string username = input;
             var variable1 = username;
@@ -107,10 +113,13 @@ namespace sample
 
             var visualBasicTest = @"
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Class SqlConstant
-        Public Shared Sub Run(input As String)
+        Inherits Controller
+
+        Public Sub Run(input As String)
             Dim username As String = input
             Dim variable1 = username
             Dim variable2 = variable1
@@ -132,12 +141,13 @@ End Namespace
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant
+    class SqlConstant : Controller
     {
-        public static void Run(string input)
+        public void Run(string input)
         {
             string username = input;
             var variable1 = username;
@@ -146,7 +156,6 @@ namespace sample
             for (int i=0;i<10;i++) {
                 new SqlCommand(variable2);
             }
-
         }
     }
 }
@@ -154,10 +163,13 @@ namespace sample
 
             var visualBasicTest = @"
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Class SqlConstant
-        Public Shared Sub Run(input As String)
+        Inherits Controller
+
+        Public Sub Run(input As String)
             Dim username As String = input
             Dim variable1 = username
             Dim variable2 = variable1
@@ -180,12 +192,13 @@ End Namespace
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant
+    class SqlConstant : Controller
     {
-        public static void Run(string input)
+        public void Run(string input)
         {
             string username = input;
             var variable1 = username;
@@ -200,10 +213,13 @@ namespace sample
 
             var visualBasicTest = @"
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Class SqlConstant
-        Public Shared Sub Run(input As String)
+        Inherits Controller
+
+        Public Sub Run(input As String)
             Dim username As String = input
             Dim variable1 = username
             Dim variable2 = variable1
@@ -227,12 +243,13 @@ End Namespace
             var cSharpTest = @"
 using System;
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
-    class Test
+    class Test : Controller
     {
-        public static void Foo(object o)
+        public void Foo(object o)
         {
 #pragma warning disable 219
         if (o is String)
@@ -253,12 +270,13 @@ namespace sample
             var cSharpTest = @"
 //using System;
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
-    class Test
+    class Test : Controller
     {
-        public static void Foo(/*object o*/)
+        public void Foo(/*object o*/)
         {
 #pragma warning disable 219
         new SqlCommand((string)null);
@@ -280,10 +298,13 @@ namespace sample
 
             var visualBasicTest = @"
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Class Test
-        Public Shared Sub Foo()
+        Inherits Controller
+
+        Public Sub Foo()
 #Disable Warning BC42024
             Dim a As New SqlCommand(DirectCast(Nothing, String))
             Dim b As New SqlCommand(CType(Nothing, String))

@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers.Taint;
+using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
 using DiagnosticVerifier = SecurityCodeScan.Test.Helpers.DiagnosticVerifier;
 
@@ -20,7 +22,16 @@ namespace SecurityCodeScan.Test.Taint
 
         private static readonly PortableExecutableReference[] References =
         {
-            MetadataReference.CreateFromFile(typeof(System.Data.SqlClient.SqlCommand).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(System.Data.SqlClient.SqlCommand).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Web.HttpRequestBase).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.Controller).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ControllerBase).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Http.HttpRequest).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Http.IRequestCookieCollection).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.Extensions.Primitives.StringValues).Assembly.Location),
+            MetadataReference.CreateFromFile(Assembly.Load("System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")
+                                                     .Location)
         };
 
         private DiagnosticResult Expected = new DiagnosticResult
@@ -182,10 +193,10 @@ End Namespace
 
         [TestCategory("Detect")]
         [DataTestMethod]
-        [DataRow("sql",       new[] { "SCS0026" },           new[] { "SCS0026" })]
-        [DataRow("xyz",       new[] { "CS0103" },            new[] { "BC30451" })]
-        [DataRow("foo()",     new[] { "CS1503" },            new[] { "BC30311" })]
-        [DataRow("foo2(xyz)", new[] { "SCS0026", "CS0103" }, new[] { "BC30451" })]
+        [DataRow("sql",       new[] { "SCS0026" }, new[] { "SCS0026" })]
+        [DataRow("xyz",       new[] { "CS0103" },  new[] { "BC30451" })]
+        [DataRow("foo()",     new[] { "CS1503" },  new[] { "BC30311" })]
+        [DataRow("foo2(xyz)", new[] { "CS0103" },  new[] { "BC30451" })]
         public async Task Constructor(string right, string[] csErrors, string[] vbErrors)
         {
             var cSharpTest = $@"
@@ -195,8 +206,14 @@ namespace sample
 {{
     class Test
     {{
-        public Test(string sql)
+        static string GetUntrusted()
         {{
+            return null;
+        }}
+
+        public Test()
+        {{
+            string sql = GetUntrusted();
             new SqlCommand({right});
         }}
 
@@ -218,7 +235,12 @@ Imports System.Data.SqlClient
 
 Namespace sample
     Class Test
-        Public Sub New(sql As String)
+        Private Shared Function GetUntrusted() As String
+            Return Nothing
+        End Function
+
+        Public Sub New()
+            Dim sql As String = GetUntrusted()
             Dim com As New SqlCommand({right})
         End Sub
 
@@ -232,12 +254,23 @@ Namespace sample
     End Class
 End Namespace
 ";
+
+            var testConfig = @"
+Sources:
+  AAA:
+    Namespace: sample
+    ClassName: Test
+    Member: method
+    Name: GetUntrusted
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             await VerifyCSharpDiagnostic(cSharpTest,
-                                         csErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation(10)).ToArray())
+                                         csErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation(16)).ToArray(), optionsWithProjectConfig)
                 .ConfigureAwait(false);
 
             await VerifyVisualBasicDiagnostic(visualBasicTest,
-                                              vbErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation(7)).ToArray())
+                                              vbErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation(12)).ToArray(), optionsWithProjectConfig)
                 .ConfigureAwait(false);
         }
 
@@ -287,8 +320,14 @@ Namespace sample
     End Class
 End Namespace
 ";
-            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+
+            var testConfig = @"
+AuditMode: true
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -333,8 +372,14 @@ Namespace sample
     End Class
 End Namespace
 ";
-            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+
+            var testConfig = @"
+AuditMode: true
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -431,6 +476,7 @@ End Namespace
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
+        [Ignore("methods are not expanded yet")]
         public async Task VariableConcatenationMethod(string initializer, string accessor)
         {
             var cSharpTest = $@"
@@ -475,10 +521,8 @@ Namespace sample
     End Class
 End Namespace
 ";
-            // todo: methods are not expanded yet
-
-            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -616,6 +660,7 @@ End Namespace
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
+        [Ignore("readonly fields aren't assumed const because no check for assignments in constructors is implemented")]
         public async Task VariableConcatenationFieldReadonly(string initializer, string accessor)
         {
             var cSharpTest = $@"
@@ -657,11 +702,8 @@ Namespace sample
     End Class
 End Namespace
 ";
-
-            // todo: readonly fields aren't assumed const because no check for assignments in constructors is implemented
-
-            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -673,7 +715,8 @@ End Namespace
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
-        public async Task VariableConcatenationFieldReadonlyContructor(string initializer, string accessor)
+        [Ignore("readonly fields aren't assumed const because no check for assignments in constructors is implemented")]
+        public async Task VariableConcatenationFieldReadonlyConstructor(string initializer, string accessor)
         {
             var cSharpTest = $@"
 using System.Data.SqlClient;
@@ -724,8 +767,8 @@ Namespace sample
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -861,6 +904,7 @@ End Namespace
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
+        [Ignore("readonly fields aren't assumed const because no check for assignments in constructors is implemented")]
         public async Task VariableConcatenationPropertyReadonlyBackingField(string initializer, string accessor)
         {
             var cSharpTest = $@"
@@ -911,10 +955,8 @@ Namespace sample
     End Class
 End Namespace
 ";
-            // todo: readonly fields aren't assumed const because no check for assignments in constructors is implemented
-
-            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -926,7 +968,8 @@ End Namespace
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
-        public async Task VariableConcatenationPropertyReadonlyContructorBackingField(string initializer, string accessor)
+        [Ignore("readonly fields aren't assumed const because no check for assignments in constructors is implemented")]
+        public async Task VariableConcatenationPropertyReadonlyConstructorBackingField(string initializer, string accessor)
         {
             var cSharpTest = $@"
 using System.Data.SqlClient;
@@ -985,8 +1028,8 @@ Namespace sample
     End Class
 End Namespace
 ";
-            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -1000,6 +1043,7 @@ End Namespace
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
+        [Ignore("'property = {}' is not implemented")]
         public async Task VariableConcatenationPropertyGetWithInitializer(string initializer, string accessor)
         {
             var cSharpTest = $@"
@@ -1041,10 +1085,8 @@ Namespace sample
 End Namespace
 ";
 
-            // todo: readonly fields aren't assumed const because no check for assignments in constructors is implemented
-
-            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -1058,6 +1100,7 @@ End Namespace
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
+        [Ignore("'property = {}' is not implemented")]
         public async Task VariableConcatenationPropertyGetPrivateSetWithInitializerCSharp(string initializer, string accessor)
         {
             var cSharpTest = $@"
@@ -1080,8 +1123,6 @@ namespace sample
     }}
 }}
 ";
-            // todo: readonly fields aren't assumed const because no check for assignments in constructors is implemented
-
             await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
         }
 
@@ -1211,12 +1252,13 @@ End Namespace
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant
+    class SqlConstant : Controller
     {
-        public static void Run(string input)
+        public void Run(string input)
         {
             string username = input;
             var variable1 = username;
@@ -1230,10 +1272,13 @@ namespace sample
 
             var visualBasicTest = @"
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Class SqlConstant
-        Public Shared Sub Run(input As String)
+        Inherits Controller
+
+        Public Sub Run(input As String)
             Dim username As String = input
             Dim variable1 = username
             Dim variable2 = variable1
@@ -1255,12 +1300,13 @@ End Namespace
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant
+    class SqlConstant : Controller
     {
-        public static void Run(string input)
+        public void Run(string input)
         {
             new SqlCommand(""SELECT* FROM users WHERE username = '"" + input + ""' LIMIT 1"");
         }
@@ -1270,10 +1316,13 @@ namespace sample
 
             var visualBasicTest = @"
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Class SqlConstant
-        Public Shared Sub Run(input As String)
+        Inherits Controller
+
+        Public Sub Run(input As String)
             Dim com As New SqlCommand(""SELECT* FROM users WHERE username = '"" & input & ""' LIMIT 1"")
         End Sub
     End Class
@@ -1290,12 +1339,13 @@ End Namespace
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant
+    class SqlConstant : Controller
     {
-        public static void Run(string input)
+        public void Run(string input)
         {
             {
 #pragma warning disable 219
@@ -1313,10 +1363,13 @@ namespace sample
 
             var visualBasicTest = @"
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Class SqlConstant
-        Public Shared Sub Run(input As String)
+        Inherits Controller
+
+        Public Sub Run(input As String)
             If True Then
                 Dim username As String = ""ignore_me""
             End If
@@ -1339,12 +1392,13 @@ End Namespace
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant
+    class SqlConstant : Controller
     {
-        public static void Run(string input)
+        public void Run(string input)
         {
             string query = ""SELECT * FROM [User] WHERE user_id = 1"";
             SqlCommand cmd1 = new SqlCommand(query);
@@ -1358,10 +1412,13 @@ namespace sample
 
             var visualBasicTest = @"
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Class SqlConstant
-        Public Shared Sub Run(input As String)
+        Inherits Controller
+
+        Public Sub Run(input As String)
             Dim query As String = ""SELECT * FROM [User] WHERE user_id = 1""
             Dim cmd1 As New SqlCommand(query)
 
@@ -1382,12 +1439,13 @@ End Namespace
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant
+    class SqlConstant : Controller
     {
-        public static void Run(string input)
+        public void Run(string input)
         {
             string query = input;
             SqlCommand cmd1 = new SqlCommand(query);
@@ -1401,10 +1459,13 @@ namespace sample
 
             var visualBasicTest = @"
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Class SqlConstant
-        Public Shared Sub Run(input As String)
+        Inherits Controller
+
+        Public Sub Run(input As String)
             Dim query As String = input
             Dim cmd1 As New SqlCommand(query)
 
@@ -1425,6 +1486,7 @@ End Namespace
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
@@ -1433,9 +1495,9 @@ namespace sample
         public string query { get; set; }
     }
 
-    class SqlConstant
+    class SqlConstant : Controller
     {
-        public static void Run(string input)
+        public void Run(string input)
         {
             var queryObject = new QueryDataClass{
                 query = input
@@ -1452,6 +1514,7 @@ namespace sample
 
             var visualBasicTest = @"
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Class QueryDataClass
@@ -1459,7 +1522,9 @@ Namespace sample
     End Class
 
     Class SqlConstant
-        Public Shared Sub Run(input As String)
+        Inherits Controller
+
+        Public Sub Run(input As String)
             Dim queryObject As QueryDataClass = new QueryDataClass With {
                 .query = input
             }
@@ -1483,6 +1548,7 @@ End Namespace
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
@@ -1491,14 +1557,14 @@ namespace sample
         public string query { get; set; }
     }
 
-    class SqlConstant
+    class SqlConstant : Controller
     {
         public static QueryDataClass GetQueryDataClass(string input)
         {
             return null;
         }
 
-        public static void Run(string input)
+        public void Run(string input)
         {
             var queryObject = new QueryDataClass{
                 query = ""SELECT * FROM [User] WHERE user_id = 1""
@@ -1515,6 +1581,7 @@ namespace sample
 
             var visualBasicTest = @"
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Class QueryDataClass
@@ -1522,11 +1589,13 @@ Namespace sample
     End Class
 
     Class SqlConstant
+        Inherits Controller
+
         Public Shared Function GetQueryDataClass(ByVal input As String) As QueryDataClass
             Return Nothing
         End Function
 
-        Public Shared Sub Run(ByVal input As String)
+        Public Sub Run(ByVal input As String)
             Dim queryObject = New QueryDataClass With {
                 .query = ""SELECT * FROM [User] WHERE user_id = 1""
             }
@@ -1540,8 +1609,18 @@ Namespace sample
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+            var testConfig = @"
+Sources:
+  AAA:
+    Namespace: sample
+    ClassName: SqlConstant
+    Member: method
+    Name: GetQueryDataClass
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -1550,12 +1629,13 @@ End Namespace
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant
+    class SqlConstant : Controller
     {
-        public static void Run(string input)
+        public void Run(string input)
         {
             UsesSqlCommand(new SqlCommand(input));
         }
@@ -1569,10 +1649,13 @@ namespace sample
 
             var visualBasicTest = @"
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Class SqlConstant
-        Public Shared Sub Run(input As String)
+        Inherits Controller
+
+        Public Sub Run(input As String)
             UsesSqlCommand(new SqlCommand(input))
         End Sub
 
@@ -1592,6 +1675,7 @@ End Namespace
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
@@ -1600,9 +1684,9 @@ namespace sample
         public string query { get; set; }
     }
 
-    class SqlConstant
+    class SqlConstant : Controller
     {
-        public static void Run(string input)
+        public void Run(string input)
         {
             var query = ""SELECT * FROM [User] WHERE user_id = 1"";
             SqlCommand cmd1 = new SqlCommand(query);
@@ -1620,6 +1704,7 @@ namespace sample
 
             var visualBasicTest = @"
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Class QueryDataClass
@@ -1627,7 +1712,9 @@ Namespace sample
     End Class
 
     Class SqlConstant
-        Public Shared Sub Run(ByVal input As String)
+        Inherits Controller
+
+        Public Sub Run(ByVal input As String)
             Dim query = ""SELECT* FROM[User] WHERE user_id = 1""
             Dim cmd1 As SqlCommand = New SqlCommand(query)
             Dim queryObject = New QueryDataClass With {
@@ -1651,6 +1738,7 @@ End Namespace
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
@@ -1659,9 +1747,9 @@ namespace sample
         public string query { get; set; }
     }
 
-    class SqlConstant
+    class SqlConstant : Controller
     {
-        public static void Run(string input)
+        public void Run(string input)
         {
             var queryObject = new QueryDataClass{
                 query = input
@@ -1681,6 +1769,7 @@ namespace sample
 
             var visualBasicTest = @"
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Structure  QueryDataClass
@@ -1688,7 +1777,9 @@ Namespace sample
     End Structure
 
 Class SqlConstant
-    Public Shared Sub Run(ByVal input As String)
+    Inherits Controller
+
+    Public Sub Run(ByVal input As String)
         Dim queryObject = New QueryDataClass With {
             .query = input
         }
@@ -1715,6 +1806,7 @@ End Namespace
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
@@ -1723,9 +1815,9 @@ namespace sample
         public string query { get; set; }
     }
 
-    class SqlConstant
+    class SqlConstant : Controller
     {
-        public static void Run(string input)
+        public void Run(string input)
         {
             var queryObject = new QueryDataClass{
                 query = input
@@ -1745,6 +1837,7 @@ namespace sample
 
             var visualBasicTest = @"
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Class QueryDataClass
@@ -1752,7 +1845,9 @@ Namespace sample
     End Class
 
 Class SqlConstant
-    Public Shared Sub Run(ByVal input As String)
+    Inherits Controller
+
+    Public Sub Run(ByVal input As String)
         Dim queryObject = New QueryDataClass With {
             .query = input
         }
@@ -1823,6 +1918,412 @@ End Namespace
             // should be no exception
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [DataTestMethod]
+        [DataRow("new System.Web.Mvc.Controller().Request.ToString()")]
+        [Ignore("wip")]
+        public async Task TaintSource2(string payload)
+        {
+            var cSharpTest = $@"
+class Test
+{{
+    private static void Run()
+    {{
+        new SqlCommand({payload});
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Class Test
+    Private Shared Sub Run()
+        New SqlCommand({payload})
+    End Sub
+End Class
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+        }
+
+        [DataTestMethod]
+        [DataRow("input",                                             true)]
+        [DataRow("Request.ToString()",                                false)]
+        [DataRow("Request.AcceptTypes[0]",                            true)]
+        [DataRow("Request.AnonymousID",                               true)]
+        [DataRow("Request.ApplicationPath",                           false)]
+        [DataRow("Request.AppRelativeCurrentExecutionFilePath",       false)]
+        [DataRow("Request.Browser.ToString()",                        true)]
+        [DataRow("Request.ClientCertificate.Issuer",                  true)]
+        [DataRow("Request.ContentEncoding.ToString()",                false)]
+        [DataRow("Request.ContentLength.ToString()",                  false)]
+        [DataRow("Request.ContentType.ToString()",                    true)]
+        [DataRow("Request.Cookies[\"auth\"].Value",                   true)]
+        [DataRow("Request.CurrentExecutionFilePath",                  false)]
+        [DataRow("Request.CurrentExecutionFilePathExtension",         false)]
+        [DataRow("Request.FilePath",                                  false)]
+        [DataRow("Request.Files[0].FileName",                         true)]
+        [DataRow("Request.Filter.ToString()",                         false)]
+        [DataRow("Request.Form[\"id\"]",                              true)]
+        [DataRow("Request.Headers[0]",                                true)]
+        [DataRow("Request.HttpChannelBinding.ToString()",             false)]
+        [DataRow("Request.HttpMethod",                                false)]
+        [DataRow("Request.InputStream.ToString()",                    true)]
+        [DataRow("Request.IsAuthenticated.ToString()",                false)]
+        [DataRow("Request.IsLocal.ToString()",                        true)]
+        [DataRow("Request.IsSecureConnection.ToString()",             false)]
+        [DataRow("Request[\"id\"]",                                   true)]
+        [DataRow("Request.LogonUserIdentity.ToString()",              false)]
+        [DataRow("Request.Params[\"id\"]",                            true)]
+        [DataRow("Request.Path",                                      false)]
+        [DataRow("Request.PathInfo",                                  false)]
+        [DataRow("Request.PhysicalApplicationPath",                   false)]
+        [DataRow("Request.PhysicalPath",                              false)]
+        [DataRow("Request.QueryString[\"id\"]",                       true)]
+        [DataRow("Request.RawUrl",                                    true)]
+        [DataRow("Request.ReadEntityBodyMode.ToString()",             false)]
+        [DataRow("Request.RequestContext.HttpContext.ToString()",     true)]
+        [DataRow("Request.RequestType",                               false)]
+        [DataRow("Request.ServerVariables[\"ALL_HTTP\"]",             true)]
+        [DataRow("Request.TimedOutToken.ToString()",                  false)]
+        [DataRow("Request.TlsTokenBindingInfo.ToString()",            false)]
+        [DataRow("Request.TotalBytes.ToString()",                     false)]
+        [DataRow("Request.Unvalidated.ToString()",                    true)]
+        [DataRow("Request.Url.ToString()",                            true)]
+        [DataRow("Request.UrlReferrer.ToString()",                    true)]
+        [DataRow("Request.UserAgent",                                 true)]
+        [DataRow("Request.UserHostAddress",                           true)]
+        [DataRow("Request.UserHostName",                              true)]
+        [DataRow("Request.UserLanguages[0]",                          true)]
+        [DataRow("Request.BinaryRead(100).ToString()",                true)]
+        [DataRow("Request.GetBufferedInputStream().ToString()",       true)]
+        [DataRow("Request.GetBufferlessInputStream(true).ToString()", true)]
+        [DataRow("Request.GetBufferlessInputStream().ToString()",     true)]
+        public async Task TaintSourceController(string payload, bool warn)
+        {
+            var cSharpTest = $@"
+using System.Web.Mvc;
+
+class MyController : Controller
+{{
+    public void Run(string input)
+    {{
+        Sink({payload});
+    }}
+
+    private void Sink(string input) {{}}
+}}
+";
+
+            payload = payload.CSharpReplaceToVBasic();
+            var visualBasicTest = $@"
+Imports System.Web.Mvc
+
+Friend Class MyController
+    Inherits Controller
+
+    Public Sub Run(ByVal input As String)
+        Sink({payload})
+    End Sub
+
+    Private Sub Sink(ByVal input As String)
+    End Sub
+End Class
+
+";
+
+            var testConfig = @"
+Sinks:
+  MyKey:
+    ClassName: MyController
+    Member: method
+    Name: Sink
+    InjectableArguments: [0]
+    Locale: SCS0026
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+        }
+
+        [DataTestMethod]
+        [DataRow("input",                                                                     true)]
+        [DataRow("Request.ToString()",                                                        false)]
+        [DataRow("Request.Body.ToString()",                                                   true)]
+        [DataRow("Request.ContentLength.ToString()",                                          false)]
+        [DataRow("Request.ContentType.ToString()",                                            true)]
+        [DataRow("Request.Cookies[\"auth\"]",                                                 true)]
+        [DataRow("Request.Form[\"id\"]",                                                      true)]
+        [DataRow("Request.HasFormContentType.ToString()",                                     false)]
+        [DataRow("Request.Headers[\"x\"]",                                                    true)]
+        [DataRow("Request.Host.Host",                                                         true)]
+        [DataRow("Request.HttpContext.Items[0].ToString()",                                   true)]
+        [DataRow("Request.IsHttps.ToString()",                                                false)]
+        [DataRow("Request.Method",                                                            false)]
+        [DataRow("Request.Path",                                                              false)]
+        [DataRow("Request.PathBase",                                                          false)]
+        [DataRow("Request.Protocol",                                                          false)]
+        [DataRow("Request.Query[\"id\"]",                                                     true)]
+        [DataRow("Request.QueryString.Value",                                                 true)]
+        [DataRow("Request.Scheme",                                                            false)]
+        [DataRow("Request.ReadFormAsync(System.Threading.CancellationToken.None).ToString()", true)]
+        public async Task TaintSourceControllerCore(string payload, bool warn)
+        {
+            var cSharpTest = $@"
+using Microsoft.AspNetCore.Mvc;
+
+class MyController : Controller
+{{
+    public void Run(string input)
+    {{
+        Sink({payload});
+    }}
+
+    private void Sink(string input) {{}}
+}}
+";
+
+            payload = payload.CSharpReplaceToVBasic();
+            var visualBasicTest = $@"
+Imports Microsoft.AspNetCore.Mvc
+
+Friend Class MyController
+    Inherits Controller
+
+    Public Sub Run(ByVal input As String)
+        Sink({payload})
+    End Sub
+
+    Private Sub Sink(ByVal input As String)
+    End Sub
+End Class
+
+";
+
+            var testConfig = @"
+Sinks:
+  MyKey:
+    ClassName: MyController
+    Member: method
+    Name: Sink
+    InjectableArguments: [0]
+    Locale: SCS0026
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+        }
+
+        [DataTestMethod]
+        [DataRow("HtmlTextArea",            "m_control.Value",                  true)]
+        [DataRow("HtmlInputText",           "m_control.Value",                  true)]
+        [DataRow("HtmlInputHidden",         "m_control.Value",                  true)]
+        [DataRow("HtmlInputGenericControl", "m_control.Value",                  true)]
+        [DataRow("HtmlInputFile",           "m_control.Value",                  true)]
+        [DataRow("HtmlInputFile",           "m_control.PostedFile.FileName",    true)]
+        [DataRow("FileUpload",              "m_control.FileName",               true)]
+        [DataRow("FileUpload",              "m_control.FileContent.ToString()", true)]
+        [DataRow("FileUpload",              "m_control.PostedFile.FileName",    true)]
+        [DataRow("HiddenField",             "m_control.Value",                  true)]
+        [DataRow("TextBox",                 "m_control.Text",                   true)]
+        public async Task TaintSourceWebForms(string type, string payload, bool warn)
+        {
+            var cSharpTest = $@"
+#pragma warning disable 8019
+    using System.Web.UI.HtmlControls;
+    using System.Web.UI.WebControls;
+    using System.Web.UI;
+#pragma warning restore 8019
+
+class MyPage : Page
+{{
+    private {type} m_control = new {type}();
+
+    public void Run()
+    {{
+        Sink({payload});
+    }}
+
+    private void Sink(string input) {{}}
+}}
+";
+
+            payload = payload.CSharpReplaceToVBasic();
+            var visualBasicTest = $@"
+#Disable Warning BC50001
+    Imports System.Web.UI.HtmlControls
+    Imports System.Web.UI.WebControls
+    Imports System.Web.UI
+#Enable Warning BC50001
+
+Friend Class MyPage
+    Inherits Page
+
+    Private m_control As {type} = New {type}()
+
+    Public Sub Run()
+        Sink({payload})
+    End Sub
+
+    Private Sub Sink(ByVal input As String)
+    End Sub
+End Class
+
+";
+
+            var testConfig = @"
+Sinks:
+  MyKey:
+    ClassName: MyPage
+    Member: method
+    Name: Sink
+    InjectableArguments: [0]
+    Locale: SCS0026
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+        }
+
+        [TestMethod]
+        public async Task TaintSource()
+        {
+            var cSharpTest = @"
+namespace sample
+{
+    class Parameters
+    {
+        public string[] Params { get; }
+    }
+
+    class HttpRequest
+    {
+        public Parameters GetParams() { return null; }
+    }
+
+    class HttpResponse
+    {
+        public void Write(string x) {}
+    }
+
+    class Test
+    {
+        private static HttpRequest  Request  = null;
+        private static HttpResponse Response = null;
+
+        public static void Run()
+        {
+            var userInput = Request.GetParams().Params[0].ToString();
+            Response.Write(userInput);
+        }
+    }
+}
+";
+
+var visualBasicTest = @"
+Namespace sample
+    Class Parameters
+        Public ReadOnly Property Params As String()
+    End Class
+
+    Class HttpRequest
+        Public Function GetParams() As Parameters
+            Return Nothing
+        End Function
+    End Class
+
+    Class HttpResponse
+        Public Sub Write(ByVal x As String)
+        End Sub
+    End Class
+
+    Class Test
+        Private Shared Request  As HttpRequest  = Nothing
+        Private Shared Response As HttpResponse = Nothing
+
+        Public Shared Sub Run()
+            Dim userInput = Request.GetParams().Params(0).ToString()
+            Response.Write(userInput)
+        End Sub
+    End Class
+End Namespace
+";
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0029",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            var testConfig = @"
+Sources:
+  sample_HttpRequest:
+    Namespace: sample
+    ClassName: HttpRequest
+
+Sinks:
+  MyKey:
+    Namespace: sample
+    ClassName: HttpResponse
+    Member: method
+    Name: Write
+    InjectableArguments: [0]
+    Locale: SCS0029
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+
+            testConfig = @"
+Sources:
+  sample_HttpRequest:
+    Namespace: sample
+    ClassName: Parameters
+
+Sinks:
+  MyKey:
+    Namespace: sample
+    ClassName: HttpResponse
+    Member: method
+    Name: Write
+    InjectableArguments: [0]
+    Locale: SCS0029
+";
+
+            optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
     }
 }

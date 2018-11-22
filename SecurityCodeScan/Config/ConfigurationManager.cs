@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using SecurityCodeScan.Analyzers.Taint;
+using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
 
 namespace SecurityCodeScan.Config
@@ -24,7 +25,7 @@ namespace SecurityCodeScan.Config
 
         private readonly char[] Parenthesis = { '(', ')' };
 
-        private void ValidateArgTypes(IEnumerable<MethodBehaviorData> methods)
+        private void ValidateArgTypes(IEnumerable<Signature> methods)
         {
             if (methods == null)
                 return;
@@ -77,11 +78,19 @@ namespace SecurityCodeScan.Config
 
         private T DeserializeAndValidate<T>(StreamReader reader) where T : ConfigData
         {
-            var deserializer = new Deserializer();
-            var data = deserializer.Deserialize<T>(reader);
-            ValidateArgTypes(data.Behavior?.Values);
-            ValidateArgTypes(data.Sinks?.Values);
-            return data;
+            var yaml = new YamlStream();
+            yaml.Load(reader); // throws if duplicates are found
+
+            reader.BaseStream.Seek(0, SeekOrigin.Begin);
+            using (var reader2 = new StreamReader(reader.BaseStream))
+            {
+                var deserializer = new Deserializer();
+                var data = deserializer.Deserialize<T>(reader2);
+                ValidateArgTypes(data.Behavior?.Values);
+                ValidateArgTypes(data.Sinks?.Values);
+                ValidateArgTypes(data.Sources?.Values);
+                return data;
+            }
         }
 
         public ConfigData GetBuiltinConfiguration()
@@ -215,6 +224,9 @@ namespace SecurityCodeScan.Config
         public string Version { get; set; }
     }
 
+    /// <summary>
+    /// External YML configuration structure
+    /// </summary>
     internal class ConfigData
     {
         public bool?                                  AuditMode                           { get; set; }
@@ -222,30 +234,46 @@ namespace SecurityCodeScan.Config
         public int?                                   MinimumPasswordValidatorProperties  { get; set; }
         public List<string>                           PasswordValidatorRequiredProperties { get; set; }
         public Dictionary<string, MethodBehaviorData> Behavior                            { get; set; }
-        public Dictionary<string, MethodBehaviorData> Sinks                               { get; set; }
+        public Dictionary<string, SinkData>           Sinks                               { get; set; }
+        public Dictionary<string, TaintSourceData>    Sources                             { get; set; }
         public List<CsrfProtectionData>               CsrfProtectionAttributes            { get; set; }
         public List<string>                           PasswordFields                      { get; set; }
         public List<string>                           ConstantFields                      { get; set; }
         public List<string>                           SanitizerTypes                      { get; set; }
     }
 
-    internal class MethodBehaviorData
+    internal class Signature
     {
-        public string   ClassName           { get; set; }
+        public string Namespace { get; set; }
+        public string ClassName { get; set; }
         // TODO: use member field in taint analysis or remove it completely
-        public string   Member              { get; set; }
-        public string   Name                { get; set; }
-        public string   Namespace           { get; set; }
-        public string   ArgTypes            { get; set; }
+        public string Member   { get; set; }
+        public string Name     { get; set; }
+        public string ArgTypes { get; set; }
+    }
+
+    internal class TaintSourceData : Signature
+    {
+        public bool     FromExternalParameters { get; set; }
+    }
+
+    internal class MethodBehaviorData : Signature
+    {
+        // behavior, validator, sanitizer specific
+        public Dictionary<object, object> PreConditions      { get; set; }
+        public Dictionary<object, object> PostConditions     { get; set; }
+
+    }
+
+    internal class SinkData : Signature
+    {
         public object[] InjectableArguments { get; set; }
-        public int[]    PasswordArguments   { get; set; }
-        public object[] TaintFromArguments  { get; set; }
-        public object[] PreConditions       { get; set; }
-        public object[] PostConditions      { get; set; }
-        public string   Locale              { get; set; }
-        public string   LocalePass          { get; set; }
         public object   InjectableField     { get; set; }
-        public bool     IsPasswordField     { get; set; }
+        public string   Locale              { get; set; }
+
+        // password sink specific
+        public int[] PasswordArguments { get; set; }
+        public bool  IsPasswordField   { get; set; }
     }
 
     internal class CsrfProtectionData

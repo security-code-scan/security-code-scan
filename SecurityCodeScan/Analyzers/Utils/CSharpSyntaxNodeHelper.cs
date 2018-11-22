@@ -128,7 +128,7 @@ namespace SecurityCodeScan.Analyzers.Utils
             return null;
         }
 
-        public override SyntaxNode GetAttributeArgumentExpresionNode(SyntaxNode node)
+        public override SyntaxNode GetAttributeArgumentExpressionNode(SyntaxNode node)
         {
             if (!(node is AttributeArgumentSyntax argument))
                 return null;

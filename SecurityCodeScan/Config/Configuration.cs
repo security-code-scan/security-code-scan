@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Linq;
 using SecurityCodeScan.Analyzers.Taint;
 
 namespace SecurityCodeScan.Config
 {
+    /// <summary>
+    /// Internal configuration optimized for queries
+    /// </summary>
     internal class Configuration
     {
         public Configuration()
@@ -14,6 +16,7 @@ namespace SecurityCodeScan.Config
             PasswordValidatorRequiredProperties = new HashSet<string>();
             Behavior                            = new Dictionary<string, KeyValuePair<string, MethodBehavior>>();
             Sinks                               = new Dictionary<string, KeyValuePair<string, MethodBehavior>>();
+            Sources                             = new HashSet<string>();
             AntiCsrfAttributes                  = new Dictionary<string, List<string>>();
             PasswordFields                      = new HashSet<string>();
             ConstantFields                      = new HashSet<string>();
@@ -28,6 +31,7 @@ namespace SecurityCodeScan.Config
             PasswordValidatorRequiredProperties = new HashSet<string>(config.PasswordValidatorRequiredProperties);
             Behavior                            = new Dictionary<string, KeyValuePair<string, MethodBehavior>>(config.Behavior);
             Sinks                               = new Dictionary<string, KeyValuePair<string, MethodBehavior>>(config.Sinks);
+            Sources                             = new HashSet<string>(config.Sources);
             AntiCsrfAttributes                  = new Dictionary<string, List<string>>(config.AntiCsrfAttributes);
             PasswordFields                      = new HashSet<string>(config.PasswordFields);
             ConstantFields                      = new HashSet<string>(config.ConstantFields);
@@ -61,6 +65,20 @@ namespace SecurityCodeScan.Config
                 Sinks[data.Key] = CreateBehavior(data.Value);
             }
 
+            foreach (var source in configData.Sources)
+            {
+                if (source.Value.FromExternalParameters)
+                {
+                    Sources.Add(string.IsNullOrEmpty(source.Value.Namespace)
+                                    ? source.Value.ClassName
+                                    : $"{source.Value.Namespace}.{source.Value.ClassName}");
+                }
+                else
+                {
+                    Behavior[source.Key] = CreateBehavior(source.Value);
+                }
+            }
+
             foreach (var data in configData.CsrfProtectionAttributes)
             {
                 AddAntiCsrfTAttributeToConfiguration(data);
@@ -83,6 +101,7 @@ namespace SecurityCodeScan.Config
         public HashSet<string>                                          PasswordValidatorRequiredProperties;
         public Dictionary<string, KeyValuePair<string, MethodBehavior>> Behavior;
         public Dictionary<string, KeyValuePair<string, MethodBehavior>> Sinks;
+        public HashSet<string>                                          Sources;
         public Dictionary<string, List<string>>                         AntiCsrfAttributes;
         public HashSet<string>                                          PasswordFields;
         public HashSet<string>                                          ConstantFields;
@@ -125,10 +144,37 @@ namespace SecurityCodeScan.Config
             {
                 foreach (var sink in config.Sinks)
                 {
-                    if (sink.Value == default(MethodBehaviorData))
+                    if (sink.Value == default(SinkData))
                         Sinks.Remove(sink.Key);
                     else
                         Sinks[sink.Key] = CreateBehavior(sink.Value);
+                }
+            }
+
+            if (config.Sources != null)
+            {
+                foreach (var source in config.Sources)
+                {
+                    if (source.Value == default(TaintSourceData))
+                    {
+                        if (Behavior.ContainsKey(source.Key))
+                            Behavior.Remove(source.Key);
+                        else
+                            Sources.Remove(source.Key);
+                    }
+                    else
+                    {
+                        if (source.Value.FromExternalParameters)
+                        {
+                            Sources.Add(string.IsNullOrEmpty(source.Value.Namespace)
+                                            ? source.Value.ClassName
+                                            : $"{source.Value.Namespace}.{source.Value.ClassName}");
+                        }
+                        else
+                        {
+                            Behavior[source.Key] = CreateBehavior(source.Value);
+                        }
+                    }
                 }
             }
 
@@ -179,93 +225,166 @@ namespace SecurityCodeScan.Config
             }
         }
 
-        private ReadOnlyDictionary<int, object> GetPreConditions(object[] arguments)
+        private IReadOnlyDictionary<int, object> GetPreConditions(IReadOnlyDictionary<object, object> arguments)
         {
             if (arguments == null || !arguments.Any())
                 return null;
 
-            var preConditions = new Dictionary<int, object>(arguments.Length);
+            var conditions = new Dictionary<int, object>(arguments.Count);
             foreach (var argument in arguments)
             {
-                if (argument is Dictionary<object, object> d && d.Count == 1)
-                {
-                    var obj = d.First();
-                    var idx = int.Parse((string)obj.Key);
-                    var conditions = (List<object>)obj.Value;
-                    if (conditions.Count == 1)
-                    {
-                        if (conditions[0] is Dictionary<object, object> conditionsDictionary &&
-                            conditionsDictionary.Count == 1)
-                        {
-                            var condition = conditionsDictionary.First();
-                            if ((string)condition.Key == "Value")
-                            {
-                                var value = (string)condition.Value;
-                                if (int.TryParse(value, out var intVal))
-                                    preConditions.Add(idx, intVal);
-                                else
-                                    preConditions.Add(idx, value);
-                            }
-                        }
-                    }
-                }
+                if (!(argument.Value is Dictionary<object, object> d))
+                    throw new Exception("Invalid precondition format");
+
+                var idx = int.Parse((string)argument.Key);
+                if (d.Count != 1)
+                    throw new Exception("Only one precondition per argument is supported");
+
+                var condition = d.First();
+                if ((string)condition.Key != "Value")
+                    throw new Exception("Only 'Value' preconditions are supported");
+
+                var value = (string)condition.Value;
+                if (int.TryParse(value, out var intVal))
+                    conditions.Add(idx, intVal);
                 else
-                {
-                    throw new Exception("Unknown argument");
-                }
+                    conditions.Add(idx, value);
             }
 
-            return new ReadOnlyDictionary<int, object>(preConditions);
+            return conditions;
         }
 
-        private ReadOnlyDictionary<int, ulong> GetArguments(object[] arguments)
+        private ulong GetSanitizerBits(IEnumerable<object> sanitizerTypes)
+        {
+            ulong bits = 0ul;
+            foreach (var type in sanitizerTypes)
+            {
+                bits |= SanitizerTypeNameToBit[(string)type];
+            }
+
+            if (bits == 0ul)
+                throw new Exception("Unknown sanitizer type");
+
+            return bits;
+        }
+
+        private IReadOnlyDictionary<int, ulong> GetArguments(IReadOnlyList<object> arguments)
         {
             if (arguments == null || !arguments.Any())
                 return null;
 
-            var outArguments = new Dictionary<int, ulong>(arguments.Length);
+            var outArguments = new Dictionary<int, ulong>(arguments.Count);
             foreach (var argument in arguments)
             {
-                if (argument is string s)
+                switch (argument)
                 {
-                    outArguments.Add(int.Parse(s), (ulong)VariableTaint.Safe);
-                }
-                else if (argument is Dictionary<object, object> d && d.Count == 1)
-                {
-                    var indexToTaintType = d.First();
-                    if (indexToTaintType.Value is string sanitizerType)
+                    case string s:
+                        outArguments.Add(int.Parse(s), (ulong)VariableTaint.Safe);
+                        break;
+                    case Dictionary<object, object> d when d.Count == 1:
                     {
-                        var i = int.Parse((string)indexToTaintType.Key);
-                        ulong sanitizerBit;
-                        if (i == -1 && sanitizerType == "Validator") // todo: introduce Validators section in yaml
-                            sanitizerBit = 0ul;
-                        else
-                            sanitizerBit = SanitizerTypeNameToBit[sanitizerType];
-
-                        outArguments.Add(i, sanitizerBit);
-                    }
-                    else if (indexToTaintType.Value is List<object> sanitizerTypes)
-                    {
-                        ulong bits = 0ul;
-                        foreach (var type in sanitizerTypes)
+                        var indexToTaintType = d.First();
+                        switch (indexToTaintType.Value)
                         {
-                            bits |= SanitizerTypeNameToBit[(string)type];
+                            case string sanitizerType:
+                            {
+                                var   i = int.Parse((string)indexToTaintType.Key);
+                                ulong sanitizerBit;
+                                if (i == -1 && sanitizerType == "Tainted")
+                                    sanitizerBit = (ulong)VariableTaint.Tainted;
+                                else
+                                    sanitizerBit = SanitizerTypeNameToBit[sanitizerType];
+
+                                outArguments.Add(i, sanitizerBit);
+                                break;
+                            }
+                            case List<object> sanitizerTypes:
+                            {
+                                ulong bits = GetSanitizerBits(sanitizerTypes);
+                                outArguments.Add(int.Parse((string)indexToTaintType.Key), bits);
+                                break;
+                            }
+                            default:
+                                throw new Exception("Unknown sanitizer type");
                         }
 
-                        outArguments.Add(int.Parse((string)indexToTaintType.Key), bits);
+                        break;
                     }
-                    else
-                    {
-                        throw new Exception("Unknown sanitizer type");
-                    }
-                }
-                else
-                {
-                    throw new Exception("Unknown behavior argument");
+                    default:
+                        throw new Exception("Unknown behavior argument");
                 }
             }
 
-            return new ReadOnlyDictionary<int, ulong>(outArguments);
+            return outArguments;
+        }
+
+        private readonly ImmutableHashSet<int> NoTaintFromArguments = new HashSet<int> { -1 }.ToImmutableHashSet();
+
+        private IReadOnlyDictionary<int, PostCondition> GetPostConditions(IReadOnlyDictionary<object, object> arguments)
+        {
+            if (arguments == null || !arguments.Any())
+                return null;
+
+            var conditions = new Dictionary<int, PostCondition>(arguments.Count);
+            foreach (var argument in arguments)
+            {
+                if (!(argument.Value is Dictionary<object, object> d))
+                    throw new Exception("Invalid postcondition format");
+
+                var                   argKey             = (string)argument.Key;
+                var                   idx                = argKey == "Returns" ? -1 : int.Parse(argKey);
+                ulong                 sanitizerBit       = 0ul;
+                ImmutableHashSet<int> taintFromArguments = null;
+
+                foreach (var condition in d)
+                {
+                    var conditionKey = (string)condition.Key;
+                    switch (conditionKey)
+                    {
+                        case "Sanitizer":
+                            switch (condition.Value)
+                            {
+                                case string sanitizerType when sanitizerType == "Tainted":
+                                    sanitizerBit = (ulong)VariableTaint.Tainted;
+                                    break;
+                                case string sanitizerType:
+                                    sanitizerBit = SanitizerTypeNameToBit[sanitizerType];
+                                    break;
+                                case List<object> sanitizerTypes:
+                                {
+                                    foreach (var type in sanitizerTypes)
+                                    {
+                                        sanitizerBit |= SanitizerTypeNameToBit[(string)type];
+                                    }
+
+                                    break;
+                                }
+                            }
+
+                            break;
+                        case "TaintFromArguments":
+                            var taintFrom = (List<object>)condition.Value;
+                            if (taintFrom != null && taintFrom.Count == 0)
+                            {
+                                taintFromArguments = NoTaintFromArguments;
+                                break;
+                            }
+
+                            var args = GetArguments(taintFrom);
+                            if (args.Values.Any(x => x != (ulong)VariableTaint.Safe))
+                                throw new Exception("'TaintFromArguments' supports only array of indices");
+
+                            taintFromArguments = args.Keys.ToImmutableHashSet();
+                            break;
+                        default:
+                            throw new Exception("Only 'Sanitizer' and 'TaintFromArguments' are supported in postconditions");
+                    }
+                }
+
+                conditions.Add(idx, new PostCondition(sanitizerBit, taintFromArguments));
+            }
+
+            return conditions;
         }
 
         private ulong GetField(object value)
@@ -273,30 +392,47 @@ namespace SecurityCodeScan.Config
             if (value == null)
                 return 0ul;
 
-            if (value is string s)
+            switch (value)
             {
-                if (s == "true")
+                case string s when s == "true":
                     return (ulong)VariableTaint.Safe;
-
-                return SanitizerTypeNameToBit[s];
+                case string s:
+                    return SanitizerTypeNameToBit[s];
+                case List <object> sanitizerTypes: {
+                    return GetSanitizerBits(sanitizerTypes);
+                }
+                default:
+                    throw new Exception("Unknown injectable argument");
             }
-
-            throw new Exception("Unknown injectable argument");
         }
 
-        public KeyValuePair<string, MethodBehavior> CreateBehavior(MethodBehaviorData behavior)
+        private readonly IReadOnlyDictionary<int, PostCondition> TaintSourceReturnArgument = new Dictionary<int, PostCondition>(1)
         {
-            var key = behavior.ArgTypes != null ?
-                          $"{behavior.Namespace}.{behavior.ClassName}|{behavior.Name}|{behavior.ArgTypes}" : //With arguments types discriminator
-                          $"{behavior.Namespace}.{behavior.ClassName}|{behavior.Name}";                      //Minimalist configuration
+            {-1, new PostCondition((ulong)VariableTaint.Tainted)}
+        };
+
+        private KeyValuePair<string, MethodBehavior> CreateBehavior(TaintSourceData behavior)
+        {
+            var key = MethodBehaviorHelper.GetMethodBehaviorKey(behavior.Namespace, behavior.ClassName, behavior.Name, behavior.ArgTypes);
+
+            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(TaintSourceReturnArgument));
+        }
+
+        private KeyValuePair<string, MethodBehavior> CreateBehavior(MethodBehaviorData behavior)
+        {
+            var key = MethodBehaviorHelper.GetMethodBehaviorKey(behavior.Namespace, behavior.ClassName, behavior.Name, behavior.ArgTypes);
+
+            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetPreConditions(behavior.PreConditions),
+                                                                                    GetPostConditions(behavior.PostConditions)));
+        }
+
+        private KeyValuePair<string, MethodBehavior> CreateBehavior(SinkData behavior)
+        {
+            var key = MethodBehaviorHelper.GetMethodBehaviorKey(behavior.Namespace, behavior.ClassName, behavior.Name, behavior.ArgTypes);
 
             return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetArguments(behavior.InjectableArguments),
                                                                                     behavior.PasswordArguments?.ToImmutableHashSet(),
-                                                                                    GetArguments(behavior.TaintFromArguments),
-                                                                                    GetPreConditions(behavior.PreConditions),
-                                                                                    GetArguments(behavior.PostConditions),
                                                                                     behavior.Locale,
-                                                                                    behavior.LocalePass,
                                                                                     GetField(behavior.InjectableField),
                                                                                     behavior.IsPasswordField));
         }

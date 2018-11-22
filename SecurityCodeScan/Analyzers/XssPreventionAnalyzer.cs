@@ -27,7 +27,7 @@ namespace SecurityCodeScan.Analyzers
 
             var classSymbol = CSharp.CSharpExtensions.GetDeclaredSymbol(ctx.SemanticModel, node);
             if (classSymbol == null ||
-                !classSymbol.IsDerivedFrom("Microsoft.AspNetCore.Mvc.Controller", "System.Web.Mvc.Controller"))
+                !classSymbol.IsDerivedFrom(ControllerNames))
             {
                 return;
             }
@@ -105,7 +105,7 @@ namespace SecurityCodeScan.Analyzers
 
             var classSymbol = VB.VisualBasicExtensions.GetDeclaredSymbol(ctx.SemanticModel, node);
             if (classSymbol == null ||
-                !classSymbol.IsDerivedFrom("Microsoft.AspNetCore.Mvc.Controller", "System.Web.Mvc.Controller"))
+                !classSymbol.IsDerivedFrom(ControllerNames))
             {
                 return;
             }
@@ -190,6 +190,8 @@ namespace SecurityCodeScan.Analyzers
             "HtmlEncoder.Default.Encode",
             "HttpContext.Server.HtmlEncode"
         };
+
+        protected string[] ControllerNames = { "Microsoft.AspNetCore.Mvc.Controller", "System.Web.Mvc.Controller" };
 
         protected static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor(DiagnosticId);
 

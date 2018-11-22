@@ -40,9 +40,11 @@ namespace SecurityCodeScan.Analyzers.Taint
             catch (Exception e)
             {
                 //Intercept the exception for logging. Otherwise, the analyzer fails silently.
-                string errorMsg = $"Unhandled exception while visiting method {ctx.Node} : {e.Message}";
+                string errorMsg = $"Unhandled exception while visiting method {ctx.Node}\n{e.Message}";
                 Logger.Log(errorMsg);
-                Logger.Log(e.StackTrace, false);
+                if (e.InnerException != null)
+                    Logger.Log($"{e.InnerException.Message}");
+                Logger.Log($"\n{e.StackTrace}", false);
                 throw;
             }
         }
@@ -65,6 +67,15 @@ namespace SecurityCodeScan.Analyzers.Taint
             return lastState;
         }
 
+        private void TaintParameters(BaseMethodDeclarationSyntax node, ExecutionState state)
+        {
+            foreach (ParameterSyntax parameter in node.ParameterList.Parameters)
+            {
+                state.AddNewValue(ResolveIdentifier(parameter.Identifier),
+                                  new VariableState(parameter, VariableTaint.Tainted));
+            }
+        }
+
         /// <summary>
         /// Entry point that visits the method statements.
         /// </summary>
@@ -73,10 +84,22 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <returns></returns>
         private VariableState VisitMethodDeclaration(BaseMethodDeclarationSyntax node, ExecutionState state)
         {
-            foreach (ParameterSyntax parameter in node.ParameterList.Parameters)
+            var config = ConfigurationManager.Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles);
+            if (config.AuditMode)
             {
-                state.AddNewValue(ResolveIdentifier(parameter.Identifier),
-                                  new VariableState(parameter, VariableTaint.Tainted));
+                TaintParameters(node, state);
+            }
+            else
+            {
+                var symbol = state.AnalysisContext.SemanticModel.GetDeclaredSymbol(node);
+                if (symbol != null && !symbol.IsStatic && symbol.IsPublic() && !symbol.IsConstructor())
+                {
+                    var containingType = symbol.ContainingType;
+                    if (containingType.IsTypeOrDerivedFrom(config.Sources)) // todo: public and attributes + filter NonAction
+                    {
+                        TaintParameters(node, state);
+                    }
+                }
             }
 
             if (node.Body == null)
@@ -151,11 +174,10 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             if (!isBlockStatement)
             {
-//#if DEBUG
-//                throw new Exception("Unsupported statement " + node.GetType() + " (" + node + ")");
-//#else
+#if DEBUG
+                //throw new Exception("Unsupported statement " + node.GetType() + " (" + node + ")");
                 Logger.Log("Unsupported statement " + node.GetType() + " (" + node + ")");
-//#endif
+#endif
             }
 
             return new VariableState(node, VariableTaint.Unknown);
@@ -251,9 +273,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                     var finalState = new VariableState(conditionalExpressionSyntax, VariableTaint.Safe);
 
                     var whenTrueState = VisitExpression(conditionalExpressionSyntax.WhenTrue, state);
-                    finalState.Merge(whenTrueState);
+                    finalState.MergeTaint(whenTrueState.Taint);
                     var whenFalseState = VisitExpression(conditionalExpressionSyntax.WhenFalse, state);
-                    finalState.Merge(whenFalseState);
+                    finalState.MergeTaint(whenFalseState.Taint);
 
                     return finalState;
                 case CheckedExpressionSyntax checkedExpressionSyntax:
@@ -268,8 +290,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                     var value = state.AnalysisContext.SemanticModel.GetConstantValue(defaultExpressionSyntax);
                     return new VariableState(defaultExpressionSyntax, VariableTaint.Constant, value.HasValue ? value.Value : null);
             }
-
+#if DEBUG
             Logger.Log("Unsupported expression " + expression.GetType() + " (" + expression + ")");
+#endif
             return new VariableState(expression, VariableTaint.Unknown);
         }
 
@@ -280,16 +303,16 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             foreach (var content in interpolatedString.Contents)
             {
-                if (content is InterpolatedStringTextSyntax textString)
+                if (content is InterpolatedStringTextSyntax)
                 {
-                    varState.Merge(new VariableState(textString, VariableTaint.Constant));
+                    varState.MergeTaint(VariableTaint.Constant);
                 }
 
                 if (!(content is InterpolationSyntax interpolation))
                     continue;
 
                 var expressionState = VisitExpression(interpolation.Expression, state);
-                varState.Merge(expressionState);
+                varState.MergeTaint(expressionState.Taint);
             }
 
             return varState;
@@ -299,12 +322,20 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                  BracketedArgumentListSyntax   argumentList,
                                                  ExecutionState                state)
         {
+            var finalState = new VariableState(elementAccess, VariableTaint.Unset);
+
             foreach (var argument in argumentList.Arguments)
             {
-                VisitExpression(argument.Expression, state);
+                finalState.MergeTaint(VisitExpression(argument.Expression, state).Taint);
             }
 
-            return new VariableState(elementAccess, VariableTaint.Unknown);
+            finalState.MergeTaint(VisitExpression(elementAccess.Expression, state).Taint);
+
+            var taintSourceState = CheckIfTaintSource(elementAccess, state);
+            if (taintSourceState != null)
+                finalState.MergeTaint(taintSourceState.Taint);
+
+            return finalState;
         }
 
         private VariableState VisitExpressionStatement(ExpressionStatementSyntax node, ExecutionState state)
@@ -320,7 +351,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 memberVariableState = VisitExpression(memberAccessExpression.Expression, state);
             }
 
-            return VisitInvocationAndCreation(node, node.ArgumentList, state, memberVariableState);
+            return VisitInvocationAndCreation(node, node.ArgumentList, state, memberVariableState?.Taint);
         }
 
         private VariableState VisitObjectCreation(ObjectCreationExpressionSyntax node, ExecutionState state)
@@ -335,7 +366,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                 }
                 else
                 {
+#if DEBUG
                     Logger.Log(child.GetText().ToString().Trim() + " -> " + finalState);
+#endif
                 }
             }
 
@@ -351,7 +384,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             foreach (var ex in arrayInit.Expressions)
             {
                 var exprState = VisitExpression(ex, state);
-                finalState.Merge(exprState);
+                finalState.MergeTaint(exprState.Taint);
             }
 
             return finalState;
@@ -376,121 +409,105 @@ namespace SecurityCodeScan.Analyzers.Taint
             return methodName;
         }
 
+        private bool CheckPreconditions(MethodBehavior behavior, bool isExtensionMethod, ArgumentListSyntax argList, ExecutionState state)
+        {
+            if (behavior.PreConditions == null || !behavior.PreConditions.Any())
+                return true;
+
+            for (var i = 0; i < argList?.Arguments.Count; i++)
+            {
+                var argument            = argList.Arguments[i];
+                var adjustedArgumentIdx = isExtensionMethod ? i + 1 : i;
+
+                if (!behavior.PreConditions.TryGetValue(adjustedArgumentIdx, out var preconditionArgumentValue))
+                {
+                    continue;
+                }
+
+                var calculatedArgumentValue = state.AnalysisContext.SemanticModel.GetConstantValue(argument.Expression);
+                if (calculatedArgumentValue.HasValue && calculatedArgumentValue.Value.Equals(preconditionArgumentValue))
+                {
+                    continue;
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
         /// <summary>
         /// Logic for each method invocation (including constructor)
         /// The argument list is required because <code>InvocationExpressionSyntax</code> and 
         /// <code>ObjectCreationExpressionSyntax</code> do not share a common interface.
         /// </summary>
-        /// <param name="node"></param>
-        /// <param name="argList"></param>
-        /// <param name="state"></param>
-        /// <returns></returns>
         private VariableState VisitInvocationAndCreation(ExpressionSyntax   node,
                                                          ArgumentListSyntax argList,
                                                          ExecutionState     state,
-                                                         VariableState      initialVariableState = null)
+                                                         VariableTaint?     initialTaint = null)
         {
             var symbol = state.GetSymbol(node);
             if (symbol == null)
-                return new VariableState(node, VariableTaint.Unknown);
+                return new VariableState(node, initialTaint ?? VariableTaint.Unknown);
 
-            var behavior = symbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
-
-            var methodSymbol       = symbol as IMethodSymbol;
+            var  methodSymbol      = symbol as IMethodSymbol;
             bool isExtensionMethod = methodSymbol?.ReducedFrom != null;
+            var  behavior          = symbol.GetMethodBehavior(state.CachedMethodBehaviors);
+            bool applySanitizer    = behavior != null && CheckPreconditions(behavior, isExtensionMethod, argList, state);
 
-            if (behavior?.PreConditions != null && behavior.PreConditions.Any())
-            {
-                for (var i = 0; i < argList?.Arguments.Count; i++)
-                {
-                    var argument = argList.Arguments[i];
-                    var adjustedArgumentIdx = isExtensionMethod ? i + 1 : i;
+            VariableState returnState = initialTaint != null && !symbol.IsStatic
+                                            ? new VariableState(node, initialTaint.Value)
+                                            : new VariableState(node, argList?.Arguments.Count > 0 && behavior != null
+                                                                          ? VariableTaint.Unset
+                                                                          : VariableTaint.Unknown);
 
-                    if (!behavior.PreConditions.TryGetValue(adjustedArgumentIdx, out var preconditionArgumentValue))
-                    {
-                        continue;
-                    }
-
-                    var calculatedArgumentValue = state.AnalysisContext.SemanticModel.GetConstantValue(argument.Expression);
-                    if (calculatedArgumentValue.HasValue && calculatedArgumentValue.Value.Equals(preconditionArgumentValue))
-                    {
-                        continue;
-                    }
-
-                    behavior = null;
-                    break;
-                }
-            }
-
-            VariableState returnState = initialVariableState != null && !symbol.IsStatic
-                                            ? initialVariableState
-                                            : new VariableState(node,
-                                                                behavior?.TaintFromArguments?.Any() == true
-                                                                    ? VariableTaint.Safe
-                                                                    : VariableTaint.Unknown);
-
-            bool  taintReturn = behavior?.PostConditions?.ContainsKey(-1) == true;
-            bool  isValidator = false;
-            ulong returnTaint = 0ul;
-            if (taintReturn)
-            {
-                returnTaint = behavior.PostConditions[-1];
-                isValidator = returnTaint == 0ul;
-            }
+            var config = ConfigurationManager.Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles);
+            var argCount       = argList?.Arguments.Count;
+            var argumentStates = argCount.HasValue &&
+                                 argCount.Value > 0 &&
+                                 (behavior?.PostConditions.Any(c => c.Key != -1 && (c.Value.TaintFromArguments.Any(t => t != -1) || c.Value.Taint != 0ul)) == true ||
+                                  methodSymbol != null && methodSymbol.Parameters.Any(x => x.RefKind != RefKind.None))
+                                     ? new VariableState[argCount.Value]
+                                     : null;
 
             for (var i = 0; i < argList?.Arguments.Count; i++)
             {
                 var argument      = argList.Arguments[i];
                 var argumentState = VisitExpression(argument.Expression, state);
+                if (argumentStates != null)
+                    argumentStates[i] = argumentState;
 
-                if (methodSymbol != null)
-                {
-                    if (i >= methodSymbol.Parameters.Length)
-                    {
-                        if (!methodSymbol.Parameters[methodSymbol.Parameters.Length - 1].IsParams)
-                            throw new IndexOutOfRangeException();
-                    }
-                    else if (methodSymbol.Parameters[i].RefKind != RefKind.None)
-                    {
-                        argumentState.Merge(new VariableState(argument, VariableTaint.Unknown));
-                    }
-                }
-
+#if DEBUG
                 Logger.Log(symbol.ContainingType + "." + symbol.Name + " -> " + argumentState);
+#endif
 
-                if (behavior == null)
-                    continue;
-
-                var adjustedArgumentIdx = isExtensionMethod ? i + 1 : i;
-
-                //If the API is at risk
-                if ((argumentState.Taint & (VariableTaint.Tainted | VariableTaint.Unknown)) != 0)
+                if (behavior != null)
                 {
-                    //If the current parameter can be injected.
-                    if (behavior.InjectableArguments.TryGetValue(adjustedArgumentIdx, out var requiredSanitizersBits) &&
-                        (requiredSanitizersBits & (ulong)argumentState.Taint) != requiredSanitizersBits)
+                    var adjustedArgumentIdx = isExtensionMethod ? i + 1 : i;
+
+                    if ((argumentState.Taint & (config.AuditMode ? VariableTaint.Tainted | VariableTaint.Unknown : VariableTaint.Tainted)) != 0)
+                    {
+                        //If the current parameter can be injected.
+                        if (behavior.InjectableArguments.TryGetValue(adjustedArgumentIdx, out var requiredSanitizersBits) &&
+                            (requiredSanitizersBits & (ulong)argumentState.Taint) != requiredSanitizersBits)
+                        {
+                            var newRule    = LocaleUtil.GetDescriptor(behavior.LocaleInjection);
+                            var diagnostic = Diagnostic.Create(newRule, node.GetLocation(), GetMethodName(node), (i + 1).ToNthString());
+                            state.AnalysisContext.ReportDiagnostic(diagnostic);
+                        }
+                    }
+
+                    if (argumentState.Taint == VariableTaint.Constant && //Hard coded value
+                                                                         //If the current parameter is a password
+                        behavior.PasswordArguments.Contains(adjustedArgumentIdx))
                     {
                         var newRule    = LocaleUtil.GetDescriptor(behavior.LocaleInjection);
                         var diagnostic = Diagnostic.Create(newRule, node.GetLocation(), GetMethodName(node), (i + 1).ToNthString());
                         state.AnalysisContext.ReportDiagnostic(diagnostic);
-                        continue;
                     }
                 }
 
-                if (argumentState.Taint == VariableTaint.Constant && //Hard coded value
-                    //If the current parameter is a password
-                    behavior.PasswordArguments.Contains(adjustedArgumentIdx))
-                {
-                    var newRule    = LocaleUtil.GetDescriptor(behavior.LocalePassword);
-                    var diagnostic = Diagnostic.Create(newRule, node.GetLocation(), GetMethodName(node), (i + 1).ToNthString());
-                    state.AnalysisContext.ReportDiagnostic(diagnostic);
-                    continue;
-                }
-
-                if (behavior.TaintFromArguments.ContainsKey(adjustedArgumentIdx))
-                {
-                    returnState.Merge(argumentState);
-                }
+                returnState.MergeTaint(argumentState.Taint);
 
                 //TODO: taint all objects passed as arguments
                 //if (argument.Expression is IdentifierNameSyntax identifierNameSyntax)
@@ -505,28 +522,69 @@ namespace SecurityCodeScan.Analyzers.Taint
                 //}
             }
 
-            if (behavior?.PostConditions != null)
+            if (behavior?.PostConditions == null &&
+                methodSymbol != null &&
+                argumentStates != null)
             {
-                for (var i = 0; i < argList?.Arguments.Count; i++)
+                for (var i = 0; i < argList.Arguments.Count; i++)
                 {
-                    var argument            = argList.Arguments[i];
-                    var adjustedArgumentIdx = isExtensionMethod ? i + 1 : i;
-
-                    if (behavior.PostConditions.TryGetValue(adjustedArgumentIdx, out var outArgumentTaint) &&
-                        argument.Expression is IdentifierNameSyntax identifierNameSyntax)
+                    if (i >= methodSymbol.Parameters.Length)
                     {
-                        var identifier = ResolveIdentifier(identifierNameSyntax.Identifier);
-                        if (state.VariableStates.TryGetValue(identifier, out var variableState))
-                            variableState.ApplySanitizer(outArgumentTaint);
-                        else
-                            state.AddNewValue(identifier, new VariableState(identifierNameSyntax, returnState.Taint | (VariableTaint)outArgumentTaint));
+                        if (!methodSymbol.Parameters[methodSymbol.Parameters.Length - 1].IsParams)
+                            throw new IndexOutOfRangeException();
+                    }
+                    else if (methodSymbol.Parameters[i].RefKind != RefKind.None)
+                    {
+                        argumentStates[i].MergeTaint(returnState.Taint);
                     }
                 }
             }
-
-            if (taintReturn && !isValidator)
+            else
             {
-                returnState.ApplySanitizer(returnTaint);
+                if (behavior?.PostConditions != null &&
+                    behavior.PostConditions.TryGetValue(-1, out var returnPostCondition))
+                {
+                    if (returnPostCondition.TaintFromArguments.Count   == 1 &&
+                        returnPostCondition.TaintFromArguments.First() == -1)
+                    {
+                        returnState = new VariableState(node, VariableTaint.Safe);
+                    }
+                    else if (argumentStates != null)
+                    {
+                        returnState = initialTaint != null && !symbol.IsStatic
+                                          ? new VariableState(node, initialTaint.Value)
+                                          : new VariableState(node, VariableTaint.Unset);
+
+                        foreach (var argIdx in returnPostCondition.TaintFromArguments)
+                        {
+                            var adjustedArgumentIdx = isExtensionMethod ? argIdx - 1 : argIdx;
+                            returnState.MergeTaint(argumentStates[adjustedArgumentIdx].Taint);
+                        }
+                    }
+
+                    if (applySanitizer)
+                        returnState.ApplySanitizer(returnPostCondition.Taint);
+                }
+
+                if (argumentStates != null)
+                {
+                    foreach (var postCondition in behavior.PostConditions)
+                    {
+                        if (postCondition.Key == -1)
+                            continue; // return state was already calculated
+
+                        var adjustedPostConditionIdx = isExtensionMethod ? postCondition.Key + 1 : postCondition.Key;
+
+                        foreach (var argIdx in postCondition.Value.TaintFromArguments)
+                        {
+                            var adjustedArgumentIdx      = isExtensionMethod ? argIdx            + 1 : argIdx;
+                            argumentStates[adjustedPostConditionIdx].MergeTaint(argumentStates[adjustedArgumentIdx].Taint);
+                        }
+
+                        if (applySanitizer)
+                            argumentStates[adjustedPostConditionIdx].ApplySanitizer(postCondition.Value.Taint);
+                    }
+                }
             }
 
             //Additional analysis by extension
@@ -543,7 +601,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             var            leftSymbol = state.GetSymbol(node.Left);
             MethodBehavior behavior   = null;
             if (leftSymbol != null)
-                behavior = leftSymbol.GetMethodBehavior(state.AnalysisContext.Options.AdditionalFiles);
+                behavior = leftSymbol.GetMethodBehavior(state.CachedMethodBehaviors);
 
             var variableState = VisitExpression(node.Right, state);
 
@@ -564,10 +622,13 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return new VariableState(node.Right, VariableTaint.Unknown);
             }
 
-            if (behavior != null                              && //Injection
-                ((behavior.InjectableField & (ulong)variableState.Taint) != behavior.InjectableField) &&
-                variableState.Taint != VariableTaint.Constant && //Skip safe values
-                variableState.Taint != VariableTaint.Safe)
+            var config = ConfigurationManager.Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles);
+
+            if (variableState.Taint != VariableTaint.Constant &&
+                behavior != null &&
+                // compare if all required sanitization bits are set
+                ((ulong)(variableState.Taint & VariableTaint.Safe) & behavior.InjectableField) != behavior.InjectableField &&
+                (variableState.Taint & (config.AuditMode ? VariableTaint.Tainted | VariableTaint.Unknown : VariableTaint.Tainted)) != 0)
             {
                 var newRule    = LocaleUtil.GetDescriptor(behavior.LocaleInjection, "title_assignment");
                 var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
@@ -578,7 +639,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 behavior.IsPasswordField &&
                 variableState.Taint == VariableTaint.Constant) //Only constant
             {
-                var newRule    = LocaleUtil.GetDescriptor(behavior.LocalePassword, "title_assignment");
+                var newRule    = LocaleUtil.GetDescriptor(behavior.LocaleInjection, "title_assignment");
                 var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
                 state.AnalysisContext.ReportDiagnostic(diagnostic);
             }
@@ -614,6 +675,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 return null;
 
             var stateIdentifier = ResolveIdentifier(memberAccessExpressionSyntax.Name.Identifier);
+            //make sure this identifier exists
             if (variableState.PropertyStates.TryGetValue(stateIdentifier, out var propertyState))
                 return propertyState;
 
@@ -653,20 +715,52 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         private VariableState VisitIdentifierName(IdentifierNameSyntax expression, ExecutionState state)
         {
+            var varState = GetVariableState(expression, state);
+            if (varState != null)
+                return varState;
+
+            var taintSourceState = CheckIfTaintSource(expression, state);
+            if (taintSourceState != null)
+                return taintSourceState;
+
             return ResolveVariableState(expression, state);
         }
 
         private VariableState VisitMemberAccessExpression(MemberAccessExpressionSyntax expression, ExecutionState state)
         {
-            return ResolveVariableState(expression, state);
-        }
-
-        private VariableState ResolveVariableState(ExpressionSyntax expression, ExecutionState state)
-        {
             var varState = GetVariableState(expression, state);
             if (varState != null)
                 return varState;
 
+            var taintSourceState = CheckIfTaintSource(expression, state);
+            if (taintSourceState != null)
+                return taintSourceState;
+
+            VariableState expressionState = null;
+            if (expression.Expression != null)
+                expressionState = VisitExpression(expression.Expression, state);
+
+            varState = ResolveVariableState(expression, state);
+            if (expressionState != null)
+                varState.MergeTaint(expressionState.Taint);
+
+            return varState;
+        }
+
+        private VariableState CheckIfTaintSource(ExpressionSyntax expression, ExecutionState state)
+        {
+            var symbol   = state.GetSymbol(expression);
+            var behavior = symbol?.GetMethodBehavior(state.CachedMethodBehaviors);
+            if (behavior != null && behavior.PostConditions.TryGetValue(-1, out var taint))
+            {
+                return new VariableState(expression, (VariableTaint)taint.Taint);
+            }
+
+            return null;
+        }
+
+        private VariableState ResolveVariableState(ExpressionSyntax expression, ExecutionState state)
+        {
             var symbol = state.GetSymbol(expression);
             switch (symbol)
             {
@@ -679,10 +773,10 @@ namespace SecurityCodeScan.Analyzers.Taint
                     if (!field.IsReadOnly)
                         return new VariableState(expression, VariableTaint.Unknown);
 
-                    var contantFields = ConfigurationManager.Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles)
-                                                            .ConstantFields;
+                    var constantFields = ConfigurationManager.Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles)
+                                                             .ConstantFields;
 
-                    if (contantFields.Contains(field.GetTypeName()))
+                    if (constantFields.Contains(field.GetTypeName()))
                     {
                         return new VariableState(expression, VariableTaint.Constant);
                     }
@@ -725,7 +819,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         private VariableState VisitBinaryExpression(BinaryExpressionSyntax expression, ExecutionState state)
         {
             VariableState left = VisitExpression(expression.Left, state);
-            left.Merge(VisitExpression(expression.Right, state));
+            left.MergeTaint(VisitExpression(expression.Right, state).Taint);
             return left;
         }
     }

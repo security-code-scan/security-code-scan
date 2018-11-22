@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers.Taint;
+using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
 using DiagnosticVerifier = SecurityCodeScan.Test.Helpers.DiagnosticVerifier;
 
@@ -147,9 +148,15 @@ End Class
                 Id       = "SCS0018",
                 Severity = DiagnosticSeverity.Warning,
             };
+
+            var testConfig = @"
+AuditMode: true
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             // Methods are not expanded and taint of 'this' doesn't affect a member call without arguments
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -197,6 +204,113 @@ class PathTraversal
 
         [TestCategory("Safe")]
         [TestMethod]
+        public async Task SelfTaintAssignment()
+        {
+            var cSharpTest = @"
+namespace sample
+{
+    class MyFoo
+    {
+        int x = 1;
+
+        int y = 0;
+
+        void foo()
+        {
+        }
+
+        public static void Run(MyFoo[] aa)
+        {
+            foreach(var a in aa)
+            {
+                a.foo();
+                a.x = a.y;
+            }
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Namespace sample
+    Friend Class MyFoo
+        Private x As Integer = 1
+        Private y As Integer = 0
+
+        Private Sub foo()
+        End Sub
+
+        Public Shared Sub Run(ByVal aa As MyFoo())
+            For Each a In aa
+                a.foo()
+                a.x = a.y
+            Next
+        End Sub
+    End Class
+End Namespace
+";
+
+            // should not throw
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestCategory("Safe")]
+        [TestMethod]
+        public async Task RecursiveStateAssignment()
+        {
+            var cSharpTest = @"
+namespace sample
+{
+    class TestClass
+    {
+        public TestClass child;
+
+        public TestClass foo() { return null; }
+
+        public TestClass foo2() { return null; }
+
+        public void Run()
+        {
+            TestClass b = new TestClass();
+            TestClass a;
+            a = b.foo();
+            a.child = b.foo2();
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Namespace sample
+    Friend Class TestClass
+        Public child As TestClass
+
+        Public Function foo() As TestClass
+            Return Nothing
+        End Function
+
+        Public Function foo2() As TestClass
+            Return Nothing
+        End Function
+
+        Public Sub Run()
+            Dim b As TestClass = New TestClass()
+            Dim a As TestClass
+            a = b.foo()
+            a.child = b.foo2()
+        End Sub
+    End Class
+End Namespace
+";
+
+            // should not throw
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestCategory("Safe")]
+        [TestMethod]
         public async Task TransferSqlInitializerSafe()
         {
             var cSharpTest = @"
@@ -232,11 +346,11 @@ End Namespace
 
         [TestCategory("Detect")]
         [DataTestMethod]
-        [DataRow("sql",       new[] { "SCS0026" },           new[] { "SCS0026" })]
-        [DataRow("xyz",       new[] { "CS0103" },            new[] { "BC30451" })]
-        [DataRow("foo()",     new[] { "CS0029" },            new[] { "BC30311" })]
-        [DataRow("foo2(xyz)", new[] { "SCS0026", "CS0103" }, new[] { "SCS0026", "BC30451" })]
-        public async Task TransferSqlInitializerUnSafe(string right, string[] csErrors, string[] vbErrors)
+        [DataRow("sql",       new[] { "SCS0026" },           new[] { "SCS0026" },            false)]
+        [DataRow("xyz",       new[] { "CS0103" },            new[] { "BC30451" },            false)]
+        [DataRow("foo()",     new[] { "CS0029" },            new[] { "BC30311" },            false)]
+        [DataRow("foo2(xyz)", new[] { "SCS0026", "CS0103" }, new[] { "SCS0026", "BC30451" }, true)]
+        public async Task TransferSqlInitializerUnSafe(string right, string[] csErrors, string[] vbErrors, bool audit)
         {
             var cSharpTest = $@"
 using System.Data.SqlClient;
@@ -245,7 +359,7 @@ namespace sample
 {{
     class MyFoo
     {{
-        public static void Run(string sql)
+        public void Run(string sql)
         {{
             var sqlCommand = new SqlCommand {{CommandText = {right}}};
         }}
@@ -268,7 +382,7 @@ Imports System.Data.SqlClient
 
 Namespace sample
     Class MyFoo
-        Public Shared Sub Run(sql As System.String)
+        Public Sub Run(sql As System.String)
             Dim com As New SqlCommand With {{.CommandText = {right}}}
         End Sub
 
@@ -283,12 +397,23 @@ Namespace sample
 End Namespace
 ";
 
+            var testConfig = $@"
+AuditMode: {audit}
+
+Sources:
+  AAA:
+    Namespace: sample
+    ClassName: MyFoo
+    FromExternalParameters: true
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             await VerifyCSharpDiagnostic(cSharpTest,
-                                         csErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation(10)).ToArray())
+                                         csErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation(10)).ToArray(), optionsWithProjectConfig)
                 .ConfigureAwait(false);
 
             await VerifyVisualBasicDiagnostic(visualBasicTest,
-                                              vbErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation(7)).ToArray())
+                                              vbErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation(7)).ToArray(), optionsWithProjectConfig)
                 .ConfigureAwait(false);
         }
 
@@ -391,7 +516,7 @@ using System.IO;
 
 class PathTraversal
 {
-    public static void Run(int input)
+    public void Run(int input)
     {
         File.OpenRead(input.ToString());
     }
@@ -402,7 +527,7 @@ class PathTraversal
 Imports System.IO
 
 Class PathTraversal
-    Public Shared Sub Run(input As System.Int32)
+    Public Sub Run(input As System.Int32)
         File.OpenRead(input.ToString())
     End Sub
 End Class
@@ -414,8 +539,17 @@ End Class
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            var testConfig = @"
+Sources:
+  AAA:
+    ClassName: PathTraversal
+    FromExternalParameters: true
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -464,7 +598,7 @@ using System.Data.SqlClient;
 
 class SqlTransferTesting
 {
-    public static void Run(string input)
+    public void Run(string input)
     {
         string tableName = input;
 
@@ -478,7 +612,7 @@ class SqlTransferTesting
 Imports System.Data.SqlClient
 
 Class SqlTransferTesting
-    Public Shared Sub Run(input As String)
+    Public Sub Run(input As String)
         Dim tableName As String = input
 
         Dim safeQuery As String = String.Format(""Select * FROM {0}"", tableName)
@@ -493,8 +627,17 @@ End Class
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            var testConfig = @"
+Sources:
+  AAA:
+    ClassName: SqlTransferTesting
+    FromExternalParameters: true
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -507,7 +650,7 @@ using System.Data.SqlClient;
 
 class SqlTransferTesting
 {
-    public static void Run(string input)
+    public void Run(string input)
     {
         string query = input;
 
@@ -521,7 +664,7 @@ class SqlTransferTesting
 Imports System.Data.SqlClient
 
 Class SqlTransferTesting
-    Public Shared Sub Run(input As String)
+    Public Sub Run(input As String)
         Dim query As String = input
 
         Dim safeQuery As String = String.Format(query, ""test"")
@@ -536,8 +679,17 @@ End Class
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            var testConfig = @"
+Sources:
+  AAA:
+    ClassName: SqlTransferTesting
+    FromExternalParameters: true
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -549,7 +701,7 @@ using System.Data.SqlClient;
 
 class SqlTransferTesting
 {
-    public static void Run(string input)
+    public void Run(string input)
     {
         string query = input;
 
@@ -563,7 +715,7 @@ class SqlTransferTesting
 Imports System.Data.SqlClient
 
 Class SqlTransferTesting
-    Public Shared Sub Run(input As String)
+    Public Sub Run(input As String)
         Dim query As String = input
 
         Dim safeQuery As String = ""SELECT* FROM test""
@@ -572,8 +724,16 @@ Class SqlTransferTesting
 End Class
 ";
 
-            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
-            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            var testConfig = @"
+Sources:
+  AAA:
+    ClassName: SqlTransferTesting
+    FromExternalParameters: true
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -585,7 +745,7 @@ using System.Data.SqlClient;
 
 class SqlTransferTesting
 {
-    public static void Run(string input)
+    public void Run(string input)
     {
         string query = input;
 
@@ -601,7 +761,15 @@ class SqlTransferTesting
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            var testConfig = @"
+Sources:
+  AAA:
+    ClassName: SqlTransferTesting
+    FromExternalParameters: true
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -615,7 +783,7 @@ class SqlTransferTesting
 using System;
 using System.Data.SqlClient;
 #pragma warning disable 8019
-using System.Collections.Generic;
+    using System.Collections.Generic;
 #pragma warning restore 8019
 
 namespace sample
@@ -636,7 +804,7 @@ namespace sample
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
 #Disable Warning BC50001
-Imports System.Collections.Generic
+    Imports System.Collections.Generic
 #Enable Warning BC50001
 
 Namespace sample
@@ -663,7 +831,7 @@ End Namespace
 using System;
 using System.Data.SqlClient;
 #pragma warning disable 8019
-using System.Collections.Generic;
+    using System.Collections.Generic;
 #pragma warning restore 8019
 
 namespace sample
@@ -684,7 +852,7 @@ namespace sample
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
 #Disable Warning BC50001
-Imports System.Collections.Generic
+    Imports System.Collections.Generic
 #Enable Warning BC50001
 
 Namespace sample
@@ -712,14 +880,14 @@ End Namespace
 using System;
 using System.Data.SqlClient;
 #pragma warning disable 8019
-using System.Collections.Generic;
+    using System.Collections.Generic;
 #pragma warning restore 8019
 
 namespace sample
 {{
     class SqlConstant
     {{
-        public static void Run(string input)
+        public void Run(string input)
         {{
             {dataType} array = new []{{""aaa"", input, ""bbb""}};
             new SqlCommand(String.Join("" "", array {additionalArguments}));
@@ -733,12 +901,12 @@ namespace sample
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
 #Disable Warning BC50001
-Imports System.Collections.Generic
+    Imports System.Collections.Generic
 #Enable Warning BC50001
 
 Namespace sample
     Class SqlConstant
-        Public Shared Sub Run(input As String)
+        Public Sub Run(input As String)
             Dim array As {dataType} = {{""aaa"", input, ""bbb""}}
             Dim com As New SqlCommand(String.Join("" "", array {additionalArguments}))
         End Sub
@@ -746,15 +914,23 @@ Namespace sample
 End Namespace
 ";
 
-
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0026",
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            var testConfig = @"
+Sources:
+  AAA:
+    Namespace: sample
+    ClassName: SqlConstant
+    FromExternalParameters: true
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -767,14 +943,14 @@ End Namespace
 using System;
 using System.Data.SqlClient;
 #pragma warning disable 8019
-using System.Collections.Generic;
+    using System.Collections.Generic;
 #pragma warning restore 8019
 
 namespace sample
 {{
     class SqlConstant
     {{
-        public static void Run(string input)
+        public void Run(string input)
         {{
             IEnumerable<{dataType}> array = new []{{""aaa"", input, ""bbb""}};
             new SqlCommand(String.Join{(isMethodGeneric ? $"<{dataType}>" : "")}("" "", array));
@@ -788,12 +964,12 @@ namespace sample
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
 #Disable Warning BC50001
-Imports System.Collections.Generic
+    Imports System.Collections.Generic
 #Enable Warning BC50001
 
 Namespace sample
     Class SqlConstant
-        Public Shared Sub Run(input As String)
+        Public Sub Run(input As String)
             Dim array As IEnumerable(Of {dataType}) = {{""aaa"", input, ""bbb""}}
             Dim com As New SqlCommand(String.Join{(isMethodGeneric ? $"(Of {dataType})" : "")}("" "", array))
         End Sub
@@ -807,8 +983,17 @@ End Namespace
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            var testConfig = @"
+Sources:
+  AAA:
+    Namespace: sample
+    ClassName: SqlConstant
+    FromExternalParameters: true
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
     }
 }

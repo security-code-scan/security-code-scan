@@ -9,12 +9,19 @@ using SecurityCodeScan.Test.Helpers;
 namespace SecurityCodeScan.Test.Config
 {
     [TestClass]
-    public class TaintAnalyzisConfigurationTest : DiagnosticVerifier
+    public class TaintAnalysisConfigurationTest : DiagnosticVerifier
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             return new DiagnosticAnalyzer[] { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic() };
         }
+
+        private static readonly PortableExecutableReference[] References =
+        {
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location)
+        };
+
+        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [TestCategory("Safe")]
         [TestMethod]
@@ -22,12 +29,13 @@ namespace SecurityCodeScan.Test.Config
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
-    class Test
+    class Test : Controller
     {
-        public Test(string sql)
+        public void Foo(string sql)
         {
             new SqlCommand(sql);
         }
@@ -37,10 +45,13 @@ namespace sample
 
             var visualBasicTest = @"
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Class Test
-        Public Sub New(sql As String)
+        Inherits Controller
+
+        Public Sub Foo(sql As String)
             Dim com As New SqlCommand(sql)
         End Sub
 
@@ -71,9 +82,11 @@ Sinks:
         public async Task AddSink()
         {
             var cSharpTest = @"
+using System.Web.Mvc;
+
 namespace sample
 {
-    class Test
+    class Test : Controller
     {
         public void Vulnerable(string param)
         {
@@ -88,8 +101,12 @@ namespace sample
 ";
 
             var visualBasicTest = @"
+Imports System.Web.Mvc
+
 Namespace sample
     Class Test
+        Inherits Controller
+
         Public Sub Vulnerable(param As String)
         End Sub
 
@@ -160,15 +177,23 @@ Namespace sample
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
-
             var testConfig = @"
+AuditMode: true
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+
+            testConfig = @"
+AuditMode: true
+
 Behavior:
   MemoryStream_Constructor0:
 ";
 
-            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0028",
@@ -185,17 +210,18 @@ Behavior:
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
-    class Test
+    class Test : Controller
     {
-        public static string Safe (string param)
+        public string Safe (string param)
         {
             return param;
         }
 
-        static void TestMethod()
+        public void TestMethod()
         {
             var testString = ""test"";
             new SqlCommand(Safe(testString));
@@ -205,14 +231,18 @@ namespace sample
 ";
 
             var visualBasicTest = @"
+Imports System.Web.Mvc
 Imports System.Data.SqlClient
 
 Namespace sample
     Class Test
-        Public Shared Function Safe(param As String) As String
+        Inherits Controller
+
+        Public Function Safe(param As String) As String
             Return param
         End Function
-        Private Sub TestMethod()
+
+        Public Sub TestMethod()
             Dim testString = ""test""
             Dim com As New SqlCommand(Safe(testString))
         End Sub
@@ -226,20 +256,29 @@ End Namespace
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-
             var testConfig = @"
+AuditMode: true
+";
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+
+            testConfig = @"
+AuditMode: true
+
 Behavior:
   MyKey:
     Namespace: sample
     ClassName: Test
     Member: method
     Name: Safe
-    TaintFromArguments: [-1]
+    PostConditions:
+      Returns:
+        TaintFromArguments: []
 ";
 
-            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
@@ -250,9 +289,11 @@ Behavior:
         public async Task TwoDifferentProjectConfigs()
         {
             var cSharpTest = @"
+using System.Web.Mvc;
+
 namespace sample
 {
-    class Test
+    class Test : Controller
     {
         public static string Safe (string param)
         {
@@ -273,8 +314,12 @@ namespace sample
 ";
 
             var visualBasicTest = @"
+Imports System.Web.Mvc
+
 Namespace sample
     Class Test
+        Inherits Controller
+
         Public Shared Function Safe(param As String) As String
             Return param
         End Function
@@ -295,6 +340,8 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
 
             var testConfig = @"
+AuditMode: true
+
 Sinks:
   MyKey:
     Namespace: sample
@@ -316,6 +363,8 @@ Sinks:
             await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { expected, expected }, optionsWithProjectConfig).ConfigureAwait(false);
 
             testConfig = @"
+AuditMode: true
+
 Sinks:
   MyKey:
     Namespace: sample
@@ -331,7 +380,9 @@ Behavior:
     ClassName: Test
     Member: method
     Name: Safe
-    TaintFromArguments: [-1]
+    PostConditions:
+      Returns:
+        TaintFromArguments: []
 ";
 
             optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -346,10 +397,11 @@ Behavior:
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
-    class Test
+    class Test : Controller
     {
         public static readonly string Safe = ""Safe"";
 
@@ -363,9 +415,12 @@ namespace sample
 
             var visualBasicTest = @"
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Class Test
+        Inherits Controller
+
         Public Shared ReadOnly Safe As String = ""Safe""
 
         Private Shared Sub TestMethod()
@@ -381,14 +436,22 @@ End Namespace
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
-
             var testConfig = @"
-ConstantFields: [sample.Test.Safe]
+AuditMode: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+
+            testConfig = @"
+AuditMode: true
+
+ConstantFields: [sample.Test.Safe]
+";
+
+            optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);

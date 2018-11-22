@@ -35,7 +35,7 @@ namespace SecurityCodeScan.Analyzers
 
     public abstract class UnsafeDeserializationAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0028", "title_analyzer");
+        private static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0028", titleId: "title_analyzer");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
@@ -59,7 +59,7 @@ namespace SecurityCodeScan.Analyzers
             if (symbols.ContainingSymbol.ToString() != "Newtonsoft.Json.JsonPropertyAttribute")
                 return;
 
-            ReportIfTypeNameHandlingIsNotNone(ctx, nodeHelper.GetAttributeArgumentExpresionNode(ctx.Node));
+            ReportIfTypeNameHandlingIsNotNone(ctx, nodeHelper.GetAttributeArgumentExpressionNode(ctx.Node));
         }
 
         protected void VisitAssignment(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)

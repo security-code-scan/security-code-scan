@@ -32,32 +32,17 @@ namespace SecurityCodeScan.Analyzers.Taint
             Properties = new Dictionary<string, VariableState>();
         }
 
-        /// <summary>
-        /// Merge two different states. Use it to merge two states when values are concatenated.
-        /// </summary>
-        public void Merge(VariableState secondState)
-        {
-            MergeTaint(secondState.Taint);
-
-            if (secondState.Taint == Constant)
-                Value = secondState.Value;
-
-            if (secondState.Taint != Unset)
-                Node = secondState.Node;
-
-            foreach (var newPropertyState in secondState.PropertyStates)
-            {
-                if (Properties.ContainsKey(newPropertyState.Key))
-                    Properties[newPropertyState.Key].Merge(newPropertyState.Value);
-                else
-                    Properties.Add(newPropertyState.Key, newPropertyState.Value);
-            }
-        }
-
         public void ApplySanitizer(ulong newTaint)
         {
-            if ((newTaint & (ulong)(Unknown & Tainted)) != 0)
+            if ((newTaint & (ulong)Unknown) != 0)
                 throw new ArgumentOutOfRangeException();
+
+            if (newTaint == (ulong)Tainted)
+            {
+                // special case for function taint sources
+                Taint = Tainted;
+                return;
+            }
 
             if (Taint == Constant)
                 return;
@@ -89,15 +74,15 @@ namespace SecurityCodeScan.Analyzers.Taint
                 else
                     Taint = Unknown | (Taint & newTaint & Safe);
             }
-            else if ((Taint    == Constant && ((newTaint & Unknown) != 0ul) ||
-                     (newTaint == Constant && ((Taint & Unknown) != 0ul))))
-            {
-                Taint = Unknown | ((Taint | newTaint) & Safe);
-            }
             else if ((Taint    == Constant && ((newTaint & Tainted) != 0ul) ||
                      (newTaint == Constant && ((Taint & Tainted) != 0ul))))
             {
                 Taint = Tainted | ((Taint | newTaint) & Safe);
+            }
+            else if ((Taint == Constant && ((newTaint & Unknown) != 0ul) ||
+                      (newTaint                                  == Constant && ((Taint & Unknown) != 0ul))))
+            {
+                Taint = Unknown | ((Taint | newTaint) & Safe);
             }
             else if ((Taint == Safe && ((newTaint & (Unknown | Tainted)) != 0ul)))
             {
@@ -142,6 +127,9 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         public void AddOrMergeProperty(string identifier, VariableState secondState)
         {
+            if (ReferenceEquals(this, secondState))
+                throw new Exception("Recursive call detected.");
+
             if (PropertyStates.ContainsKey(identifier))
             {
                 PropertyStates[identifier].Replace(secondState);
@@ -153,12 +141,15 @@ namespace SecurityCodeScan.Analyzers.Taint
             }
         }
 
+#if DEBUG
         public override string ToString()
         {
-            if (Taint == Unset || Taint == Unknown || Taint == Tainted || Taint == Constant || Taint == Safe)
-                return Taint.ToString();
+            var sanitizerBits = Taint & Safe;
+            if (sanitizerBits != 0ul && sanitizerBits != Safe)
+                return $"{(Taint & ~Safe).ToString()} | {((ulong)sanitizerBits).ToString()}";
 
-            return $"{(ulong)Taint}";
+            return Taint.ToString();
         }
+#endif
     }
 }

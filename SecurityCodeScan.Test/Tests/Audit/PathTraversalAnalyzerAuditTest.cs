@@ -16,61 +16,68 @@ namespace SecurityCodeScan.Test.Audit
             return new DiagnosticAnalyzer[] { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic(), };
         }
 
-        [DataRow("File.AppendAllLines(path, null)")]
+        private static readonly PortableExecutableReference[] References =
+        {
+             MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location)
+        };
+
+        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
+
+        [DataRow("FS.AppendAllLines(path, null)")]
         [DataRow("AppendAllLines(path, null)")]
-        [DataRow("File.AppendAllLines(path, null, System.Text.Encoding.ASCII)")]
+        [DataRow("FS.AppendAllLines(path, null, System.Text.Encoding.ASCII)")]
         [DataRow("AppendAllLines(path, null, System.Text.Encoding.ASCII)")]
-        [DataRow("File.AppendAllLines(\"c:\\aaa.txt\", contents)")]
+        [DataRow("FS.AppendAllLines(\"c:\\aaa.txt\", contents)")]
         [DataRow("AppendAllLines(\"c:\\aaa.txt\", contents)")]
-        [DataRow("File.AppendAllLines(\"c:\\aaa.txt\", contents, System.Text.Encoding.ASCII)")]
+        [DataRow("FS.AppendAllLines(\"c:\\aaa.txt\", contents, System.Text.Encoding.ASCII)")]
         [DataRow("AppendAllLines(\"c:\\aaa.txt\", contents, System.Text.Encoding.ASCII)")]
 
-        [DataRow("File.AppendAllText(path, null)")]
+        [DataRow("FS.AppendAllText(path, null)")]
         [DataRow("AppendAllText(path, null)")]
-        [DataRow("File.AppendAllText(path, null, System.Text.Encoding.ASCII)")]
+        [DataRow("FS.AppendAllText(path, null, System.Text.Encoding.ASCII)")]
         [DataRow("AppendAllText(path, null, System.Text.Encoding.ASCII)")]
-        [DataRow("File.AppendAllText(\"c:\\aaa.txt\", path)")]
+        [DataRow("FS.AppendAllText(\"c:\\aaa.txt\", path)")]
         [DataRow("AppendAllText(\"c:\\aaa.txt\", path)")]
-        [DataRow("File.AppendAllText(\"c:\\aaa.txt\", path, System.Text.Encoding.ASCII)")]
+        [DataRow("FS.AppendAllText(\"c:\\aaa.txt\", path, System.Text.Encoding.ASCII)")]
         [DataRow("AppendAllText(\"c:\\aaa.txt\", path, System.Text.Encoding.ASCII)")]
 
-        [DataRow("File.AppendText(path)")]
+        [DataRow("FS.AppendText(path)")]
         [DataRow("AppendText(path)")]
 
-        [DataRow("File.Copy(\"\", path)")]
+        [DataRow("FS.Copy(\"\", path)")]
         [DataRow("Copy(\"\", path)")]
-        [DataRow("File.Copy(\"\", path, true)")]
+        [DataRow("FS.Copy(\"\", path, true)")]
         [DataRow("Copy(\"\", path, true)")]
-        [DataRow("File.Copy(path, \"\")")]
+        [DataRow("FS.Copy(path, \"\")")]
         [DataRow("Copy(path, \"\")")]
-        [DataRow("File.Copy(path, \"\", true)")]
+        [DataRow("FS.Copy(path, \"\", true)")]
         [DataRow("Copy(path, \"\", true)")]
-        [DataRow("File.Copy(\"\", \"\", flag)")]
+        [DataRow("FS.Copy(\"\", \"\", flag)")]
 
-        [DataRow("File.Create(path)")]
+        [DataRow("FS.Create(path)")]
         [DataRow("Create(path)")]
-        [DataRow("File.Create(path, 10)")]
+        [DataRow("FS.Create(path, 10)")]
         [DataRow("Create(path, 10)")]
-        [DataRow("File.Create(path, 10, System.IO.FileOptions.None)")]
+        [DataRow("FS.Create(path, 10, System.IO.FileOptions.None)")]
         [DataRow("Create(path, 10, System.IO.FileOptions.None)")]
-        [DataRow("File.Create(\"\", 10, fileOptions)")]
+        [DataRow("FS.Create(\"\", 10, fileOptions)")]
         [DataRow("Create(\"\", 10, fileOptions)")]
-        [DataRow("File.Create(path, 10, System.IO.FileOptions.None, null)")]
+        [DataRow("FS.Create(path, 10, System.IO.FileOptions.None, null)")]
         [DataRow("Create(path, 10, System.IO.FileOptions.None, null)")]
-        [DataRow("File.Create(\"\", 10, fileOptions, null)")]
+        [DataRow("FS.Create(\"\", 10, fileOptions, null)")]
         [DataRow("Create(\"\", 10, fileOptions, null)")]
 
-        [DataRow("File.CreateText(path)")]
+        [DataRow("FS.CreateText(path)")]
         [DataRow("CreateText(path)")]
 
-        [DataRow("File.Move(\"c:\\aaa.txt\", path)")]
+        [DataRow("FS.Move(\"c:\\aaa.txt\", path)")]
         [DataRow("Move(\"c:\\aaa.txt\", path)")]
-        [DataRow("File.Move(path, \"c:\\aaa.txt\")")]
+        [DataRow("FS.Move(path, \"c:\\aaa.txt\")")]
         [DataRow("Move(path, \"c:\\aaa.txt\")")]
 
-        [DataRow("File.SetAccessControl(path, null)")]
+        [DataRow("FS.SetAccessControl(path, null)")]
         [DataRow("SetAccessControl(path, null)")]
-        [DataRow("File.SetAccessControl(\"c:\\aaa.txt\", fileSecurity)")]
+        [DataRow("FS.SetAccessControl(\"c:\\aaa.txt\", fileSecurity)")]
         [DataRow("SetAccessControl(\"c:\\aaa.txt\", fileSecurity)")]
         [TestCategory("Detect")]
         [DataTestMethod]
@@ -81,13 +88,15 @@ namespace SecurityCodeScan.Test.Audit
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using FS = System.IO.File;
     using static System.IO.File;
     using System.Security.AccessControl;
+    using System.Web.Mvc;
 #pragma warning restore 8019
 
-class PathTraversal
+class MyController : Controller
 {{
-    public static void Run(string path, IEnumerable<String> contents, bool flag,
+    public void Run(string path, IEnumerable<String> contents, bool flag,
                            FileMode fileMode, FileAccess access, FileShare share, byte[] bytes,
                            FileSecurity fileSecurity, FileOptions fileOptions)
     {{
@@ -102,11 +111,15 @@ class PathTraversal
     Imports System.Collections.Generic
     Imports System.IO
     Imports System.IO.File
+    Imports FS = System.IO.File
     Imports System.Security.AccessControl
+    Imports System.Web.Mvc
 #Enable Warning BC50001
 
-Class PathTraversal
-    Public Shared Sub Run(path As String, contents As IEnumerable(Of String), flag As Boolean, fileMode As FileMode,
+Class MyController
+    Inherits Controller
+
+    Public Sub Run(path As String, contents As IEnumerable(Of String), flag As Boolean, fileMode As FileMode,
                           access as FileAccess, share As FileShare, bytes As Byte(), fileSecurity As FileSecurity,
                           fileOptions As FileOptions)
         {sink.CSharpReplaceToVBasic()}
@@ -133,40 +146,40 @@ End Class
                                               await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
         }
 
-        [DataRow("File.AppendAllLines(\"c:\\aaa.txt\", null)")]
+        [DataRow("FS.AppendAllLines(\"c:\\aaa.txt\", null)")]
         [DataRow("AppendAllLines(\"c:\\aaa.txt\", null)")]
-        [DataRow("File.AppendAllLines(\"c:\\aaa.txt\", null, encoding)")]
+        [DataRow("FS.AppendAllLines(\"c:\\aaa.txt\", null, encoding)")]
         [DataRow("AppendAllLines(\"c:\\aaa.txt\", null, encoding)")]
 
-        [DataRow("File.AppendAllText(\"c:\\aaa.txt\", \"\")")]
+        [DataRow("FS.AppendAllText(\"c:\\aaa.txt\", \"\")")]
         [DataRow("AppendAllText(\"c:\\aaa.txt\", \"\")")]
-        [DataRow("File.AppendAllText(\"c:\\aaa.txt\", \"\", encoding)")]
+        [DataRow("FS.AppendAllText(\"c:\\aaa.txt\", \"\", encoding)")]
         [DataRow("AppendAllText(\"c:\\aaa.txt\", \"\", encoding)")]
 
-        [DataRow("File.AppendText(\"c:\\aaa.txt\")")]
+        [DataRow("FS.AppendText(\"c:\\aaa.txt\")")]
         [DataRow("AppendText(\"c:\\aaa.txt\")")]
 
-        [DataRow("File.Copy(\"c:\\aaa.txt\", \"c:\\aaa.txt\")")]
+        [DataRow("FS.Copy(\"c:\\aaa.txt\", \"c:\\aaa.txt\")")]
         [DataRow("Copy(\"c:\\aaa.txt\", \"c:\\aaa.txt\")")]
-        [DataRow("File.Copy(\"c:\\aaa.txt\", \"c:\\aaa.txt\", true)")]
+        [DataRow("FS.Copy(\"c:\\aaa.txt\", \"c:\\aaa.txt\", true)")]
         [DataRow("Copy(\"c:\\aaa.txt\", \"c:\\aaa.txt\", true)")]
 
-        [DataRow("File.Create(\"c:\\aaa.txt\")")]
+        [DataRow("FS.Create(\"c:\\aaa.txt\")")]
         [DataRow("Create(\"c:\\aaa.txt\")")]
-        [DataRow("File.Create(\"c:\\aaa.txt\", digit)")]
+        [DataRow("FS.Create(\"c:\\aaa.txt\", digit)")]
         [DataRow("Create(\"c:\\aaa.txt\", digit)")]
-        [DataRow("File.Create(\"c:\\aaa.txt\", digit, System.IO.FileOptions.None)")]
+        [DataRow("FS.Create(\"c:\\aaa.txt\", digit, System.IO.FileOptions.None)")]
         [DataRow("Create(\"c:\\aaa.txt\", digit, System.IO.FileOptions.None)")]
-        [DataRow("File.Create(\"c:\\aaa.txt\", digit, System.IO.FileOptions.None, null)")]
+        [DataRow("FS.Create(\"c:\\aaa.txt\", digit, System.IO.FileOptions.None, null)")]
         [DataRow("Create(\"c:\\aaa.txt\", digit, System.IO.FileOptions.None, null)")]
 
-        [DataRow("File.CreateText(\"c:\\aaa.txt\")")]
+        [DataRow("FS.CreateText(\"c:\\aaa.txt\")")]
         [DataRow("CreateText(\"c:\\aaa.txt\")")]
 
-        [DataRow("File.Move(\"c:\\aaa.txt\", \"c:\\aaa.txt\")")]
+        [DataRow("FS.Move(\"c:\\aaa.txt\", \"c:\\aaa.txt\")")]
         [DataRow("Move(\"c:\\aaa.txt\", \"c:\\aaa.txt\")")]
 
-        [DataRow("File.SetAccessControl(\"c:\\aaa.txt\", null)")]
+        [DataRow("FS.SetAccessControl(\"c:\\aaa.txt\", null)")]
         [DataRow("SetAccessControl(\"c:\\aaa.txt\", null)")]
         [TestCategory("Safe")]
         [DataTestMethod]
@@ -177,13 +190,15 @@ End Class
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using FS = System.IO.File;
     using static System.IO.File;
     using System.Security.AccessControl;
+    using System.Web.Mvc;
 #pragma warning restore 8019
 
-class PathTraversal
+class MyController : Controller
 {{
-    public static void Run(bool flag, int digit, System.Text.Encoding encoding)
+    public void Run(bool flag, int digit, System.Text.Encoding encoding)
     {{
         {sink};
     }}
@@ -196,11 +211,15 @@ class PathTraversal
     Imports System.Collections.Generic
     Imports System.IO
     Imports System.IO.File
+    Imports FS = System.IO.File
     Imports System.Security.AccessControl
+    Imports System.Web.Mvc
 #Enable Warning BC50001
 
-Class PathTraversal
-    Public Shared Sub Run(flag As Boolean, digit As Int32, encoding As System.Text.Encoding)
+Class MyController
+    Inherits Controller
+
+    Public Sub Run(flag As Boolean, digit As Int32, encoding As System.Text.Encoding)
         {sink.CSharpReplaceToVBasic()}
     End Sub
 End Class
@@ -227,11 +246,12 @@ End Class
 #pragma warning disable 8019
     using System.IO;
     using System.Xml;
+    using System.Web.Mvc;
 #pragma warning restore 8019
 
-class PathTraversal
+class MyController : Controller
 {{
-    public static void Run(string textInput, Stream streamInput, TextReader textReaderInput, XmlReader xmlReaderInput)
+    public void Run(string textInput, Stream streamInput, TextReader textReaderInput, XmlReader xmlReaderInput)
     {{
         var reader = {sink};
     }}
@@ -242,10 +262,13 @@ class PathTraversal
 #Disable Warning BC50001
     Imports System.IO
     Imports System.Xml
+    Imports System.Web.Mvc
 #Enable Warning BC50001
 
-Class PathTraversal
-    Public Shared Sub Run(textInput As String, streamInput As Stream, textReaderInput As TextReader, xmlReaderInput As XmlReader)
+Class MyController
+    Inherits Controller
+
+    Public Sub Run(textInput As String, streamInput As Stream, textReaderInput As TextReader, xmlReaderInput As XmlReader)
         Dim reader As XMLReader = {sink.CSharpReplaceToVBasic()}
     End Sub
 End Class

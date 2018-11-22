@@ -52,34 +52,42 @@ namespace SecurityCodeScan.Test
         #region Tests that are producing diagnostics
 
         [TestCategory("Detect")]
-        [DataRow("System.Web", "System.String", "Response.Write(userInput)")]
-        [DataRow("System.Web", "System.Char[]", "Response.Write(userInput, x, y)")]
+        [DataRow("System.Web", "Request.Params[0]",            "",              "Response.Write(userInput)")]
+        [DataRow("System.Web", "Request.Params[0]",            "System.String", "Response.Write(userInput)")]
+        [DataRow("System.Web", "Request.Params[0].ToString()", "System.String", "Response.Write(userInput)")]
+        //[DataRow("System.Web", "(System.Char[])Request.Params[0]", "Response.Write(userInput, x, y)")]
         [DataTestMethod]
-        public async Task HttpResponseWrite(string @namespace, string inputType, string sink)
+        public async Task HttpResponseWrite(string @namespace, string inputType, string cast, string sink)
         {
+            var csInput = string.IsNullOrEmpty(cast) ? inputType : $"({cast}){inputType}";
             var cSharpTest = $@"
 using {@namespace};
 
 class Vulnerable
 {{
     public static HttpResponse Response = null;
+    public static HttpRequest  Request  = null;
 
-    public static void Run({inputType} userInput, int x, int y)
+    public static void Run()
     {{
+        var userInput = {csInput};
         {sink};
     }}
 }}
             ";
 
             inputType = inputType.CSharpReplaceToVBasic();
+            var vbInput = string.IsNullOrEmpty(cast) ? inputType : $"DirectCast({inputType}, {cast})";
 
             var visualBasicTest = $@"
 Imports {@namespace}
 
 Class Vulnerable
     Public Shared Response As HttpResponse
+    Public Shared Request  As HttpRequest
 
-    Public Shared Sub Run(userinput As {inputType}, x As System.Int32, y As System.Int32)
+    Public Shared Sub Run()
+        Dim userInput = {vbInput}
         {sink}
     End Sub
 End Class

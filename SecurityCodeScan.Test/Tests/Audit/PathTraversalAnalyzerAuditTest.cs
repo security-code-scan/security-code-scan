@@ -127,23 +127,14 @@ Class MyController
 End Class
 ";
 
-            // should be no warnings without audit config
-            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
-
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0018",
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest,
-                                         expected,
-                                         await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
-
-            await VerifyVisualBasicDiagnostic(visualBasicTest,
-                                              expected,
-                                              await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest,expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
         [DataRow("FS.AppendAllLines(\"c:\\aaa.txt\", null)")]
@@ -224,13 +215,8 @@ Class MyController
     End Sub
 End Class
 ";
-            // should be no warnings without audit config
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
-
-            // no warnings with config too
-            await VerifyCSharpDiagnostic(cSharpTest, options:await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, options:await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
         }
 
         [DataRow("XmlReader.Create(textInput)")]
@@ -274,23 +260,14 @@ Class MyController
 End Class
 ";
 
-            // should be no warnings without audit config
-            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
-
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0018",
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest,
-                                         expected,
-                                         await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
-
-            await VerifyVisualBasicDiagnostic(visualBasicTest,
-                                              expected,
-                                              await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
     }
 }

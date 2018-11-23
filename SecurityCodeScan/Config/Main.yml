@@ -1869,6 +1869,70 @@ Sinks:
 
  # File API
 
+  File_AppendAllLines:
+    Namespace: System.IO
+    ClassName: File
+    Member: method
+    Name: AppendAllLines
+    InjectableArguments: [0, 1]
+    Locale: SCS0018
+
+  File_AppendAllText:
+    Namespace: System.IO
+    ClassName: File
+    Member: method
+    Name: AppendAllText
+    InjectableArguments: [0, 1]
+    Locale: SCS0018
+
+  File_AppendText:
+    Namespace: System.IO
+    ClassName: File
+    Member: method
+    Name: AppendText
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+  File_Copy:
+    Namespace: System.IO
+    ClassName: File
+    Member: method
+    Name: Copy
+    InjectableArguments: [0, 1, 2]
+    Locale: SCS0018
+
+  File_Create:
+    Namespace: System.IO
+    ClassName: File
+    Member: method
+    Name: Create
+    InjectableArguments: [0, 2]
+    Locale: SCS0018
+
+  File_CreateText:
+    Namespace: System.IO
+    ClassName: File
+    Member: method
+    Name: CreateText
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+  File_Move:
+    Namespace: System.IO
+    ClassName: File
+    Member: method
+    Name: Move
+    InjectableArguments: [0, 1]
+    Locale: SCS0018
+
+  File_SetAccessControl:
+    Namespace: System.IO
+    ClassName: File
+    Member: method
+    Name: SetAccessControl
+    InjectableArguments: [0, 1]
+    Locale: SCS0018
+
   File_Delete:
     Namespace: System.IO
     ClassName: File
@@ -1971,6 +2035,53 @@ Sinks:
     Member: method
     Name: WriteAllText
     InjectableArguments: [0, 1]
+    Locale: SCS0018
+
+ # XmlReader
+
+  XmlReader_Create_uri:
+    Namespace: System.Xml
+    ClassName: XmlReader
+    Member: method
+    Name: Create
+    ArgTypes: (System.String)
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+  XmlReader_Create_uri_settings:
+    Namespace: System.Xml
+    ClassName: XmlReader
+    Member: method
+    Name: Create
+    ArgTypes: (System.String, System.Xml.XmlReaderSettings)
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+  XmlReader_Create_uri_settings_context:
+    Namespace: System.Xml
+    ClassName: XmlReader
+    Member: method
+    Name: Create
+    ArgTypes: (System.String, System.Xml.XmlReaderSettings, System.Xml.XmlParserContext)
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+  XmlReader_Create_stream_settings_string:
+    Namespace: System.Xml
+    ClassName: XmlReader
+    Member: method
+    Name: Create
+    ArgTypes: (System.IO.Stream, System.Xml.XmlReaderSettings, System.String)
+    InjectableArguments: [0, 2]
+    Locale: SCS0018
+
+  XmlReader_Create_textreader_settings_string:
+    Namespace: System.Xml
+    ClassName: XmlReader
+    Member: method
+    Name: Create
+    ArgTypes: (System.IO.TextReader, System.Xml.XmlReaderSettings, System.String)
+    InjectableArguments: [0, 2]
     Locale: SCS0018
 
  # StreamReader

@@ -40,6 +40,7 @@ namespace SecurityCodeScan.Analyzers.Utils
             SyntaxKind kind = node.Kind();
             switch (kind)
             {
+                case SyntaxKind.AddAssignmentStatement:
                 case SyntaxKind.SimpleAssignmentStatement:
                     return ((AssignmentStatementSyntax)node).Left;
                 case SyntaxKind.VariableDeclarator:

@@ -126,7 +126,6 @@ Sinks:
   MyKey:
     Namespace: sample
     ClassName: Test
-    Member: method
     Name: Vulnerable
     InjectableArguments: [0]
     Locale: SCS0001
@@ -271,7 +270,6 @@ Behavior:
   MyKey:
     Namespace: sample
     ClassName: Test
-    Member: method
     Name: Safe
     PostConditions:
       Returns:
@@ -346,7 +344,6 @@ Sinks:
   MyKey:
     Namespace: sample
     ClassName: Test
-    Member: method
     Name: Vulnerable
     InjectableArguments: [0]
     Locale: SCS0001
@@ -369,7 +366,6 @@ Sinks:
   MyKey:
     Namespace: sample
     ClassName: Test
-    Member: method
     Name: Vulnerable
     InjectableArguments: [0]
     Locale: SCS0001
@@ -378,7 +374,6 @@ Behavior:
   MyKey:
     Namespace: sample
     ClassName: Test
-    Member: method
     Name: Safe
     PostConditions:
       Returns:

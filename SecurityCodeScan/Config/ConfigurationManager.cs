@@ -246,8 +246,6 @@ namespace SecurityCodeScan.Config
     {
         public string Namespace { get; set; }
         public string ClassName { get; set; }
-        // TODO: use member field in taint analysis or remove it completely
-        public string Member   { get; set; }
         public string Name     { get; set; }
         public string ArgTypes { get; set; }
     }

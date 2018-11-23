@@ -108,7 +108,6 @@ Behavior:
   Bla:
     Namespace: NS
     ClassName: CL
-    Member: method
     Name: Foo
     ArgTypes: ""{payload}""
 ");

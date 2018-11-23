@@ -260,7 +260,6 @@ Sources:
   AAA:
     Namespace: sample
     ClassName: Test
-    Member: method
     Name: GetUntrusted
 ";
 
@@ -1614,7 +1613,6 @@ Sources:
   AAA:
     Namespace: sample
     ClassName: SqlConstant
-    Member: method
     Name: GetQueryDataClass
 ";
 
@@ -2037,7 +2035,6 @@ End Class
 Sinks:
   MyKey:
     ClassName: MyController
-    Member: method
     Name: Sink
     InjectableArguments: [0]
     Locale: SCS0026
@@ -2115,7 +2112,6 @@ End Class
 Sinks:
   MyKey:
     ClassName: MyController
-    Member: method
     Name: Sink
     InjectableArguments: [0]
     Locale: SCS0026
@@ -2196,7 +2192,6 @@ End Class
 Sinks:
   MyKey:
     ClassName: MyPage
-    Member: method
     Name: Sink
     InjectableArguments: [0]
     Locale: SCS0026
@@ -2295,7 +2290,6 @@ Sinks:
   MyKey:
     Namespace: sample
     ClassName: HttpResponse
-    Member: method
     Name: Write
     InjectableArguments: [0]
     Locale: SCS0029
@@ -2315,7 +2309,6 @@ Sinks:
   MyKey:
     Namespace: sample
     ClassName: HttpResponse
-    Member: method
     Name: Write
     InjectableArguments: [0]
     Locale: SCS0029

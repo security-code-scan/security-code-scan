@@ -5,7 +5,6 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using SecurityCodeScan.Analyzers.Taint;
 using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
 
@@ -173,6 +172,7 @@ namespace SecurityCodeScan.Config
                     if (userConfig != null)
                         CachedConfiguration.MergeWith(userConfig);
 
+                    CachedConfiguration.PrepareForQueries();
                     return CachedConfiguration;
                 }
             }
@@ -196,24 +196,10 @@ namespace SecurityCodeScan.Config
 
                 var mergedConfig = new Configuration(Configuration);
                 mergedConfig.MergeWith(projectConfig);
+                mergedConfig.PrepareForQueries();
                 ProjectConfigs[configPath] = mergedConfig;
                 return mergedConfig;
             }
-        }
-
-        public IEnumerable<KeyValuePair<string, MethodBehavior>> GetBehaviors(ImmutableArray<AdditionalText> additionalFiles)
-        {
-            var config = GetProjectConfiguration(additionalFiles);
-
-            var behaviorInfos = new List<KeyValuePair<string, MethodBehavior>>(config.Behavior.Values);
-            return behaviorInfos;
-        }
-
-        public IEnumerable<string> GetAntiCsrfAttributes(ImmutableArray<AdditionalText> additionalFiles, string httpMethodsNamespace)
-        {
-            var config = GetProjectConfiguration(additionalFiles);
-
-            return config.AntiCsrfAttributes[httpMethodsNamespace];
         }
     }
 
@@ -249,7 +235,7 @@ namespace SecurityCodeScan.Config
 
     internal class TaintSourceData : Signature
     {
-        public bool     FromExternalParameters { get; set; }
+        public bool FromExternalParameters { get; set; }
     }
 
     internal class MethodBehaviorData : Signature

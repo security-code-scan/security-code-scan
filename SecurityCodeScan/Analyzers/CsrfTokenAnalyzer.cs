@@ -156,7 +156,9 @@ namespace SecurityCodeScan.Analyzers
                 if (classSymbol.HasDerivedClassAttribute(HasAnonymousAttribute))
                     return;
 
-                var antiForgeryAttributes = ConfigurationManager.Instance.GetAntiCsrfAttributes(ctx.Options.AdditionalFiles, Namespace);
+                var antiForgeryAttributes = ConfigurationManager.Instance
+                                                                .GetProjectConfiguration(ctx.Options.AdditionalFiles)
+                                                                .AntiCsrfAttributes[Namespace];
                 bool hasDerivedClassAttribute = classSymbol.HasDerivedClassAttribute(attributeData =>
                 {
                     foreach (var antiForgeryAttribute in antiForgeryAttributes)

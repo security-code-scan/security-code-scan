@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
@@ -191,5 +192,44 @@ namespace SecurityCodeScan.Analyzers.Utils
     internal static class EmptyDictionary<TKey, TVal>
     {
         public static readonly IReadOnlyDictionary<TKey, TVal> Value = new Dictionary<TKey, TVal>();
+    }
+
+    internal static class IReadOnlyDictionaryExtensions
+    {
+        public static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> readOnlyDictionary, IEqualityComparer<TKey> comparer = null)
+        {
+            var dictionary = new Dictionary<TKey, TValue>(readOnlyDictionary.Count, comparer);
+            foreach (var keyValuePair in readOnlyDictionary)
+                dictionary.Add(keyValuePair.Key, keyValuePair.Value);
+
+            return dictionary;
+        }
+    }
+
+    internal class ReadOnlyHashSet<T> : IReadOnlyCollection<T>
+    {
+        private readonly HashSet<T> Set;
+
+        public ReadOnlyHashSet(HashSet<T> set)
+        {
+            Set = set;
+        }
+
+        public bool Contains(T item)
+        {
+            return Set.Contains(item);
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return Set.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return ((IEnumerable)Set).GetEnumerator();
+        }
+
+        public int Count => Set.Count;
     }
 }

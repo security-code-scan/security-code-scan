@@ -21,8 +21,8 @@ namespace SecurityCodeScan.Analyzers.Taint
         public  IReadOnlyDictionary<string, VariableState> VariableStates        => Variables;
         private Dictionary<string, VariableState>          Variables             { get; }
 
-        public IReadOnlyDictionary<string, MethodBehavior> CachedMethodBehaviors => MethodBehaviors;
-        private Dictionary<string, MethodBehavior>         MethodBehaviors       { get; }
+        // although now it is cached in the manager itself keep the field because all config caching will be here in the future
+        public IReadOnlyDictionary<string, MethodBehavior> CachedMethodBehaviors { get; }
 
         /// <summary>
         /// Initialize the state with no variable recorded yet.
@@ -32,9 +32,8 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             AnalysisContext = ctx;
             Variables       = new Dictionary<string, VariableState>();
-            MethodBehaviors = ConfigurationManager.Instance
-                                                  .GetBehaviors(AnalysisContext.Options.AdditionalFiles)
-                                                  .ToDictionary(pair => pair.Key, pair => pair.Value);
+            CachedMethodBehaviors = ConfigurationManager.Instance
+                                                        .GetProjectConfiguration(AnalysisContext.Options.AdditionalFiles).Behavior;
         }
 
         public void AddNewValue(string identifier, VariableState value)

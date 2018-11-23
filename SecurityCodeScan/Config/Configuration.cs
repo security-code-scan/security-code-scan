@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using SecurityCodeScan.Analyzers.Taint;
+using SecurityCodeScan.Analyzers.Utils;
 
 namespace SecurityCodeScan.Config
 {
@@ -13,27 +14,50 @@ namespace SecurityCodeScan.Config
     {
         public Configuration()
         {
-            PasswordValidatorRequiredProperties = new HashSet<string>();
-            Behavior                            = new Dictionary<string, KeyValuePair<string, MethodBehavior>>();
-            Sources                             = new HashSet<string>();
-            AntiCsrfAttributes                  = new Dictionary<string, List<string>>();
-            PasswordFields                      = new HashSet<string>();
-            ConstantFields                      = new HashSet<string>();
-            TaintTypeNameToBit                  = new Dictionary<string, ulong>(62);
+            _PasswordValidatorRequiredProperties = new HashSet<string>();
+            PasswordValidatorRequiredProperties = new ReadOnlyHashSet<string>(_PasswordValidatorRequiredProperties);
+
+            ConfigurationBehavior               = new Dictionary<string, KeyValuePair<string, MethodBehavior>>();
+            Behavior                            = new Dictionary<string, MethodBehavior>();
+
+            _Sources = new HashSet<string>();
+            Sources  = new ReadOnlyHashSet<string>(_Sources);
+
+            _AntiCsrfAttributes = new Dictionary<string, List<string>>();
+
+            _PasswordFields = new HashSet<string>();
+            PasswordFields  = new ReadOnlyHashSet<string>(_PasswordFields);
+
+            _ConstantFields = new HashSet<string>();
+            ConstantFields  = new ReadOnlyHashSet<string>(_ConstantFields);
+
+            TaintTypeNameToBit = new Dictionary<string, ulong>(62);
         }
 
         public Configuration(Configuration config)
         {
-            AuditMode                           = config.AuditMode;
-            PasswordValidatorRequiredLength     = config.PasswordValidatorRequiredLength;
-            MinimumPasswordValidatorProperties  = config.MinimumPasswordValidatorProperties;
-            PasswordValidatorRequiredProperties = new HashSet<string>(config.PasswordValidatorRequiredProperties);
-            Behavior                            = new Dictionary<string, KeyValuePair<string, MethodBehavior>>(config.Behavior);
-            Sources                             = new HashSet<string>(config.Sources);
-            AntiCsrfAttributes                  = new Dictionary<string, List<string>>(config.AntiCsrfAttributes);
-            PasswordFields                      = new HashSet<string>(config.PasswordFields);
-            ConstantFields                      = new HashSet<string>(config.ConstantFields);
-            TaintTypeNameToBit                  = new Dictionary<string, ulong>(config.TaintTypeNameToBit);
+            AuditMode                          = config.AuditMode;
+            PasswordValidatorRequiredLength    = config.PasswordValidatorRequiredLength;
+            MinimumPasswordValidatorProperties = config.MinimumPasswordValidatorProperties;
+
+            _PasswordValidatorRequiredProperties = new HashSet<string>(config.PasswordValidatorRequiredProperties);
+            PasswordValidatorRequiredProperties  = new ReadOnlyHashSet<string>(_PasswordValidatorRequiredProperties);
+
+            ConfigurationBehavior = new Dictionary<string, KeyValuePair<string, MethodBehavior>>(config.ConfigurationBehavior);
+            Behavior              = config.Behavior.ToDictionary();
+
+            _Sources = new HashSet<string>(config.Sources);
+            Sources  = new ReadOnlyHashSet<string>(_Sources);
+
+            _AntiCsrfAttributes = config.AntiCsrfAttributes.ToDictionary();
+
+            _PasswordFields = new HashSet<string>(config.PasswordFields);
+            PasswordFields  = new ReadOnlyHashSet<string>(_PasswordFields);
+
+            _ConstantFields = new HashSet<string>(config.ConstantFields);
+            ConstantFields  = new ReadOnlyHashSet<string>(_ConstantFields);
+
+            TaintTypeNameToBit = new Dictionary<string, ulong>(config.TaintTypeNameToBit);
         }
 
         public Configuration(ConfigData configData) : this()
@@ -49,26 +73,26 @@ namespace SecurityCodeScan.Config
             {
                 foreach (var data in configData.PasswordValidatorRequiredProperties)
                 {
-                    PasswordValidatorRequiredProperties.Add(data);
+                    _PasswordValidatorRequiredProperties.Add(data);
                 }
             }
 
             foreach (var data in configData.Behavior)
             {
-                Behavior[data.Key] = CreateBehavior(data.Value);
+                ConfigurationBehavior[data.Key] = CreateBehavior(data.Value);
             }
 
             foreach (var source in configData.Sources)
             {
                 if (source.Value.FromExternalParameters)
                 {
-                    Sources.Add(string.IsNullOrEmpty(source.Value.Namespace)
+                    _Sources.Add(string.IsNullOrEmpty(source.Value.Namespace)
                                     ? source.Value.ClassName
                                     : $"{source.Value.Namespace}.{source.Value.ClassName}");
                 }
                 else
                 {
-                    Behavior[source.Key] = CreateBehavior(source.Value);
+                    ConfigurationBehavior[source.Key] = CreateBehavior(source.Value);
                 }
             }
 
@@ -79,25 +103,40 @@ namespace SecurityCodeScan.Config
 
             foreach (var data in configData.PasswordFields)
             {
-                PasswordFields.Add(data.ToUpperInvariant());
+                _PasswordFields.Add(data.ToUpperInvariant());
             }
 
             foreach (var data in configData.ConstantFields)
             {
-                ConstantFields.Add(data);
+                _ConstantFields.Add(data);
             }
         }
 
-        public bool                                                     AuditMode;
-        public int                                                      PasswordValidatorRequiredLength;
-        public int                                                      MinimumPasswordValidatorProperties;
-        public HashSet<string>                                          PasswordValidatorRequiredProperties;
-        public Dictionary<string, KeyValuePair<string, MethodBehavior>> Behavior;
-        public HashSet<string>                                          Sources;
-        public Dictionary<string, List<string>>                         AntiCsrfAttributes;
-        public HashSet<string>                                          PasswordFields;
-        public HashSet<string>                                          ConstantFields;
-        public Dictionary<string, ulong>                                TaintTypeNameToBit;
+        public bool AuditMode                          { get; private set; }
+        public int  PasswordValidatorRequiredLength    { get; private set; }
+        public int  MinimumPasswordValidatorProperties { get; private set; }
+
+        private readonly HashSet<string>         _PasswordValidatorRequiredProperties;
+        public           ReadOnlyHashSet<string> PasswordValidatorRequiredProperties { get; }
+
+        private readonly HashSet<string>         _Sources;
+        public           ReadOnlyHashSet<string> Sources { get; }
+
+        private readonly Dictionary<string, List<string>>          _AntiCsrfAttributes;
+        public           IReadOnlyDictionary<string, List<string>> AntiCsrfAttributes => _AntiCsrfAttributes;
+
+        private readonly HashSet<string>         _PasswordFields;
+        public           ReadOnlyHashSet<string> PasswordFields { get; }
+
+        private readonly HashSet<string>         _ConstantFields;
+        public           ReadOnlyHashSet<string> ConstantFields { get; }
+
+        private Dictionary<string, ulong> TaintTypeNameToBit { get; }
+
+        // is needed to have allow merging by configuration Id
+        private readonly Dictionary<string, KeyValuePair<string, MethodBehavior>> ConfigurationBehavior;
+        // once merged the configuration Id is not used: the key is method signature parts
+        public IReadOnlyDictionary<string, MethodBehavior> Behavior { get; private set; }
 
         public void MergeWith(ConfigData config)
         {
@@ -117,7 +156,7 @@ namespace SecurityCodeScan.Config
             {
                 foreach (var property in config.PasswordValidatorRequiredProperties)
                 {
-                    PasswordValidatorRequiredProperties.Add(property);
+                    _PasswordValidatorRequiredProperties.Add(property);
                 }
             }
 
@@ -126,9 +165,9 @@ namespace SecurityCodeScan.Config
                 foreach (var behavior in config.Behavior)
                 {
                     if (behavior.Value == default(MethodBehaviorData))
-                        Behavior.Remove(behavior.Key);
+                        ConfigurationBehavior.Remove(behavior.Key);
                     else
-                        Behavior[behavior.Key] = CreateBehavior(behavior.Value);
+                        ConfigurationBehavior[behavior.Key] = CreateBehavior(behavior.Value);
                 }
             }
 
@@ -138,22 +177,22 @@ namespace SecurityCodeScan.Config
                 {
                     if (source.Value == default(TaintSourceData))
                     {
-                        if (Behavior.ContainsKey(source.Key))
-                            Behavior.Remove(source.Key);
+                        if (ConfigurationBehavior.ContainsKey(source.Key))
+                            ConfigurationBehavior.Remove(source.Key);
                         else
-                            Sources.Remove(source.Key);
+                            _Sources.Remove(source.Key);
                     }
                     else
                     {
                         if (source.Value.FromExternalParameters)
                         {
-                            Sources.Add(string.IsNullOrEmpty(source.Value.Namespace)
+                            _Sources.Add(string.IsNullOrEmpty(source.Value.Namespace)
                                             ? source.Value.ClassName
                                             : $"{source.Value.Namespace}.{source.Value.ClassName}");
                         }
                         else
                         {
-                            Behavior[source.Key] = CreateBehavior(source.Value);
+                            ConfigurationBehavior[source.Key] = CreateBehavior(source.Value);
                         }
                     }
                 }
@@ -171,7 +210,7 @@ namespace SecurityCodeScan.Config
             {
                 foreach (var field in config.PasswordFields)
                 {
-                    PasswordFields.Add(field.ToUpperInvariant());
+                    _PasswordFields.Add(field.ToUpperInvariant());
                 }
             }
 
@@ -179,9 +218,15 @@ namespace SecurityCodeScan.Config
             {
                 foreach (var field in config.ConstantFields)
                 {
-                    ConstantFields.Add(field);
+                    _ConstantFields.Add(field);
                 }
             }
+        }
+
+        public void PrepareForQueries()
+        {
+            // Build the Behavior optimized for queries after the merge.
+            Behavior = ConfigurationBehavior.Values.ToDictionary(pair => pair.Key, pair => pair.Value);
         }
 
         private void RegisterTaintTypes(List<string> typeNames)
@@ -415,8 +460,8 @@ namespace SecurityCodeScan.Config
             AntiCsrfAttributes.TryGetValue(csrfData.HttpMethodsNameSpace, out var list);
             if (list == null)
             {
-                list                                              = new List<string>();
-                AntiCsrfAttributes[csrfData.HttpMethodsNameSpace] = list;
+                list                                               = new List<string>();
+                _AntiCsrfAttributes[csrfData.HttpMethodsNameSpace] = list;
             }
 
             list.Add(csrfData.AntiCsrfAttribute);

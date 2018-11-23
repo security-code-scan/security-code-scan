@@ -44,18 +44,6 @@ namespace SecurityCodeScan.Analyzers.Taint
             IsPasswordField     = isPasswordField;
         }
 
-        public MethodBehavior(IReadOnlyDictionary<int, object>        preConditions,
-                              IReadOnlyDictionary<int, PostCondition> postConditions)
-        {
-            InjectableArguments = EmptyDictionary<int, ulong>.Value;
-            PasswordArguments   = ImmutableHashSet<int>.Empty;
-            PostConditions      = postConditions ?? EmptyDictionary<int, PostCondition>.Value;
-            PreConditions       = preConditions  ?? EmptyDictionary<int, object>.Value;
-            LocaleInjection     = null;
-            InjectableField     = 0ul;
-            IsPasswordField     = false;
-        }
-
         public MethodBehavior(IReadOnlyDictionary<int, PostCondition> postConditions)
         {
             InjectableArguments = EmptyDictionary<int, ulong>.Value;

@@ -15,7 +15,6 @@ namespace SecurityCodeScan.Config
         {
             PasswordValidatorRequiredProperties = new HashSet<string>();
             Behavior                            = new Dictionary<string, KeyValuePair<string, MethodBehavior>>();
-            Sinks                               = new Dictionary<string, KeyValuePair<string, MethodBehavior>>();
             Sources                             = new HashSet<string>();
             AntiCsrfAttributes                  = new Dictionary<string, List<string>>();
             PasswordFields                      = new HashSet<string>();
@@ -30,7 +29,6 @@ namespace SecurityCodeScan.Config
             MinimumPasswordValidatorProperties  = config.MinimumPasswordValidatorProperties;
             PasswordValidatorRequiredProperties = new HashSet<string>(config.PasswordValidatorRequiredProperties);
             Behavior                            = new Dictionary<string, KeyValuePair<string, MethodBehavior>>(config.Behavior);
-            Sinks                               = new Dictionary<string, KeyValuePair<string, MethodBehavior>>(config.Sinks);
             Sources                             = new HashSet<string>(config.Sources);
             AntiCsrfAttributes                  = new Dictionary<string, List<string>>(config.AntiCsrfAttributes);
             PasswordFields                      = new HashSet<string>(config.PasswordFields);
@@ -58,11 +56,6 @@ namespace SecurityCodeScan.Config
             foreach (var data in configData.Behavior)
             {
                 Behavior[data.Key] = CreateBehavior(data.Value);
-            }
-
-            foreach (var data in configData.Sinks)
-            {
-                Sinks[data.Key] = CreateBehavior(data.Value);
             }
 
             foreach (var source in configData.Sources)
@@ -100,7 +93,6 @@ namespace SecurityCodeScan.Config
         public int                                                      MinimumPasswordValidatorProperties;
         public HashSet<string>                                          PasswordValidatorRequiredProperties;
         public Dictionary<string, KeyValuePair<string, MethodBehavior>> Behavior;
-        public Dictionary<string, KeyValuePair<string, MethodBehavior>> Sinks;
         public HashSet<string>                                          Sources;
         public Dictionary<string, List<string>>                         AntiCsrfAttributes;
         public HashSet<string>                                          PasswordFields;
@@ -137,17 +129,6 @@ namespace SecurityCodeScan.Config
                         Behavior.Remove(behavior.Key);
                     else
                         Behavior[behavior.Key] = CreateBehavior(behavior.Value);
-                }
-            }
-
-            if (config.Sinks != null)
-            {
-                foreach (var sink in config.Sinks)
-                {
-                    if (sink.Value == default(SinkData))
-                        Sinks.Remove(sink.Key);
-                    else
-                        Sinks[sink.Key] = CreateBehavior(sink.Value);
                 }
             }
 
@@ -417,14 +398,6 @@ namespace SecurityCodeScan.Config
         }
 
         private KeyValuePair<string, MethodBehavior> CreateBehavior(MethodBehaviorData behavior)
-        {
-            var key = MethodBehaviorHelper.GetMethodBehaviorKey(behavior.Namespace, behavior.ClassName, behavior.Name, behavior.ArgTypes);
-
-            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetPreConditions(behavior.PreConditions),
-                                                                                    GetPostConditions(behavior.PostConditions)));
-        }
-
-        private KeyValuePair<string, MethodBehavior> CreateBehavior(SinkData behavior)
         {
             var key = MethodBehaviorHelper.GetMethodBehaviorKey(behavior.Namespace, behavior.ClassName, behavior.Name, behavior.ArgTypes);
 

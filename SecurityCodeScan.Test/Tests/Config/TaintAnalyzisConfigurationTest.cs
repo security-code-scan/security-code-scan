@@ -67,7 +67,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
 
             var testConfig = @"
-Sinks:
+Behavior:
   sqlcommand_constructor:
 ";
 
@@ -122,7 +122,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
 
             var testConfig = @"
-Sinks:
+Behavior:
   MyKey:
     Namespace: sample
     ClassName: Test
@@ -340,7 +340,7 @@ End Namespace
             var testConfig = @"
 AuditMode: true
 
-Sinks:
+Behavior:
   MyKey:
     Namespace: sample
     ClassName: Test
@@ -362,16 +362,15 @@ Sinks:
             testConfig = @"
 AuditMode: true
 
-Sinks:
-  MyKey:
+Behavior:
+  MyKey1:
     Namespace: sample
     ClassName: Test
     Name: Vulnerable
     InjectableArguments: [0]
     Locale: SCS0001
 
-Behavior:
-  MyKey:
+  MyKey2:
     Namespace: sample
     ClassName: Test
     Name: Safe

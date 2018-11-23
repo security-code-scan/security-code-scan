@@ -2032,7 +2032,7 @@ End Class
 ";
 
             var testConfig = @"
-Sinks:
+Behavior:
   MyKey:
     ClassName: MyController
     Name: Sink
@@ -2109,7 +2109,7 @@ End Class
 ";
 
             var testConfig = @"
-Sinks:
+Behavior:
   MyKey:
     ClassName: MyController
     Name: Sink
@@ -2189,7 +2189,7 @@ End Class
 ";
 
             var testConfig = @"
-Sinks:
+Behavior:
   MyKey:
     ClassName: MyPage
     Name: Sink
@@ -2286,7 +2286,7 @@ Sources:
     Namespace: sample
     ClassName: HttpRequest
 
-Sinks:
+Behavior:
   MyKey:
     Namespace: sample
     ClassName: HttpResponse
@@ -2305,7 +2305,7 @@ Sources:
     Namespace: sample
     ClassName: Parameters
 
-Sinks:
+Behavior:
   MyKey:
     Namespace: sample
     ClassName: HttpResponse

@@ -87,7 +87,6 @@ namespace SecurityCodeScan.Config
                 var deserializer = new Deserializer();
                 var data = deserializer.Deserialize<T>(reader2);
                 ValidateArgTypes(data.Behavior?.Values);
-                ValidateArgTypes(data.Sinks?.Values);
                 ValidateArgTypes(data.Sources?.Values);
                 return data;
             }
@@ -207,7 +206,6 @@ namespace SecurityCodeScan.Config
             var config = GetProjectConfiguration(additionalFiles);
 
             var behaviorInfos = new List<KeyValuePair<string, MethodBehavior>>(config.Behavior.Values);
-            behaviorInfos.AddRange(config.Sinks.Values);
             return behaviorInfos;
         }
 
@@ -234,7 +232,6 @@ namespace SecurityCodeScan.Config
         public int?                                   MinimumPasswordValidatorProperties  { get; set; }
         public List<string>                           PasswordValidatorRequiredProperties { get; set; }
         public Dictionary<string, MethodBehaviorData> Behavior                            { get; set; }
-        public Dictionary<string, SinkData>           Sinks                               { get; set; }
         public Dictionary<string, TaintSourceData>    Sources                             { get; set; }
         public List<CsrfProtectionData>               CsrfProtectionAttributes            { get; set; }
         public List<string>                           PasswordFields                      { get; set; }
@@ -261,10 +258,7 @@ namespace SecurityCodeScan.Config
         public Dictionary<object, object> PreConditions      { get; set; }
         public Dictionary<object, object> PostConditions     { get; set; }
 
-    }
-
-    internal class SinkData : MethodBehaviorData
-    {
+        // sink specific
         public object[] InjectableArguments { get; set; }
         public object   InjectableField     { get; set; }
         public string   Locale              { get; set; }

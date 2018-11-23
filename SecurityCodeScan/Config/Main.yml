@@ -1087,9 +1087,6 @@ Behavior:
       Returns:
         TaintFromArguments: [0,1]
 
-
-
-Sinks:
 # This is the list of sinks
 # The API is susceptible to attack if value passed is not properly sanitized.
 #
@@ -1105,7 +1102,7 @@ Sinks:
 #   Locale: [Id of a localization in Messages.yml, This value can be reused for multiple sinks]
 # <<<
 
-# XSS
+ # XSS
 
   System.Web.HttpResponse_Write_string:
     Namespace: System.Web
@@ -1139,7 +1136,7 @@ Sinks:
     InjectableArguments: [0: HtmlEscaped]
     Locale: SCS0029
 
-# SQL Injection
+ # SQL Injection
 
  # Microsoft.Data.Sqlite
 
@@ -1157,7 +1154,7 @@ Sinks:
     InjectableField: true
     Locale: SCS0026
 
- # System.Data.SQLite
+  # System.Data.SQLite
 
   SystemDataSQLite_Execute:
     Namespace: System.Data.SQLite
@@ -1599,7 +1596,7 @@ Sinks:
     InjectableField: true
     Locale: SCS0001
 
-# XPath
+ # XPath
 
   XmlNode_SelectNodes:
     Namespace: System.Xml
@@ -1734,7 +1731,7 @@ Sinks:
     InjectableArguments: [1]
     Locale: SCS0003
 
-# Path traversal
+ # Path traversal
 
  # File API
 
@@ -2125,7 +2122,7 @@ Sinks:
     InjectableArguments: [0, 1, 2, 3, 5, 6]
     Locale: SCS0018
 
-# LDAP injection
+ # LDAP injection
 
   DirectorySearcher_constructor_0:
     Namespace: System.DirectoryServices
@@ -2213,7 +2210,7 @@ Sinks:
     InjectableField: LdapDistinguishedNameEncoded
     Locale: SCS0031
 
-# Open Redirects
+ # Open Redirects
 
   System.Web.HttpResponse_Redirect_string:
      Namespace: System.Web
@@ -2358,7 +2355,7 @@ Sinks:
       InjectableField: LocalUrl
       Locale: SCS0027
 
-# Deserialization
+ # Deserialization
 
   BinaryFormatter_Deserialize:
      Namespace: System.Runtime.Serialization.Formatters.Binary
@@ -2584,7 +2581,7 @@ Sinks:
     InjectableField: true
     Locale: SCS0028
 
-# Password
+ # Password
 
   PasswordDeriveBytes:
     Namespace: System.Security.Cryptography

@@ -239,7 +239,7 @@ namespace SecurityCodeScan.Config
         public List<CsrfProtectionData>               CsrfProtectionAttributes            { get; set; }
         public List<string>                           PasswordFields                      { get; set; }
         public List<string>                           ConstantFields                      { get; set; }
-        public List<string>                           SanitizerTypes                      { get; set; }
+        public List<string>                           TaintTypes                          { get; set; }
     }
 
     internal class Signature
@@ -257,13 +257,13 @@ namespace SecurityCodeScan.Config
 
     internal class MethodBehaviorData : Signature
     {
-        // behavior, validator, sanitizer specific
+        // behavior, validator, sanitizer, taint source specific
         public Dictionary<object, object> PreConditions      { get; set; }
         public Dictionary<object, object> PostConditions     { get; set; }
 
     }
 
-    internal class SinkData : Signature
+    internal class SinkData : MethodBehaviorData
     {
         public object[] InjectableArguments { get; set; }
         public object   InjectableField     { get; set; }

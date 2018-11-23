@@ -20,7 +20,7 @@ namespace SecurityCodeScan.Config
             AntiCsrfAttributes                  = new Dictionary<string, List<string>>();
             PasswordFields                      = new HashSet<string>();
             ConstantFields                      = new HashSet<string>();
-            SanitizerTypeNameToBit              = new Dictionary<string, ulong>(62);
+            TaintTypeNameToBit                  = new Dictionary<string, ulong>(62);
         }
 
         public Configuration(Configuration config)
@@ -35,13 +35,13 @@ namespace SecurityCodeScan.Config
             AntiCsrfAttributes                  = new Dictionary<string, List<string>>(config.AntiCsrfAttributes);
             PasswordFields                      = new HashSet<string>(config.PasswordFields);
             ConstantFields                      = new HashSet<string>(config.ConstantFields);
-            SanitizerTypeNameToBit              = new Dictionary<string, ulong>(config.SanitizerTypeNameToBit);
+            TaintTypeNameToBit                  = new Dictionary<string, ulong>(config.TaintTypeNameToBit);
         }
 
         public Configuration(ConfigData configData) : this()
         {
-            if (configData.SanitizerTypes != null)
-                RegisterSanitizerTypes(configData.SanitizerTypes);
+            if (configData.TaintTypes != null)
+                RegisterTaintTypes(configData.TaintTypes);
 
             AuditMode                          = configData.AuditMode                          ?? false;
             MinimumPasswordValidatorProperties = configData.MinimumPasswordValidatorProperties ?? 0;
@@ -105,12 +105,12 @@ namespace SecurityCodeScan.Config
         public Dictionary<string, List<string>>                         AntiCsrfAttributes;
         public HashSet<string>                                          PasswordFields;
         public HashSet<string>                                          ConstantFields;
-        public Dictionary<string, ulong>                                SanitizerTypeNameToBit;
+        public Dictionary<string, ulong>                                TaintTypeNameToBit;
 
         public void MergeWith(ConfigData config)
         {
-            if (config.SanitizerTypes != null)
-                RegisterSanitizerTypes(config.SanitizerTypes);
+            if (config.TaintTypes != null)
+                RegisterTaintTypes(config.TaintTypes);
 
             if (config.AuditMode.HasValue)
                 AuditMode = config.AuditMode.Value;
@@ -203,10 +203,10 @@ namespace SecurityCodeScan.Config
             }
         }
 
-        private void RegisterSanitizerTypes(List<string> typeNames)
+        private void RegisterTaintTypes(List<string> typeNames)
         {
             var availableBit = 1ul << 3;
-            foreach (var registeredBit in SanitizerTypeNameToBit.Values)
+            foreach (var registeredBit in TaintTypeNameToBit.Values)
             {
                 if (availableBit <= registeredBit)
                     availableBit = registeredBit;
@@ -214,14 +214,14 @@ namespace SecurityCodeScan.Config
 
             foreach (var typeName in typeNames)
             {
-                if (SanitizerTypeNameToBit.ContainsKey(typeName))
-                    throw new Exception("Duplicate sanitizer type");
+                if (TaintTypeNameToBit.ContainsKey(typeName))
+                    throw new Exception("Duplicate taint type");
 
                 if (availableBit == 0ul)
-                    throw new Exception("Max number of sanitizer types reached");
+                    throw new Exception("Max number of taint types reached");
 
-                SanitizerTypeNameToBit[typeName] = availableBit;
-                availableBit                     = availableBit << 1;
+                TaintTypeNameToBit[typeName] = availableBit;
+                availableBit                  = availableBit << 1;
             }
         }
 
@@ -254,18 +254,27 @@ namespace SecurityCodeScan.Config
             return conditions;
         }
 
-        private ulong GetSanitizerBits(IEnumerable<object> sanitizerTypes)
+        private ulong GetTaintBits(IEnumerable<object> taintTypes)
         {
             ulong bits = 0ul;
-            foreach (var type in sanitizerTypes)
+            foreach (var type in taintTypes)
             {
-                bits |= SanitizerTypeNameToBit[(string)type];
+                var taintType = (string)type;
+                bits |= GetTaintBits(taintType);
             }
 
             if (bits == 0ul)
-                throw new Exception("Unknown sanitizer type");
+                throw new Exception("Unknown taint type");
 
             return bits;
+        }
+
+        private ulong GetTaintBits(string taintType)
+        {
+            if (taintType == "Tainted")
+                return (ulong)VariableTaint.Tainted;
+            else
+                return TaintTypeNameToBit[taintType];
         }
 
         private IReadOnlyDictionary<int, ulong> GetArguments(IReadOnlyList<object> arguments)
@@ -286,26 +295,24 @@ namespace SecurityCodeScan.Config
                         var indexToTaintType = d.First();
                         switch (indexToTaintType.Value)
                         {
-                            case string sanitizerType:
+                            case string taintType:
                             {
-                                var   i = int.Parse((string)indexToTaintType.Key);
-                                ulong sanitizerBit;
-                                if (i == -1 && sanitizerType == "Tainted")
-                                    sanitizerBit = (ulong)VariableTaint.Tainted;
-                                else
-                                    sanitizerBit = SanitizerTypeNameToBit[sanitizerType];
+                                var i = int.Parse((string)indexToTaintType.Key);
+                                if (i == -1)
+                                    throw new Exception("Argument index cannot be negative");
 
-                                outArguments.Add(i, sanitizerBit);
+                                var taintBit = TaintTypeNameToBit[taintType]; // "Tainted" is not supported
+                                outArguments.Add(i, taintBit);
                                 break;
                             }
-                            case List<object> sanitizerTypes:
+                            case List<object> taintTypes:
                             {
-                                ulong bits = GetSanitizerBits(sanitizerTypes);
+                                ulong bits = GetTaintBits(taintTypes);
                                 outArguments.Add(int.Parse((string)indexToTaintType.Key), bits);
                                 break;
                             }
                             default:
-                                throw new Exception("Unknown sanitizer type");
+                                throw new Exception("Unknown taint type");
                         }
 
                         break;
@@ -333,7 +340,7 @@ namespace SecurityCodeScan.Config
 
                 var                   argKey             = (string)argument.Key;
                 var                   idx                = argKey == "Returns" ? -1 : int.Parse(argKey);
-                ulong                 sanitizerBit       = 0ul;
+                ulong                 taintBit           = 0ul;
                 ImmutableHashSet<int> taintFromArguments = null;
 
                 foreach (var condition in d)
@@ -341,24 +348,15 @@ namespace SecurityCodeScan.Config
                     var conditionKey = (string)condition.Key;
                     switch (conditionKey)
                     {
-                        case "Sanitizer":
+                        case "Taint":
                             switch (condition.Value)
                             {
-                                case string sanitizerType when sanitizerType == "Tainted":
-                                    sanitizerBit = (ulong)VariableTaint.Tainted;
+                                case string taintType:
+                                    taintBit = GetTaintBits(taintType);
                                     break;
-                                case string sanitizerType:
-                                    sanitizerBit = SanitizerTypeNameToBit[sanitizerType];
+                                case List<object> taintTypes:
+                                    taintBit = GetTaintBits(taintTypes);
                                     break;
-                                case List<object> sanitizerTypes:
-                                {
-                                    foreach (var type in sanitizerTypes)
-                                    {
-                                        sanitizerBit |= SanitizerTypeNameToBit[(string)type];
-                                    }
-
-                                    break;
-                                }
                             }
 
                             break;
@@ -377,11 +375,11 @@ namespace SecurityCodeScan.Config
                             taintFromArguments = args.Keys.ToImmutableHashSet();
                             break;
                         default:
-                            throw new Exception("Only 'Sanitizer' and 'TaintFromArguments' are supported in postconditions");
+                            throw new Exception("Only 'Taint' and 'TaintFromArguments' are supported in postconditions");
                     }
                 }
 
-                conditions.Add(idx, new PostCondition(sanitizerBit, taintFromArguments));
+                conditions.Add(idx, new PostCondition(taintBit, taintFromArguments));
             }
 
             return conditions;
@@ -397,9 +395,9 @@ namespace SecurityCodeScan.Config
                 case string s when s == "true":
                     return (ulong)VariableTaint.Safe;
                 case string s:
-                    return SanitizerTypeNameToBit[s];
-                case List <object> sanitizerTypes: {
-                    return GetSanitizerBits(sanitizerTypes);
+                    return TaintTypeNameToBit[s];
+                case List <object> taintTypes: {
+                    return GetTaintBits(taintTypes);
                 }
                 default:
                     throw new Exception("Unknown injectable argument");
@@ -430,7 +428,9 @@ namespace SecurityCodeScan.Config
         {
             var key = MethodBehaviorHelper.GetMethodBehaviorKey(behavior.Namespace, behavior.ClassName, behavior.Name, behavior.ArgTypes);
 
-            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetArguments(behavior.InjectableArguments),
+            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetPreConditions(behavior.PreConditions),
+                                                                                    GetPostConditions(behavior.PostConditions),
+                                                                                    GetArguments(behavior.InjectableArguments),
                                                                                     behavior.PasswordArguments?.ToImmutableHashSet(),
                                                                                     behavior.Locale,
                                                                                     GetField(behavior.InjectableField),

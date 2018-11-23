@@ -36,7 +36,7 @@ ConstantFields:
   - "System.IO.Path.PathSeparator"
   - "System.IO.Path.VolumeSeparatorChar"
 
-SanitizerTypes:
+TaintTypes:
   - LocalUrl
   - HtmlEscaped
   - LdapFilterEncoded
@@ -613,7 +613,7 @@ Behavior:
         Value: 2
     PostConditions:
       2:
-        Sanitizer: LocalUrl
+        Taint: LocalUrl
         TaintFromArguments: [0]
 
   UrlHelper_IsLocalUrl:
@@ -622,7 +622,7 @@ Behavior:
     Name: IsLocalUrl
     PostConditions:
       0:
-        Sanitizer: LocalUrl
+        Taint: LocalUrl
 
   UrlHelperCore_IsLocalUrl:
     Namespace: Microsoft.AspNetCore.Mvc
@@ -630,7 +630,7 @@ Behavior:
     Name: IsLocalUrl
     PostConditions:
       0:
-        Sanitizer: LocalUrl
+        Taint: LocalUrl
 
 # Sanitizers
 
@@ -640,7 +640,7 @@ Behavior:
     Name: RouteUrl
     PostConditions:
       Returns:
-        Sanitizer: LocalUrl
+        Taint: LocalUrl
         TaintFromArguments: [0, 1, 2, 3]
 
   UrlHelperCore_RouteUrl:
@@ -649,7 +649,7 @@ Behavior:
     Name: RouteUrl
     PostConditions:
       Returns:
-        Sanitizer: LocalUrl
+        Taint: LocalUrl
         TaintFromArguments: [1, 2, 3, 4, 5]
 
   Encoder_HtmlEncode:
@@ -658,7 +658,7 @@ Behavior:
     Name: HtmlEncode
     PostConditions:
       Returns:
-        Sanitizer: HtmlEscaped
+        Taint: HtmlEscaped
         TaintFromArguments: [0]
 
   HttpServerUtility_HtmlEncode1:
@@ -668,7 +668,7 @@ Behavior:
     ArgTypes: (System.String)
     PostConditions:
       Returns:
-        Sanitizer: HtmlEscaped
+        Taint: HtmlEscaped
         TaintFromArguments: [0]
 
   HttpServerUtility_HtmlEncode2:
@@ -678,7 +678,7 @@ Behavior:
     ArgTypes: (System.String, System.IO.TextWriter)
     PostConditions:
       1:
-        Sanitizer: HtmlEscaped
+        Taint: HtmlEscaped
         TaintFromArguments: [0]
 
   System.Text.Encodings.Web_HtmlEncoder_Encode1:
@@ -688,7 +688,7 @@ Behavior:
     ArgTypes: (System.String)
     PostConditions:
       Returns:
-        Sanitizer: HtmlEscaped
+        Taint: HtmlEscaped
         TaintFromArguments: [0]
 
   System.Text.Encodings.Web_HtmlEncoder_Encode2:
@@ -698,7 +698,7 @@ Behavior:
     ArgTypes: (System.IO.TextWriter, System.String)
     PostConditions:
       0:
-        Sanitizer: HtmlEscaped
+        Taint: HtmlEscaped
         TaintFromArguments: [1]
 
   System.Text.Encodings.Web_HtmlEncoder_Encode3:
@@ -708,7 +708,7 @@ Behavior:
     ArgTypes: (System.IO.TextWriter, System.String, System.Int32, System.Int32)
     PostConditions:
       0:
-        Sanitizer: HtmlEscaped
+        Taint: HtmlEscaped
         TaintFromArguments: [1]
 
   System.Text.Encodings.Web_HtmlEncoder_Encode4:
@@ -718,7 +718,7 @@ Behavior:
     ArgTypes: (System.IO.TextWriter, System.Char[], System.Int32, System.Int32)
     PostConditions:
       0:
-        Sanitizer: HtmlEscaped
+        Taint: HtmlEscaped
         TaintFromArguments: [1]
 
   Encoder_LdapDistinguishedNameEncode:
@@ -727,7 +727,7 @@ Behavior:
     Name: LdapDistinguishedNameEncode
     PostConditions:
       Returns:
-        Sanitizer: LdapDistinguishedNameEncoded
+        Taint: LdapDistinguishedNameEncoded
         TaintFromArguments: [0]
 
   Encoder_LdapFilterEncode:
@@ -736,7 +736,7 @@ Behavior:
     Name: LdapFilterEncode
     PostConditions:
       Returns:
-        Sanitizer: LdapFilterEncoded
+        Taint: LdapFilterEncoded
         TaintFromArguments: [0]
 
 # Behaviors

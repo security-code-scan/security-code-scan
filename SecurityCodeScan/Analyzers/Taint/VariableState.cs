@@ -32,24 +32,31 @@ namespace SecurityCodeScan.Analyzers.Taint
             Properties = new Dictionary<string, VariableState>();
         }
 
-        public void ApplySanitizer(ulong newTaint)
+        /// <summary>
+        /// Adds additional custom taint bit, or taint. Usually in post conditions.
+        /// Differently from 'MergeTaint', bits are only added to existing ones.
+        /// </summary>
+        public void ApplyTaint(ulong newTaint)
         {
-            if ((newTaint & (ulong)Unknown) != 0)
+            var newVarTaint = (VariableTaint)newTaint;
+            if (newVarTaint == Unset)
+                return;
+
+            // only custom taint bits and Tainted are allowed
+            if ((newVarTaint & (Safe | Tainted)) == 0)
                 throw new ArgumentOutOfRangeException();
 
-            if (newTaint == (ulong)Tainted)
-            {
-                // special case for function taint sources
-                Taint = Tainted;
-                return;
-            }
+            if (Taint == Constant && (newVarTaint & Tainted) == 0)
+                return; // sanitized const is still const
 
-            if (Taint == Constant)
-                return;
-
-            Taint |= (VariableTaint)newTaint;
+            Taint &= ~Constant;
+            Taint |= newVarTaint;
         }
 
+        /// <summary>
+        /// Merges two taints (in concatenation case for example). The worst case wins.
+        /// So tainted + sanitized gives tainted.
+        /// </summary>
         public void MergeTaint(VariableTaint newTaint)
         {
             if (newTaint == Unset)
@@ -144,9 +151,9 @@ namespace SecurityCodeScan.Analyzers.Taint
 #if DEBUG
         public override string ToString()
         {
-            var sanitizerBits = Taint & Safe;
-            if (sanitizerBits != 0ul && sanitizerBits != Safe)
-                return $"{(Taint & ~Safe).ToString()} | {((ulong)sanitizerBits).ToString()}";
+            var taintBits = Taint & Safe;
+            if (taintBits != 0ul && taintBits != Safe)
+                return $"{(Taint & ~Safe).ToString()} | {((ulong)taintBits).ToString()}";
 
             return Taint.ToString();
         }

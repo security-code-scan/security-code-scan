@@ -453,7 +453,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             var  methodSymbol      = symbol as IMethodSymbol;
             bool isExtensionMethod = methodSymbol?.ReducedFrom != null;
             var  behavior          = symbol.GetMethodBehavior(state.CachedMethodBehaviors);
-            bool applySanitizer    = behavior != null && CheckPreconditions(behavior, isExtensionMethod, argList, state);
+            bool applyCustomTaint  = behavior != null && CheckPreconditions(behavior, isExtensionMethod, argList, state);
 
             VariableState returnState = initialTaint != null && !symbol.IsStatic
                                             ? new VariableState(node, initialTaint.Value)
@@ -488,8 +488,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                     if ((argumentState.Taint & (config.AuditMode ? VariableTaint.Tainted | VariableTaint.Unknown : VariableTaint.Tainted)) != 0)
                     {
                         //If the current parameter can be injected.
-                        if (behavior.InjectableArguments.TryGetValue(adjustedArgumentIdx, out var requiredSanitizersBits) &&
-                            (requiredSanitizersBits & (ulong)argumentState.Taint) != requiredSanitizersBits)
+                        if (behavior.InjectableArguments.TryGetValue(adjustedArgumentIdx, out var requiredTaintBits) &&
+                            (requiredTaintBits & (ulong)argumentState.Taint) != requiredTaintBits)
                         {
                             var newRule    = LocaleUtil.GetDescriptor(behavior.LocaleInjection);
                             var diagnostic = Diagnostic.Create(newRule, node.GetLocation(), GetMethodName(node), (i + 1).ToNthString());
@@ -562,8 +562,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                         }
                     }
 
-                    if (applySanitizer)
-                        returnState.ApplySanitizer(returnPostCondition.Taint);
+                    if (applyCustomTaint)
+                        returnState.ApplyTaint(returnPostCondition.Taint);
                 }
 
                 if (argumentStates != null)
@@ -581,8 +581,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                             argumentStates[adjustedPostConditionIdx].MergeTaint(argumentStates[adjustedArgumentIdx].Taint);
                         }
 
-                        if (applySanitizer)
-                            argumentStates[adjustedPostConditionIdx].ApplySanitizer(postCondition.Value.Taint);
+                        if (applyCustomTaint)
+                            argumentStates[adjustedPostConditionIdx].ApplyTaint(postCondition.Value.Taint);
                     }
                 }
             }

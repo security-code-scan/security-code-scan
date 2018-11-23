@@ -46,7 +46,7 @@ namespace SecurityCodeScan.Test.Config
             Assert.AreEqual(StartupConfiguration.PasswordFields.Count,                      newConfig.PasswordFields.Count);
             Assert.AreEqual(StartupConfiguration.ConstantFields.Count,                      newConfig.ConstantFields.Count);
             Assert.AreEqual(StartupConfiguration.AntiCsrfAttributes.Count,                  newConfig.AntiCsrfAttributes.Count);
-            Assert.AreEqual(StartupConfiguration.SanitizerTypeNameToBit.Count,              newConfig.SanitizerTypeNameToBit.Count);
+            Assert.AreEqual(StartupConfiguration.TaintTypeNameToBit.Count,              newConfig.TaintTypeNameToBit.Count);
         }
 
         [TestMethod]
@@ -68,7 +68,7 @@ namespace SecurityCodeScan.Test.Config
             Assert.AreEqual(StartupConfiguration.PasswordFields.Count,                      newConfig.PasswordFields.Count);
             Assert.AreEqual(StartupConfiguration.ConstantFields.Count,                      newConfig.ConstantFields.Count);
             Assert.AreEqual(StartupConfiguration.AntiCsrfAttributes.Count,                  newConfig.AntiCsrfAttributes.Count);
-            Assert.AreEqual(StartupConfiguration.SanitizerTypeNameToBit.Count, newConfig.SanitizerTypeNameToBit.Count);
+            Assert.AreEqual(StartupConfiguration.TaintTypeNameToBit.Count, newConfig.TaintTypeNameToBit.Count);
         }
 
         [TestMethod]
@@ -126,7 +126,7 @@ Behavior:
         public void SanitizerTypesValidation(string payload, bool shouldThrow)
         {
             var options = ConfigurationTest.CreateAnalyzersOptionsWithConfig($@"
-SanitizerTypes: {payload}");
+TaintTypes: {payload}");
 
             if (shouldThrow)
                 Assert.ThrowsException<Exception>(() => Manager.GetProjectConfiguration(options.AdditionalFiles));

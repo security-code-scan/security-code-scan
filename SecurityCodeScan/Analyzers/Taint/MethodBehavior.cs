@@ -27,16 +27,18 @@ namespace SecurityCodeScan.Analyzers.Taint
         public ulong                                   InjectableField     { get; }
         public bool                                    IsPasswordField     { get; }
 
-        public MethodBehavior(IReadOnlyDictionary<int, ulong> injectableArguments,
-                              ImmutableHashSet<int>           passwordArguments,
-                              string                          localeInjection,
-                              ulong                           injectableField,
-                              bool                            isPasswordField)
+        public MethodBehavior(IReadOnlyDictionary<int, object>        preConditions,
+                              IReadOnlyDictionary<int, PostCondition> postConditions,
+                              IReadOnlyDictionary<int, ulong>         injectableArguments,
+                              ImmutableHashSet<int>                   passwordArguments,
+                              string                                  localeInjection,
+                              ulong                                   injectableField,
+                              bool                                    isPasswordField)
         {
             InjectableArguments = injectableArguments ?? EmptyDictionary<int, ulong>.Value;
             PasswordArguments   = passwordArguments   ?? ImmutableHashSet<int>.Empty;
-            PostConditions      = EmptyDictionary<int, PostCondition>.Value;
-            PreConditions       = EmptyDictionary<int, object>.Value;
+            PostConditions      = postConditions      ?? EmptyDictionary<int, PostCondition>.Value;
+            PreConditions       = preConditions       ?? EmptyDictionary<int, object>.Value;
             LocaleInjection     = localeInjection;
             InjectableField     = injectableField;
             IsPasswordField     = isPasswordField;

@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Resources;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 
 namespace SecurityCodeScan.Analyzers.Locale
 {
     internal class LocaleUtil
     {
-        private static YamlResourceManager ResourceManager;
+        private static volatile YamlResourceManager ResourceManager;
 
         public static DiagnosticDescriptor GetDescriptor(string id, string titleId = "title", string descriptionId = "description", string[] args = null)
         {
@@ -26,11 +26,10 @@ namespace SecurityCodeScan.Analyzers.Locale
             );
         }
 
-        public static IList<DiagnosticDescriptor> GetAllAvailableDescriptors()
+        public static IEnumerable<DiagnosticDescriptor> GetAllAvailableDescriptors()
         {
-            var localeIds = ((YamlResourceManager)GetResourceManager()).LocaleKeyIds;
-
-            return localeIds.Select(localeId => GetDescriptor(localeId)).ToList();
+            var localeIds = GetResourceManager().LocaleKeyIds;
+            return localeIds.Select(localeId => GetDescriptor(localeId));
         }
 
         private static LocalizableString GetLocalString(string id)
@@ -38,13 +37,23 @@ namespace SecurityCodeScan.Analyzers.Locale
             return new LocalizableResourceString(id, GetResourceManager(), typeof(LocaleUtil));
         }
 
-        private static ResourceManager GetResourceManager()
+        private static readonly object ResourceManagerLock = new object();
+
+        private static YamlResourceManager GetResourceManager()
         {
             if (ResourceManager != null)
                 return ResourceManager;
 
-            ResourceManager = new YamlResourceManager();
-            ResourceManager.Load();
+            lock (ResourceManagerLock)
+            {
+                if (ResourceManager != null)
+                    return ResourceManager;
+
+                var resourceManager = new YamlResourceManager();
+                resourceManager.Load();
+                Thread.MemoryBarrier();
+                ResourceManager = resourceManager;
+            }
 
             return ResourceManager;
         }

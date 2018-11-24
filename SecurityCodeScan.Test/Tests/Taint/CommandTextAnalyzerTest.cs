@@ -19,7 +19,8 @@ namespace SecurityCodeScan.Test.Taint
         private static readonly PortableExecutableReference[] References =
         {
             MetadataReference.CreateFromFile(typeof(System.Data.SQLite.SQLiteCommand).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(Microsoft.Data.Sqlite.SqliteCommand).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(Microsoft.Data.Sqlite.SqliteCommand).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
@@ -58,19 +59,20 @@ namespace SecurityCodeScan.Test.Taint
 #pragma warning disable 8019
     using System.Data.Common;
     using System.Data;
+    using System.Web.Mvc;
     using {ns};
 #pragma warning restore 8019
 
 namespace sample
 {{
-    class MyFoo
+    class MyFoo : Controller
     {{
-        public static void Run(string sql)
+        public void Run(string sql)
         {{
             {type} sqlCommand = {factory};
         }}
 
-        static {type} Create()
+        {type} Create()
         {{
             return null;
         }}
@@ -81,7 +83,7 @@ namespace sample
             if (warn)
             {
                 await VerifyCSharpDiagnostic(cSharpTest,
-                                             new DiagnosticResult { Id = "SCS0026" }.WithLocation(14))
+                                             new DiagnosticResult { Id = "SCS0026" }.WithLocation(15))
                     .ConfigureAwait(false);
             }
             else
@@ -96,16 +98,19 @@ namespace sample
 #Disable Warning BC50001
     Imports System.Data.Common
     Imports System.Data
+    Imports System.Web.Mvc
     Imports {ns}
 #Enable Warning BC50001
 
 Namespace sample
     Class MyFoo
-        Public Shared Sub Run(sql As System.String)
+        Inherits Controller
+
+        Public Sub Run(sql As System.String)
             Dim sqlCommand = {factory}
         End Sub
 
-        Private Shared Function Create() As {type}
+        Private Function Create() As {type}
             Return Nothing
         End Function
     End Class
@@ -115,7 +120,7 @@ End Namespace
             if (warn)
             {
                 await VerifyVisualBasicDiagnostic(visualBasicTest,
-                                                  new DiagnosticResult { Id = "SCS0026" }.WithLocation(12))
+                                                  new DiagnosticResult { Id = "SCS0026" }.WithLocation(15))
                     .ConfigureAwait(false);
             }
             else

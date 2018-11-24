@@ -51,7 +51,7 @@ namespace SecurityCodeScan.Test.Helpers
         /// </summary>
         /// <param name="source">A class in the form of a string to run the analyzer on</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
-        /// <param name="options"> Analyzis context options</param>
+        /// <param name="options"> Analysis context options</param>
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
         protected async Task VerifyCSharpDiagnostic(string             source,
                                                     DiagnosticResult[] expected = null,
@@ -78,7 +78,7 @@ namespace SecurityCodeScan.Test.Helpers
         /// </summary>
         /// <param name="source">A class in the form of a string to run the analyzer on</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
-        /// <param name="options">Analyzis context options</param>
+        /// <param name="options">Analysis context options</param>
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
         protected async Task VerifyVisualBasicDiagnostic(string             source,
                                                          DiagnosticResult[] expected          = null,
@@ -105,7 +105,7 @@ namespace SecurityCodeScan.Test.Helpers
         /// </summary>
         /// <param name="source">A class in the form of a string to run the analyzer on</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
-        /// <param name="options">Analyzis context options</param>
+        /// <param name="options">Analysis context options</param>
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
         protected async Task VerifyCSharpDiagnostic(string            source,
                                                     DiagnosticResult  expected,
@@ -128,7 +128,7 @@ namespace SecurityCodeScan.Test.Helpers
         /// </summary>
         /// <param name="source">A class in the form of a string to run the analyzer on</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
-        /// <param name="options">Analyzis context options</param>
+        /// <param name="options">Analysis context options</param>
         /// <param name="verifyIfCompiles">Verify if the source compiles</param>
         protected async Task VerifyVisualBasicDiagnostic(string            source,
                                                          DiagnosticResult  expected,
@@ -158,7 +158,7 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="sources">An array of strings to create source documents from to run the analyzers on</param>
         /// <param name="language">The language of the classes represented by the source strings</param>
         /// <param name="analyzers">The analyzers to be run on the source code</param>
-        /// <param name="options">Analyzis context options</param>
+        /// <param name="options">Analysis context options</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
         /// <param name="includeCompilerDiagnostics">Verify built-in compile diagnostics</param>
         private async Task VerifyDiagnostics(string[]                           sources,

@@ -18,7 +18,8 @@ namespace SecurityCodeScan.Test.Taint
 
         private static readonly PortableExecutableReference[] References =
         {
-            MetadataReference.CreateFromFile(typeof(System.DirectoryServices.DirectorySearcher).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(System.DirectoryServices.DirectorySearcher).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
@@ -55,13 +56,14 @@ namespace SecurityCodeScan.Test.Taint
             var cSharpTest = $@"
 #pragma warning disable 8019
     using System.DirectoryServices;
+    using System.Web.Mvc;
 #pragma warning restore 8019
 
 namespace sample
 {{
-    class MyFoo
+    class MyFoo : Controller
     {{
-        public static void Run(string input, string[] propertiesToLoad, DirectoryEntry entry, SearchScope scope)
+        public void Run(string input, string[] propertiesToLoad, DirectoryEntry entry, SearchScope scope)
         {{
             var temp = {sink};
         }}
@@ -72,11 +74,13 @@ namespace sample
             var visualBasicTest = $@"
 #Disable Warning BC50001
     Imports System.DirectoryServices
+    Imports System.Web.Mvc
 #Enable Warning BC50001
 
 Namespace sample
     Class MyFoo
-        Public Shared Sub Run(input As System.String, propertiesToLoad() As System.String, entry As DirectoryEntry, scope As SearchScope )
+        Inherits Controller
+        Public Sub Run(input As System.String, propertiesToLoad() As System.String, entry As DirectoryEntry, scope As SearchScope )
             Dim temp = {sink.CSharpReplaceToVBasic()}
         End Sub
     End Class

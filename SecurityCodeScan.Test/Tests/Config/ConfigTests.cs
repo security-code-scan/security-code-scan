@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -34,39 +35,37 @@ namespace SecurityCodeScan.Test.Config
             var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
 
             //ensuring that field count matches count of properties tested below (test should fail and be updated if someone adds new field in Configuration)
-            Assert.AreEqual(10, typeof(Configuration).GetFields().Length);
+            Assert.AreEqual(9, typeof(Configuration).GetProperties(BindingFlags.Instance | BindingFlags.Public).Length);
 
             Assert.AreEqual(StartupConfiguration.AuditMode,                                 newConfig.AuditMode);
             Assert.AreEqual(StartupConfiguration.Behavior.Count,                            newConfig.Behavior.Count);
-            Assert.AreEqual(StartupConfiguration.Sinks.Count,                               newConfig.Sinks.Count);
+            Assert.AreEqual(StartupConfiguration.Sources.Count,                             newConfig.Sources.Count);
             Assert.AreEqual(StartupConfiguration.MinimumPasswordValidatorProperties,        newConfig.MinimumPasswordValidatorProperties);
             Assert.AreEqual(StartupConfiguration.PasswordValidatorRequiredLength,           newConfig.PasswordValidatorRequiredLength);
             Assert.AreEqual(StartupConfiguration.PasswordValidatorRequiredProperties.Count, newConfig.PasswordValidatorRequiredProperties.Count);
             Assert.AreEqual(StartupConfiguration.PasswordFields.Count,                      newConfig.PasswordFields.Count);
             Assert.AreEqual(StartupConfiguration.ConstantFields.Count,                      newConfig.ConstantFields.Count);
             Assert.AreEqual(StartupConfiguration.AntiCsrfAttributes.Count,                  newConfig.AntiCsrfAttributes.Count);
-            Assert.AreEqual(StartupConfiguration.SanitizerTypeNameToBit.Count,              newConfig.SanitizerTypeNameToBit.Count);
         }
 
         [TestMethod]
         public void MergingUserConfig_NoChanges()
         {
-            var options   = ConfigurationTest.CreateAnalyzersOptionsWithConfig("Sinks:");
+            var options   = ConfigurationTest.CreateAnalyzersOptionsWithConfig("Behavior:");
             var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
 
             // ensuring that field count matches count of properties tested below
-            Assert.AreEqual(10, typeof(Configuration).GetFields().Length);
+            Assert.AreEqual(9, typeof(Configuration).GetProperties(BindingFlags.Instance | BindingFlags.Public).Length);
 
             Assert.AreEqual(StartupConfiguration.AuditMode,                                 newConfig.AuditMode);
             Assert.AreEqual(StartupConfiguration.Behavior.Count,                            newConfig.Behavior.Count);
-            Assert.AreEqual(StartupConfiguration.Sinks.Count,                               newConfig.Sinks.Count);
+            Assert.AreEqual(StartupConfiguration.Sources.Count,                             newConfig.Sources.Count);
             Assert.AreEqual(StartupConfiguration.MinimumPasswordValidatorProperties,        newConfig.MinimumPasswordValidatorProperties);
             Assert.AreEqual(StartupConfiguration.PasswordValidatorRequiredLength,           newConfig.PasswordValidatorRequiredLength);
             Assert.AreEqual(StartupConfiguration.PasswordValidatorRequiredProperties.Count, newConfig.PasswordValidatorRequiredProperties.Count);
             Assert.AreEqual(StartupConfiguration.PasswordFields.Count,                      newConfig.PasswordFields.Count);
             Assert.AreEqual(StartupConfiguration.ConstantFields.Count,                      newConfig.ConstantFields.Count);
             Assert.AreEqual(StartupConfiguration.AntiCsrfAttributes.Count,                  newConfig.AntiCsrfAttributes.Count);
-            Assert.AreEqual(StartupConfiguration.SanitizerTypeNameToBit.Count, newConfig.SanitizerTypeNameToBit.Count);
         }
 
         [TestMethod]
@@ -106,7 +105,6 @@ Behavior:
   Bla:
     Namespace: NS
     ClassName: CL
-    Member: method
     Name: Foo
     ArgTypes: ""{payload}""
 ");
@@ -125,7 +123,7 @@ Behavior:
         public void SanitizerTypesValidation(string payload, bool shouldThrow)
         {
             var options = ConfigurationTest.CreateAnalyzersOptionsWithConfig($@"
-SanitizerTypes: {payload}");
+TaintTypes: {payload}");
 
             if (shouldThrow)
                 Assert.ThrowsException<Exception>(() => Manager.GetProjectConfiguration(options.AdditionalFiles));

@@ -54,6 +54,7 @@ namespace SecurityCodeScan.Analyzers.Utils
             SyntaxKind kind = node.Kind();
             switch (kind)
             {
+                case SyntaxKind.AddAssignmentExpression:
                 case SyntaxKind.SimpleAssignmentExpression:
                     return ((AssignmentExpressionSyntax)node).Right;
                 case SyntaxKind.VariableDeclarator:
@@ -128,7 +129,7 @@ namespace SecurityCodeScan.Analyzers.Utils
             return null;
         }
 
-        public override SyntaxNode GetAttributeArgumentExpresionNode(SyntaxNode node)
+        public override SyntaxNode GetAttributeArgumentExpressionNode(SyntaxNode node)
         {
             if (!(node is AttributeArgumentSyntax argument))
                 return null;

@@ -36,11 +36,556 @@ ConstantFields:
   - "System.IO.Path.PathSeparator"
   - "System.IO.Path.VolumeSeparatorChar"
 
-SanitizerTypes:
+TaintTypes:
   - LocalUrl
   - HtmlEscaped
   - LdapFilterEncoded
   - LdapDistinguishedNameEncoded
+
+Sources:
+# Taint sources
+
+ # Microsoft.AspNetCore.Mvc.Controller
+  Microsoft.AspNetCore.Mvc_Controller:
+    Namespace: Microsoft.AspNetCore.Mvc
+    ClassName: ControllerBase
+    FromExternalParameters: true
+
+ # Microsoft.AspNetCore.Http.IHeaderDictionary
+  Microsoft.AspNetCore.Http_IHeaderDictionary:
+    Namespace: Microsoft.AspNetCore.Http
+    ClassName: IHeaderDictionary
+
+ # Microsoft.AspNetCore.Http.HostString
+  Microsoft.AspNetCore.Http_HostString:
+    Namespace: Microsoft.AspNetCore.Http
+    ClassName: HostString
+
+ # Microsoft.AspNetCore.Http.*HttpContext
+  Microsoft.AspNetCore.Http_HttpContext:
+    Namespace: Microsoft.AspNetCore.Http
+    ClassName: HttpContext
+
+  Microsoft.AspNetCore.Http_DefaultHttpContext:
+    Namespace: Microsoft.AspNetCore.Http
+    ClassName: DefaultHttpContext
+
+ # Microsoft.AspNetCore.Http.HttpRequest.*
+  Microsoft.AspNetCore.Http_HttpRequest_Controller:
+    Namespace: Microsoft.AspNetCore.Http
+    ClassName: HttpRequest
+    Name: Body
+
+  Microsoft.AspNetCore.Http_HttpRequest_ContentType:
+    Namespace: Microsoft.AspNetCore.Http
+    ClassName: HttpRequest
+    Name: ContentType
+
+  Microsoft.AspNetCore.Http_HttpRequest_QueryString:
+    Namespace: Microsoft.AspNetCore.Http
+    ClassName: HttpRequest
+    Name: QueryString
+
+  Microsoft.AspNetCore.Http_HttpRequest_Query:
+    Namespace: Microsoft.AspNetCore.Http
+    ClassName: HttpRequest
+    Name: Query
+
+  Microsoft.AspNetCore.Http_HttpRequest_ReadFormAsync:
+    Namespace: Microsoft.AspNetCore.Http
+    ClassName: HttpRequest
+    Name: ReadFormAsync
+
+  Microsoft.AspNetCore.Http_RequestFormReaderExtensions_ReadFormAsync:
+    Namespace: Microsoft.AspNetCore.Http
+    ClassName: RequestFormReaderExtensions
+    Name: ReadFormAsync
+
+ # Microsoft.AspNetCore.Http.*RequestCookieCollection
+  Microsoft.AspNetCore.Http_IRequestCookieCollection:
+    Namespace: Microsoft.AspNetCore.Http
+    ClassName: IRequestCookieCollection
+
+  Microsoft.AspNetCore.Http.Internal_RequestCookieCollection:
+    Namespace: Microsoft.AspNetCore.Http.Internal
+    ClassName: IRequestCookieCollection
+
+ # Microsoft.AspNetCore.Http.*FormCollection
+  Microsoft.AspNetCore.Http_IFormCollection:
+    Namespace: Microsoft.AspNetCore.Http
+    ClassName: IFormCollection
+
+  Microsoft.AspNetCore.Http_FormCollection:
+    Namespace: Microsoft.AspNetCore.Http
+    ClassName: FormCollection
+
+ # System.Web.Mvc.Controller
+  System.Web.Mvc_Controller:
+    Namespace: System.Web.Mvc
+    ClassName: ControllerBase
+    FromExternalParameters: true
+
+ # System.Web.Routing.RequestContext
+  System.Web.Routing_RequestContext:
+    Namespace: System.Web.Routing
+    ClassName: RequestContext
+
+ # System.Web_HttpPostedFile*
+  System.Web_HttpPostedFileBase:
+    Namespace: System.Web
+    ClassName: HttpPostedFileBase
+
+  System.Web_HttpPostedFile:
+    Namespace: System.Web
+    ClassName: HttpPostedFile
+
+  System.Web_HttpPostedFileWrapper:
+    Namespace: System.Web
+    ClassName: HttpPostedFileWrapper
+
+ # System.Web_HttpRequest*.RawUrl
+  System.Web_HttpRequestBase_RawUrl:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: RawUrl
+
+  System.Web_HttpRequest_RawUrl:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: RawUrl
+
+  System.Web_HttpRequestWrapper_RawUrl:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: RawUrl
+
+ # System.Web_HttpRequest*.this[]
+  System.Web_HttpRequestBase_Indexer:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: this[]
+
+  System.Web_HttpRequest_Indexer:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: this[]
+
+  System.Web_HttpRequestWrapper_Indexer:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: this[]
+
+ # System.Web_HttpRequest*.Params
+  System.Web_HttpRequestBase_Params:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: Params
+
+  System.Web_HttpRequest_Params:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: Params
+
+  System.Web_HttpRequestWrapper_Params:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: Params
+
+ # System.Web_HttpRequest*.QueryString
+  System.Web_HttpRequestBase_QueryString:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: QueryString
+
+  System.Web_HttpRequest_QueryString:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: QueryString
+
+  System.Web_HttpRequestWrapper_QueryString:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: QueryString
+
+ # System.Web_HttpRequest*.Headers
+  System.Web_HttpRequestBase_Headers:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: Headers
+
+  System.Web_HttpRequest_Headers:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: Headers
+
+  System.Web_HttpRequestWrapper_Headers:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: Headers
+
+ # System.Web_HttpRequest*.UserAgent
+  System.Web_HttpRequestBase_UserAgent:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: UserAgent
+
+  System.Web_HttpRequest_UserAgent:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: UserAgent
+
+  System.Web_HttpRequestWrapper_UserAgent:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: UserAgent
+
+ # System.Web_HttpRequest*.UserHostName
+  System.Web_HttpRequestBase_UserHostName:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: UserHostName
+
+  System.Web_HttpRequest_UserHostName:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: UserHostName
+
+  System.Web_HttpRequestWrapper_UserHostName:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: UserHostName
+
+ # System.Web_HttpRequest*.UserHostAddress
+  System.Web_HttpRequestBase_UserHostAddress:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: UserHostAddress
+
+  System.Web_HttpRequest_UserHostAddress:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: UserHostAddress
+
+  System.Web_HttpRequestWrapper_UserHostAddress:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: UserHostAddress
+
+ # System.Web_HttpRequest*.Url
+  System.Web_HttpRequestBase_Url:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: Url
+
+  System.Web_HttpRequest_Url:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: Url
+
+  System.Web_HttpRequestWrapper_Url:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: Url
+
+ # System.Web_HttpRequest*.UrlReferrer
+  System.Web_HttpRequestBase_UrlReferrer:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: UrlReferrer
+
+  System.Web_HttpRequest_UrlReferrer:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: UrlReferrer
+
+  System.Web_HttpRequestWrapper_UrlReferrer:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: UrlReferrer
+
+ # System.Web_HttpRequest*.Unvalidated
+  System.Web_HttpRequestBase_Unvalidated:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: Unvalidated
+
+  System.Web_HttpRequest_Unvalidated:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: Unvalidated
+
+  System.Web_HttpRequestWrapper_Unvalidated:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: Unvalidated
+
+ # System.Web_HttpRequest*.InputStream
+  System.Web_HttpRequestBase_InputStream:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: InputStream
+
+  System.Web_HttpRequest_InputStream:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: InputStream
+
+  System.Web_HttpRequestWrapper_InputStream:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: InputStream
+
+ # System.Web_HttpRequest*.Form
+  System.Web_HttpRequestBase_Form:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: Form
+
+  System.Web_HttpRequest_Form:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: Form
+
+  System.Web_HttpRequestWrapper_Form:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: Form
+
+ # System.Web_HttpRequest*.Cookies
+  System.Web_HttpRequestBase_Cookies:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: Cookies
+
+  System.Web_HttpRequest_Cookies:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: Cookies
+
+  System.Web_HttpRequestWrapper_Cookies:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: Cookies
+
+ # System.Web_HttpRequest*.AcceptTypes
+  System.Web_HttpRequestBase_AcceptTypes:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: AcceptTypes
+
+  System.Web_HttpRequest_AcceptTypes:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: AcceptTypes
+
+  System.Web_HttpRequestWrapper_AcceptTypes:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: AcceptTypes
+
+ # System.Web_HttpRequest*.UserLanguages
+  System.Web_HttpRequestBase_UserLanguages:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: UserLanguages
+
+  System.Web_HttpRequest_UserLanguages:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: UserLanguages
+
+  System.Web_HttpRequestWrapper_UserLanguages:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: UserLanguages
+
+ # System.Web_HttpRequest*.ContentType
+  System.Web_HttpRequestBase_ContentType:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: ContentType
+
+  System.Web_HttpRequest_ContentType:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: ContentType
+
+  System.Web_HttpRequestWrapper_ContentType:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: ContentType
+
+ # System.Web_HttpRequest*.IsLocal
+  System.Web_HttpRequestBase_IsLocal:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: IsLocal
+
+  System.Web_HttpRequest_IsLocal:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: IsLocal
+
+  System.Web_HttpRequestWrapper_IsLocal:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: IsLocal
+
+ # System.Web_HttpRequest*.BinaryRead
+  System.Web_HttpRequestBase_BinaryRead:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: BinaryRead
+
+  System.Web_HttpRequest_BinaryRead:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: BinaryRead
+
+  System.Web_HttpRequestWrapper_BinaryRead:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: BinaryRead
+
+ # System.Web_HttpRequest*.GetBufferedInputStream
+  System.Web_HttpRequestBase_GetBufferedInputStream:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: GetBufferedInputStream
+
+  System.Web_HttpRequest_GetBufferedInputStream:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: GetBufferedInputStream
+
+  System.Web_HttpRequestWrapper_GetBufferedInputStream:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: GetBufferedInputStream
+
+ # System.Web_HttpRequest*.GetBufferlessInputStream
+  System.Web_HttpRequestBase_GetBufferlessInputStream:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: GetBufferlessInputStream
+
+  System.Web_HttpRequest_GetBufferlessInputStream:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: GetBufferlessInputStream
+
+  System.Web_HttpRequestWrapper_GetBufferlessInputStream:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: GetBufferlessInputStream
+
+ # System.Web_HttpRequest*.ClientCertificate
+  System.Web_HttpRequestBase_ClientCertificate:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: ClientCertificate
+
+  System.Web_HttpRequest_ClientCertificate:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: ClientCertificate
+
+  System.Web_HttpRequestWrapper_ClientCertificate:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: ClientCertificate
+
+ # System.Web_HttpRequest*.Browser
+  System.Web_HttpRequestBase_Browser:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: Browser
+
+  System.Web_HttpRequest_Browser:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: Browser
+
+  System.Web_HttpRequestWrapper_Browser:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: Browser
+
+ # System.Web_HttpRequest*.AnonymousID
+ # Tracked by cookie by default
+  System.Web_HttpRequestBase_AnonymousID:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: AnonymousID
+
+  System.Web_HttpRequest_AnonymousID:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: AnonymousID
+
+  System.Web_HttpRequestWrapper_AnonymousID:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: AnonymousID
+
+ # System.Web_HttpRequest*.ServerVariables
+ # Some server variables get their information from HTTP headers.
+ # It is recommended that you distrust information in HTTP headers because this data can be falsified by malicious users.
+  System.Web_HttpRequestBase_ServerVariabless:
+    Namespace: System.Web
+    ClassName: HttpRequestBase
+    Name: ServerVariables
+
+  System.Web_HttpRequest_ServerVariables:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: ServerVariables
+
+  System.Web_HttpRequestWrapper_ServerVariables:
+    Namespace: System.Web
+    ClassName: HttpRequestWrapper
+    Name: ServerVariables
+
+ # WebForms
+  System.Web.UI.WebControls_FileUpload_FileName:
+    Namespace: System.Web.UI.WebControls
+    ClassName: FileUpload
+    Name: FileName
+
+  System.Web.UI.WebControls_FileUpload_FileContent:
+    Namespace: System.Web.UI.WebControls
+    ClassName: FileUpload
+    Name: FileContent
+
+  System.Web.UI.WebControls_HiddenField_Value:
+    Namespace: System.Web.UI.WebControls
+    ClassName: HiddenField
+    Name: Value
+
+  System.Web.UI.WebControls_TextBox_Text:
+    Namespace: System.Web.UI.WebControls
+    ClassName: TextBox
+    Name: Text
+
+  System.Web.UI.HtmlControls_HtmlInputFile_Value:
+    Namespace: System.Web.UI.HtmlControls
+    ClassName: HtmlInputFile
+    Name: Value
+
+  System.Web.UI.HtmlControls_HtmlInputControl_Value:
+    Namespace: System.Web.UI.HtmlControls
+    ClassName: HtmlInputControl
+    Name: Value
+
+  System.Web.UI.HtmlControls_HtmlInputText_Value:
+    Namespace: System.Web.UI.HtmlControls
+    ClassName: HtmlInputText
+    Name: Value
+
+  System.Web.UI.HtmlControls_HtmlTextArea_Value:
+    Namespace: System.Web.UI.HtmlControls
+    ClassName: HtmlTextArea
+    Name: Value
 
 Behavior:
 # This is the definition of API that conserve the state of variable received.
@@ -51,437 +596,497 @@ Behavior:
 # [Unique ID]:
 #   Namespace: [Namespace where the class is present]
 #   ClassName: [Class of the API]
-#   Member: ["method" => method call or "field" for assignment]
 #   Name: [Field Name (assignment) or Method Name (method call)]
 #   ArgTypes: (Optional field) [Parameter types signature]
 #   TaintFromArguments: [[Index of the argument that will influence the state of the return value.]
 # <<<
 
+# Validators
+
   Uri_TryCreate:
     Namespace: System
     ClassName: Uri
-    Member: method
     Name: TryCreate
     ArgTypes: (System.String, System.UriKind, out System.Uri)
-    PreConditions: [1: [Value: 2]]
-    PostConditions: [-1: Validator, 2: LocalUrl]
-
-  UrlHelper_RouteUrl:
-    Namespace: System.Web.Mvc
-    ClassName: UrlHelper
-    Member: method
-    Name: RouteUrl
-    TaintFromArguments: [0, 1, 2, 3]
-    PostConditions: [-1: LocalUrl]
+    PreConditions:
+      1:
+        Value: 2
+    PostConditions:
+      2:
+        Taint: LocalUrl
+        TaintFromArguments: [0]
 
   UrlHelper_IsLocalUrl:
     Namespace: System.Web.Mvc
     ClassName: UrlHelper
-    Member: method
     Name: IsLocalUrl
-    PostConditions: [-1: Validator, 0: LocalUrl]
+    PostConditions:
+      0:
+        Taint: LocalUrl
 
   UrlHelperCore_IsLocalUrl:
     Namespace: Microsoft.AspNetCore.Mvc
     ClassName: IUrlHelper
-    Member: method
     Name: IsLocalUrl
-    PostConditions: [-1: Validator, 0: LocalUrl]
+    PostConditions:
+      0:
+        Taint: LocalUrl
+
+# Sanitizers
+
+  UrlHelper_RouteUrl:
+    Namespace: System.Web.Mvc
+    ClassName: UrlHelper
+    Name: RouteUrl
+    PostConditions:
+      Returns:
+        Taint: LocalUrl
+        TaintFromArguments: [0, 1, 2, 3]
 
   UrlHelperCore_RouteUrl:
     Namespace: Microsoft.AspNetCore.Mvc
     ClassName: UrlHelperExtensions
-    Member: method
     Name: RouteUrl
-    TaintFromArguments: [1, 2, 3, 4, 5]
-    PostConditions: [-1: LocalUrl]
-
-  Encoder_LdapDistinguishedNameEncode:
-    Namespace: Microsoft.Security.Application
-    ClassName: Encoder
-    Member: method
-    Name: LdapDistinguishedNameEncode
-    TaintFromArguments: [0]
-    PostConditions: [-1: LdapDistinguishedNameEncoded]
+    PostConditions:
+      Returns:
+        Taint: LocalUrl
+        TaintFromArguments: [1, 2, 3, 4, 5]
 
   Encoder_HtmlEncode:
     Namespace: Microsoft.Security.Application
     ClassName: Encoder
-    Member: method
     Name: HtmlEncode
-    TaintFromArguments: [0]
-    PostConditions: [-1: HtmlEscaped]
+    PostConditions:
+      Returns:
+        Taint: HtmlEscaped
+        TaintFromArguments: [0]
 
   HttpServerUtility_HtmlEncode1:
     Namespace: System.Web
     ClassName: HttpServerUtility
-    Member: method
     Name: HtmlEncode
     ArgTypes: (System.String)
-    TaintFromArguments: [0]
-    PostConditions: [-1: HtmlEscaped]
+    PostConditions:
+      Returns:
+        Taint: HtmlEscaped
+        TaintFromArguments: [0]
 
   HttpServerUtility_HtmlEncode2:
     Namespace: System.Web
     ClassName: HttpServerUtility
-    Member: method
     Name: HtmlEncode
     ArgTypes: (System.String, System.IO.TextWriter)
-    PostConditions: [1: HtmlEscaped]
+    PostConditions:
+      1:
+        Taint: HtmlEscaped
+        TaintFromArguments: [0]
 
   System.Text.Encodings.Web_HtmlEncoder_Encode1:
     Namespace: System.Text.Encodings.Web
     ClassName: TextEncoder
-    Member: method
     Name: Encode
     ArgTypes: (System.String)
-    TaintFromArguments: [0]
-    PostConditions: [-1: HtmlEscaped]
+    PostConditions:
+      Returns:
+        Taint: HtmlEscaped
+        TaintFromArguments: [0]
 
   System.Text.Encodings.Web_HtmlEncoder_Encode2:
     Namespace: System.Text.Encodings.Web
     ClassName: TextEncoder
-    Member: method
     Name: Encode
     ArgTypes: (System.IO.TextWriter, System.String)
-    PostConditions: [0: HtmlEscaped]
+    PostConditions:
+      0:
+        Taint: HtmlEscaped
+        TaintFromArguments: [1]
 
   System.Text.Encodings.Web_HtmlEncoder_Encode3:
     Namespace: System.Text.Encodings.Web
     ClassName: TextEncoder
-    Member: method
     Name: Encode
     ArgTypes: (System.IO.TextWriter, System.String, System.Int32, System.Int32)
-    PostConditions: [0: HtmlEscaped]
+    PostConditions:
+      0:
+        Taint: HtmlEscaped
+        TaintFromArguments: [1]
 
   System.Text.Encodings.Web_HtmlEncoder_Encode4:
     Namespace: System.Text.Encodings.Web
     ClassName: TextEncoder
-    Member: method
     Name: Encode
     ArgTypes: (System.IO.TextWriter, System.Char[], System.Int32, System.Int32)
-    PostConditions: [0: HtmlEscaped]
+    PostConditions:
+      0:
+        Taint: HtmlEscaped
+        TaintFromArguments: [1]
+
+  Encoder_LdapDistinguishedNameEncode:
+    Namespace: Microsoft.Security.Application
+    ClassName: Encoder
+    Name: LdapDistinguishedNameEncode
+    PostConditions:
+      Returns:
+        Taint: LdapDistinguishedNameEncoded
+        TaintFromArguments: [0]
 
   Encoder_LdapFilterEncode:
     Namespace: Microsoft.Security.Application
     ClassName: Encoder
-    Member: method
     Name: LdapFilterEncode
-    TaintFromArguments: [0]
-    PostConditions: [-1: LdapFilterEncoded]
+    PostConditions:
+      Returns:
+        Taint: LdapFilterEncoded
+        TaintFromArguments: [0]
+
+# Behaviors
 
   Environment_GetEnvironmentVariable:
     Namespace: System
     ClassName: Environment
-    Member: method
     Name: GetEnvironmentVariable
-    TaintFromArguments: [0]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0]
 
   ProcessStartInfo_Constructor0:
     Namespace: System.Diagnostics
     ClassName: ProcessStartInfo
-    Member: method
     Name: .ctor
     ArgTypes: ()
-    PostConditions: [-1]
+    PostConditions:
+      Returns:
+        TaintFromArguments: []
 
-# MemoryStream
+ # MemoryStream
 
   MemoryStream_Constructor0:
     Namespace: System.IO
     ClassName: MemoryStream
-    Member: method
     Name: .ctor
     ArgTypes: ()
-    PostConditions: [-1]
+    PostConditions:
+      Returns:
+        TaintFromArguments: []
 
-# Directory
+ # Directory
 
   Directory_GetCurrentDirectory:
     Namespace: System.IO
     ClassName: Directory
-    Member: method
     Name: GetCurrentDirectory
     ArgTypes: ()
-    PostConditions: [-1]
+    PostConditions:
+      Returns:
+        TaintFromArguments: []
 
-# Path
+ # Path
 
   Path_ChangeExtension:
     Namespace: System.IO
     ClassName: Path
-    Member: method
     Name: ChangeExtension
     ArgTypes: (System.String, System.String)
-    TaintFromArguments: [0,1]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0,1]
 
   Path_Combine2:
     Namespace: System.IO
     ClassName: Path
-    Member: method
     Name: Combine
     ArgTypes: (System.String, System.String)
-    TaintFromArguments: [0,1]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0,1]
 
   Path_Combine3:
     Namespace: System.IO
     ClassName: Path
-    Member: method
     Name: Combine
     ArgTypes: (System.String, System.String, System.String)
-    TaintFromArguments: [0,1,2]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0,1,2]
 
   Path_Combine4:
     Namespace: System.IO
     ClassName: Path
-    Member: method
     Name: Combine
     ArgTypes: (System.String, System.String, System.String, System.String)
-    TaintFromArguments: [0,1,2,3]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0,1,2,3]
 
   Path_CombineParamsString:
     Namespace: System.IO
     ClassName: Path
-    Member: method
     Name: Combine
     ArgTypes: (params System.String[])
-    TaintFromArguments: [0]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0]
 
   Path_GetDirectoryName:
     Namespace: System.IO
     ClassName: Path
-    Member: method
     Name: GetDirectoryName
     ArgTypes: (System.String)
-    TaintFromArguments: [0]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0]
 
   Path_GetExtension:
     Namespace: System.IO
     ClassName: Path
-    Member: method
     Name: GetExtension
     ArgTypes: (System.String)
-    TaintFromArguments: [0]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0]
 
   Path_GetFileName:
     Namespace: System.IO
     ClassName: Path
-    Member: method
     Name: GetFileName
     ArgTypes: (System.String)
-    TaintFromArguments: [0]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0]
 
   Path_GetFileNameWithoutExtension:
     Namespace: System.IO
     ClassName: Path
-    Member: method
     Name: GetFileNameWithoutExtension
     ArgTypes: (System.String)
-    TaintFromArguments: [0]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0]
 
   Path_GetFullPath:
     Namespace: System.IO
     ClassName: Path
-    Member: method
     Name: GetFullPath
     ArgTypes: (System.String)
-    TaintFromArguments: [0]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0]
 
   Path_GetInvalidFileNameChars:
     Namespace: System.IO
     ClassName: Path
-    Member: method
     Name: GetInvalidFileNameChars
     ArgTypes: ()
-    PostConditions: [-1]
+    PostConditions:
+      Returns:
+        TaintFromArguments: []
 
   Path_GetInvalidPathChars:
     Namespace: System.IO
     ClassName: Path
-    Member: method
     Name: GetInvalidPathChars
     ArgTypes: ()
-    PostConditions: [-1]
+    PostConditions:
+      Returns:
+        TaintFromArguments: []
 
   Path_GetPathRoot:
     Namespace: System.IO
     ClassName: Path
-    Member: method
     Name: GetPathRoot
     ArgTypes: (System.String)
-    TaintFromArguments: [0]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0]
 
   Path_GetRandomFileName:
     Namespace: System.IO
     ClassName: Path
-    Member: method
     Name: GetRandomFileName
     ArgTypes: ()
-    PostConditions: [-1]
+    PostConditions:
+      Returns:
+        TaintFromArguments: []
 
   Path_GetTempFileName:
     Namespace: System.IO
     ClassName: Path
-    Member: method
     Name: GetTempFileName
     ArgTypes: ()
-    PostConditions: [-1]
+    PostConditions:
+      Returns:
+        TaintFromArguments: []
 
   Path_GetTempPath:
     Namespace: System.IO
     ClassName: Path
-    Member: method
     Name: GetTempPath
     ArgTypes: ()
-    PostConditions: [-1]
+    PostConditions:
+      Returns:
+        TaintFromArguments: []
 
   Path_HasExtension:
     Namespace: System.IO
     ClassName: Path
-    Member: method
     Name: HasExtension
     ArgTypes: (System.String)
-    TaintFromArguments: [0]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0]
 
   Path_IsPathRooted:
     Namespace: System.IO
     ClassName: Path
-    Member: method
     Name: IsPathRooted
     ArgTypes: (System.String)
-    TaintFromArguments: [0]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0]
 
-# string constructors
-# https://msdn.microsoft.com/en-us/library/system.string.string(v=vs.110).aspx
+ # string constructors
+ # https://msdn.microsoft.com/en-us/library/system.string.string(v=vs.110).aspx
 
   StringConstructor_1:
     Namespace: System
     ClassName: String
-    Member: method
     Name: .ctor
     ArgTypes: (System.Char, System.Int32)
-    TaintFromArguments: [0,1]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0,1]
 
   StringConstructor_2:
     Namespace: System
     ClassName: String
-    Member: method
     Name: .ctor
     ArgTypes: (System.Char[])
-    TaintFromArguments: [0]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0]
 
   StringConstructor_3:
     Namespace: System
     ClassName: String
-    Member: method
     Name: .ctor
     ArgTypes: (System.Char[], System.Int32, System.Int32)
-    TaintFromArguments: [0]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0]
 
-# String.Format
-# https://msdn.microsoft.com/en-us/library/system.string.format(v=vs.110).aspx
+ # String.Format
+ # https://msdn.microsoft.com/en-us/library/system.string.format(v=vs.110).aspx
 
   StringFormat_1:
     Namespace: System
     ClassName: String
-    Member: method
     Name: Format
     ArgTypes: (System.IFormatProvider, System.String, params System.Object[])
-    TaintFromArguments: [1,2]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [1,2]
 
   StringFormat_2:
     Namespace: System
     ClassName: String
-    Member: method
     Name: Format
     ArgTypes: (System.IFormatProvider, System.String, System.Object)
-    TaintFromArguments: [1,2]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [1,2]
 
   StringFormat_3:
     Namespace: System
     ClassName: String
-    Member: method
     Name: Format
     ArgTypes: (System.IFormatProvider, System.String, System.Object, System.Object)
-    TaintFromArguments: [1,2,3]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [1,2,3]
 
   StringFormat_4:
     Namespace: System
     ClassName: String
-    Member: method
     Name: Format
     ArgTypes: (System.IFormatProvider, System.String, System.Object, System.Object, System.Object)
-    TaintFromArguments: [1,2,3,4]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [1,2,3,4]
 
   StringFormat_5:
     Namespace: System
     ClassName: String
-    Member: method
     Name: Format
     ArgTypes: (System.String, params System.Object[])
-    TaintFromArguments: [0,1]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0,1]
 
   StringFormat_6:
     Namespace: System
     ClassName: String
-    Member: method
     Name: Format
     ArgTypes: (System.String, System.Object)
-    TaintFromArguments: [0,1]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0,1]
 
   StringFormat_7:
     Namespace: System
     ClassName: String
-    Member: method
     Name: Format
     ArgTypes: (System.String, System.Object, System.Object)
-    TaintFromArguments: [0,1,2]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0,1,2]
 
   StringFormat_8:
     Namespace: System
     ClassName: String
-    Member: method
     Name: Format
     ArgTypes: (System.String, System.Object, System.Object, System.Object)
-    TaintFromArguments: [0,1,2,3]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0,1,2,3]
 
-# String.Join
+ # String.Join
 
   StringJoin_1:
     Namespace: System
     ClassName: String
-    Member: method
     Name: Join
     ArgTypes: (System.String, System.Collections.Generic.IEnumerable)
-    TaintFromArguments: [0,1]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0,1]
 
   StringJoin_2:
     Namespace: System
     ClassName: String
-    Member: method
     Name: Join
     ArgTypes: (System.String, params System.String[])
-    TaintFromArguments: [0,1]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0,1]
 
   StringJoin_3:
     Namespace: System
     ClassName: String
-    Member: method
     Name: Join
     ArgTypes: (System.String, System.String[], System.Int32, System.Int32)
-    TaintFromArguments: [0,1]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0,1]
 
   StringJoin_4:
     Namespace: System
     ClassName: String
-    Member: method
     Name: Join
     ArgTypes: (System.String, params System.Object[])
-    TaintFromArguments: [0,1]
+    PostConditions:
+      Returns:
+        TaintFromArguments: [0,1]
 
-
-
-Sinks:
 # This is the list of sinks
 # The API is susceptible to attack if value passed is not properly sanitized.
 #
@@ -489,7 +1094,6 @@ Sinks:
 # [Unique ID of the sink]:
 #   Namespace: [Namespace where the class is present]
 #   ClassName: [Class of the API]
-#   Member: ["method" => method call or "field" for assignment]
 #   Name: [Field Name (assignment) or Method Name (method call)]
 #   ArgTypes: (Optional field) [Parameter types signature]
 #   InjectableArguments : (Optional field) [Index of the argument for injectable query, starting from the left]
@@ -498,12 +1102,11 @@ Sinks:
 #   Locale: [Id of a localization in Messages.yml, This value can be reused for multiple sinks]
 # <<<
 
-# XSS
+ # XSS
 
   System.Web.HttpResponse_Write_string:
     Namespace: System.Web
     ClassName: HttpResponse
-    Member: method
     Name: Write
     ArgTypes: (System.String)
     InjectableArguments: [0: HtmlEscaped]
@@ -512,7 +1115,6 @@ Sinks:
   System.Web.HttpResponse_Write_array:
     Namespace: System.Web
     ClassName: HttpResponse
-    Member: method
     Name: Write
     ArgTypes: (System.Char[], System.Int32, System.Int32)
     InjectableArguments: [0: HtmlEscaped]
@@ -521,7 +1123,6 @@ Sinks:
   System.Web.HttpResponseBase_Write_string:
     Namespace: System.Web
     ClassName: HttpResponseBase
-    Member: method
     Name: Write
     ArgTypes: (System.String)
     InjectableArguments: [0: HtmlEscaped]
@@ -530,20 +1131,18 @@ Sinks:
   System.Web.HttpResponseBase_Write_array:
     Namespace: System.Web
     ClassName: HttpResponseBase
-    Member: method
     Name: Write
     ArgTypes: (System.Char[], System.Int32, System.Int32)
     InjectableArguments: [0: HtmlEscaped]
     Locale: SCS0029
 
-# SQL Injection
+ # SQL Injection
 
  # Microsoft.Data.Sqlite
 
   MicrosoftDataSqlite_sqlcommand_constructor:
     Namespace: Microsoft.Data.Sqlite
     ClassName: SqliteCommand
-    Member: method
     Name: .ctor
     InjectableArguments: [0]
     Locale: SCS0026
@@ -551,17 +1150,15 @@ Sinks:
   MicrosoftDataSqlite_sqlcommand_field:
     Namespace: Microsoft.Data.Sqlite
     ClassName: SqliteCommand
-    Member: field
     Name: CommandText
     InjectableField: true
     Locale: SCS0026
 
- # System.Data.SQLite
+  # System.Data.SQLite
 
   SystemDataSQLite_Execute:
     Namespace: System.Data.SQLite
     ClassName: SQLiteCommand
-    Member: method
     Name: Execute
     InjectableArguments: [0]
     Locale: SCS0026
@@ -569,7 +1166,6 @@ Sinks:
   SystemDataSQLite_sqlcommand_constructor1:
     Namespace: System.Data.SQLite
     ClassName: SQLiteCommand
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.Data.SQLite.SQLiteConnection, System.Data.SQLite.SQLiteTransaction)
     InjectableArguments: [0]
@@ -578,7 +1174,6 @@ Sinks:
   SystemDataSQLite_sqlcommand_constructor2:
     Namespace: System.Data.SQLite
     ClassName: SQLiteCommand
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.Data.SQLite.SQLiteConnection)
     InjectableArguments: [0]
@@ -587,7 +1182,6 @@ Sinks:
   SystemDataSQLite_sqlcommand_constructor3:
     Namespace: System.Data.SQLite
     ClassName: SQLiteCommand
-    Member: method
     Name: .ctor
     ArgTypes: (System.String)
     InjectableArguments: [0]
@@ -596,7 +1190,6 @@ Sinks:
   SystemDataSQLite_sqlcommand_field:
     Namespace: System.Data.SQLite
     ClassName: SQLiteCommand
-    Member: field
     Name: CommandText
     InjectableField: true
     Locale: SCS0026
@@ -606,7 +1199,6 @@ Sinks:
   SqlDataAdapter_constructor_1:
     Namespace: System.Data.SqlClient
     ClassName: SqlDataAdapter
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.Data.SqlClient.SqlConnection)
     InjectableArguments: [0]
@@ -615,7 +1207,6 @@ Sinks:
   SqlDataAdapter_constructor_2:
     Namespace: System.Data.SqlClient
     ClassName: SqlDataAdapter
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.String)
     InjectableArguments: [0]
@@ -624,7 +1215,6 @@ Sinks:
   sqlcommand_constructor:
     Namespace: System.Data.SqlClient
     ClassName: SqlCommand
-    Member: method
     Name: .ctor
     InjectableArguments: [0]
     Locale: SCS0026
@@ -632,7 +1222,6 @@ Sinks:
   sqlcommand_field:
     Namespace: System.Data.SqlClient
     ClassName: SqlCommand
-    Member: field
     Name: CommandText
     InjectableField: true
     Locale: SCS0026
@@ -640,7 +1229,6 @@ Sinks:
   dbcommand_field:
     Namespace: System.Data.Common
     ClassName: DbCommand
-    Member: field
     Name: CommandText
     InjectableField: true
     Locale: SCS0026
@@ -648,7 +1236,6 @@ Sinks:
   idbcommand_field:
     Namespace: System.Data
     ClassName: IDbCommand
-    Member: field
     Name: CommandText
     InjectableField: true
     Locale: SCS0026
@@ -658,7 +1245,6 @@ Sinks:
   oledbcommand_constructor:
     Namespace: System.Data.OleDb
     ClassName: OleDbCommand
-    Member: method
     Name: .ctor
     InjectableArguments: [0]
     Locale: SCS0020
@@ -666,7 +1252,6 @@ Sinks:
   oledbdataadapter_constructor:
     Namespace: System.Data.OleDb
     ClassName: OleDbDataAdapter
-    Member: method
     Name: .ctor
     InjectableArguments: [0]
     Locale: SCS0020
@@ -674,7 +1259,6 @@ Sinks:
   odbccommand_constructor:
     Namespace: System.Data.Odbc
     ClassName: OdbcCommand
-    Member: method
     Name: .ctor
     InjectableArguments: [0]
     Locale: SCS0025
@@ -682,7 +1266,6 @@ Sinks:
   odbcdataadapter_constructor:
     Namespace: System.Data.Odbc
     ClassName: OdbcDataAdapter
-    Member: method
     Name: .ctor
     InjectableArguments: [0]
     Locale: SCS0025
@@ -692,7 +1275,6 @@ Sinks:
   DataContext_ExecuteQuery_0:
     Namespace: System.Data.Linq
     ClassName: DataContext
-    Member: method
     Name: ExecuteQuery
     ArgTypes: (System.String, params System.Object[])
     InjectableArguments: [0]
@@ -701,7 +1283,6 @@ Sinks:
   DataContext_ExecuteQuery_1:
     Namespace: System.Data.Linq
     ClassName: DataContext
-    Member: method
     Name: ExecuteQuery
     ArgTypes: (System.Type, System.String, params System.Object[])
     InjectableArguments: [1]
@@ -710,7 +1291,6 @@ Sinks:
   DataContext_ExecuteCommand:
     Namespace: System.Data.Linq
     ClassName: DataContext
-    Member: method
     Name: ExecuteCommand
     ArgTypes: (System.String, params System.Object[])
     InjectableArguments: [0]
@@ -721,7 +1301,6 @@ Sinks:
   SqlDataSource_constructor_1:
     Namespace: System.Web.UI.WebControls
     ClassName: SqlDataSource
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.String)
     InjectableArguments: [1]
@@ -730,7 +1309,6 @@ Sinks:
   SqlDataSource_constructor_2:
     Namespace: System.Web.UI.WebControls
     ClassName: SqlDataSource
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.String, System.String)
     InjectableArguments: [2]
@@ -739,7 +1317,6 @@ Sinks:
   sqldatasource_field:
     Namespace: System.Web.UI.WebControls
     ClassName: SqlDataSource
-    Member: field
     Name: SelectCommand
     InjectableField: true
     Locale: SCS0014
@@ -747,7 +1324,6 @@ Sinks:
   sqldatasourceview_field:
     Namespace: System.Web.UI.WebControls
     ClassName: SqlDataSourceView
-    Member: field
     Name: SelectCommand
     InjectableField: true
     Locale: SCS0014
@@ -757,7 +1333,6 @@ Sinks:
   sqlutility_method:
     Namespace: Microsoft.Whos.Framework.Data
     ClassName: SqlUtility
-    Member: method
     Name: ExecuteDataset
     InjectableArguments: [0]
     Locale: SCS0014
@@ -767,7 +1342,6 @@ Sinks:
   Database_SqlQuery_1:
     Namespace: System.Data.Entity
     ClassName: Database
-    Member: method
     Name: SqlQuery
     ArgTypes: (System.Type, System.String, params System.Object[])
     InjectableArguments: [1]
@@ -776,7 +1350,6 @@ Sinks:
   Database_SqlQuery_2:
     Namespace: System.Data.Entity
     ClassName: Database
-    Member: method
     Name: SqlQuery
     ArgTypes: (System.String, params System.Object[])
     InjectableArguments: [0]
@@ -785,7 +1358,6 @@ Sinks:
   DbSet_SqlQuery_1:
     Namespace: System.Data.Entity
     ClassName: DbSet
-    Member: method
     Name: SqlQuery
     ArgTypes: (System.Type, System.String, params System.Object[])
     InjectableArguments: [1]
@@ -794,7 +1366,6 @@ Sinks:
   DbSet_SqlQuery_2:
     Namespace: System.Data.Entity
     ClassName: DbSet
-    Member: method
     Name: SqlQuery
     ArgTypes: (System.String, params System.Object[])
     InjectableArguments: [0]
@@ -803,7 +1374,6 @@ Sinks:
   Database_ExecuteSqlCommand_1:
     Namespace: System.Data.Entity
     ClassName: Database
-    Member: method
     Name: ExecuteSqlCommand
     ArgTypes: (System.String, params System.Object[])
     InjectableArguments: [0]
@@ -812,7 +1382,6 @@ Sinks:
   Database_ExecuteSqlCommand_2:
     Namespace: System.Data.Entity
     ClassName: Database
-    Member: method
     Name: ExecuteSqlCommand
     ArgTypes: (System.Data.Entity.TransactionalBehavior, System.String, params System.Object[])
     InjectableArguments: [1]
@@ -821,7 +1390,6 @@ Sinks:
   Database_ExecuteSqlCommandAsync_1:
     Namespace: System.Data.Entity
     ClassName: Database
-    Member: method
     Name: ExecuteSqlCommandAsync
     ArgTypes: (System.String, params System.Object[])
     InjectableArguments: [0]
@@ -830,7 +1398,6 @@ Sinks:
   Database_ExecuteSqlCommandAsync_2:
     Namespace: System.Data.Entity
     ClassName: Database
-    Member: method
     Name: ExecuteSqlCommandAsync
     ArgTypes: (System.Data.Entity.TransactionalBehavior, System.String, params System.Object[])
     InjectableArguments: [1]
@@ -839,7 +1406,6 @@ Sinks:
   Database_ExecuteSqlCommandAsync_3:
     Namespace: System.Data.Entity
     ClassName: Database
-    Member: method
     Name: ExecuteSqlCommandAsync
     ArgTypes: (System.String, System.Threading.CancellationToken, params System.Object[])
     InjectableArguments: [0]
@@ -848,7 +1414,6 @@ Sinks:
   Database_ExecuteSqlCommandAsync_4:
     Namespace: System.Data.Entity
     ClassName: Database
-    Member: method
     Name: ExecuteSqlCommandAsync
     ArgTypes: (System.Data.Entity.TransactionalBehavior, System.String, System.Threading.CancellationToken, params System.Object[])
     InjectableArguments: [1]
@@ -857,7 +1422,6 @@ Sinks:
   RelationalQueryableExtensions_FromSql_1:
     Namespace: Microsoft.EntityFrameworkCore
     ClassName: RelationalQueryableExtensions
-    Member: method
     ArgTypes: (System.Linq.IQueryable, System.String, params System.Object[])
     Name: FromSql
     InjectableArguments: [1]
@@ -866,7 +1430,6 @@ Sinks:
   RelationalQueryableExtensions_FromSql_2:
     Namespace: Microsoft.EntityFrameworkCore
     ClassName: RelationalQueryableExtensions
-    Member: method
     ArgTypes: (System.Linq.IQueryable, Microsoft.EntityFrameworkCore.RawSqlString, params System.Object[])
     Name: FromSql
     InjectableArguments: [1]
@@ -875,7 +1438,6 @@ Sinks:
   RelationalQueryableExtensions_FromSql_3:
     Namespace: Microsoft.EntityFrameworkCore
     ClassName: RelationalQueryableExtensions
-    Member: method
     ArgTypes: (System.Linq.IQueryable, System.FormattableString, params System.Object[])
     Name: FromSql
     InjectableArguments: [1]
@@ -886,7 +1448,6 @@ Sinks:
   Database_ExecuteDataSet_1:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
-    Member: method
     Name: ExecuteDataSet
     ArgTypes: (System.Data.CommandType, System.String)
     InjectableArguments: [1]
@@ -895,7 +1456,6 @@ Sinks:
   Database_ExecuteDataSet_2:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
-    Member: method
     Name: ExecuteDataSet
     ArgTypes: (System.String, params System.Object[])
     InjectableArguments: [0]
@@ -904,7 +1464,6 @@ Sinks:
   Database_ExecuteDataSet_3:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
-    Member: method
     Name: ExecuteDataSet
     ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
     InjectableArguments: [1]
@@ -913,7 +1472,6 @@ Sinks:
   Database_ExecuteDataSet_4:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
-    Member: method
     Name: ExecuteDataSet
     ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
     InjectableArguments: [2]
@@ -922,7 +1480,6 @@ Sinks:
   Database_ExecuteReader_1:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
-    Member: method
     Name: ExecuteReader
     ArgTypes: (System.Data.CommandType, System.String)
     InjectableArguments: [1]
@@ -931,7 +1488,6 @@ Sinks:
   Database_ExecuteReader_2:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
-    Member: method
     Name: ExecuteReader
     ArgTypes: (System.String, params System.Object[])
     InjectableArguments: [0]
@@ -940,7 +1496,6 @@ Sinks:
   Database_ExecuteReader_3:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
-    Member: method
     Name: ExecuteReader
     ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
     InjectableArguments: [1]
@@ -949,7 +1504,6 @@ Sinks:
   Database_ExecuteReader_4:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
-    Member: method
     Name: ExecuteReader
     ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
     InjectableArguments: [2]
@@ -958,7 +1512,6 @@ Sinks:
   Database_ExecuteNonQuery_1:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
-    Member: method
     Name: ExecuteNonQuery
     ArgTypes: (System.Data.CommandType, System.String)
     InjectableArguments: [1]
@@ -967,7 +1520,6 @@ Sinks:
   Database_ExecuteNonQuery_2:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
-    Member: method
     Name: ExecuteNonQuery
     ArgTypes: (System.String, params System.Object[])
     InjectableArguments: [0]
@@ -976,7 +1528,6 @@ Sinks:
   Database_ExecuteNonQuery_3:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
-    Member: method
     Name: ExecuteNonQuery
     ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
     InjectableArguments: [1]
@@ -985,7 +1536,6 @@ Sinks:
   Database_ExecuteNonQuery_4:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
-    Member: method
     Name: ExecuteNonQuery
     ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
     InjectableArguments: [2]
@@ -994,7 +1544,6 @@ Sinks:
   Database_ExecuteScalar_1:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
-    Member: method
     Name: ExecuteScalar
     ArgTypes: (System.Data.CommandType, System.String)
     InjectableArguments: [1]
@@ -1003,7 +1552,6 @@ Sinks:
   Database_ExecuteScalar_2:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
-    Member: method
     Name: ExecuteScalar
     ArgTypes: (System.String, params System.Object[])
     InjectableArguments: [0]
@@ -1012,7 +1560,6 @@ Sinks:
   Database_ExecuteScalar_3:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
-    Member: method
     Name: ExecuteScalar
     ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
     InjectableArguments: [1]
@@ -1021,7 +1568,6 @@ Sinks:
   Database_ExecuteScalar_4:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
     ClassName: Database
-    Member: method
     Name: ExecuteScalar
     ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
     InjectableArguments: [2]
@@ -1032,7 +1578,6 @@ Sinks:
   systemdiagnostic_process:
     Namespace: System.Diagnostics
     ClassName: Process
-    Member: method
     Name: Start
     InjectableArguments: [0]
     Locale: SCS0001
@@ -1040,7 +1585,6 @@ Sinks:
   systemdiagnostic_process_fileName:
     Namespace: System.Diagnostics
     ClassName: ProcessStartInfo
-    Member: field
     Name: FileName
     InjectableField: true
     Locale: SCS0001
@@ -1048,17 +1592,15 @@ Sinks:
   systemdiagnostic_process_arguments:
     Namespace: System.Diagnostics
     ClassName: ProcessStartInfo
-    Member: field
     Name: Arguments
     InjectableField: true
     Locale: SCS0001
 
-# XPath
+ # XPath
 
   XmlNode_SelectNodes:
     Namespace: System.Xml
     ClassName: XmlNode
-    Member: method
     Name: SelectNodes
     InjectableArguments: [0]
     Locale: SCS0003
@@ -1066,7 +1608,6 @@ Sinks:
   XmlNode_SelectSingleNode:
     Namespace: System.Xml
     ClassName: XmlNode
-    Member: method
     Name: SelectSingleNode
     InjectableArguments: [0]
     Locale: SCS0003
@@ -1074,7 +1615,6 @@ Sinks:
   XPathNavigator_SelectSingleNode_1:
     Namespace: System.Xml.XPath
     ClassName: XPathNavigator
-    Member: method
     ArgTypes: (System.String)
     Name: SelectSingleNode
     InjectableArguments: [0]
@@ -1083,7 +1623,6 @@ Sinks:
   XPathNavigator_SelectSingleNode_2:
     Namespace: System.Xml.XPath
     ClassName: XPathNavigator
-    Member: method
     ArgTypes: (System.String, System.Xml.IXmlNamespaceResolver)
     Name: SelectSingleNode
     InjectableArguments: [0]
@@ -1092,7 +1631,6 @@ Sinks:
   XPathNavigator_Select_1:
     Namespace: System.Xml.XPath
     ClassName: XPathNavigator
-    Member: method
     ArgTypes: (System.String)
     Name: Select
     InjectableArguments: [0]
@@ -1101,7 +1639,6 @@ Sinks:
   XPathNavigator_Select_2:
     Namespace: System.Xml.XPath
     ClassName: XPathNavigator
-    Member: method
     ArgTypes: (System.String, System.Xml.IXmlNamespaceResolver)
     Name: Select
     InjectableArguments: [0]
@@ -1110,7 +1647,6 @@ Sinks:
   XPathNavigator_Compile:
     Namespace: System.Xml.XPath
     ClassName: XPathNavigator
-    Member: method
     Name: Compile
     InjectableArguments: [0]
     Locale: SCS0003
@@ -1118,7 +1654,6 @@ Sinks:
   XPathNavigator_Evaluate_1:
     Namespace: System.Xml.XPath
     ClassName: XPathNavigator
-    Member: method
     ArgTypes: (System.String)
     Name: Evaluate
     InjectableArguments: [0]
@@ -1127,7 +1662,6 @@ Sinks:
   XPathNavigator_Evaluate_2:
     Namespace: System.Xml.XPath
     ClassName: XPathNavigator
-    Member: method
     ArgTypes: (System.String, System.Xml.IXmlNamespaceResolver)
     Name: Evaluate
     InjectableArguments: [0]
@@ -1136,7 +1670,6 @@ Sinks:
   XPathExpression_Compile_1:
     Namespace: System.Xml.XPath
     ClassName: XPathExpression
-    Member: method
     ArgTypes: (System.String)
     Name: Compile
     InjectableArguments: [0]
@@ -1145,7 +1678,6 @@ Sinks:
   XPathExpression_Compile_2:
     Namespace: System.Xml.XPath
     ClassName: XPathExpression
-    Member: method
     ArgTypes: (System.String, System.Xml.IXmlNamespaceResolver)
     Name: Compile
     InjectableArguments: [0]
@@ -1154,7 +1686,6 @@ Sinks:
   Extensions_XPathSelectElement_1:
     Namespace: System.Xml.XPath
     ClassName: Extensions
-    Member: method
     ArgTypes: (System.Xml.Linq.XNode, System.String)
     Name: XPathSelectElement
     InjectableArguments: [1]
@@ -1163,7 +1694,6 @@ Sinks:
   Extensions_XPathSelectElement_2:
     Namespace: System.Xml.XPath
     ClassName: Extensions
-    Member: method
     ArgTypes: (System.Xml.Linq.XNode, System.String, System.Xml.IXmlNamespaceResolver)
     Name: XPathSelectElement
     InjectableArguments: [1]
@@ -1172,7 +1702,6 @@ Sinks:
   Extensions_XPathSelectElements_1:
     Namespace: System.Xml.XPath
     ClassName: Extensions
-    Member: method
     ArgTypes: (System.Xml.Linq.XNode, System.String)
     Name: XPathSelectElements
     InjectableArguments: [1]
@@ -1181,7 +1710,6 @@ Sinks:
   Extensions_XPathSelectElements_2:
     Namespace: System.Xml.XPath
     ClassName: Extensions
-    Member: method
     ArgTypes: (System.Xml.Linq.XNode, System.String, System.Xml.IXmlNamespaceResolver)
     Name: XPathSelectElements
     InjectableArguments: [1]
@@ -1190,7 +1718,6 @@ Sinks:
   Extensions_XPathEvaluate_1:
     Namespace: System.Xml.XPath
     ClassName: Extensions
-    Member: method
     ArgTypes: (System.Xml.Linq.XNode, System.String)
     Name: XPathEvaluate
     InjectableArguments: [1]
@@ -1199,20 +1726,74 @@ Sinks:
   Extensions_XPathEvaluate_2:
     Namespace: System.Xml.XPath
     ClassName: Extensions
-    Member: method
     ArgTypes: (System.Xml.Linq.XNode, System.String, System.Xml.IXmlNamespaceResolver)
     Name: XPathEvaluate
     InjectableArguments: [1]
     Locale: SCS0003
 
-# Path traversal
+ # Path traversal
 
  # File API
+
+  File_AppendAllLines:
+    Namespace: System.IO
+    ClassName: File
+    Name: AppendAllLines
+    InjectableArguments: [0, 1]
+    Locale: SCS0018
+
+  File_AppendAllText:
+    Namespace: System.IO
+    ClassName: File
+    Name: AppendAllText
+    InjectableArguments: [0, 1]
+    Locale: SCS0018
+
+  File_AppendText:
+    Namespace: System.IO
+    ClassName: File
+    Name: AppendText
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+  File_Copy:
+    Namespace: System.IO
+    ClassName: File
+    Name: Copy
+    InjectableArguments: [0, 1, 2]
+    Locale: SCS0018
+
+  File_Create:
+    Namespace: System.IO
+    ClassName: File
+    Name: Create
+    InjectableArguments: [0, 2]
+    Locale: SCS0018
+
+  File_CreateText:
+    Namespace: System.IO
+    ClassName: File
+    Name: CreateText
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+  File_Move:
+    Namespace: System.IO
+    ClassName: File
+    Name: Move
+    InjectableArguments: [0, 1]
+    Locale: SCS0018
+
+  File_SetAccessControl:
+    Namespace: System.IO
+    ClassName: File
+    Name: SetAccessControl
+    InjectableArguments: [0, 1]
+    Locale: SCS0018
 
   File_Delete:
     Namespace: System.IO
     ClassName: File
-    Member: method
     Name: Delete
     InjectableArguments: [0]
     Locale: SCS0018
@@ -1220,7 +1801,6 @@ Sinks:
   File_Open:
     Namespace: System.IO
     ClassName: File
-    Member: method
     Name: Open
     InjectableArguments: [0, 1, 2, 3]
     Locale: SCS0018
@@ -1228,7 +1808,6 @@ Sinks:
   File_OpenRead:
     Namespace: System.IO
     ClassName: File
-    Member: method
     Name: OpenRead
     InjectableArguments: [0]
     Locale: SCS0018
@@ -1236,7 +1815,6 @@ Sinks:
   File_OpenText:
     Namespace: System.IO
     ClassName: File
-    Member: method
     Name: OpenText
     InjectableArguments: [0]
     Locale: SCS0018
@@ -1244,7 +1822,6 @@ Sinks:
   File_OpenWrite:
     Namespace: System.IO
     ClassName: File
-    Member: method
     Name: OpenWrite
     InjectableArguments: [0]
     Locale: SCS0018
@@ -1252,7 +1829,6 @@ Sinks:
   File_ReadAllText:
     Namespace: System.IO
     ClassName: File
-    Member: method
     Name: ReadAllText
     InjectableArguments: [0]
     Locale: SCS0018
@@ -1260,7 +1836,6 @@ Sinks:
   File_ReadAllBytes:
     Namespace: System.IO
     ClassName: File
-    Member: method
     Name: ReadAllBytes
     InjectableArguments: [0]
     Locale: SCS0018
@@ -1268,7 +1843,6 @@ Sinks:
   File_ReadAllLines:
     Namespace: System.IO
     ClassName: File
-    Member: method
     Name: ReadAllLines
     InjectableArguments: [0]
     Locale: SCS0018
@@ -1276,7 +1850,6 @@ Sinks:
   File_ReadLines:
     Namespace: System.IO
     ClassName: File
-    Member: method
     Name: ReadLines
     InjectableArguments: [0]
     Locale: SCS0018
@@ -1284,7 +1857,6 @@ Sinks:
   File_Replace:
     Namespace: System.IO
     ClassName: File
-    Member: method
     Name: Replace
     InjectableArguments: [0, 1, 2]
     Locale: SCS0018
@@ -1292,7 +1864,6 @@ Sinks:
   File_WriteAllBytes:
     Namespace: System.IO
     ClassName: File
-    Member: method
     Name: WriteAllBytes
     InjectableArguments: [0, 1]
     Locale: SCS0018
@@ -1300,7 +1871,6 @@ Sinks:
   File_WriteAllLines:
     Namespace: System.IO
     ClassName: File
-    Member: method
     Name: WriteAllLines
     InjectableArguments: [0, 1]
     Locale: SCS0018
@@ -1308,9 +1878,50 @@ Sinks:
   File_WriteAllText:
     Namespace: System.IO
     ClassName: File
-    Member: method
     Name: WriteAllText
     InjectableArguments: [0, 1]
+    Locale: SCS0018
+
+ # XmlReader
+
+  XmlReader_Create_uri:
+    Namespace: System.Xml
+    ClassName: XmlReader
+    Name: Create
+    ArgTypes: (System.String)
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+  XmlReader_Create_uri_settings:
+    Namespace: System.Xml
+    ClassName: XmlReader
+    Name: Create
+    ArgTypes: (System.String, System.Xml.XmlReaderSettings)
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+  XmlReader_Create_uri_settings_context:
+    Namespace: System.Xml
+    ClassName: XmlReader
+    Name: Create
+    ArgTypes: (System.String, System.Xml.XmlReaderSettings, System.Xml.XmlParserContext)
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+  XmlReader_Create_stream_settings_string:
+    Namespace: System.Xml
+    ClassName: XmlReader
+    Name: Create
+    ArgTypes: (System.IO.Stream, System.Xml.XmlReaderSettings, System.String)
+    InjectableArguments: [0, 2]
+    Locale: SCS0018
+
+  XmlReader_Create_textreader_settings_string:
+    Namespace: System.Xml
+    ClassName: XmlReader
+    Name: Create
+    ArgTypes: (System.IO.TextReader, System.Xml.XmlReaderSettings, System.String)
+    InjectableArguments: [0, 2]
     Locale: SCS0018
 
  # StreamReader
@@ -1318,7 +1929,6 @@ Sinks:
   StreamReader_Create_path:
     Namespace: System.IO
     ClassName: StreamReader
-    Member: method
     Name: .ctor
     ArgTypes: (System.String)
     InjectableArguments: [0]
@@ -1327,7 +1937,6 @@ Sinks:
   StreamReader_Create_path_bool:
     Namespace: System.IO
     ClassName: StreamReader
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.Boolean)
     InjectableArguments: [0]
@@ -1336,7 +1945,6 @@ Sinks:
   StreamReader_Create_path_encoding:
     Namespace: System.IO
     ClassName: StreamReader
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.Text.Encoding)
     InjectableArguments: [0]
@@ -1345,7 +1953,6 @@ Sinks:
   StreamReader_Create_path_encoding_bool:
     Namespace: System.IO
     ClassName: StreamReader
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.Text.Encoding, System.Boolean)
     InjectableArguments: [0]
@@ -1354,7 +1961,6 @@ Sinks:
   StreamReader_Create_path_encoding_bool_int:
     Namespace: System.IO
     ClassName: StreamReader
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.Text.Encoding, System.Boolean, System.Int32)
     InjectableArguments: [0]
@@ -1365,7 +1971,6 @@ Sinks:
   StreamWriter1:
     Namespace: System.IO
     ClassName: StreamWriter
-    Member: method
     Name: .ctor
     ArgTypes: (System.String)
     InjectableArguments: [0]
@@ -1374,7 +1979,6 @@ Sinks:
   StreamWriter2:
     Namespace: System.IO
     ClassName: StreamWriter
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.Boolean)
     InjectableArguments: [0, 1]
@@ -1383,7 +1987,6 @@ Sinks:
   StreamWriter3:
     Namespace: System.IO
     ClassName: StreamWriter
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.Boolean, System.Text.Encoding)
     InjectableArguments: [0, 1]
@@ -1392,7 +1995,6 @@ Sinks:
   StreamWriter4:
     Namespace: System.IO
     ClassName: StreamWriter
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.Boolean, System.Text.Encoding, System.Int32)
     InjectableArguments: [0, 1]
@@ -1403,7 +2005,6 @@ Sinks:
   FileStream_Constructor1:
     Namespace: System.IO
     ClassName: FileStream
-    Member: method
     Name: .ctor
     ArgTypes: (System.IntPtr, System.IO.FileAccess)
     InjectableArguments: [0, 1]
@@ -1412,7 +2013,6 @@ Sinks:
   FileStream_Constructor2:
     Namespace: System.IO
     ClassName: FileStream
-    Member: method
     Name: .ctor
     ArgTypes: (System.IntPtr, System.IO.FileAccess, System.Boolean)
     InjectableArguments: [0, 1]
@@ -1421,7 +2021,6 @@ Sinks:
   FileStream_Constructor3:
     Namespace: System.IO
     ClassName: FileStream
-    Member: method
     Name: .ctor
     ArgTypes: (System.IntPtr, System.IO.FileAccess, System.Boolean, System.Int32)
     InjectableArguments: [0, 1]
@@ -1430,7 +2029,6 @@ Sinks:
   FileStream_Constructor4:
     Namespace: System.IO
     ClassName: FileStream
-    Member: method
     Name: .ctor
     ArgTypes: (System.IntPtr, System.IO.FileAccess, System.Boolean, System.Int32, System.Boolean)
     InjectableArguments: [0, 1]
@@ -1439,7 +2037,6 @@ Sinks:
   FileStream_Constructor5:
     Namespace: System.IO
     ClassName: FileStream
-    Member: method
     Name: .ctor
     ArgTypes: (Microsoft.Win32.SafeHandles.SafeFileHandle, System.IO.FileAccess)
     InjectableArguments: [0, 1]
@@ -1448,7 +2045,6 @@ Sinks:
   FileStream_Constructor6:
     Namespace: System.IO
     ClassName: FileStream
-    Member: method
     Name: .ctor
     ArgTypes: (Microsoft.Win32.SafeHandles.SafeFileHandle, System.IO.FileAccess, System.Int32)
     InjectableArguments: [0, 1]
@@ -1457,7 +2053,6 @@ Sinks:
   FileStream_Constructor7:
     Namespace: System.IO
     ClassName: FileStream
-    Member: method
     Name: .ctor
     ArgTypes: (Microsoft.Win32.SafeHandles.SafeFileHandle, System.IO.FileAccess, System.Int32, System.Boolean)
     InjectableArguments: [0, 1]
@@ -1466,7 +2061,6 @@ Sinks:
   FileStream_Constructor8:
     Namespace: System.IO
     ClassName: FileStream
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode)
     InjectableArguments: [0, 1]
@@ -1475,7 +2069,6 @@ Sinks:
   FileStream_Constructor9:
     Namespace: System.IO
     ClassName: FileStream
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess)
     InjectableArguments: [0, 1, 2]
@@ -1484,7 +2077,6 @@ Sinks:
   FileStream_Constructor10:
     Namespace: System.IO
     ClassName: FileStream
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare)
     InjectableArguments: [0, 1, 2, 3]
@@ -1493,7 +2085,6 @@ Sinks:
   FileStream_Constructor11:
     Namespace: System.IO
     ClassName: FileStream
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare, System.Int32)
     InjectableArguments: [0, 1, 2, 3]
@@ -1502,7 +2093,6 @@ Sinks:
   FileStream_Constructor12:
     Namespace: System.IO
     ClassName: FileStream
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare, System.Int32, System.Boolean)
     InjectableArguments: [0, 1, 2, 3]
@@ -1511,7 +2101,6 @@ Sinks:
   FileStream_Constructor13:
     Namespace: System.IO
     ClassName: FileStream
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare, System.Int32, System.IO.FileOptions)
     InjectableArguments: [0, 1, 2, 3, 5]
@@ -1520,7 +2109,6 @@ Sinks:
   FileStream_Constructor14:
     Namespace: System.IO
     ClassName: FileStream
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.Security.AccessControl.FileSystemRights, System.IO.FileShare, System.Int32, System.IO.FileOptions)
     InjectableArguments: [0, 1, 2, 3, 5]
@@ -1529,18 +2117,16 @@ Sinks:
   FileStream_Constructor15:
     Namespace: System.IO
     ClassName: FileStream
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.Security.AccessControl.FileSystemRights, System.IO.FileShare, System.Int32, System.IO.FileOptions, System.Security.AccessControl.FileSecurity)
     InjectableArguments: [0, 1, 2, 3, 5, 6]
     Locale: SCS0018
 
-# LDAP injection
+ # LDAP injection
 
   DirectorySearcher_constructor_0:
     Namespace: System.DirectoryServices
     ClassName: DirectorySearcher
-    Member: method
     Name: .ctor
     ArgTypes: (System.String)
     InjectableArguments: [0: LdapFilterEncoded]
@@ -1549,7 +2135,6 @@ Sinks:
   DirectorySearcher_constructor_1:
     Namespace: System.DirectoryServices
     ClassName: DirectorySearcher
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.String[])
     InjectableArguments: [0: LdapFilterEncoded, 1]
@@ -1558,7 +2143,6 @@ Sinks:
   DirectorySearcher_constructor_2:
     Namespace: System.DirectoryServices
     ClassName: DirectorySearcher
-    Member: method
     Name: .ctor
     ArgTypes: (System.DirectoryServices.DirectoryEntry, System.String)
     InjectableArguments: [1: LdapFilterEncoded]
@@ -1567,7 +2151,6 @@ Sinks:
   DirectorySearcher_constructor_3:
     Namespace: System.DirectoryServices
     ClassName: DirectorySearcher
-    Member: method
     Name: .ctor
     ArgTypes: (System.DirectoryServices.DirectoryEntry, System.String, System.String[])
     InjectableArguments: [1: LdapFilterEncoded, 2]
@@ -1576,7 +2159,6 @@ Sinks:
   DirectorySearcher_constructor_4:
     Namespace: System.DirectoryServices
     ClassName: DirectorySearcher
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.String[], System.DirectoryServices.SearchScope)
     InjectableArguments: [0: LdapFilterEncoded, 1]
@@ -1585,7 +2167,6 @@ Sinks:
   DirectorySearcher_constructor_5:
     Namespace: System.DirectoryServices
     ClassName: DirectorySearcher
-    Member: method
     Name: .ctor
     ArgTypes: (System.DirectoryServices.DirectoryEntry, System.String, System.String[], System.DirectoryServices.SearchScope)
     InjectableArguments: [1: LdapFilterEncoded, 2]
@@ -1594,7 +2175,6 @@ Sinks:
   DirectorySearcher_Filter:
     Namespace: System.DirectoryServices
     ClassName: DirectorySearcher
-    Member: field
     Name: Filter
     InjectableField: LdapFilterEncoded
     Locale: SCS0031
@@ -1602,7 +2182,6 @@ Sinks:
   DirectoryEntry_constructor_0:
     Namespace: System.DirectoryServices
     ClassName: DirectoryEntry
-    Member: method
     Name: .ctor
     ArgTypes: (System.String)
     InjectableArguments: [0: LdapDistinguishedNameEncoded]
@@ -1611,7 +2190,6 @@ Sinks:
   DirectoryEntry_constructor_1:
     Namespace: System.DirectoryServices
     ClassName: DirectoryEntry
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.String, System.String)
     InjectableArguments: [0: LdapDistinguishedNameEncoded]
@@ -1620,7 +2198,6 @@ Sinks:
   DirectoryEntry_constructor_2:
     Namespace: System.DirectoryServices
     ClassName: DirectoryEntry
-    Member: method
     Name: .ctor
     ArgTypes: (System.String, System.String, System.String, System.DirectoryServices.AuthenticationTypes)
     InjectableArguments: [0: LdapDistinguishedNameEncoded]
@@ -1629,17 +2206,15 @@ Sinks:
   DirectoryEntry_Path:
     Namespace: System.DirectoryServices
     ClassName: DirectoryEntry
-    Member: field
     Name: Path
     InjectableField: LdapDistinguishedNameEncoded
     Locale: SCS0031
 
-# Open Redirects
+ # Open Redirects
 
   System.Web.HttpResponse_Redirect_string:
      Namespace: System.Web
      ClassName: HttpResponse
-     Member: method
      Name: Redirect
      ArgTypes: (System.String)
      InjectableArguments: [0: LocalUrl]
@@ -1648,7 +2223,6 @@ Sinks:
   System.Web.HttpResponse_Redirect_string_bool:
      Namespace: System.Web
      ClassName: HttpResponse
-     Member: method
      Name: Redirect
      ArgTypes: (System.String, System.Boolean)
      InjectableArguments: [0: LocalUrl]
@@ -1657,7 +2231,6 @@ Sinks:
   System.Web.HttpResponse_RedirectPermanent_string:
      Namespace: System.Web
      ClassName: HttpResponse
-     Member: method
      Name: RedirectPermanent
      ArgTypes: (System.String)
      InjectableArguments: [0: LocalUrl]
@@ -1666,7 +2239,6 @@ Sinks:
   System.Web.HttpResponse_RedirectPermanent_string_bool:
      Namespace: System.Web
      ClassName: HttpResponse
-     Member: method
      Name: RedirectPermanent
      ArgTypes: (System.String, System.Boolean)
      InjectableArguments: [0: LocalUrl]
@@ -1675,7 +2247,6 @@ Sinks:
   Microsoft.AspNetCore.Http.HttpResponse_Redirect_string:
      Namespace: Microsoft.AspNetCore.Http
      ClassName: HttpResponse
-     Member: method
      Name: Redirect
      ArgTypes: (System.String)
      InjectableArguments: [0: LocalUrl]
@@ -1684,7 +2255,6 @@ Sinks:
   Microsoft.AspNetCore.Http.HttpResponse_Redirect_string_bool:
      Namespace: Microsoft.AspNetCore.Http
      ClassName: HttpResponse
-     Member: method
      Name: Redirect
      ArgTypes: (System.String, System.Boolean)
      InjectableArguments: [0: LocalUrl]
@@ -1693,7 +2263,6 @@ Sinks:
   Controller_Redirect_string:
       Namespace: System.Web.Mvc
       ClassName: Controller
-      Member: method
       Name: Redirect
       ArgTypes: (System.String)
       InjectableArguments: [0: LocalUrl]
@@ -1702,7 +2271,6 @@ Sinks:
   Controller_RedirectPermanent_string:
       Namespace: System.Web.Mvc
       ClassName: Controller
-      Member: method
       Name: RedirectPermanent
       ArgTypes: (System.String)
       InjectableArguments: [0: LocalUrl]
@@ -1711,7 +2279,6 @@ Sinks:
   AspNetCore_Controller_Redirect_string:
       Namespace: Microsoft.AspNetCore.Mvc
       ClassName: ControllerBase
-      Member: method
       Name: Redirect
       ArgTypes: (System.String)
       InjectableArguments: [0: LocalUrl]
@@ -1720,7 +2287,6 @@ Sinks:
   AspNetCore_Controller_RedirectPermanent_string:
       Namespace: Microsoft.AspNetCore.Mvc
       ClassName: ControllerBase
-      Member: method
       Name: RedirectPermanent
       ArgTypes: (System.String)
       InjectableArguments: [0: LocalUrl]
@@ -1729,7 +2295,6 @@ Sinks:
   AspNetCore_Controller_RedirectPreserveMethod_string:
       Namespace: Microsoft.AspNetCore.Mvc
       ClassName: ControllerBase
-      Member: method
       Name: RedirectPreserveMethod
       ArgTypes: (System.String)
       InjectableArguments: [0: LocalUrl]
@@ -1738,7 +2303,6 @@ Sinks:
   AspNetCore_Controller_RedirectPermanentPreserveMethod_string:
       Namespace: Microsoft.AspNetCore.Mvc
       ClassName: ControllerBase
-      Member: method
       Name: RedirectPermanentPreserveMethod
       ArgTypes: (System.String)
       InjectableArguments: [0: LocalUrl]
@@ -1747,7 +2311,6 @@ Sinks:
   Controller_RedirectResult_string:
       Namespace: System.Web.Mvc
       ClassName: RedirectResult
-      Member: method
       Name: .ctor
       ArgTypes: (System.String)
       InjectableArguments: [0: LocalUrl]
@@ -1756,7 +2319,6 @@ Sinks:
   Controller_RedirectResult_string_bool:
       Namespace: System.Web.Mvc
       ClassName: RedirectResult
-      Member: method
       Name: .ctor
       ArgTypes: (System.String, System.Boolean)
       InjectableArguments: [0: LocalUrl]
@@ -1765,7 +2327,6 @@ Sinks:
   AspNetCore_RedirectResult_string:
       Namespace: Microsoft.AspNetCore.Mvc
       ClassName: RedirectResult
-      Member: method
       Name: .ctor
       ArgTypes: (System.String)
       InjectableArguments: [0: LocalUrl]
@@ -1774,7 +2335,6 @@ Sinks:
   AspNetCore_RedirectResult_string_bool:
       Namespace: Microsoft.AspNetCore.Mvc
       ClassName: RedirectResult
-      Member: method
       Name: .ctor
       ArgTypes: (System.String, System.Boolean)
       InjectableArguments: [0: LocalUrl]
@@ -1783,7 +2343,6 @@ Sinks:
   AspNetCore_RedirectResult_string_bool_bool:
       Namespace: Microsoft.AspNetCore.Mvc
       ClassName: RedirectResult
-      Member: method
       Name: .ctor
       ArgTypes: (System.String, System.Boolean, System.Boolean)
       InjectableArguments: [0: LocalUrl]
@@ -1792,17 +2351,15 @@ Sinks:
   AspNetCore_RedirectResult_Url:
       Namespace: Microsoft.AspNetCore.Mvc
       ClassName: RedirectResult
-      Member: field
       Name: Url
       InjectableField: LocalUrl
       Locale: SCS0027
 
-# Deserialization
+ # Deserialization
 
   BinaryFormatter_Deserialize:
      Namespace: System.Runtime.Serialization.Formatters.Binary
      ClassName: BinaryFormatter
-     Member: method
      Name: Deserialize
      InjectableArguments: [0]
      Locale: SCS0028
@@ -1810,7 +2367,6 @@ Sinks:
   BinaryFormatter_UnsafeDeserialize:
      Namespace: System.Runtime.Serialization.Formatters.Binary
      ClassName: BinaryFormatter
-     Member: method
      Name: UnsafeDeserialize
      InjectableArguments: [0]
      Locale: SCS0028
@@ -1818,7 +2374,6 @@ Sinks:
   BinaryFormatter_UnsafeDeserializeMethodResponse:
      Namespace: System.Runtime.Serialization.Formatters.Binary
      ClassName: BinaryFormatter
-     Member: method
      Name: UnsafeDeserializeMethodResponse
      InjectableArguments: [0]
      Locale: SCS0028
@@ -1826,7 +2381,6 @@ Sinks:
   BinaryMessageFormatter_Read:
      Namespace: System.Messaging
      ClassName: BinaryMessageFormatter
-     Member: method
      Name: Read
      InjectableArguments: [0]
      Locale: SCS0028
@@ -1834,7 +2388,6 @@ Sinks:
   SoapFormatter_Deserialize:
      Namespace: System.Runtime.Serialization.Formatters.Soap
      ClassName: SoapFormatter
-     Member: method
      Name: Deserialize
      InjectableArguments: [0]
      Locale: SCS0028
@@ -1842,7 +2395,6 @@ Sinks:
   ObjectStateFormatter_Deserialize:
      Namespace: System.Web.UI
      ClassName: ObjectStateFormatter
-     Member: method
      Name: Deserialize
      InjectableArguments: [0]
      Locale: SCS0028
@@ -1850,7 +2402,6 @@ Sinks:
   XmlObjectSerializer_ReadObject:
      Namespace: System.Runtime.Serialization
      ClassName: XmlObjectSerializer
-     Member: method
      Name: ReadObject
      InjectableArguments: [0]
      Locale: SCS0028
@@ -1858,7 +2409,6 @@ Sinks:
   NetDataContractSerializer_Deserialize:
      Namespace: System.Runtime.Serialization
      ClassName: NetDataContractSerializer
-     Member: method
      Name: Deserialize
      InjectableArguments: [0]
      Locale: SCS0028
@@ -1866,7 +2416,6 @@ Sinks:
   NetDataContractSerializer_ReadObject:
      Namespace: System.Runtime.Serialization
      ClassName: NetDataContractSerializer
-     Member: method
      Name: ReadObject
      InjectableArguments: [0]
      Locale: SCS0028
@@ -1874,7 +2423,6 @@ Sinks:
   DataContractSerializer_ctor:
      Namespace: System.Runtime.Serialization
      ClassName: DataContractSerializer
-     Member: method
      Name: .ctor
      InjectableArguments: [0]
      Locale: SCS0028
@@ -1882,7 +2430,6 @@ Sinks:
   DataContractSerializer_ReadObject:
      Namespace: System.Runtime.Serialization
      ClassName: DataContractSerializer
-     Member: method
      Name: ReadObject
      InjectableArguments: [0]
      Locale: SCS0028
@@ -1890,7 +2437,6 @@ Sinks:
   DataContractJsonSerializer_ctor:
      Namespace: System.Runtime.Serialization.Json
      ClassName: DataContractJsonSerializer
-     Member: method
      Name: .ctor
      InjectableArguments: [0]
      Locale: SCS0028
@@ -1898,7 +2444,6 @@ Sinks:
   DataContractJsonSerializer_ReadObject:
      Namespace: System.Runtime.Serialization.Json
      ClassName: DataContractJsonSerializer
-     Member: method
      Name: ReadObject
      InjectableArguments: [0]
      Locale: SCS0028
@@ -1906,7 +2451,6 @@ Sinks:
   XmlSerializer_ctor:
      Namespace: System.Xml.Serialization
      ClassName: XmlSerializer
-     Member: method
      Name: .ctor
      InjectableArguments: [0]
      Locale: SCS0028
@@ -1914,7 +2458,6 @@ Sinks:
   XmlSerializer_Deserialize:
      Namespace: System.Xml.Serialization
      ClassName: XmlSerializer
-     Member: method
      Name: Deserialize
      InjectableArguments: [0]
      Locale: SCS0028
@@ -1922,7 +2465,6 @@ Sinks:
   XmlMessageFormatter_Read:
      Namespace: System.Messaging
      ClassName: XmlMessageFormatter
-     Member: method
      Name: Read
      InjectableArguments: [0]
      Locale: SCS0028
@@ -1930,7 +2472,6 @@ Sinks:
   LosFormatter_Desearialize:
      Namespace: System.Web.UI
      ClassName: LosFormatter
-     Member: method
      Name: Deserialize
      InjectableArguments: [0]
      Locale: SCS0028
@@ -1938,7 +2479,6 @@ Sinks:
   fastJSON_ToObject:
      Namespace: fastJSON
      ClassName: JSON
-     Member: method
      Name: ToObject
      InjectableArguments: [0]
      Locale: SCS0028
@@ -1946,7 +2486,6 @@ Sinks:
   ServiceStack_JsonDeserializeFromString:
      Namespace: ServiceStack.Text
      ClassName: JsonSerializer
-     Member: method
      Name: DeserializeFromString
      InjectableArguments: [0, 1]
      Locale: SCS0028
@@ -1954,7 +2493,6 @@ Sinks:
   ServiceStack_JsonDeserializeFromReader:
      Namespace: ServiceStack.Text
      ClassName: JsonSerializer
-     Member: method
      Name: DeserializeFromReader
      InjectableArguments: [0, 1]
      Locale: SCS0028
@@ -1962,7 +2500,6 @@ Sinks:
   ServiceStack_JsonDeserializeFromStream:
      Namespace: ServiceStack.Text
      ClassName: JsonSerializer
-     Member: method
      Name: DeserializeFromStream
      InjectableArguments: [0, 1]
      Locale: SCS0028
@@ -1970,7 +2507,6 @@ Sinks:
   ServiceStack_TypeDeserializeFromString:
      Namespace: ServiceStack.Text
      ClassName: TypeSerializer
-     Member: method
      Name: DeserializeFromString
      InjectableArguments: [0, 1]
      Locale: SCS0028
@@ -1978,7 +2514,6 @@ Sinks:
   ServiceStack_TypeDeserializeFromReader:
      Namespace: ServiceStack.Text
      ClassName: TypeSerializer
-     Member: method
      Name: DeserializeFromReader
      InjectableArguments: [0, 1]
      Locale: SCS0028
@@ -1986,7 +2521,6 @@ Sinks:
   ServiceStack_TypeDeserializeFromStream:
      Namespace: ServiceStack.Text
      ClassName: TypeSerializer
-     Member: method
      Name: DeserializeFromStream
      InjectableArguments: [0, 1]
      Locale: SCS0028
@@ -1994,7 +2528,6 @@ Sinks:
   ServiceStack_CsvDeserializeFromString:
      Namespace: ServiceStack.Text
      ClassName: CsvSerializer
-     Member: method
      Name: DeserializeFromString
      InjectableArguments: [0, 1]
      Locale: SCS0028
@@ -2002,7 +2535,6 @@ Sinks:
   ServiceStack_CsvDeserializeFromReader:
      Namespace: ServiceStack.Text
      ClassName: CsvSerializer
-     Member: method
      Name: DeserializeFromReader
      InjectableArguments: [0, 1]
      Locale: SCS0028
@@ -2010,7 +2542,6 @@ Sinks:
   ServiceStack_CsvDeserializeFromStream:
      Namespace: ServiceStack.Text
      ClassName: CsvSerializer
-     Member: method
      Name: DeserializeFromStream
      InjectableArguments: [0, 1]
      Locale: SCS0028
@@ -2018,7 +2549,6 @@ Sinks:
   ServiceStack_XmlDeserializeFromString:
      Namespace: ServiceStack.Text
      ClassName: XmlSerializer
-     Member: method
      Name: DeserializeFromString
      InjectableArguments: [0, 1]
      Locale: SCS0028
@@ -2026,7 +2556,6 @@ Sinks:
   ServiceStack_XmlDeserializeFromReader:
      Namespace: ServiceStack.Text
      ClassName: XmlSerializer
-     Member: method
      Name: DeserializeFromReader
      InjectableArguments: [0, 1]
      Locale: SCS0028
@@ -2034,7 +2563,6 @@ Sinks:
   ServiceStack_XmlDeserializeFromStream:
      Namespace: ServiceStack.Text
      ClassName: XmlSerializer
-     Member: method
      Name: DeserializeFromStream
      InjectableArguments: [0, 1]
      Locale: SCS0028
@@ -2042,7 +2570,6 @@ Sinks:
   ResourceReader_ctor:
      Namespace: System.Resources
      ClassName: ResourceReader
-     Member: method
      Name: .ctor
      InjectableArguments: [0]
      Locale: SCS0028
@@ -2050,25 +2577,22 @@ Sinks:
   TypeNameHandling_enum:
     Namespace: Newtonsoft.Json
     ClassName: JsonSerializerSettings
-    Member: field
     Name: TypeNameHandling
     InjectableField: true
     Locale: SCS0028
 
-# Password
+ # Password
 
   PasswordDeriveBytes:
     Namespace: System.Security.Cryptography
     ClassName: PasswordDeriveBytes
-    Member: method
     Name: .ctor
     PasswordArguments: [0]
-    LocalePass: SCS0015
+    Locale: SCS0015
 
   NetworkCredential:
     Namespace: System.Net
     ClassName: NetworkCredential
-    Member: method
     Name: .ctor
     PasswordArguments: [1]
-    LocalePass: SCS0015
+    Locale: SCS0015

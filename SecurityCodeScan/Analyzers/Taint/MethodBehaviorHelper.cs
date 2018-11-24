@@ -1,53 +1,83 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using SecurityCodeScan.Analyzers.Utils;
-using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Analyzers.Taint
 {
     internal static class MethodBehaviorHelper
     {
-        private static Dictionary<string, MethodBehavior> GetMethodInjectableArguments(ImmutableArray<AdditionalText> additionalFiles)
+        public static string GetMethodBehaviorKey(string nameSpace, string className, string name, string argTypes)
         {
-            return ConfigurationManager.Instance.GetBehaviors(additionalFiles).ToDictionary(pair => pair.Key, pair => pair.Value);
+            if (string.IsNullOrWhiteSpace(className))
+                throw new ArgumentException("ClassName");
+
+            string key;                       
+            if (argTypes != null)
+            {
+                if (string.IsNullOrWhiteSpace(name))
+                    throw new ArgumentException("Name");
+
+                key = $"{nameSpace}.{className}|{name}|{argTypes}";
+            }
+            else if (name != null)
+            {
+                key = $"{nameSpace}.{className}|{name}";
+            }
+            else
+            {
+                key = $"{nameSpace}.{className}";
+            }
+
+            return key;
         }
+
+        private const string VbIndexerName = "Item";
+        private const string CsIndexerName = "this[]";
 
         /// <summary>
         /// Get the method behavior for a given symbol
         /// </summary>
-        /// <param name="additionalFiles"></param>
-        /// <param name="symbol"></param>
-        /// <returns></returns>
-        public static MethodBehavior GetMethodBehavior(this ISymbol symbol, ImmutableArray<AdditionalText> additionalFiles)
+        public static MethodBehavior GetMethodBehavior(this ISymbol symbol, IReadOnlyDictionary<string, MethodBehavior> injectableArguments)
         {
-            var injectableArguments = GetMethodInjectableArguments(additionalFiles);
+            var name = symbol.Name == VbIndexerName && symbol.Language == LanguageNames.VisualBasic ? CsIndexerName : symbol.Name;
+            string nameSpaceWithClass = null;
+
             // First try to find specific overload
             if (symbol is IMethodSymbol methodSymbol)
             {
-                string keyExtended =
-                    $"{symbol.ContainingType.ContainingNamespace}.{symbol.ContainingType.Name}|{symbol.Name}|{ExtractGenericParameterSignature(methodSymbol)}";
+                nameSpaceWithClass = $"{symbol.ContainingType.ContainingNamespace.GetTypeName()}.{symbol.ContainingType.Name}";
+                var keyExtended = $"{nameSpaceWithClass}|{name}|{ExtractGenericParameterSignature(methodSymbol)}";
 
                 if (injectableArguments.TryGetValue(keyExtended, out var behavior1))
                     return behavior1;
             }
 
-            // try to find generic rule by method name
-            string key = $"{symbol.ContainingType.GetTypeName()}|{symbol.Name}";
+            if (symbol.ContainingType == null)
+                return null;
 
+            if (nameSpaceWithClass == null)
+                nameSpaceWithClass = $"{symbol.ContainingType.ContainingNamespace.GetTypeName()}.{symbol.ContainingType.Name}";
+
+            // try to find generic rule by method name
+            string key = $"{nameSpaceWithClass}|{name}";
             if (injectableArguments.TryGetValue(key, out var behavior2))
                 return behavior2;
+
+            // try to find generic rule by containing type name
+            key = nameSpaceWithClass;
+            if (injectableArguments.TryGetValue(key, out var behavior3))
+                return behavior3;
 
             return null;
         }
 
         private static readonly SymbolDisplayFormat MethodFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-            memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
-            extensionMethodStyle: SymbolDisplayExtensionMethodStyle.StaticMethod,
-            parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut |
-                              SymbolDisplayParameterOptions.IncludeType);
+            memberOptions:          SymbolDisplayMemberOptions.IncludeParameters,
+            extensionMethodStyle:   SymbolDisplayExtensionMethodStyle.StaticMethod,
+            parameterOptions:       SymbolDisplayParameterOptions.IncludeParamsRefOut |
+                                    SymbolDisplayParameterOptions.IncludeType);
 
         private static string ExtractGenericParameterSignature(IMethodSymbol methodSymbol)
         {

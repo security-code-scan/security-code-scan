@@ -20,7 +20,8 @@ namespace SecurityCodeScan.Test.Taint
 
         private static readonly PortableExecutableReference[] References =
         {
-            MetadataReference.CreateFromFile(typeof(DataContext).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(DataContext).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
@@ -38,13 +39,14 @@ namespace SecurityCodeScan.Test.Taint
 #pragma warning disable 8019
     using System.Data.Linq;
     using System;
+    using System.Web.Mvc;
 #pragma warning restore 8019
 
 namespace VulnerableApp
 {{
-    public class LyncInjectionTP
+    public class LyncInjectionTP : Controller
     {{
-        public static int Run(DataContext ctx, string input) {{
+        public int Run(DataContext ctx, string input) {{
             {sink};
             return 0;
         }}
@@ -56,16 +58,18 @@ namespace VulnerableApp
 #Disable Warning BC50001
     Imports System.Data.Linq
     Imports System
+    Imports System.Web.Mvc
 #Enable Warning BC50001
 
 Namespace VulnerableApp
     Public Class LyncInjectionTP
-        Public Shared Function Run(ctx As DataContext, input As String) As Integer
+        Inherits Controller
+
+        Public Function Run(ctx As DataContext, input As String) As Integer
             {sink}
             Return 0
         End Function
     End Class
-
 End Namespace
         ";
 

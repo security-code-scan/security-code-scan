@@ -33,38 +33,30 @@ namespace SecurityCodeScan.Analyzers.Taint
         }
 
         /// <summary>
-        /// Merge two different states. Use it to merge two states when values are concatenated.
+        /// Adds additional custom taint bit, or taint. Usually in post conditions.
+        /// Differently from 'MergeTaint', bits are only added to existing ones.
         /// </summary>
-        public void Merge(VariableState secondState)
+        public void ApplyTaint(ulong newTaint)
         {
-            MergeTaint(secondState.Taint);
-
-            if (secondState.Taint == Constant)
-                Value = secondState.Value;
-
-            if (secondState.Taint != Unset)
-                Node = secondState.Node;
-
-            foreach (var newPropertyState in secondState.PropertyStates)
-            {
-                if (Properties.ContainsKey(newPropertyState.Key))
-                    Properties[newPropertyState.Key].Merge(newPropertyState.Value);
-                else
-                    Properties.Add(newPropertyState.Key, newPropertyState.Value);
-            }
-        }
-
-        public void ApplySanitizer(ulong newTaint)
-        {
-            if ((newTaint & (ulong)(Unknown & Tainted)) != 0)
-                throw new ArgumentOutOfRangeException();
-
-            if (Taint == Constant)
+            var newVarTaint = (VariableTaint)newTaint;
+            if (newVarTaint == Unset)
                 return;
 
-            Taint |= (VariableTaint)newTaint;
+            // only custom taint bits and Tainted are allowed
+            if ((newVarTaint & (Safe | Tainted)) == 0)
+                throw new ArgumentOutOfRangeException();
+
+            if (Taint == Constant && (newVarTaint & Tainted) == 0)
+                return; // sanitized const is still const
+
+            Taint &= ~Constant;
+            Taint |= newVarTaint;
         }
 
+        /// <summary>
+        /// Merges two taints (in concatenation case for example). The worst case wins.
+        /// So tainted + sanitized gives tainted.
+        /// </summary>
         public void MergeTaint(VariableTaint newTaint)
         {
             if (newTaint == Unset)
@@ -89,15 +81,15 @@ namespace SecurityCodeScan.Analyzers.Taint
                 else
                     Taint = Unknown | (Taint & newTaint & Safe);
             }
-            else if ((Taint    == Constant && ((newTaint & Unknown) != 0ul) ||
-                     (newTaint == Constant && ((Taint & Unknown) != 0ul))))
-            {
-                Taint = Unknown | ((Taint | newTaint) & Safe);
-            }
             else if ((Taint    == Constant && ((newTaint & Tainted) != 0ul) ||
                      (newTaint == Constant && ((Taint & Tainted) != 0ul))))
             {
                 Taint = Tainted | ((Taint | newTaint) & Safe);
+            }
+            else if ((Taint == Constant && ((newTaint & Unknown) != 0ul) ||
+                      (newTaint                                  == Constant && ((Taint & Unknown) != 0ul))))
+            {
+                Taint = Unknown | ((Taint | newTaint) & Safe);
             }
             else if ((Taint == Safe && ((newTaint & (Unknown | Tainted)) != 0ul)))
             {
@@ -142,6 +134,9 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         public void AddOrMergeProperty(string identifier, VariableState secondState)
         {
+            if (ReferenceEquals(this, secondState))
+                throw new Exception("Recursive call detected.");
+
             if (PropertyStates.ContainsKey(identifier))
             {
                 PropertyStates[identifier].Replace(secondState);
@@ -153,12 +148,15 @@ namespace SecurityCodeScan.Analyzers.Taint
             }
         }
 
+#if DEBUG
         public override string ToString()
         {
-            if (Taint == Unset || Taint == Unknown || Taint == Tainted || Taint == Constant || Taint == Safe)
-                return Taint.ToString();
+            var taintBits = Taint & Safe;
+            if (taintBits != 0ul && taintBits != Safe)
+                return $"{(Taint & ~Safe).ToString()} | {((ulong)taintBits).ToString()}";
 
-            return $"{(ulong)Taint}";
+            return Taint.ToString();
         }
+#endif
     }
 }

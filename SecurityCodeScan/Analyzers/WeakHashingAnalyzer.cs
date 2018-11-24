@@ -107,7 +107,7 @@ namespace SecurityCodeScan.Analyzers
 
         private bool CheckType(string type, DiagnosticDescriptor diagnosticDescriptor, ITypeSymbol symbol, SyntaxNodeAnalysisContext ctx)
         {
-            if (!symbol.IsTypeOrDerivedFrom(type))
+            if (!symbol.IsType(type) && !symbol.IsDerivedFrom(type))
                 return false;
 
             var diagnostic = Diagnostic.Create(diagnosticDescriptor, ctx.Node.GetLocation());

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Utils;
+using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Analyzers.Taint
 {
@@ -15,9 +17,12 @@ namespace SecurityCodeScan.Analyzers.Taint
     /// </summary>
     public class ExecutionState
     {
-        public  SyntaxNodeAnalysisContext                  AnalysisContext      { get; }
-        public  IReadOnlyDictionary<string, VariableState> VariableStates       => Variables;
-        private Dictionary<string, VariableState>          Variables            { get; }
+        public  SyntaxNodeAnalysisContext                  AnalysisContext       { get; }
+        public  IReadOnlyDictionary<string, VariableState> VariableStates        => Variables;
+        private Dictionary<string, VariableState>          Variables             { get; }
+
+        // although now it is cached in the manager itself keep the field because all config caching will be here in the future
+        public IReadOnlyDictionary<string, MethodBehavior> CachedMethodBehaviors { get; }
 
         /// <summary>
         /// Initialize the state with no variable recorded yet.
@@ -27,17 +32,23 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             AnalysisContext = ctx;
             Variables       = new Dictionary<string, VariableState>();
+            CachedMethodBehaviors = ConfigurationManager.Instance
+                                                        .GetProjectConfiguration(AnalysisContext.Options.AdditionalFiles).Behavior;
         }
 
         public void AddNewValue(string identifier, VariableState value)
         {
             if (VariableStates.ContainsKey(identifier)) //New variable in a different scope
             {
+#if DEBUG
                 Logger.Log("Removing existing state for " + identifier);
+#endif
                 Variables.Remove(identifier);
             }
 
+#if DEBUG
             Logger.Log($"Adding state for {identifier} ({value})");
+#endif
             Variables.Add(identifier, value);
         }
 
@@ -46,12 +57,16 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (VariableStates.ContainsKey(identifier)) //Override existing value
             {
                 VariableStates[identifier].Replace(value);
+#if DEBUG
                 Logger.Log($"Updating state for {identifier} ({value})");
+#endif
             }
             else
             {
                 //Unexpected state
+#if DEBUG
                 Logger.Log($"Adding state for {identifier} ({value})");
+#endif
 
                 Variables.Add(identifier, value);
             }

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using SecurityCodeScan.Analyzers.Taint;
+using SecurityCodeScan.Test.Config;
 
 namespace SecurityCodeScan.Test
 {
@@ -30,6 +31,7 @@ namespace SecurityCodeScan.Test
         {
             MetadataReference.CreateFromFile(typeof(JavaScriptSerializer).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(JsonSerializer).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
@@ -366,7 +368,8 @@ End Namespace
             var expected = new DiagnosticResult()
             {
                 Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
+                Severity = DiagnosticSeverity.Warning,
+                Message  = "TypeNameHandling is set to other value than 'None' that may lead to deserialization vulnerability"
             };
 
             await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(10, 40)).ConfigureAwait(false);
@@ -469,12 +472,13 @@ End Namespace
         {
             var cSharpTest = @"
 using Newtonsoft.Json;
+using System.Web.Mvc;
 
 namespace VulnerableApp
 {
-    class Test
+    class Test : Controller
     {
-        static void TestDeserialization(TypeNameHandling param)
+        public void TestDeserialization(TypeNameHandling param)
         {
                 var settings = new JsonSerializerSettings
                 {
@@ -487,10 +491,13 @@ namespace VulnerableApp
 
             var visualBasicTest = @"
 Imports Newtonsoft.Json
+Imports System.Web.Mvc
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(param As TypeNameHandling)
+        Inherits Controller
+
+        Public Sub TestDeserialization(param As TypeNameHandling)
             Dim settings = New JsonSerializerSettings With _
                 {
                     .TypeNameHandling = param
@@ -499,14 +506,15 @@ Namespace VulnerableApp
     End Class
 End Namespace
 ";
-            var expected = new DiagnosticResult()
+            var expected = new DiagnosticResult
             {
                 Id       = "SCS0028",
-                Severity = DiagnosticSeverity.Warning
+                Severity = DiagnosticSeverity.Warning,
+                Message  = "Possibly unsafe deserialization setting enabled"
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(12, 21)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(9, 21)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(13, 21)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(12, 21)).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -551,10 +559,10 @@ End Namespace
         }
 
         [DataTestMethod]
-        [DataRow("TypeNameHandling.Test", new[] { "CS0117" },            new[] { "BC30456" })]
-        [DataRow("foo()",                 new[] { "CS0029" },            new[] { "BC30311" })]
-        [DataRow("foo2(xyz)",             new[] { "SCS0028", "CS0103" }, new[] { "SCS0028", "BC30451" })]
-        public async Task JSonSerializerTypeNameHandlingNonCompilingValue(string right, string[] csErrors, string[] vbErrors)
+        [DataRow("TypeNameHandling.Test", new[] { "CS0117" },            new[] { "BC30456" },            false)]
+        [DataRow("foo()",                 new[] { "CS0029" },            new[] { "BC30311" },            false)]
+        [DataRow("foo2(xyz)",             new[] { "SCS0028", "CS0103" }, new[] { "SCS0028", "BC30451" }, true)]
+        public async Task JSonSerializerTypeNameHandlingNonCompilingValue(string right, string[] csErrors, string[] vbErrors, bool audit)
         {
             var cSharpTest = $@"
 using Newtonsoft.Json;
@@ -607,12 +615,18 @@ Namespace VulnerableApp
 End Namespace
 ";
 
+            var testConfig = @"
+AuditMode: true
+";
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             await VerifyCSharpDiagnostic(cSharpTest,
-                                         csErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation(12)).ToArray())
+                                         csErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation(12)).ToArray(),
+                                         audit ? optionsWithProjectConfig : null)
                 .ConfigureAwait(false);
 
             await VerifyVisualBasicDiagnostic(visualBasicTest,
-                                              vbErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation(9)).ToArray())
+                                              vbErrors.Select(x => new DiagnosticResult { Id = x }.WithLocation(9)).ToArray(),
+                                              audit ? optionsWithProjectConfig : null)
                 .ConfigureAwait(false);
         }
 

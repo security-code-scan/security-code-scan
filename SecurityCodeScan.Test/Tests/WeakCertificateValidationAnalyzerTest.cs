@@ -5,6 +5,7 @@ using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Test.Helpers;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SecurityCodeScan.Test.Config;
 using DiagnosticVerifier = SecurityCodeScan.Test.Helpers.DiagnosticVerifier;
 
 namespace SecurityCodeScan.Test
@@ -24,195 +25,217 @@ namespace SecurityCodeScan.Test
         }
 
         [TestCategory("Safe")]
-        [TestMethod]
-        public async Task WeakCertFalsePositive()
+        [DataTestMethod]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => Unknown;")]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback =  (sender, cert, chain, sslPolicyErrors) => Unknown;")]
+        [DataRow(@"request.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => Unknown;")]
+        [DataRow(@"request.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => Unknown;")]
+
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => {return Unknown;};")]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback =  (sender, cert, chain, sslPolicyErrors) => {return Unknown;};")]
+        [DataRow(@"request.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => {return Unknown;};")]
+        [DataRow(@"request.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => {return Unknown;};")]
+
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback += delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) { return Unknown; };")]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback =  delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) { return Unknown; };")]
+        [DataRow(@"request.ServerCertificateValidationCallback += delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) { return Unknown; };")]
+        [DataRow(@"request.ServerCertificateValidationCallback = delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) { return Unknown; };")]
+
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback += delegate { return Unknown; };")]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback =  delegate { return Unknown; };")]
+        [DataRow(@"request.ServerCertificateValidationCallback += delegate { return Unknown; };")]
+        [DataRow(@"request.ServerCertificateValidationCallback = delegate { return Unknown; };")]
+
+        [DataRow("")]
+
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => false;")]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback =  (sender, cert, chain, sslPolicyErrors) => false;")]
+        [DataRow(@"request.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => false;")]
+        [DataRow(@"request.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => false;")]
+
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => {return false;};")]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback =  (sender, cert, chain, sslPolicyErrors) => {return false;};")]
+        [DataRow(@"request.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => {return false;};")]
+        [DataRow(@"request.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => {return false;};")]
+
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback += delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) { return false; };")]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback =  delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) { return false; };")]
+        [DataRow(@"request.ServerCertificateValidationCallback += delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) { return false; };")]
+        [DataRow(@"request.ServerCertificateValidationCallback = delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) { return false; };")]
+
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback += delegate { return false; };")]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback =  delegate { return false; };")]
+        [DataRow(@"request.ServerCertificateValidationCallback += delegate { return false; };")]
+        [DataRow(@"request.ServerCertificateValidationCallback = delegate { return false; };")]
+        public async Task WeakCertFalsePositiveCSharp(string payload)
         {
-            var cSharpTest = @"
-using System.Net;
+            var cSharpTest = $@"
+#pragma warning disable 8019
+    using System.Security.Cryptography.X509Certificates;
+    using System.Net.Security;
+    using System.Net;
+    using Rqst = System.Net.HttpWebRequest;
+#pragma warning restore 8019
 
-class OkCert {
-    public void DoGetRequest1()
-    {
-        string url = ""https://hack.me/"";
-        HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-        HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-        response.GetResponseStream();
-    }
-}
-";
+class WeakCert
+{{
+    private bool Unknown;
 
-            var visualBsicTest = @"
-Imports System.Net
+    public WeakCert(bool val)
+    {{
+        Unknown = val;
+    }}
 
-Class OkCert
-    Public Sub DoGetRequest1()
-        Dim url As String = ""https://hack.me/""
-        Dim request As HttpWebRequest = DirectCast(WebRequest.Create(url), HttpWebRequest)
-        Dim response As HttpWebResponse = DirectCast(request.GetResponse(), HttpWebResponse)
-        response.GetResponseStream()
-    End Sub
-End Class
+    public void DoGetRequest()
+    {{
+        Rqst request = (Rqst)WebRequest.Create(""https://hack.me/"");
+        {payload}
+    }}
+}}
 ";
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBsicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Detect")]
-        [TestMethod]
-        public async Task WeakCertVulnerable1()
+        [TestCategory("Safe")]
+        [DataTestMethod]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => Unknown;")]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback =  (sender, cert, chain, sslPolicyErrors) => Unknown;")]
+        [DataRow(@"request.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => Unknown;")]
+        [DataRow(@"request.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => Unknown;")]
+
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => {return Unknown;};")]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback =  (sender, cert, chain, sslPolicyErrors) => {return Unknown;};")]
+        [DataRow(@"request.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => {return Unknown;};")]
+        [DataRow(@"request.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => {return Unknown;};")]
+
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback += delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) { return Unknown; };")]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback =  delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) { return Unknown; };")]
+        [DataRow(@"request.ServerCertificateValidationCallback += delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) { return Unknown; };")]
+        [DataRow(@"request.ServerCertificateValidationCallback = delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) { return Unknown; };")]
+
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback += delegate { return Unknown; };")]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback =  delegate { return Unknown; };")]
+        [DataRow(@"request.ServerCertificateValidationCallback += delegate { return Unknown; };")]
+        [DataRow(@"request.ServerCertificateValidationCallback = delegate { return Unknown; };")]
+        public async Task WeakCertAuditCSharp(string payload)
         {
-            var cSharpTest = @"
-using System.Net;
+            var cSharpTest = $@"
+#pragma warning disable 8019
+    using System.Security.Cryptography.X509Certificates;
+    using System.Net.Security;
+    using System.Net;
+    using Rqst = System.Net.HttpWebRequest;
+#pragma warning restore 8019
 
-class WeakCert {
-    public void DoGetRequest1()
-    {
-        ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
+class WeakCert
+{{
+    private bool Unknown;
 
-        string url = ""https://hack.me/"";
-        HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-        request.GetResponse();
-    }
-}
-";
+    public WeakCert(bool val)
+    {{
+        Unknown = val;
+    }}
 
-            var visualBsicTest = @"
-Imports System.Net
-
-Class WeakCert
-    Public Sub DoGetRequest1()        '
-        ServicePointManager.ServerCertificateValidationCallback = Function(sender, cert, chain, sslPolicyErrors)
-                                                                      Return True
-                                                                  End Function
-        Dim url As String = ""https://hack.me/""
-        Dim request As HttpWebRequest = DirectCast(WebRequest.Create(url), HttpWebRequest)
-        request.GetResponse()
-    End Sub
-End Class
-";
-
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(7)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation(6)).ConfigureAwait(false);
-        }
-
-        [TestCategory("Detect")]
-        [TestMethod]
-        public async Task WeakCertVulnerable2()
-        {
-            var cSharpTest = @"
-using System.Net;
-
-class WeakCert {
-    public void DoGetRequest1()
-    {
-        ServicePointManager.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
-
-        string url = ""https://hack.me/"";
-        HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-        HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-        response.GetResponseStream();
-    }
-}
-";
-
-            var visualBsicTest = @"
-Imports System.Net
-
-Class WeakCert
-    Public Sub DoGetRequest1()        '
-        ServicePointManager.ServerCertificateValidationCallback = Function(sender, cert, chain, sslPolicyErrors)
-                                                                      Return True
-                                                                  End Function
-        Dim url As String = ""https://hack.me/""
-        Dim request As HttpWebRequest = DirectCast(WebRequest.Create(url), HttpWebRequest)
-        Dim response As HttpWebResponse = DirectCast(request.GetResponse(), HttpWebResponse)
-        response.GetResponseStream()
-    End Sub
-End Class
-";
-
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(7)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation(6)).ConfigureAwait(false);
-        }
-
-        [TestCategory("Detect")]
-        [TestMethod]
-        public async Task Given_HttpWebRequestServerCertificateValidationCallback_ThenWeakCertVulnerableWarning()
-        {
-            var cSharpTest = @"
-using System.Net;
-
-class WeakCert 
-{
     public void DoGetRequest()
-    {
-        string url = ""https://hack.me/"";
-        HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-        request.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
-        request.GetResponse();
-    }
-}
+    {{
+        Rqst request = (Rqst)WebRequest.Create(""https://hack.me/"");
+        {payload}
+    }}
+}}
 ";
 
-            var visualBsicTest = @"
-Imports System.Net
-
-Class WeakCert
-    Public Sub DoGetRequest()        '
-        Dim url As String = ""https://hack.me/""
-        Dim request As HttpWebRequest = DirectCast(WebRequest.Create(url), HttpWebRequest)
-        request.ServerCertificateValidationCallback = Function(sender, cert, chain, sslPolicyErrors)
-                                                                      Return True
-                                                                  End Function
-        request.GetResponse() 
-    End Sub
-End Class
+            var testConfig = @"
+AuditMode: true
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected.WithLocation(8)).ConfigureAwait(false);
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        // todo: add ServicePointManager.CertificatePolicy tests
 
         [TestCategory("Detect")]
-        [TestMethod]
-        public async Task GivenAliasDirective_DetectDiagnostic()
+        [DataTestMethod]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;")]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback =  (sender, cert, chain, sslPolicyErrors) => true;")]
+        [DataRow(@"request.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;")]
+        [DataRow(@"request.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;")]
+
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => {return true;};")]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback =  (sender, cert, chain, sslPolicyErrors) => {return true;};")]
+        [DataRow(@"request.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => {return true;};")]
+        [DataRow(@"request.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => {return true;};")]
+
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback += delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) { return true; };")]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback =  delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) { return true; };")]
+        [DataRow(@"request.ServerCertificateValidationCallback += delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) { return true; };")]
+        [DataRow(@"request.ServerCertificateValidationCallback = delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) { return true; };")]
+
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback += delegate { return true; };")]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback =  delegate { return true; };")]
+        [DataRow(@"request.ServerCertificateValidationCallback += delegate { return true; };")]
+        [DataRow(@"request.ServerCertificateValidationCallback = delegate { return true; };")]
+        public async Task WeakCertVulnerableCSharp(string payload)
         {
-            var cSharpTest = @"
-using System.Net;
-using Rqst = System.Net.HttpWebRequest;
+            var cSharpTest = $@"
+#pragma warning disable 8019
+    using System.Security.Cryptography.X509Certificates;
+    using System.Net.Security;
+    using System.Net;
+    using Rqst = System.Net.HttpWebRequest;
+#pragma warning restore 8019
 
-class OkCert {
-    public void DoGetRequest1()
-    {
-        ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
-
-        string url = ""https://hack.me/"";
-        Rqst request = (Rqst)WebRequest.Create(url);
-        request.GetResponse();
-    }
-}
-";
-
-            var visualBsicTest = @"
-Imports System.Net
-Imports Rqst = System.Net.HttpWebRequest
-
-Class OkCert
-    Public Sub DoGetRequest1()
-        ServicePointManager.ServerCertificateValidationCallback = Function(sender, cert, chain, sslPolicyErrors)
-                                                                      Return True
-                                                                  End Function
-        Dim url As String = ""https://hack.me/""
-        Dim request As Rqst = DirectCast(WebRequest.Create(url), Rqst)
-        request.GetResponse()
-    End Sub
-End Class
+class WeakCert {{
+    public void DoGetRequest()
+    {{
+        Rqst request = (Rqst)WebRequest.Create(""https://hack.me/"");
+        {payload}
+    }}
+}}
 ";
 
             await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBsicTest, Expected).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [DataTestMethod]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback = Function(sender, cert, chain, sslPolicyErrors) True")]
+        [DataRow(@"request.ServerCertificateValidationCallback = Function(sender, cert, chain, sslPolicyErrors) True")]
+        // todo: error BC30676: 'ServerCertificateValidationCallback' is not an event of 'ServicePointManager'.
+        //[DataRow(@"AddHandler ServicePointManager.ServerCertificateValidationCallback, Function(sender, cert, chain, sslPolicyErrors) True")]
+        // todo: error BC30452: Operator '+' is not defined for types 'RemoteCertificateValidationCallback' and
+        // 'Function <generated method>(sender As Object, cert As Object, chain As Object, sslPolicyErrors As Object) As Boolean'.
+        //[DataRow(@"ServicePointManager.ServerCertificateValidationCallback += Function(sender, cert, chain, sslPolicyErrors) True")]//
+
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback = Function(sender, cert, chain, sslPolicyErrors)
+                                                                                Return True
+                                                                             End Function")]
+        [DataRow(@"request.ServerCertificateValidationCallback = Function(sender, cert, chain, sslPolicyErrors)
+                                                                    Return True
+                                                                 End Function")]
+        [DataRow(@"ServicePointManager.ServerCertificateValidationCallback = Function(ByVal sender As Object, ByVal certificate As X509Certificate, ByVal chain As X509Chain, ByVal errors As SslPolicyErrors) True")]
+        [DataRow(@"request.ServerCertificateValidationCallback = Function(ByVal sender As Object, ByVal certificate As X509Certificate, ByVal chain As X509Chain, ByVal errors As SslPolicyErrors) True")]
+
+        public async Task WeakCertVulnerableVBasic(string payload)
+        {
+            var visualBasicTest = $@"
+#Disable Warning BC50001
+    Imports System.Security.Cryptography.X509Certificates
+    Imports System.Net.Security
+    Imports System.Net
+    Imports Rqst = System.Net.HttpWebRequest
+#Enable Warning BC50001
+
+Class OkCert
+    Public Sub DoGetRequest()
+        Dim request As Rqst = CType(WebRequest.Create(""https://hack.me/""), Rqst)
+        {payload}
+    End Sub
+End Class
+";
+
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
     }
 }

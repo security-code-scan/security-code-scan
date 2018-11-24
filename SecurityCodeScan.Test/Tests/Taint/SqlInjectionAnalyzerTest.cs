@@ -24,7 +24,8 @@ namespace SecurityCodeScan.Test.Taint
             MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.DbContext).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.RelationalQueryableExtensions).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(System.Data.SQLite.SQLiteCommand).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(Microsoft.Data.Sqlite.SqliteCommand).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(Microsoft.Data.Sqlite.SqliteCommand).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
@@ -37,10 +38,11 @@ namespace SecurityCodeScan.Test.Taint
 using System.Data;
 using System.Data.Common;
 using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
+using System.Web.Mvc;
 
 namespace sample
 {
-    class MyFoo
+    class MyFoo : Controller
     {
         public MyFoo()
         {
@@ -66,9 +68,12 @@ namespace sample
 Imports System.Data
 Imports System.Data.Common
 Imports Microsoft.Practices.EnterpriseLibrary.Data.Sql
+Imports System.Web.Mvc
 
 Namespace sample
     Class MyFoo
+        Inherits Controller
+
         Public Sub New()
             m_db = New SqlDatabase("""")
         End Sub
@@ -100,10 +105,11 @@ End Namespace
             var cSharpTest = @"
 using System.Data.Common;
 using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
+using System.Web.Mvc;
 
 namespace sample
 {
-    class MyFoo
+    class MyFoo : Controller
     {
         public MyFoo()
         {
@@ -127,9 +133,12 @@ namespace sample
             var visualBasicTest = @"
 Imports System.Data.Common
 Imports Microsoft.Practices.EnterpriseLibrary.Data.Sql
+Imports System.Web.Mvc
 
 Namespace sample
     Class MyFoo
+        Inherits Controller
+
         Public Sub New()
             m_db = New SqlDatabase("""")
         End Sub
@@ -280,13 +289,14 @@ End Namespace
     using System.Threading;
     using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
     using System.Data.SQLite;
+    using System.Web.Mvc;
 #pragma warning restore 8019
 
 namespace sample
 {{
-    class MyFoo
+    class MyFoo : Controller
     {{
-        public static void Run(string input, params object[] parameters)
+        public void Run(string input, params object[] parameters)
         {{
             {sink};
         }}
@@ -307,11 +317,14 @@ namespace sample
     Imports System.Threading
     Imports Microsoft.Practices.EnterpriseLibrary.Data.Sql
     Imports System.Data.SQLite
+    Imports System.Web.Mvc
 #Enable Warning BC50001
 
 Namespace sample
     Class MyFoo
-        Public Shared Sub Run(input As System.String, ParamArray parameters() As Object)
+        Inherits Controller
+
+        Public Sub Run(input As System.String, ParamArray parameters() As Object)
             Dim temp = {sink}
         End Sub
     End Class
@@ -345,6 +358,7 @@ End Namespace
         {
             var cSharpTest = $@"
 using Microsoft.EntityFrameworkCore;
+using System.Web.Mvc;
 
 namespace sample
 {{
@@ -353,9 +367,9 @@ namespace sample
         public DbSet<string> Test {{ get; set; }}
     }}
 
-    class MyFoo
+    class MyFoo : Controller
     {{
-        public static void Run(string input, params object[] parameters)
+        public void Run(string input, params object[] parameters)
         {{
             {sink};
         }}
@@ -367,6 +381,7 @@ namespace sample
 
             var visualBasicTest = $@"
 Imports Microsoft.EntityFrameworkCore
+Imports System.Web.Mvc
 
 Namespace sample
     Public Class SampleContext
@@ -376,7 +391,9 @@ Namespace sample
     End Class
 
     Class MyFoo
-        Public Shared Sub Run(input As System.String, ParamArray parameters() As Object)
+        Inherits Controller
+
+        Public Sub Run(input As System.String, ParamArray parameters() As Object)
             Dim temp = {sink}
         End Sub
     End Class
@@ -413,12 +430,13 @@ End Namespace
         {
             var cSharpTest = $@"
 using Microsoft.Data.Sqlite;
+using System.Web.Mvc;
 
 namespace sample
 {{
-    class MyFoo
+    class MyFoo : Controller
     {{
-        public static void Run(string input, params object[] parameters)
+        public void Run(string input, params object[] parameters)
         {{
             {sink};
         }}
@@ -430,10 +448,13 @@ namespace sample
 
             var visualBasicTest = $@"
 Imports Microsoft.Data.Sqlite
+Imports System.Web.Mvc
 
 Namespace sample
     Class MyFoo
-        Public Shared Sub Run(input As System.String, ParamArray parameters() As Object)
+        Inherits Controller
+
+        Public Sub Run(input As System.String, ParamArray parameters() As Object)
             Dim temp = {sink}
         End Sub
     End Class

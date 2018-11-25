@@ -1362,6 +1362,101 @@ Behavior:
     InjectableArguments: [0, 1]
     Locale: SCS0018
 
+ # FileInfo
+
+  FileInfo_Ctor:
+    Namespace: System.IO
+    ClassName: FileInfo
+    Name: .ctor
+    ArgTypes: (System.String)
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+  FileInfo_CopyTo:
+    Namespace: System.IO
+    ClassName: FileInfo
+    Name: CopyTo
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+  FileInfo_Replace:
+   Namespace: System.IO
+   ClassName: FileInfo
+   Name: Replace
+   InjectableArguments: [0, 1]
+   Locale: SCS0018
+
+  FileInfo_MoveTo:
+    Namespace: System.IO
+    ClassName: FileInfo
+    Name: MoveTo
+    ArgTypes: (System.String)
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+ # Assembly
+
+  Assembly_Load_0:
+    Namespace: System.Reflection
+    ClassName: Assembly
+    Name: Load
+    ArgTypes: (System.String)
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+  Assembly_Load_1:
+    Namespace: System.Reflection
+    ClassName: Assembly
+    Name: Load
+    ArgTypes: (System.String, System.Security.Policy.Evidence)
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+  Assembly_LoadFile:
+    Namespace: System.Reflection
+    ClassName: Assembly
+    Name: LoadFile
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+  Assembly_LoadFrom:
+    Namespace: System.Reflection
+    ClassName: Assembly
+    Name: LoadFrom
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+  Assembly_LoadWithPartialName:
+    Namespace: System.Reflection
+    ClassName: Assembly
+    Name: LoadWithPartialName
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+  Assembly_ReflectionOnlyLoad:
+    Namespace: System.Reflection
+    ClassName: Assembly
+    Name: ReflectionOnlyLoad
+    ArgTypes: (System.String)
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+  Assembly_ReflectionOnlyLoadFrom:
+    Namespace: System.Reflection
+    ClassName: Assembly
+    Name: ReflectionOnlyLoadFrom
+    ArgTypes: (System.String)
+    InjectableArguments: [0]
+    Locale: SCS0018
+
+  Assembly_UnsafeLoadFrom:
+    Namespace: System.Reflection
+    ClassName: Assembly
+    Name: UnsafeLoadFrom
+    ArgTypes: (System.String)
+    InjectableArguments: [0]
+    Locale: SCS0018
+
  # XmlReader
 
   XmlReader_Create_uri:

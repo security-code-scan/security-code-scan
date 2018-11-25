@@ -635,15 +635,6 @@ namespace SecurityCodeScan.Analyzers.Taint
                 state.AnalysisContext.ReportDiagnostic(diagnostic);
             }
 
-            if (behavior != null         && //Known Password API
-                behavior.IsPasswordField &&
-                variableState.Taint == VariableTaint.Constant) //Only constant
-            {
-                var newRule    = LocaleUtil.GetDescriptor(behavior.LocaleInjection, "title_assignment");
-                var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
-                state.AnalysisContext.ReportDiagnostic(diagnostic);
-            }
-
             //TODO: taint the variable being assigned.
 
             return variableState;

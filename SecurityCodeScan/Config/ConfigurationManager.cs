@@ -251,7 +251,6 @@ namespace SecurityCodeScan.Config
 
         // password sink specific
         public int[] PasswordArguments { get; set; }
-        public bool  IsPasswordField   { get; set; }
     }
 
     internal class CsrfProtectionData

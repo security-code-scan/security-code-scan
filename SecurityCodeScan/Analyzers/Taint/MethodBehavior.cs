@@ -25,15 +25,13 @@ namespace SecurityCodeScan.Analyzers.Taint
         public IReadOnlyDictionary<int, PostCondition> PostConditions      { get; }
         public string                                  LocaleInjection     { get; }
         public ulong                                   InjectableField     { get; }
-        public bool                                    IsPasswordField     { get; }
 
         public MethodBehavior(IReadOnlyDictionary<int, object>        preConditions,
                               IReadOnlyDictionary<int, PostCondition> postConditions,
                               IReadOnlyDictionary<int, ulong>         injectableArguments,
                               ImmutableHashSet<int>                   passwordArguments,
                               string                                  localeInjection,
-                              ulong                                   injectableField,
-                              bool                                    isPasswordField)
+                              ulong                                   injectableField)
         {
             InjectableArguments = injectableArguments ?? EmptyDictionary<int, ulong>.Value;
             PasswordArguments   = passwordArguments   ?? ImmutableHashSet<int>.Empty;
@@ -41,7 +39,6 @@ namespace SecurityCodeScan.Analyzers.Taint
             PreConditions       = preConditions       ?? EmptyDictionary<int, object>.Value;
             LocaleInjection     = localeInjection;
             InjectableField     = injectableField;
-            IsPasswordField     = isPasswordField;
         }
 
         public MethodBehavior(IReadOnlyDictionary<int, PostCondition> postConditions)
@@ -52,7 +49,6 @@ namespace SecurityCodeScan.Analyzers.Taint
             PreConditions       = EmptyDictionary<int, object>.Value;
             LocaleInjection     = null;
             InjectableField     = 0ul;
-            IsPasswordField     = false;
         }
     }
 }

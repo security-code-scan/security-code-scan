@@ -73,10 +73,9 @@ End Class
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     ClassName: OpenRedirect
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -121,10 +120,9 @@ End Class
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     ClassName: OpenRedirect
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

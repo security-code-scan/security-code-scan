@@ -127,11 +127,10 @@ End Namespace
             };
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: sample
     ClassName: MyFoo
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

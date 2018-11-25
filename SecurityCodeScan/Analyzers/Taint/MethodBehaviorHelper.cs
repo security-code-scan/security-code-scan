@@ -12,24 +12,50 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (string.IsNullOrWhiteSpace(className))
                 throw new ArgumentException("ClassName");
 
-            string key;                       
+            string nameSpacePrefix = string.IsNullOrWhiteSpace(nameSpace) ? "" : $"{nameSpace}.";
+
+            string key;
             if (argTypes != null)
             {
                 if (string.IsNullOrWhiteSpace(name))
                     throw new ArgumentException("Name");
 
-                key = $"{nameSpace}.{className}|{name}|{argTypes}";
+                key = $"{nameSpacePrefix}{className}|{name}|{argTypes}";
             }
             else if (name != null)
             {
-                key = $"{nameSpace}.{className}|{name}";
+                key = $"{nameSpacePrefix}{className}|{name}";
             }
             else
             {
-                key = $"{nameSpace}.{className}";
+                key = $"{nameSpacePrefix}{className}";
             }
 
             return key;
+        }
+
+        public static bool IsTaintEntryPoint(this ISymbol symbol, ReadOnlyHashSet<string> entryPoints)
+        {
+            if (symbol.ContainingType == null)
+                return false;
+
+            var nameSpace = symbol.ContainingType.ContainingNamespace.GetTypeName();
+
+            // first search for method name
+            string key = string.IsNullOrWhiteSpace(nameSpace)
+                             ? $"{symbol.ContainingType.Name}|{symbol.Name}"
+                             : $"{nameSpace}.{symbol.ContainingType.Name}|{symbol.Name}";
+            if (entryPoints.Contains(key))
+                return true;
+
+            if (symbol.IsPublic() && !symbol.IsConstructor()) // todo: attributes + filter NonAction
+            {
+                var containingType = symbol.ContainingType;
+                if (containingType.IsTypeOrDerivedFrom(entryPoints))
+                    return true;
+            }
+
+            return false;
         }
 
         private const string VbIndexerName = "Item";
@@ -43,10 +69,16 @@ namespace SecurityCodeScan.Analyzers.Taint
             var name = symbol.Name == VbIndexerName && symbol.Language == LanguageNames.VisualBasic ? CsIndexerName : symbol.Name;
             string nameSpaceWithClass = null;
 
+            string GetNameSpaceWithClass()
+            {
+                var nameSpace = symbol.ContainingType.ContainingNamespace.GetTypeName();
+                return string.IsNullOrWhiteSpace(nameSpace) ? symbol.ContainingType.Name : $"{nameSpace}.{symbol.ContainingType.Name}";
+            }
+
             // First try to find specific overload
             if (symbol is IMethodSymbol methodSymbol)
             {
-                nameSpaceWithClass = $"{symbol.ContainingType.ContainingNamespace.GetTypeName()}.{symbol.ContainingType.Name}";
+                nameSpaceWithClass = GetNameSpaceWithClass();
                 var keyExtended = $"{nameSpaceWithClass}|{name}|{ExtractGenericParameterSignature(methodSymbol)}";
 
                 if (injectableArguments.TryGetValue(keyExtended, out var behavior1))
@@ -57,7 +89,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 return null;
 
             if (nameSpaceWithClass == null)
-                nameSpaceWithClass = $"{symbol.ContainingType.ContainingNamespace.GetTypeName()}.{symbol.ContainingType.Name}";
+                nameSpaceWithClass = GetNameSpaceWithClass();
 
             // try to find generic rule by method name
             string key = $"{nameSpaceWithClass}|{name}";

@@ -89,13 +89,10 @@ namespace SecurityCodeScan.Analyzers.Taint
             else
             {
                 var symbol = state.AnalysisContext.SemanticModel.GetDeclaredSymbol(node);
-                if (symbol != null && !symbol.IsStatic && symbol.IsPublic() && !symbol.IsConstructor())
+                if (symbol != null)
                 {
-                    var containingType = symbol.ContainingType;
-                    if (containingType.IsTypeOrDerivedFrom(config.Sources)) // todo: public and attributes + filter NonAction
-                    {
+                    if (symbol.IsTaintEntryPoint(config.TaintEntryPoints))
                         TaintParameters(node, parameterList, state);
-                    }
                 }
             }
 

@@ -69,7 +69,7 @@ Behavior:
 # The format to describe all these rules is:
 # <<<
 # [Unique ID]:
-#   Namespace: [Namespace where the class is present]
+#   Namespace: (Optional) [Namespace where the class is present]
 #   ClassName: [Class of the API]
 #   Name:      (Optional) [Class member name. If not specified applies to all members of the class]
 #   ArgTypes:  (Optional) [Function arguments signature. If not specified applies to all overloads]
@@ -2172,485 +2172,722 @@ Behavior:
     PasswordArguments: [1]
     Locale: SCS0015
 
-
-# Sources of untrusted (tainted) input.
-# Format:
-# <<<
-# [Unique ID]:
-#   Namespace: [Namespace where the class is present]
-#   ClassName: [Class of the API]
-#   a) Name: (Optional) [Class member name]
-#   b) FromExternalParameters: (Optional) [Treat parameters of public functions of the class as untrusted]
-# <<<
-# Additionally tainted sources may be described in 'Behavior' section.
-Sources:
-# Taint entry points
-
- # Microsoft.AspNetCore.Mvc.Controller
-  Microsoft.AspNetCore.Mvc_Controller:
-    Namespace: Microsoft.AspNetCore.Mvc
-    ClassName: ControllerBase
-    FromExternalParameters: true
+# Taint sources
 
  # Microsoft.AspNetCore.Http.IHeaderDictionary
   Microsoft.AspNetCore.Http_IHeaderDictionary:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: IHeaderDictionary
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # Microsoft.AspNetCore.Http.HostString
   Microsoft.AspNetCore.Http_HostString:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: HostString
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # Microsoft.AspNetCore.Http.*HttpContext
   Microsoft.AspNetCore.Http_HttpContext:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: HttpContext
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   Microsoft.AspNetCore.Http_DefaultHttpContext:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: DefaultHttpContext
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # Microsoft.AspNetCore.Http.HttpRequest.*
   Microsoft.AspNetCore.Http_HttpRequest_Controller:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: HttpRequest
     Name: Body
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   Microsoft.AspNetCore.Http_HttpRequest_ContentType:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: HttpRequest
     Name: ContentType
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   Microsoft.AspNetCore.Http_HttpRequest_QueryString:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: HttpRequest
     Name: QueryString
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   Microsoft.AspNetCore.Http_HttpRequest_Query:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: HttpRequest
     Name: Query
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   Microsoft.AspNetCore.Http_HttpRequest_ReadFormAsync:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: HttpRequest
     Name: ReadFormAsync
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   Microsoft.AspNetCore.Http_RequestFormReaderExtensions_ReadFormAsync:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: RequestFormReaderExtensions
     Name: ReadFormAsync
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # Microsoft.AspNetCore.Http.*RequestCookieCollection
   Microsoft.AspNetCore.Http_IRequestCookieCollection:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: IRequestCookieCollection
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   Microsoft.AspNetCore.Http.Internal_RequestCookieCollection:
     Namespace: Microsoft.AspNetCore.Http.Internal
     ClassName: IRequestCookieCollection
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # Microsoft.AspNetCore.Http.*FormCollection
   Microsoft.AspNetCore.Http_IFormCollection:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: IFormCollection
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   Microsoft.AspNetCore.Http_FormCollection:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: FormCollection
-
- # System.Web.Mvc.Controller
-  System.Web.Mvc_Controller:
-    Namespace: System.Web.Mvc
-    ClassName: ControllerBase
-    FromExternalParameters: true
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web.Routing.RequestContext
   System.Web.Routing_RequestContext:
     Namespace: System.Web.Routing
     ClassName: RequestContext
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpPostedFile*
   System.Web_HttpPostedFileBase:
     Namespace: System.Web
     ClassName: HttpPostedFileBase
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpPostedFile:
     Namespace: System.Web
     ClassName: HttpPostedFile
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpPostedFileWrapper:
     Namespace: System.Web
     ClassName: HttpPostedFileWrapper
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.RawUrl
   System.Web_HttpRequestBase_RawUrl:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: RawUrl
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_RawUrl:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: RawUrl
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_RawUrl:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: RawUrl
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.this[]
   System.Web_HttpRequestBase_Indexer:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: this[]
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_Indexer:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: this[]
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_Indexer:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: this[]
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.Params
   System.Web_HttpRequestBase_Params:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: Params
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_Params:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: Params
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_Params:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: Params
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.QueryString
   System.Web_HttpRequestBase_QueryString:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: QueryString
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_QueryString:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: QueryString
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_QueryString:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: QueryString
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.Headers
   System.Web_HttpRequestBase_Headers:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: Headers
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_Headers:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: Headers
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_Headers:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: Headers
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.UserAgent
   System.Web_HttpRequestBase_UserAgent:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: UserAgent
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_UserAgent:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: UserAgent
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_UserAgent:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: UserAgent
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.UserHostName
   System.Web_HttpRequestBase_UserHostName:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: UserHostName
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_UserHostName:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: UserHostName
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_UserHostName:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: UserHostName
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.UserHostAddress
   System.Web_HttpRequestBase_UserHostAddress:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: UserHostAddress
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_UserHostAddress:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: UserHostAddress
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_UserHostAddress:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: UserHostAddress
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.Url
   System.Web_HttpRequestBase_Url:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: Url
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_Url:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: Url
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_Url:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: Url
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.UrlReferrer
   System.Web_HttpRequestBase_UrlReferrer:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: UrlReferrer
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_UrlReferrer:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: UrlReferrer
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_UrlReferrer:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: UrlReferrer
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.Unvalidated
   System.Web_HttpRequestBase_Unvalidated:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: Unvalidated
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_Unvalidated:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: Unvalidated
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_Unvalidated:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: Unvalidated
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.InputStream
   System.Web_HttpRequestBase_InputStream:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: InputStream
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_InputStream:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: InputStream
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_InputStream:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: InputStream
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.Form
   System.Web_HttpRequestBase_Form:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: Form
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_Form:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: Form
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_Form:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: Form
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.Cookies
   System.Web_HttpRequestBase_Cookies:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: Cookies
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_Cookies:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: Cookies
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_Cookies:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: Cookies
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.AcceptTypes
   System.Web_HttpRequestBase_AcceptTypes:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: AcceptTypes
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_AcceptTypes:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: AcceptTypes
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_AcceptTypes:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: AcceptTypes
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.UserLanguages
   System.Web_HttpRequestBase_UserLanguages:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: UserLanguages
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_UserLanguages:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: UserLanguages
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_UserLanguages:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: UserLanguages
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.ContentType
   System.Web_HttpRequestBase_ContentType:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: ContentType
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_ContentType:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: ContentType
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_ContentType:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: ContentType
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.IsLocal
   System.Web_HttpRequestBase_IsLocal:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: IsLocal
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_IsLocal:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: IsLocal
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_IsLocal:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: IsLocal
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.BinaryRead
   System.Web_HttpRequestBase_BinaryRead:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: BinaryRead
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_BinaryRead:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: BinaryRead
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_BinaryRead:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: BinaryRead
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.GetBufferedInputStream
   System.Web_HttpRequestBase_GetBufferedInputStream:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: GetBufferedInputStream
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_GetBufferedInputStream:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: GetBufferedInputStream
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_GetBufferedInputStream:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: GetBufferedInputStream
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.GetBufferlessInputStream
   System.Web_HttpRequestBase_GetBufferlessInputStream:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: GetBufferlessInputStream
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_GetBufferlessInputStream:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: GetBufferlessInputStream
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_GetBufferlessInputStream:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: GetBufferlessInputStream
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.ClientCertificate
   System.Web_HttpRequestBase_ClientCertificate:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: ClientCertificate
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_ClientCertificate:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: ClientCertificate
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_ClientCertificate:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: ClientCertificate
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.Browser
   System.Web_HttpRequestBase_Browser:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: Browser
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_Browser:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: Browser
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_Browser:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: Browser
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.AnonymousID
  # Tracked by cookie by default
@@ -2658,16 +2895,25 @@ Sources:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: AnonymousID
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_AnonymousID:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: AnonymousID
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_AnonymousID:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: AnonymousID
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # System.Web_HttpRequest*.ServerVariables
  # Some server variables get their information from HTTP headers.
@@ -2676,54 +2922,111 @@ Sources:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: ServerVariables
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequest_ServerVariables:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: ServerVariables
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web_HttpRequestWrapper_ServerVariables:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: ServerVariables
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
  # WebForms
   System.Web.UI.WebControls_FileUpload_FileName:
     Namespace: System.Web.UI.WebControls
     ClassName: FileUpload
     Name: FileName
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web.UI.WebControls_FileUpload_FileContent:
     Namespace: System.Web.UI.WebControls
     ClassName: FileUpload
     Name: FileContent
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web.UI.WebControls_HiddenField_Value:
     Namespace: System.Web.UI.WebControls
     ClassName: HiddenField
     Name: Value
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web.UI.WebControls_TextBox_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: TextBox
     Name: Text
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web.UI.HtmlControls_HtmlInputFile_Value:
     Namespace: System.Web.UI.HtmlControls
     ClassName: HtmlInputFile
     Name: Value
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web.UI.HtmlControls_HtmlInputControl_Value:
     Namespace: System.Web.UI.HtmlControls
     ClassName: HtmlInputControl
     Name: Value
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web.UI.HtmlControls_HtmlInputText_Value:
     Namespace: System.Web.UI.HtmlControls
     ClassName: HtmlInputText
     Name: Value
+    PostConditions:
+      Returns:
+        Taint: Tainted
 
   System.Web.UI.HtmlControls_HtmlTextArea_Value:
     Namespace: System.Web.UI.HtmlControls
     ClassName: HtmlTextArea
     Name: Value
+    PostConditions:
+      Returns:
+        Taint: Tainted
+
+# Taint entry points that introduce taint into the program like main(args).
+# All parameters of such API are treated as tainted.
+# Only public methods are allowed.
+# Format:
+# <<<
+# [Unique ID]:
+#   Namespace: (Optional) [Namespace where the class is present]
+#   ClassName: [Class of the API. If 'Name' is not specified, checks also derived classes.]
+#   Name:      (Optional) [Class member name.
+#                          If not specified applies to all public members of the class, except constructors.]
+# <<<
+# Additionally taint source may be described in 'Behavior' section as a post-condition.
+TaintEntryPoints:
+
+ # Microsoft.AspNetCore.Mvc.Controller
+  Microsoft.AspNetCore.Mvc_Controller:
+    Namespace: Microsoft.AspNetCore.Mvc
+    ClassName: ControllerBase
+
+ # System.Web.Mvc.Controller
+  System.Web.Mvc_Controller:
+    Namespace: System.Web.Mvc
+    ClassName: ControllerBase

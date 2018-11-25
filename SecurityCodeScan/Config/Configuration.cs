@@ -20,8 +20,8 @@ namespace SecurityCodeScan.Config
             ConfigurationBehavior               = new Dictionary<string, KeyValuePair<string, MethodBehavior>>();
             Behavior                            = new Dictionary<string, MethodBehavior>();
 
-            _Sources = new HashSet<string>();
-            Sources  = new ReadOnlyHashSet<string>(_Sources);
+            _TaintEntryPoints = new HashSet<string>();
+            TaintEntryPoints  = new ReadOnlyHashSet<string>(_TaintEntryPoints);
 
             _AntiCsrfAttributes = new Dictionary<string, List<string>>();
 
@@ -46,8 +46,8 @@ namespace SecurityCodeScan.Config
             ConfigurationBehavior = new Dictionary<string, KeyValuePair<string, MethodBehavior>>(config.ConfigurationBehavior);
             Behavior              = config.Behavior.ToDictionary();
 
-            _Sources = new HashSet<string>(config.Sources);
-            Sources  = new ReadOnlyHashSet<string>(_Sources);
+            _TaintEntryPoints = new HashSet<string>(config.TaintEntryPoints);
+            TaintEntryPoints  = new ReadOnlyHashSet<string>(_TaintEntryPoints);
 
             _AntiCsrfAttributes = config.AntiCsrfAttributes.ToDictionary();
 
@@ -82,18 +82,15 @@ namespace SecurityCodeScan.Config
                 ConfigurationBehavior[data.Key] = CreateBehavior(data.Value);
             }
 
-            foreach (var source in configData.Sources)
+            foreach (var source in configData.TaintEntryPoints)
             {
-                if (source.Value.FromExternalParameters)
-                {
-                    _Sources.Add(string.IsNullOrEmpty(source.Value.Namespace)
-                                    ? source.Value.ClassName
-                                    : $"{source.Value.Namespace}.{source.Value.ClassName}");
-                }
-                else
-                {
-                    ConfigurationBehavior[source.Key] = CreateBehavior(source.Value);
-                }
+                if (source.Value.ArgTypes != null)
+                    throw new Exception("Taint entry point ArgTypes are not supported.");
+
+                _TaintEntryPoints.Add(MethodBehaviorHelper.GetMethodBehaviorKey(source.Value.Namespace,
+                                                                                source.Value.ClassName,
+                                                                                source.Value.Name,
+                                                                                source.Value.ArgTypes));
             }
 
             foreach (var data in configData.CsrfProtectionAttributes)
@@ -119,8 +116,8 @@ namespace SecurityCodeScan.Config
         private readonly HashSet<string>         _PasswordValidatorRequiredProperties;
         public           ReadOnlyHashSet<string> PasswordValidatorRequiredProperties { get; }
 
-        private readonly HashSet<string>         _Sources;
-        public           ReadOnlyHashSet<string> Sources { get; }
+        private readonly HashSet<string>         _TaintEntryPoints;
+        public           ReadOnlyHashSet<string> TaintEntryPoints { get; }
 
         private readonly Dictionary<string, List<string>>          _AntiCsrfAttributes;
         public           IReadOnlyDictionary<string, List<string>> AntiCsrfAttributes => _AntiCsrfAttributes;
@@ -171,29 +168,23 @@ namespace SecurityCodeScan.Config
                 }
             }
 
-            if (config.Sources != null)
+            if (config.TaintEntryPoints != null)
             {
-                foreach (var source in config.Sources)
+                foreach (var source in config.TaintEntryPoints)
                 {
                     if (source.Value == default(TaintSourceData))
                     {
-                        if (ConfigurationBehavior.ContainsKey(source.Key))
-                            ConfigurationBehavior.Remove(source.Key);
-                        else
-                            _Sources.Remove(source.Key);
+                        _TaintEntryPoints.Remove(source.Key);
                     }
                     else
                     {
-                        if (source.Value.FromExternalParameters)
-                        {
-                            _Sources.Add(string.IsNullOrEmpty(source.Value.Namespace)
-                                            ? source.Value.ClassName
-                                            : $"{source.Value.Namespace}.{source.Value.ClassName}");
-                        }
-                        else
-                        {
-                            ConfigurationBehavior[source.Key] = CreateBehavior(source.Value);
-                        }
+                        if (source.Value.ArgTypes != null)
+                            throw new Exception("Taint entry point ArgTypes are not supported.");
+
+                        _TaintEntryPoints.Add(MethodBehaviorHelper.GetMethodBehaviorKey(source.Value.Namespace,
+                                                                                        source.Value.ClassName,
+                                                                                        source.Value.Name,
+                                                                                        source.Value.ArgTypes));
                     }
                 }
             }
@@ -434,13 +425,6 @@ namespace SecurityCodeScan.Config
         {
             {-1, new PostCondition((ulong)VariableTaint.Tainted)}
         };
-
-        private KeyValuePair<string, MethodBehavior> CreateBehavior(TaintSourceData behavior)
-        {
-            var key = MethodBehaviorHelper.GetMethodBehaviorKey(behavior.Namespace, behavior.ClassName, behavior.Name, behavior.ArgTypes);
-
-            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(TaintSourceReturnArgument));
-        }
 
         private KeyValuePair<string, MethodBehavior> CreateBehavior(MethodBehaviorData behavior)
         {

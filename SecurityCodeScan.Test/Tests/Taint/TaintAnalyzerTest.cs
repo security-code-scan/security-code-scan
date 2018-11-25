@@ -256,11 +256,14 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+Behavior:
   AAA:
     Namespace: sample
     ClassName: Test
     Name: GetUntrusted
+    PostConditions:
+      Returns:
+        Taint: Tainted
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -1609,11 +1612,14 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+Behavior:
   AAA:
     Namespace: sample
     ClassName: SqlConstant
     Name: GetQueryDataClass
+    PostConditions:
+      Returns:
+        Taint: Tainted
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -1919,30 +1925,140 @@ End Namespace
         }
 
         [DataTestMethod]
-        [DataRow("new System.Web.Mvc.Controller().Request.ToString()")]
-        [Ignore("wip")]
-        public async Task TaintSource2(string payload)
+        [DataRow("public ",    "",         true)]
+        [DataRow("private ",   "",         false)]
+        [DataRow("protected ", "",         false)]
+        [DataRow("public ",    "static ",  true)]
+        [DataRow("private ",   "static ",  false)]
+        [DataRow("protected ", "static ",  false)]
+        public async Task TaintSourceClass(string @public, string @static, bool warn)
         {
             var cSharpTest = $@"
 class Test
 {{
-    private static void Run()
+    public Test(string input)
     {{
-        new SqlCommand({payload});
+        Sink(input);
     }}
+
+    {@public}{@static}void Run(string input)
+    {{
+        Sink(input);
+    }}
+
+    private static void Sink(string input) {{}}
 }}
 ";
 
             var visualBasicTest = $@"
 Class Test
-    Private Shared Sub Run()
-        New SqlCommand({payload})
+    Public Sub New(ByVal input As String)
+        Sink(input)
+    End Sub
+
+    {@public.CSharpReplaceToVBasic()}{@static.CSharpReplaceToVBasic()}Sub Run(input As System.String)
+        Sink(input)
+    End Sub
+
+    Private Shared Sub Sink(ByVal input As String)
     End Sub
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  MyKey:
+    ClassName: Test
+
+Behavior:
+  MyKey:
+    ClassName: Test
+    Name: Sink
+    InjectableArguments: [0]
+    Locale: SCS0026
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+        }
+
+        [DataTestMethod]
+        [DataRow("public ",    "",        true)]
+        [DataRow("private ",   "",        true)]
+        [DataRow("protected ", "",        true)]
+        [DataRow("public ",    "static ", true)]
+        [DataRow("private ",   "static ", true)]
+        [DataRow("protected ", "static ", true)]
+        public async Task TaintSourceMethod(string @public, string @static, bool warn)
+        {
+            var cSharpTest = $@"
+class Test
+{{
+    public Test(string input)
+    {{
+        Sink(input);
+    }}
+
+    {@public}{@static}void Run(string input)
+    {{
+        Sink(input);
+    }}
+
+    private static void Sink(string input) {{}}
+}}
+";
+
+            var visualBasicTest = $@"
+Class Test
+    Public Sub New(ByVal input As String)
+        Sink(input)
+    End Sub
+
+    {@public.CSharpReplaceToVBasic()}{@static.CSharpReplaceToVBasic()}Sub Run(input As System.String)
+        Sink(input)
+    End Sub
+
+    Private Shared Sub Sink(ByVal input As String)
+    End Sub
+End Class
+";
+
+            var testConfig = @"
+TaintEntryPoints:
+  MyKey:
+    ClassName: Test
+    Name: Run
+
+Behavior:
+  MyKey:
+    ClassName: Test
+    Name: Sink
+    InjectableArguments: [0]
+    Locale: SCS0026
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            }
         }
 
         [DataTestMethod]
@@ -2212,7 +2328,7 @@ Behavior:
         }
 
         [TestMethod]
-        public async Task TaintSource()
+        public async Task TaintBehavior()
         {
             var cSharpTest = @"
 namespace sample
@@ -2281,11 +2397,6 @@ End Namespace
             };
 
             var testConfig = @"
-Sources:
-  sample_HttpRequest:
-    Namespace: sample
-    ClassName: HttpRequest
-
 Behavior:
   MyKey:
     Namespace: sample
@@ -2293,6 +2404,13 @@ Behavior:
     Name: Write
     InjectableArguments: [0]
     Locale: SCS0029
+
+  sample_HttpRequest:
+    Namespace: sample
+    ClassName: HttpRequest
+    PostConditions:
+      Returns:
+        Taint: Tainted
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -2300,11 +2418,6 @@ Behavior:
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
 
             testConfig = @"
-Sources:
-  sample_HttpRequest:
-    Namespace: sample
-    ClassName: Parameters
-
 Behavior:
   MyKey:
     Namespace: sample
@@ -2312,6 +2425,13 @@ Behavior:
     Name: Write
     InjectableArguments: [0]
     Locale: SCS0029
+
+  sample_HttpRequest:
+    Namespace: sample
+    ClassName: HttpRequest
+    PostConditions:
+      Returns:
+        Taint: Tainted
 ";
 
             optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

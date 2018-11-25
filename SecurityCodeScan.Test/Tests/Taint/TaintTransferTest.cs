@@ -400,11 +400,10 @@ End Namespace
             var testConfig = $@"
 AuditMode: {audit}
 
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: sample
     ClassName: MyFoo
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -540,10 +539,9 @@ End Class
             };
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     ClassName: PathTraversal
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -628,10 +626,9 @@ End Class
             };
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     ClassName: SqlTransferTesting
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -680,10 +677,9 @@ End Class
             };
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     ClassName: SqlTransferTesting
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -725,10 +721,9 @@ End Class
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     ClassName: SqlTransferTesting
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -762,10 +757,9 @@ class SqlTransferTesting
             };
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     ClassName: SqlTransferTesting
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -921,11 +915,10 @@ End Namespace
             };
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: sample
     ClassName: SqlConstant
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -984,11 +977,10 @@ End Namespace
             };
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: sample
     ClassName: SqlConstant
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

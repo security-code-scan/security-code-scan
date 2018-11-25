@@ -39,7 +39,7 @@ namespace SecurityCodeScan.Test.Config
 
             Assert.AreEqual(StartupConfiguration.AuditMode,                                 newConfig.AuditMode);
             Assert.AreEqual(StartupConfiguration.Behavior.Count,                            newConfig.Behavior.Count);
-            Assert.AreEqual(StartupConfiguration.Sources.Count,                             newConfig.Sources.Count);
+            Assert.AreEqual(StartupConfiguration.TaintEntryPoints.Count,                    newConfig.TaintEntryPoints.Count);
             Assert.AreEqual(StartupConfiguration.MinimumPasswordValidatorProperties,        newConfig.MinimumPasswordValidatorProperties);
             Assert.AreEqual(StartupConfiguration.PasswordValidatorRequiredLength,           newConfig.PasswordValidatorRequiredLength);
             Assert.AreEqual(StartupConfiguration.PasswordValidatorRequiredProperties.Count, newConfig.PasswordValidatorRequiredProperties.Count);
@@ -59,7 +59,7 @@ namespace SecurityCodeScan.Test.Config
 
             Assert.AreEqual(StartupConfiguration.AuditMode,                                 newConfig.AuditMode);
             Assert.AreEqual(StartupConfiguration.Behavior.Count,                            newConfig.Behavior.Count);
-            Assert.AreEqual(StartupConfiguration.Sources.Count,                             newConfig.Sources.Count);
+            Assert.AreEqual(StartupConfiguration.TaintEntryPoints.Count,                    newConfig.TaintEntryPoints.Count);
             Assert.AreEqual(StartupConfiguration.MinimumPasswordValidatorProperties,        newConfig.MinimumPasswordValidatorProperties);
             Assert.AreEqual(StartupConfiguration.PasswordValidatorRequiredLength,           newConfig.PasswordValidatorRequiredLength);
             Assert.AreEqual(StartupConfiguration.PasswordValidatorRequiredProperties.Count, newConfig.PasswordValidatorRequiredProperties.Count);

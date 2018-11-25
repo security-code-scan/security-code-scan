@@ -86,7 +86,7 @@ namespace SecurityCodeScan.Config
                 var deserializer = new Deserializer();
                 var data = deserializer.Deserialize<T>(reader2);
                 ValidateArgTypes(data.Behavior?.Values);
-                ValidateArgTypes(data.Sources?.Values);
+                //ValidateArgTypes(data.TaintEntryPoints?.Values);
                 return data;
             }
         }
@@ -218,7 +218,7 @@ namespace SecurityCodeScan.Config
         public int?                                   MinimumPasswordValidatorProperties  { get; set; }
         public List<string>                           PasswordValidatorRequiredProperties { get; set; }
         public Dictionary<string, MethodBehaviorData> Behavior                            { get; set; }
-        public Dictionary<string, TaintSourceData>    Sources                             { get; set; }
+        public Dictionary<string, TaintSourceData>    TaintEntryPoints                    { get; set; }
         public List<CsrfProtectionData>               CsrfProtectionAttributes            { get; set; }
         public List<string>                           PasswordFields                      { get; set; }
         public List<string>                           ConstantFields                      { get; set; }
@@ -235,7 +235,6 @@ namespace SecurityCodeScan.Config
 
     internal class TaintSourceData : Signature
     {
-        public bool FromExternalParameters { get; set; }
     }
 
     internal class MethodBehaviorData : Signature

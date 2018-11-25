@@ -94,10 +94,9 @@ End Class
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     ClassName: A
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -147,11 +146,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -193,11 +191,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -245,11 +242,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -293,11 +289,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -345,11 +340,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -396,11 +390,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -442,11 +435,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -493,11 +485,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -539,11 +530,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -591,11 +581,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -637,11 +626,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -683,11 +671,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -732,11 +719,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -776,11 +762,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -820,11 +805,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -867,11 +851,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -917,11 +900,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -964,11 +946,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -1014,11 +995,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -1062,11 +1042,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -1112,11 +1091,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -1158,11 +1136,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -1208,11 +1185,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -1254,11 +1230,10 @@ End Namespace
 ";
 
             var testConfig = @"
-Sources:
+TaintEntryPoints:
   AAA:
     Namespace: VulnerableApp
     ClassName: Test
-    FromExternalParameters: true
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

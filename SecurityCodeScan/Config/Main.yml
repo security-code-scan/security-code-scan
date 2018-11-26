@@ -63,7 +63,7 @@ Behavior:
 #      but validates and it is safe to assume after the call that the input satisfies safety requirements.
 #   4) Ignores - safe API that is known to return trusted output.
 #   5) Pass-through - rules that describe how taint from input parameters is passed to output parameters.
-#      With the rules analysis is more accurate. All undocumented API returns Unknown taint by default.
+#      With the rules analysis is more accurate. All undocumented API by default returns Tainted if any parameter is tainted or Unknown taint otherwise.
 #   6) Taint sources - API where tainted/unsafe data enters the program (like cookies, headers, etc.)
 #
 # The format to describe all these rules is:
@@ -83,11 +83,12 @@ Behavior:
 #                           Taint sources may apply special value 'Tainted' to mark the value as untrusted.]
 #        TaintFromArguments: (Optional) [Single value or array of parameter indices that influence the taint of the output value.
 #                                        If the array is empty the output value is treated as safe.]
-#   InjectableArguments : (Optional) [Single value or array of parameter zero based indices in the format:
-#                                     Index or [Index: TaintType, ...]
-#                                     Analyzer shows a warning if tainted/unsafe date is passed to the API.
-#                                     For example InjectableArguments: [0: HtmlEscaped]
-#                                     Means the first argument must be HtmlEscaped to keep analyzer silent.]
+#   InjectableArguments: (Optional) [Single value or array of parameter zero based indices in the format:
+#                                    Index or [Index: TaintType, ...]
+#                                    Analyzer shows a warning if tainted/unsafe date is passed to the API.
+#                                    For example InjectableArguments: [0: HtmlEscaped]
+#                                    Means the first argument must be HtmlEscaped to keep analyzer silent.]
+#   InjectableField: (Optional) [true or TaintType, similar to InjectableArguments, but for class member fields or setters.]
 #   PasswordArguments : (Optional) [Similar to InjectableArguments for the special hardcoded password sinks.]
 #   Locale: (Valid only for sinks) [ID of a localization in Messages.yml. This value can be reused for multiple sinks.]
 # <<<
@@ -103,7 +104,7 @@ Behavior:
     ArgTypes: (System.String, System.UriKind, out System.Uri)
     PreConditions:
       1:
-        Value: 2
+        Value: 2 # UriKind.Relative
     PostConditions:
       2:
         Taint: LocalUrl
@@ -3009,24 +3010,21 @@ Behavior:
 
 # Taint entry points that introduce taint into the program like main(args).
 # All parameters of such API are treated as tainted.
-# Only public methods are allowed.
 # Format:
 # <<<
 # [Unique ID]:
 #   Namespace: (Optional) [Namespace where the class is present]
 #   ClassName: [Class of the API. If 'Name' is not specified, checks also derived classes.]
 #   Name:      (Optional) [Class member name.
-#                          If not specified applies to all public members of the class, except constructors.]
+#                          If not specified applies to all public methods of the class, except constructors.]
 # <<<
 # Additionally taint source may be described in 'Behavior' section as a post-condition.
 TaintEntryPoints:
 
- # Microsoft.AspNetCore.Mvc.Controller
   Microsoft.AspNetCore.Mvc_Controller:
     Namespace: Microsoft.AspNetCore.Mvc
     ClassName: ControllerBase
 
- # System.Web.Mvc.Controller
   System.Web.Mvc_Controller:
     Namespace: System.Web.Mvc
     ClassName: ControllerBase

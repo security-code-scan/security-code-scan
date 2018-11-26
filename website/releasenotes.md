@@ -1,31 +1,18 @@
-# Release Notes
+﻿# Release Notes
+## 3.0.0
+This is a major release that introduces configurable taint sources, sanitizers and validators. Configuration file schema version has changed to 2.0, so if you had custom config settings, you'll need to adjust to the schema and bump your file name from `config-1.0.yml` to `config-2.0.yml` or change from `Version: 1.0` to `Version: 2.0` if it was added to a project.  
+With the introduction of taint sources and taint entry points warning are shown only for the tainted data. Unknowns are reported only in the Audit Mode.  
+Multiple improvements and fixes were done to Taint, Anti-CSRF token, XSS, SQL injection, Path traversal, XPath injection, Certificate validation analyzers.  
+New LDAP injection detection was added.  
+An issue was fixed that could surface as `Session Terminated unexpectedly. Disabling 'Security Code Scan' might help prevent...`.
+
+I would like to thank all [contributors](https://github.com/security-code-scan/security-code-scan/graphs/contributors) to this and previous releases. Also to everyone who has reported [issues or feature requests](https://github.com/security-code-scan/security-code-scan/issues?utf8=%E2%9C%93&q=is%3Aissue).  
+
 ## 2.8.0
 **Important:** This release targets full .NET framework and **may** not run on Unix machines. Although as tested it runs fine in [microsoft/dotnet 2.1 docker container](https://hub.docker.com/r/microsoft/dotnet/) on Linux, still for Unix based Continuous Integration builds it is better to use [SecurityCodeScan.VS2017 NuGet package](https://www.nuget.org/packages/SecurityCodeScan.VS2017), that targets netstandard.
 
-Added external configuration files: per user account and per project. It allows you to customize settings from [built-in configuration](https://github.com/security-code-scan/security-code-scan/blob/master/SecurityCodeScan/Config/Main.yml) or add your specific Sinks and Behaviors. Global settings file location is `%LocalAppData%\SecurityCodeScan\config-1.0.yml` on Windows and `$XDG_DATA_HOME/.local/share` on Unix.  
-An example of user's config-1.0.yml with custom Anti CSRF token:
-```yml
-CsrfProtectionAttributes:
-  -  HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
-     AntiCsrfAttribute: MyNamespace.MyAntiCsrfAttribute
-```
-
-For project specific settings add SecurityCodeScan.config.yml into a project. Go to file properties and set the *Build Action* to *AdditionalFiles*:
-
-![image](https://user-images.githubusercontent.com/26652396/43063175-d28dc288-8e63-11e8-90eb-a7cb31900aff.png)
-
-An example of SecurityCodeScan.config.yml with custom sink function (method that shouldn't be called with untrusted data without first being sanitized):
-```yml
-Version: 1.0
-Sinks:
-  UniqueKey:
-    Namespace: MyNamespace
-    ClassName: Test
-    Member: method
-    Name: VulnerableFunctionName
-    InjectableArguments: [0]
-    Locale: SCS0001
-```
+Added external configuration files: per user account and per project. It allows you to customize settings from [built-in configuration](https://github.com/security-code-scan/security-code-scan/blob/master/SecurityCodeScan/Config/Main.yml) or add your specific Sinks and Behaviors.  
+> ⚠️Note: Configuration schema has changed in version 3.0.0 please refer to the documentation above for examples.
 
 Audit Mode setting (Off by default) was introduced for those interested in warnings with more false positives.
 

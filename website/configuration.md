@@ -4,6 +4,16 @@
 
 ![Full Solution Analysis](images/fullsolution.png)  
 Since *Full solution analysis* for IntelliSense has performance impact this is another reason to use SCS during a build only as a NuGet instead of Visual Studio extension. Microsoft has some [additional information](https://docs.microsoft.com/en-us/visualstudio/code-quality/how-to-enable-and-disable-full-solution-analysis-for-managed-code) on the configuration option.
+
+## Testing on WebGoat.NET
+Download an intentionally vulnerable project [WebGoat.NET](https://github.com/OWASP/WebGoat.NET/zipball/master) for testing. Open the solution. If you have installed SCS as a VS extension you should see warning after few seconds in the "Errors" tab. Make sure IntelliSense results are not filtered in the window:
+
+![Intellisense](images/intellisense.png)
+
+If SCS is installed as NuGet package you'll need to build the solution. Then you should see the warning in the "Errors" and "Output" tabs:
+
+![Intellisense](images/output.png)
+
 ## Analyzing .aspx and web.config Files
 To enable analysis of these files you need to modify all C#(.csproj) and VB.NET(.vbproj) projects in a solution and add "AdditionalFileItemNames" element as shown below:
 ```xml
@@ -35,41 +45,43 @@ $content.Save($_)
 (Get-Content $_ -Encoding UTF8) | Set-Content $_ -Encoding UTF8
 }
 ```
+
 ## External Configuration Files
-There are two types of external configuration files that can be used together: per user account and per project. It allows you to customize settings from [built-in configuration](https://github.com/security-code-scan/security-code-scan/blob/master/SecurityCodeScan/Config/Main.yml) or add your specific Sinks and Behaviors. Global settings file location is `%LocalAppData%\SecurityCodeScan\config-1.0.yml` on Windows and `$XDG_DATA_HOME/.local/share` on Unix.  
-An example of user's config-1.0.yml with custom Anti CSRF token:
+There are two types of external configuration files that can be used together: per user account and per project. It allows you to customize settings from [built-in configuration](https://github.com/security-code-scan/security-code-scan/blob/master/SecurityCodeScan/Config/Main.yml) or add new rules. Global settings file location is `%LocalAppData%\SecurityCodeScan\config-2.0.yml` on Windows and `$XDG_DATA_HOME/.local/share` on Unix.  
+
+For project specific settings add SecurityCodeScan.config.yml into a project. Go to file properties and set the Build Action to AdditionalFiles:
+
+![image](https://user-images.githubusercontent.com/26652396/43063175-d28dc288-8e63-11e8-90eb-a7cb31900aff.png)
+
+### Custom taint source, sinks, sanitizers and validators
+
+An example of user's (per OS user) config-2.0.yml with custom Anti CSRF token:
+
 ```yml
 CsrfProtectionAttributes:
   -  HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
      AntiCsrfAttribute: MyNamespace.MyAntiCsrfAttribute
 ```
 
-For project specific settings add SecurityCodeScan.config.yml into a project. Go to file properties and set the Build Action to AdditionalFiles:
+An example of SecurityCodeScan.config.yml (per project) with custom sink function (method that shouldn't be called with untrusted data without first being sanitized):
 
-![image](https://user-images.githubusercontent.com/26652396/43063175-d28dc288-8e63-11e8-90eb-a7cb31900aff.png)
-
-An example of SecurityCodeScan.config.yml with custom sink function (method that shouldn't be called with untrusted data without first being sanitized):
 ```yml
-Version: 1.0
-Sinks:
+Version: 2.0
+
+Behavior:
   UniqueKey:
     Namespace: MyNamespace
     ClassName: Test
-    Member: method
     Name: VulnerableFunctionName
-    InjectableArguments: [0]
+    InjectableArguments: [0: HtmlEscaped]
     Locale: SCS0001
 ```
-## Audit Mode
-Audit mode is off by default. It can be turned on in an external configuration file to get warnings with more false positives.
-## Testing on WebGoat.NET
-Download an intentionally vulnerable project [WebGoat.NET](https://github.com/OWASP/WebGoat.NET/zipball/master) for testing. Open the solution. If you have installed SCS as a VS extension you should see warning after few seconds in the "Errors" tab. Make sure IntelliSense results are not filtered in the window:
 
-![Intellisense](images/intellisense.png)
+See the [configuration file](https://github.com/security-code-scan/security-code-scan/blob/master/SecurityCodeScan/Config/Main.yml) for comments and examples of usage.  
 
-If SCS is installed as NuGet package you'll need to build the solution. Then you should see the warning in the "Errors" and "Output" tabs:
+### Audit Mode
+Audit mode is off by default. It can be turned on in an external configuration file to get more potentially false positive warnings about data with unknown taint state.
 
-![Intellisense](images/output.png)
 ## Suppressing and Fixing the Warnings
 If *Code Fixer* is not implemented for the warning the link "Show potential fixes" won't work. For many warnings there are too many options to resolve the issue, so the code has to be modified manually.
 If the warning is false positive it can be suppressed that is [standard functionality for Visual Studio](https://docs.microsoft.com/en-us/visualstudio/code-quality/in-source-suppression-overview) however the UI not very intuitive, because you have to click on the underlined piece of code, only then a bubble appears at the beginning of the line where suppress menu is available:
@@ -82,9 +94,11 @@ Another place where the menu is available is *Error List*:
 
 It is possible to filter shown item in *Error List* by different criteria: warning id, project name, etc.
 You can permanently suppress entire warning type for a project by setting it's warning id severity to *None*. Microsoft has [it's own documentation](https://docs.microsoft.com/en-us/visualstudio/code-quality/use-roslyn-analyzers) about suppressions, rule sets and severities.
+
 ## Severity
 Each warning severity is configurable: expand References > Analyzers > SecurityCodeScan under the project in a Solution window, right click on a warning ID and modify the severity. WebGoat.NET.ruleset will be automatically saved in the project's directory:
 
 ![Intellisense](images/severity.png)
+
 ## Troubleshooting
 If no SCS warnings are displayed, temporarily disable other installed analyzers. A buggy analyzer may [affect results from other analyzers](https://github.com/dotnet/roslyn/issues/23879).

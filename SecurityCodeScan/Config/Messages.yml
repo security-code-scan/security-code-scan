@@ -162,6 +162,7 @@ SCS0024:
 # XSS
 SCS0029:
   title: Potential XSS vulnerability
+  title_assignment: Potential XSS vulnerability
   description: The endpoint returns a variable from the client input that has not been encoded.
 
 # Password Validator

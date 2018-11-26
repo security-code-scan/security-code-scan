@@ -102,6 +102,8 @@ namespace SecurityCodeScan.Test.Audit
         [DataRow("Assembly.ReflectionOnlyLoadFrom(path)")]
         [DataRow("Assembly.UnsafeLoadFrom(path)")]
 
+        [DataRow("var a = new FileStream(path, FileMode.Open)")]
+
         [TestCategory("Detect")]
         [DataTestMethod]
         public async Task PathTraversalMethods(string sink)
@@ -166,8 +168,17 @@ End Class
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest,expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+
+            // same warnings in audit mode
+            await VerifyCSharpDiagnostic(cSharpTest,
+                                         expected,
+                                         await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
+
+            await VerifyVisualBasicDiagnostic(visualBasicTest,
+                                              expected,
+                                              await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
         }
 
         [DataRow("FS.AppendAllLines(\"c:\\aaa.txt\", null)")]
@@ -228,6 +239,8 @@ End Class
         [DataRow("Assembly.ReflectionOnlyLoad(\"c:\\aaa.txt\")")]
         [DataRow("Assembly.ReflectionOnlyLoadFrom(\"c:\\aaa.txt\")")]
         [DataRow("Assembly.UnsafeLoadFrom(\"c:\\aaa.txt\")")]
+
+        [DataRow("var a = new FileStream(\"\", FileMode.Open)")]
 
         [DataTestMethod]
         public async Task PathTraversalMethodsConst(string sink)

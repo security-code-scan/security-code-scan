@@ -2438,5 +2438,58 @@ Behavior:
             await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
+
+        [TestMethod]
+        public async Task EnumTaint()
+        {
+            var cSharpTest = @"
+class Test
+{
+    private enum MyEnum
+    {
+        Val = 1
+    }
+
+    public void Run()
+    {
+        Sink(MyEnum.Val);
+    }
+
+    private static void Sink(MyEnum input) {}
+}
+";
+
+            var visualBasicTest = @"
+Friend Class Test
+    Private Enum MyEnum
+        Val = 1
+    End Enum
+
+    Public Sub Run()
+        Sink(MyEnum.Val)
+    End Sub
+
+    Private Shared Sub Sink(ByVal input As MyEnum)
+    End Sub
+End Class
+
+";
+
+            var testConfig = @"
+AuditMode: true
+
+Behavior:
+  MyKey:
+    ClassName: Test
+    Name: Sink
+    InjectableArguments: [0]
+    Locale: SCS0026
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+        }
     }
 }

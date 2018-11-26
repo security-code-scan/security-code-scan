@@ -724,13 +724,12 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (taintSourceState != null)
                 return taintSourceState;
 
-            VariableState expressionState = null;
-            if (expression.Expression != null)
-                expressionState = VisitExpression(expression.Expression, state);
-
             varState = ResolveVariableState(expression, state);
-            if (expressionState != null)
+            if (varState.Taint != VariableTaint.Constant && expression.Expression != null)
+            {
+                var expressionState = VisitExpression(expression.Expression, state);
                 varState.MergeTaint(expressionState.Taint);
+            }
 
             return varState;
         }

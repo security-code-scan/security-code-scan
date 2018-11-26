@@ -417,7 +417,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                             (requiredTaintBits & (ulong)argumentState.Taint) != requiredTaintBits)
                         {
                             var newRule    = LocaleUtil.GetDescriptor(behavior.LocaleInjection);
-                            var diagnostic = Diagnostic.Create(newRule, node.GetLocation(), GetMethodName(node), (i + 1).ToNthString());
+                            var diagnostic = Diagnostic.Create(newRule, argument.GetExpression().GetLocation(), GetMethodName(node), (i + 1).ToNthString());
                             state.AnalysisContext.ReportDiagnostic(diagnostic);
                         }
                     }
@@ -427,7 +427,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                         behavior.PasswordArguments.Contains(adjustedArgumentIdx))
                     {
                         var newRule    = LocaleUtil.GetDescriptor(behavior.LocaleInjection);
-                        var diagnostic = Diagnostic.Create(newRule, node.GetLocation(), GetMethodName(node), (i + 1).ToNthString());
+                        var diagnostic = Diagnostic.Create(newRule, argument.GetExpression().GetLocation(), GetMethodName(node), (i + 1).ToNthString());
                         state.AnalysisContext.ReportDiagnostic(diagnostic);
                     }
                 }

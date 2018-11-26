@@ -253,8 +253,19 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitBinaryExpression(binaryExpressionSyntax, state);
                 }
                 case AssignmentExpressionSyntax assignmentExpressionSyntax:
-                    var assignmentState = VisitAssignment(assignmentExpressionSyntax, state);
-                    return MergeVariableState(assignmentExpressionSyntax.Left, assignmentState, state);
+                    if (assignmentExpressionSyntax.Kind() != SyntaxKind.SimpleAssignmentExpression)
+                    {
+                        var left = VisitExpression(assignmentExpressionSyntax.Left, state);
+                        var assignmentState = VisitAssignment(assignmentExpressionSyntax, state);
+                        left.MergeTaint(assignmentState.Taint);
+                        return left;
+                    }
+                    else
+                    {
+                        var assignmentState = VisitAssignment(assignmentExpressionSyntax, state);
+                        return MergeVariableState(assignmentExpressionSyntax.Left, assignmentState, state);
+                    }
+
                 case MemberAccessExpressionSyntax memberAccessExpressionSyntax:
                     return VisitMemberAccessExpression(memberAccessExpressionSyntax, state);
                 case ElementAccessExpressionSyntax elementAccessExpressionSyntax:
@@ -805,9 +816,12 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <returns></returns>
         private VariableState VisitBinaryExpression(BinaryExpressionSyntax expression, ExecutionState state)
         {
-            VariableState left = VisitExpression(expression.Left, state);
-            left.MergeTaint(VisitExpression(expression.Right, state).Taint);
-            return left;
+            var result = new VariableState(expression, VariableTaint.Unset);
+            var left = VisitExpression(expression.Left, state);
+            result.MergeTaint(left.Taint);
+            var right = VisitExpression(expression.Right, state);
+            result.MergeTaint(right.Taint);
+            return result;
         }
     }
 }

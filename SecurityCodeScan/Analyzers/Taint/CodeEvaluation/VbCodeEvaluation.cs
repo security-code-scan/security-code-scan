@@ -139,7 +139,18 @@ namespace SecurityCodeScan.Analyzers.Taint
                 case VariableDeclaratorSyntax variableDeclaration:
                     return VisitVariableDeclaration(variableDeclaration, state);
                 case AssignmentStatementSyntax assignment:
-                    return VisitAssignmentStatement(assignment, state);
+                    if (assignment.Kind() != SyntaxKind.SimpleAssignmentStatement)
+                    {
+                        var left            = VisitExpression(assignment.Left, state);
+                        var assignmentState = VisitAssignment(assignment, assignment.Left, assignment.Right, state);
+                        left.MergeTaint(assignmentState.Taint);
+                        return left;
+                    }
+                    else
+                    {
+                        var assignmentState = VisitAssignment(assignment, assignment.Left, assignment.Right, state);
+                        return MergeVariableState(assignment.Left, assignmentState, state);
+                    }
                 case ExpressionStatementSyntax expressionStatement:
                     return VisitExpressionStatement(expressionStatement, state);
                 case ExpressionSyntax expression:
@@ -280,6 +291,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                 }
                 case QueryExpressionSyntax queryExpressionSyntax:
                     return new VariableState(queryExpressionSyntax, VariableTaint.Unknown);
+                case InterpolatedStringExpressionSyntax interpolatedStringExpressionSyntax:
+                    return VisitInterpolatedString(interpolatedStringExpressionSyntax, state);
                 case DirectCastExpressionSyntax directCastExpressionSyntax:
                     return VisitExpression(directCastExpressionSyntax.Expression, state);
                 case CTypeExpressionSyntax cTypeExpressionSyntax:
@@ -290,6 +303,28 @@ namespace SecurityCodeScan.Analyzers.Taint
             Logger.Log("Unsupported expression " + expression.GetType() + " (" + expression + ")");
 #endif
             return new VariableState(expression, VariableTaint.Unknown);
+        }
+
+        private VariableState VisitInterpolatedString(InterpolatedStringExpressionSyntax interpolatedString,
+                                                      ExecutionState                     state)
+        {
+            var varState = new VariableState(interpolatedString, VariableTaint.Constant);
+
+            foreach (var content in interpolatedString.Contents)
+            {
+                if (content is InterpolatedStringTextSyntax)
+                {
+                    varState.MergeTaint(VariableTaint.Constant);
+                }
+
+                if (!(content is InterpolationSyntax interpolation))
+                    continue;
+
+                var expressionState = VisitExpression(interpolation.Expression, state);
+                varState.MergeTaint(expressionState.Taint);
+            }
+
+            return varState;
         }
 
         private VariableState VisitMethodInvocation(InvocationExpressionSyntax node, ExecutionState state)
@@ -511,12 +546,6 @@ namespace SecurityCodeScan.Analyzers.Taint
             return returnState;
         }
 
-        private VariableState VisitAssignmentStatement(AssignmentStatementSyntax node, ExecutionState state)
-        {
-            var assignmentState = VisitAssignment(node, node.Left, node.Right, state);
-            return MergeVariableState(node.Left, assignmentState, state);
-        }
-
         private VariableState VisitNamedFieldInitializer(NamedFieldInitializerSyntax node, ExecutionState state, VariableState currentScope)
         {
             var assignmentState = VisitAssignment(node, node.Name, node.Expression, state);
@@ -599,9 +628,12 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <returns></returns>
         private VariableState VisitBinaryExpression(BinaryExpressionSyntax expression, ExecutionState state)
         {
-            VariableState left = VisitExpression(expression.Left, state);
-            left.MergeTaint(VisitExpression(expression.Right, state).Taint);
-            return left;
+            var result = new VariableState(expression, VariableTaint.Unset);
+            var left   = VisitExpression(expression.Left, state);
+            result.MergeTaint(left.Taint);
+            var right = VisitExpression(expression.Right, state);
+            result.MergeTaint(right.Taint);
+            return result;
         }
 
         /// <summary>

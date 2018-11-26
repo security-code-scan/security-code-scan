@@ -26,86 +26,6 @@ namespace SecurityCodeScan.Test.Taint
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-        [TestMethod]
-        public async Task TransferStringFormatSafe()
-        {
-            var cSharpTest = @"
-using System;
-using System.Data.SqlClient;
-
-class SqlTransferTesting
-{
-    public static void Run()
-    {
-        string tableName = ""table_name"";
-        string column1 = ""1"";
-
-        string safeQuery = String.Format(""SELECT * FROM {0}"", tableName);
-        new SqlCommand(safeQuery);
-
-        safeQuery = String.Format(""SELECT {1} FROM {0}"", tableName, column1);
-        new SqlCommand(safeQuery);
-
-        safeQuery = String.Format(""SELECT {1},{2} FROM {0}"", tableName, column1, column1);
-        new SqlCommand(safeQuery);
-
-        safeQuery = String.Format(""SELECT {1},{2},{3} FROM {0}"", tableName, column1, column1, column1);
-        new SqlCommand(safeQuery);
-
-        safeQuery = String.Format(null, ""SELECT * FROM {0}"", tableName);
-        new SqlCommand(safeQuery);
-
-        safeQuery = String.Format(null, ""SELECT {1} FROM {0}"", tableName, column1);
-        new SqlCommand(safeQuery);
-
-        safeQuery = String.Format(null, ""SELECT {1},{2} FROM {0}"", tableName, column1, column1);
-        new SqlCommand(safeQuery);
-
-        safeQuery = String.Format(null, ""SELECT {1},{2},{3} FROM {0}"", tableName, column1, column1, column1);
-        new SqlCommand(safeQuery);
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports System.Data.SqlClient
-
-Class SqlTransferTesting
-    Public Shared Sub Run()
-        Dim tableName As String = ""table_name""
-        Dim column1 As String = ""1""
-
-        Dim safeQuery As String = String.Format(""Select * FROM {0}"", tableName)
-        Dim com1 As New SqlCommand(safeQuery)
-
-        safeQuery = String.Format(""SELECT {1} FROM {0}"", tableName, column1)
-        Dim com2 As New SqlCommand(safeQuery)
-
-        safeQuery = String.Format(""SELECT {1},{2} FROM {0}"", tableName, column1, column1)
-        Dim com3 As New SqlCommand(safeQuery)
-
-        safeQuery = String.Format(""SELECT {1},{2},{3} FROM {0}"", tableName, column1, column1, column1)
-        Dim com4 As New SqlCommand(safeQuery)
-
-        safeQuery = String.Format(Nothing, ""SELECT * FROM {0}"", tableName)
-        Dim com5 As New SqlCommand(safeQuery)
-
-        safeQuery = String.Format(Nothing, ""SELECT {1} FROM {0}"", tableName, column1)
-        Dim com6 As New SqlCommand(safeQuery)
-
-        safeQuery = String.Format(Nothing, ""SELECT {1},{2} FROM {0}"", tableName, column1, column1)
-        Dim com7 As New SqlCommand(safeQuery)
-
-        safeQuery = String.Format(Nothing, ""SELECT {1},{2},{3} FROM {0}"", tableName, column1, column1, column1)
-        Dim com8 As New SqlCommand(safeQuery)
-    End Sub
-End Class
-";
-
-            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
-        }
-
         [TestCategory("Detect")]
         [DataRow("static ")]
         [DataRow("")]
@@ -586,35 +506,56 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Detect")]
-        [TestMethod]
-        public async Task TransferStringFormatUnSafe1()
+        [DataTestMethod]
+        [DataRow("var query = String.Format(\"SELECT * FROM {0}\", input)", true)]
+        [DataRow("var query = String.Format(\"SELECT * FROM {0}\", \"\")", false)]
+        [DataRow("var query = String.Format(\"SELECT * FROM {0}{1}\", \"\", input)", true)]
+        [DataRow("var query = String.Format(\"SELECT * FROM {0}{1}\", \"\", \"\")", false)]
+        [DataRow("var query = String.Format(\"SELECT * FROM {0}{1}{2}\", \"\", \"\", input)", true)]
+        [DataRow("var query = String.Format(\"SELECT * FROM {0}{1}{2}\", \"\", \"\", \"\")", false)]
+        [DataRow("var query = String.Format(\"SELECT {3} FROM {0}{1}{2}\", \"\", \"\", \"\", input)", true)]
+        [DataRow("var query = String.Format(\"SELECT {3} FROM {0}{1}{2}\", \"\", \"\", \"\", \"\")", false)]
+
+        [DataRow("var tableName = input; var query = String.Format(\"SELECT * FROM {0}\", tableName)", true)]
+        [DataRow("var tableName = \"\"; var query = String.Format(\"SELECT * FROM {0}\", tableName)", false)]
+
+        [DataRow("var query = $\"SELECT * FROM {input}\"", true)]
+        [DataRow("var query = $\"SELECT * FROM {\"\"}\"", false)]
+        [DataRow("var query = $\"SELECT * FROM table\"", false)]
+        [DataRow("var a = input; var query = $\"SELECT * FROM {a}\"", true)]
+
+        [DataRow("var query = input; query = input + \"\"", true)]
+        [DataRow("var query = input; query += \"\"", true)]
+        [DataRow("var query = \"\"; query += input", true)]
+        [DataRow("var query = input; query = \"\"", false)]
+        [DataRow("var query = \"\"; query = input", true)]
+
+        [DataRow("var query = \"\"; var notused = query + input", false)]
+        public async Task TransferStringFormat(string payload, bool warn)
         {
-            var cSharpTest = @"
-using System;
-using System.Data.SqlClient;
+            var cSharpTest = $@"
+#pragma warning disable 8019
+    using System;
+    using System.Data.SqlClient;
+#pragma warning restore 8019
 
 class SqlTransferTesting
-{
+{{
     public void Run(string input)
-    {
-        string tableName = input;
-
-        string safeQuery = String.Format(""SELECT * FROM {0}"", tableName);
-        new SqlCommand(safeQuery);
-    }
-}
+    {{
+        {payload};
+        new SqlCommand(query);
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
+            var visualBasicTest = $@"
 Imports System.Data.SqlClient
 
 Class SqlTransferTesting
     Public Sub Run(input As String)
-        Dim tableName As String = input
-
-        Dim safeQuery As String = String.Format(""Select * FROM {0}"", tableName)
-        Dim com As New SqlCommand(safeQuery)
+        {payload.CSharpReplaceToVBasic()}
+        Dim com As New SqlCommand(query)
     End Sub
 End Class
 ";
@@ -633,137 +574,16 @@ TaintEntryPoints:
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
-            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
-        }
-
-        [TestCategory("Detect")]
-        [TestMethod]
-        public async Task TransferStringFormatUnSafe2()
-        {
-            var cSharpTest = @"
-using System;
-using System.Data.SqlClient;
-
-class SqlTransferTesting
-{
-    public void Run(string input)
-    {
-        string query = input;
-
-        string safeQuery = String.Format(query, ""test"");
-        new SqlCommand(safeQuery);
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports System.Data.SqlClient
-
-Class SqlTransferTesting
-    Public Sub Run(input As String)
-        Dim query As String = input
-
-        Dim safeQuery As String = String.Format(query, ""test"")
-        Dim com As New SqlCommand(safeQuery)
-    End Sub
-End Class
-";
-
-            var expected = new DiagnosticResult
+            if (warn)
             {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            var testConfig = @"
-TaintEntryPoints:
-  AAA:
-    ClassName: SqlTransferTesting
-";
-
-            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
-
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
-            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
-        }
-
-        [TestCategory("Safe")]
-        [TestMethod]
-        public async Task TransferStringInterpolatedSafe()
-        {
-            var cSharpTest = @"
-using System.Data.SqlClient;
-
-class SqlTransferTesting
-{
-    public void Run(string input)
-    {
-        string query = input;
-
-        string safeQuery = $""SELECT * FROM test"";
-        new SqlCommand(safeQuery);
-    }
-}
-";
-
-            var visualBasicTest = @"
-Imports System.Data.SqlClient
-
-Class SqlTransferTesting
-    Public Sub Run(input As String)
-        Dim query As String = input
-
-        Dim safeQuery As String = ""SELECT* FROM test""
-        Dim com As New SqlCommand(safeQuery)
-    End Sub
-End Class
-";
-
-            var testConfig = @"
-TaintEntryPoints:
-  AAA:
-    ClassName: SqlTransferTesting
-";
-
-            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
-            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
-        }
-
-        [TestCategory("Detect")]
-        [TestMethod]
-        public async Task TransferStringInterpolatedUnSafe()
-        {
-            var cSharpTest = @"
-using System.Data.SqlClient;
-
-class SqlTransferTesting
-{
-    public void Run(string input)
-    {
-        string query = input;
-
-        string safeQuery = $""{query}"";
-        new SqlCommand(safeQuery);
-    }
-}
-";
-
-            var expected = new DiagnosticResult
+                await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
             {
-                Id       = "SCS0026",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            var testConfig = @"
-TaintEntryPoints:
-  AAA:
-    ClassName: SqlTransferTesting
-";
-
-            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
-            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            }
         }
 
         [TestCategory("Safe")]

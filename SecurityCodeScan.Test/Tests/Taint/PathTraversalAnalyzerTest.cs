@@ -277,26 +277,13 @@ End Class
         [DataRow("StreamWriter(\"\", flag, System.Text.Encoding.ASCII, 10)")]
 
         [DataRow("FileStream(handle, FileAccess.Read)")]
-        [DataRow("FileStream(IntPtr.Zero, access)")]
         [DataRow("FileStream(handle, FileAccess.Read, false)")]
-        [DataRow("FileStream(IntPtr.Zero, access, false)")]
         [DataRow("FileStream(handle, FileAccess.Read, false, 0, true)")]
-        [DataRow("FileStream(IntPtr.Zero, access, false, 0, true)")]
 
         [DataRow("FileStream(safeHandle, FileAccess.Read)")]
-        [DataRow("FileStream(default(SafeFileHandle), access)")]
         [DataRow("FileStream(safeHandle, FileAccess.Read, 0, false)")]
-        [DataRow("FileStream(default(SafeFileHandle), access, 0, false)")]
 
         [DataRow("FileStream(input, FileMode.CreateNew)")]
-        [DataRow("FileStream(\"\", fileMode)")]
-        [DataRow("FileStream(\"\", FileMode.CreateNew, access)")]
-        [DataRow("FileStream(\"\", FileMode.CreateNew, FileAccess.Read,         fileShare)")]
-        [DataRow("FileStream(\"\", FileMode.CreateNew, FileAccess.Read,         fileShare,      10)")]
-        [DataRow("FileStream(\"\", FileMode.CreateNew, FileAccess.Read,         fileShare,      10, false)")]
-        [DataRow("FileStream(\"\", FileMode.CreateNew, FileAccess.Read,         FileShare.Read, 10, fileOptions)")]
-        [DataRow("FileStream(\"\", FileMode.CreateNew, fileSystemRights,        FileShare.Read, 10, FileOptions.None)")]
-        [DataRow("FileStream(\"\", FileMode.CreateNew, FileSystemRights.Read,   FileShare.Read, 10, FileOptions.None, fileSecurity)")]
         [TestCategory("Detect")]
         [DataTestMethod]
         public async Task PathTraversalNewObject(string sink)
@@ -311,8 +298,8 @@ using System.Web.Mvc;
 class PathTraversal : Controller
 {{
     public void Run(string input, FileMode fileMode, IntPtr handle, FileAccess access, SafeFileHandle safeHandle,
-                           FileShare fileShare, FileOptions fileOptions, FileSystemRights fileSystemRights,
-                           FileSecurity fileSecurity, bool flag)
+                    FileShare fileShare, FileOptions fileOptions, FileSystemRights fileSystemRights,
+                    FileSecurity fileSecurity, bool flag)
     {{
 #pragma warning disable 618
         new {sink};
@@ -333,8 +320,8 @@ Class PathTraversal
     Inherits Controller
 
     Public Sub Run(input As String, fileMode As FileMode, handle As IntPtr, access As FileAccess,
-                          safeHandle As SafeFileHandle, fileShare As FileShare, fileOptions As FileOptions,
-                          fileSystemRights As FileSystemRights, fileSecurity As FileSecurity, flag As Boolean)
+                   safeHandle As SafeFileHandle, fileShare As FileShare, fileOptions As FileOptions,
+                   fileSystemRights As FileSystemRights, fileSecurity As FileSecurity, flag As Boolean)
 #Disable Warning BC40000
         Dim sr As New {sink}
 #Enable Warning BC40000
@@ -366,11 +353,17 @@ End Class
         [DataRow("StreamWriter(\"\", false, encoding, 10)")]
 
         [DataRow("FileStream(IntPtr.Zero, FileAccess.Read)")]
+        [DataRow("FileStream(IntPtr.Zero, access)")]
         [DataRow("FileStream(IntPtr.Zero, FileAccess.Read, flag)")]
+        [DataRow("FileStream(IntPtr.Zero, access, false)")]
+        [DataRow("FileStream(IntPtr.Zero, access, false, 0, true)")]
         [DataRow("FileStream(\"\",        FileMode.CreateNew)")]
+        [DataRow("FileStream(\"\",        fileMode)")]
 
         [DataRow("FileStream(default(SafeFileHandle), FileAccess.Read)")]
+        [DataRow("FileStream(default(SafeFileHandle), access)")]
         [DataRow("FileStream(default(SafeFileHandle), FileAccess.Read, digit, flag)")]
+        [DataRow("FileStream(default(SafeFileHandle), access, 0, false)")]
 
         [DataRow("FileStream(\"\", FileMode.CreateNew)")]
         [DataRow("FileStream(\"\", FileMode.CreateNew, FileAccess.Read)")]
@@ -379,6 +372,14 @@ End Class
         [DataRow("FileStream(\"\", FileMode.CreateNew, FileAccess.Read,         FileShare.Read, digit, flag)")]
         [DataRow("FileStream(\"\", FileMode.CreateNew, FileAccess.Read,         FileShare.Read, digit, FileOptions.None)")]
         [DataRow("FileStream(\"\", FileMode.CreateNew, FileSystemRights.Read,   FileShare.Read, digit, FileOptions.None, default(FileSecurity))")]
+        [DataRow("FileStream(\"\", fileMode)")]
+        [DataRow("FileStream(\"\", FileMode.CreateNew, access)")]
+        [DataRow("FileStream(\"\", FileMode.CreateNew, FileAccess.Read,         fileShare)")]
+        [DataRow("FileStream(\"\", FileMode.CreateNew, FileAccess.Read,         fileShare,      10)")]
+        [DataRow("FileStream(\"\", FileMode.CreateNew, FileAccess.Read,         fileShare,      10, false)")]
+        [DataRow("FileStream(\"\", FileMode.CreateNew, FileAccess.Read,         FileShare.Read, 10, fileOptions)")]
+        [DataRow("FileStream(\"\", FileMode.CreateNew, fileSystemRights,        FileShare.Read, 10, FileOptions.None)")]
+        [DataRow("FileStream(\"\", FileMode.CreateNew, FileSystemRights.Read,   FileShare.Read, 10, FileOptions.None, fileSecurity)")]
         [TestCategory("Safe")]
         [DataTestMethod]
         public async Task PathTraversalNewObjectConst(string sink)
@@ -394,7 +395,9 @@ End Class
 
 class PathTraversal : Controller
 {{
-    public void Run(bool flag, int digit, System.Text.Encoding encoding)
+    public void Run(string input, FileMode fileMode, IntPtr handle, FileAccess access, SafeFileHandle safeHandle,
+                    FileShare fileShare, FileOptions fileOptions, FileSystemRights fileSystemRights,
+                    FileSecurity fileSecurity, bool flag, int digit, System.Text.Encoding encoding)
     {{
 #pragma warning disable 618
         new {sink};
@@ -415,7 +418,10 @@ class PathTraversal : Controller
 Class PathTraversal
     Inherits Controller
 
-    Public Sub Run(flag As Boolean, digit As Int32, encoding As System.Text.Encoding)
+    Public Sub Run(input As String, fileMode As FileMode, handle As IntPtr, access As FileAccess,
+                   safeHandle As SafeFileHandle, fileShare As FileShare, fileOptions As FileOptions,
+                   fileSystemRights As FileSystemRights, fileSecurity As FileSecurity, flag As Boolean,
+                   digit As Int32, encoding As System.Text.Encoding)
 #Disable Warning BC40000
         Dim sr As New {sink.CSharpReplaceToVBasic()}
 #Enable Warning BC40000

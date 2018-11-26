@@ -1583,7 +1583,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.IntPtr, System.IO.FileAccess)
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0]
     Locale: SCS0018
 
   FileStream_Constructor2:
@@ -1591,7 +1591,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.IntPtr, System.IO.FileAccess, System.Boolean)
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0]
     Locale: SCS0018
 
   FileStream_Constructor3:
@@ -1599,7 +1599,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.IntPtr, System.IO.FileAccess, System.Boolean, System.Int32)
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0]
     Locale: SCS0018
 
   FileStream_Constructor4:
@@ -1607,7 +1607,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.IntPtr, System.IO.FileAccess, System.Boolean, System.Int32, System.Boolean)
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0]
     Locale: SCS0018
 
   FileStream_Constructor5:
@@ -1615,7 +1615,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (Microsoft.Win32.SafeHandles.SafeFileHandle, System.IO.FileAccess)
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0]
     Locale: SCS0018
 
   FileStream_Constructor6:
@@ -1623,7 +1623,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (Microsoft.Win32.SafeHandles.SafeFileHandle, System.IO.FileAccess, System.Int32)
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0]
     Locale: SCS0018
 
   FileStream_Constructor7:
@@ -1631,7 +1631,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (Microsoft.Win32.SafeHandles.SafeFileHandle, System.IO.FileAccess, System.Int32, System.Boolean)
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0]
     Locale: SCS0018
 
   FileStream_Constructor8:
@@ -1639,7 +1639,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode)
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0]
     Locale: SCS0018
 
   FileStream_Constructor9:
@@ -1647,7 +1647,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess)
-    InjectableArguments: [0, 1, 2]
+    InjectableArguments: [0]
     Locale: SCS0018
 
   FileStream_Constructor10:
@@ -1655,7 +1655,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare)
-    InjectableArguments: [0, 1, 2, 3]
+    InjectableArguments: [0]
     Locale: SCS0018
 
   FileStream_Constructor11:
@@ -1663,7 +1663,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare, System.Int32)
-    InjectableArguments: [0, 1, 2, 3]
+    InjectableArguments: [0]
     Locale: SCS0018
 
   FileStream_Constructor12:
@@ -1671,7 +1671,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare, System.Int32, System.Boolean)
-    InjectableArguments: [0, 1, 2, 3]
+    InjectableArguments: [0]
     Locale: SCS0018
 
   FileStream_Constructor13:
@@ -1679,7 +1679,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare, System.Int32, System.IO.FileOptions)
-    InjectableArguments: [0, 1, 2, 3, 5]
+    InjectableArguments: [0]
     Locale: SCS0018
 
   FileStream_Constructor14:
@@ -1687,7 +1687,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.Security.AccessControl.FileSystemRights, System.IO.FileShare, System.Int32, System.IO.FileOptions)
-    InjectableArguments: [0, 1, 2, 3, 5]
+    InjectableArguments: [0]
     Locale: SCS0018
 
   FileStream_Constructor15:
@@ -1695,7 +1695,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.Security.AccessControl.FileSystemRights, System.IO.FileShare, System.Int32, System.IO.FileOptions, System.Security.AccessControl.FileSecurity)
-    InjectableArguments: [0, 1, 2, 3, 5, 6]
+    InjectableArguments: [0]
     Locale: SCS0018
 
  # LDAP injection

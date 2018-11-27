@@ -106,23 +106,21 @@ namespace SecurityCodeScan.Analyzers
         protected void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
             var leftNode = nodeHelper.GetAssignmentLeftNode(ctx.Node);
-            var symbols  = ctx.SemanticModel.GetSymbolInfo(leftNode).Symbol;
-            if (symbols == null)
+            var symbol  = ctx.SemanticModel.GetSymbolInfo(leftNode).Symbol;
+            if (symbol == null)
                 return;
 
             var configuration = ConfigurationManager
                                 .Instance.GetProjectConfiguration(ctx.Options.AdditionalFiles);
 
             if (configuration.AuditMode &&
-                AnalyzerUtil.SymbolMatch(symbols,
-                                         type: "ServicePointManager",
-                                         name: "CertificatePolicy"))
+                symbol.IsType("System.Net.ServicePointManager.CertificatePolicy"))
             {
                 ctx.ReportDiagnostic(Diagnostic.Create(Rule, ctx.Node.GetLocation()));
                 return;
             }
 
-            if (!IsMatch(symbols))
+            if (!IsMatch(symbol))
                 return;
 
             var rightNode = GetBody(nodeHelper.GetAssignmentRightNode(ctx.Node), ctx);
@@ -149,12 +147,9 @@ namespace SecurityCodeScan.Analyzers
 
         private static bool IsMatch(ISymbol symbolMemberAccess)
         {
-            return AnalyzerUtil.SymbolMatch(symbolMemberAccess,
-                                            type: "ServicePointManager",
-                                            name: "ServerCertificateValidationCallback") ||
-                   AnalyzerUtil.SymbolMatch(symbolMemberAccess,
-                                            type: "HttpWebRequest",
-                                            name: "ServerCertificateValidationCallback");
+            return symbolMemberAccess.IsType("System.Net.ServicePointManager.ServerCertificateValidationCallback")    ||
+                   symbolMemberAccess.IsType("System.Net.Http.WebRequestHandler.ServerCertificateValidationCallback") ||
+                   symbolMemberAccess.IsType("System.Net.HttpWebRequest.ServerCertificateValidationCallback");
         }
     }
 }

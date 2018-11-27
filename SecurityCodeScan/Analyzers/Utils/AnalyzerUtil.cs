@@ -154,36 +154,6 @@ namespace SecurityCodeScan.Analyzers.Utils
         }
     }
 
-    internal class AnalyzerUtil
-    {
-        public static bool SymbolMatch(ISymbol symbol, string type = null, string name = null)
-        {
-            if (symbol == null)
-            {
-                //Code did not compile
-                //FIXME: Log warning
-                return false;
-            }
-
-            if (type == null && name == null)
-            {
-                throw new InvalidOperationException("At least one parameter must be specified (type, methodName, ...)");
-            }
-
-            if (type != null && symbol.ContainingType?.Name != type)
-            {
-                return false; //Class name does not match
-            }
-
-            if (name != null && symbol.Name != name)
-            {
-                return false; //Method name does not match
-            }
-
-            return true;
-        }
-    }
-
     internal static class EmptyArray<T>
     {
         public static readonly T[] Value = new T[0];

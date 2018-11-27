@@ -871,6 +871,14 @@ Behavior:
     InjectableArguments: [0]
     Locale: SCS0035
 
+  Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions_ExecuteSqlCommand1:
+    Namespace: Microsoft.EntityFrameworkCore
+    ClassName: RelationalDatabaseFacadeExtensions
+    Name: ExecuteSqlCommand
+    ArgTypes: (Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade, Microsoft.EntityFrameworkCore.RawSqlString, params System.Object[])
+    InjectableArguments: [1]
+    Locale: SCS0035
+
   Database_ExecuteSqlCommand_1:
     Namespace: System.Data.Entity
     ClassName: Database
@@ -3047,3 +3055,7 @@ TaintEntryPoints:
   System.Web.Mvc_Controller:
     Namespace: System.Web.Mvc
     ClassName: ControllerBase
+
+  System.Web.Http_Controller:
+    Namespace: System.Web.Http
+    ClassName: ApiController

@@ -37,14 +37,14 @@ using System.IO;
 
 class PathTraversal
 {{
-    private {modifier}byte[] GetBytes()
+    private {modifier}string GetPath()
     {{
-        return new byte[1];
+        return """";
     }}
 
     public {modifier}void Run()
     {{
-        File.WriteAllBytes(""a.txt"", GetBytes());
+        File.WriteAllBytes(GetPath(), null);
     }}
 }}
 ";
@@ -54,11 +54,11 @@ class PathTraversal
 Imports System.IO
 
 Class PathTraversal
-    Private {modifier}Function GetBytes() As System.Byte()
-        return New System.Byte(1) {{}}
+    Private {modifier}Function GetPath() As System.String
+        return Nothing
     End Function
     Public {modifier}Sub Run()
-        File.WriteAllBytes(""a.txt"", GetBytes())
+        File.WriteAllBytes(GetPath, Nothing)
     End Sub
 End Class
 ";

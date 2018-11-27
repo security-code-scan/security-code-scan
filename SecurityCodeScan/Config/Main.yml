@@ -54,6 +54,7 @@ TaintTypes:
   - HtmlEscaped
   - LdapFilterEncoded
   - LdapDistinguishedNameEncoded
+  - AbsolutePath
 
 Behavior:
 # The section describes various types of API behavior:
@@ -127,6 +128,24 @@ Behavior:
         Taint: LocalUrl
 
 # Sanitizers
+
+  System.Web.HttpServerUtility_MapPath:
+    Namespace: System.Web
+    ClassName: HttpServerUtility
+    Name: MapPath
+    PostConditions:
+      Returns:
+        Taint: AbsolutePath
+        TaintFromArguments: [0]
+
+  System.Web.HttpRequest_MapPath:
+    Namespace: System.Web
+    ClassName: HttpRequest
+    Name: MapPath
+    PostConditions:
+      Returns:
+        Taint: AbsolutePath
+        TaintFromArguments: [0]
 
   UrlHelper_RouteUrl:
     Namespace: System.Web.Mvc
@@ -1220,147 +1239,147 @@ Behavior:
     Namespace: System.IO
     ClassName: File
     Name: AppendAllLines
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   File_AppendAllText:
     Namespace: System.IO
     ClassName: File
     Name: AppendAllText
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   File_AppendText:
     Namespace: System.IO
     ClassName: File
     Name: AppendText
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   File_Copy:
     Namespace: System.IO
     ClassName: File
     Name: Copy
-    InjectableArguments: [0, 1, 2]
+    InjectableArguments: [0: AbsolutePath, 1: AbsolutePath]
     Locale: SCS0018
 
   File_Create:
     Namespace: System.IO
     ClassName: File
     Name: Create
-    InjectableArguments: [0, 2]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   File_CreateText:
     Namespace: System.IO
     ClassName: File
     Name: CreateText
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   File_Move:
     Namespace: System.IO
     ClassName: File
     Name: Move
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0: AbsolutePath, 1: AbsolutePath]
     Locale: SCS0018
 
   File_SetAccessControl:
     Namespace: System.IO
     ClassName: File
     Name: SetAccessControl
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   File_Delete:
     Namespace: System.IO
     ClassName: File
     Name: Delete
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   File_Open:
     Namespace: System.IO
     ClassName: File
     Name: Open
-    InjectableArguments: [0, 1, 2, 3]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   File_OpenRead:
     Namespace: System.IO
     ClassName: File
     Name: OpenRead
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   File_OpenText:
     Namespace: System.IO
     ClassName: File
     Name: OpenText
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   File_OpenWrite:
     Namespace: System.IO
     ClassName: File
     Name: OpenWrite
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   File_ReadAllText:
     Namespace: System.IO
     ClassName: File
     Name: ReadAllText
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   File_ReadAllBytes:
     Namespace: System.IO
     ClassName: File
     Name: ReadAllBytes
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   File_ReadAllLines:
     Namespace: System.IO
     ClassName: File
     Name: ReadAllLines
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   File_ReadLines:
     Namespace: System.IO
     ClassName: File
     Name: ReadLines
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   File_Replace:
     Namespace: System.IO
     ClassName: File
     Name: Replace
-    InjectableArguments: [0, 1, 2]
+    InjectableArguments: [0: AbsolutePath, 1: AbsolutePath, 2: AbsolutePath]
     Locale: SCS0018
 
   File_WriteAllBytes:
     Namespace: System.IO
     ClassName: File
     Name: WriteAllBytes
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   File_WriteAllLines:
     Namespace: System.IO
     ClassName: File
     Name: WriteAllLines
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   File_WriteAllText:
     Namespace: System.IO
     ClassName: File
     Name: WriteAllText
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
  # FileInfo
@@ -1370,21 +1389,21 @@ Behavior:
     ClassName: FileInfo
     Name: .ctor
     ArgTypes: (System.String)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   FileInfo_CopyTo:
     Namespace: System.IO
     ClassName: FileInfo
     Name: CopyTo
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   FileInfo_Replace:
    Namespace: System.IO
    ClassName: FileInfo
    Name: Replace
-   InjectableArguments: [0, 1]
+   InjectableArguments: [0: AbsolutePath, 1: AbsolutePath]
    Locale: SCS0018
 
   FileInfo_MoveTo:
@@ -1392,7 +1411,7 @@ Behavior:
     ClassName: FileInfo
     Name: MoveTo
     ArgTypes: (System.String)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
  # Assembly
@@ -1402,7 +1421,7 @@ Behavior:
     ClassName: Assembly
     Name: Load
     ArgTypes: (System.String)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   Assembly_Load_1:
@@ -1410,28 +1429,28 @@ Behavior:
     ClassName: Assembly
     Name: Load
     ArgTypes: (System.String, System.Security.Policy.Evidence)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   Assembly_LoadFile:
     Namespace: System.Reflection
     ClassName: Assembly
     Name: LoadFile
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   Assembly_LoadFrom:
     Namespace: System.Reflection
     ClassName: Assembly
     Name: LoadFrom
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   Assembly_LoadWithPartialName:
     Namespace: System.Reflection
     ClassName: Assembly
     Name: LoadWithPartialName
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   Assembly_ReflectionOnlyLoad:
@@ -1439,7 +1458,7 @@ Behavior:
     ClassName: Assembly
     Name: ReflectionOnlyLoad
     ArgTypes: (System.String)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   Assembly_ReflectionOnlyLoadFrom:
@@ -1447,7 +1466,7 @@ Behavior:
     ClassName: Assembly
     Name: ReflectionOnlyLoadFrom
     ArgTypes: (System.String)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   Assembly_UnsafeLoadFrom:
@@ -1455,7 +1474,7 @@ Behavior:
     ClassName: Assembly
     Name: UnsafeLoadFrom
     ArgTypes: (System.String)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
  # XmlReader
@@ -1465,7 +1484,7 @@ Behavior:
     ClassName: XmlReader
     Name: Create
     ArgTypes: (System.String)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   XmlReader_Create_uri_settings:
@@ -1473,7 +1492,7 @@ Behavior:
     ClassName: XmlReader
     Name: Create
     ArgTypes: (System.String, System.Xml.XmlReaderSettings)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   XmlReader_Create_uri_settings_context:
@@ -1481,7 +1500,7 @@ Behavior:
     ClassName: XmlReader
     Name: Create
     ArgTypes: (System.String, System.Xml.XmlReaderSettings, System.Xml.XmlParserContext)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   XmlReader_Create_stream_settings_string:
@@ -1489,7 +1508,7 @@ Behavior:
     ClassName: XmlReader
     Name: Create
     ArgTypes: (System.IO.Stream, System.Xml.XmlReaderSettings, System.String)
-    InjectableArguments: [0, 2]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   XmlReader_Create_textreader_settings_string:
@@ -1497,7 +1516,7 @@ Behavior:
     ClassName: XmlReader
     Name: Create
     ArgTypes: (System.IO.TextReader, System.Xml.XmlReaderSettings, System.String)
-    InjectableArguments: [0, 2]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
  # StreamReader
@@ -1507,7 +1526,7 @@ Behavior:
     ClassName: StreamReader
     Name: .ctor
     ArgTypes: (System.String)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   StreamReader_Create_path_bool:
@@ -1515,7 +1534,7 @@ Behavior:
     ClassName: StreamReader
     Name: .ctor
     ArgTypes: (System.String, System.Boolean)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   StreamReader_Create_path_encoding:
@@ -1523,7 +1542,7 @@ Behavior:
     ClassName: StreamReader
     Name: .ctor
     ArgTypes: (System.String, System.Text.Encoding)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   StreamReader_Create_path_encoding_bool:
@@ -1531,7 +1550,7 @@ Behavior:
     ClassName: StreamReader
     Name: .ctor
     ArgTypes: (System.String, System.Text.Encoding, System.Boolean)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   StreamReader_Create_path_encoding_bool_int:
@@ -1539,7 +1558,7 @@ Behavior:
     ClassName: StreamReader
     Name: .ctor
     ArgTypes: (System.String, System.Text.Encoding, System.Boolean, System.Int32)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
  # StreamWriter
@@ -1549,7 +1568,7 @@ Behavior:
     ClassName: StreamWriter
     Name: .ctor
     ArgTypes: (System.String)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   StreamWriter2:
@@ -1557,7 +1576,7 @@ Behavior:
     ClassName: StreamWriter
     Name: .ctor
     ArgTypes: (System.String, System.Boolean)
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   StreamWriter3:
@@ -1565,7 +1584,7 @@ Behavior:
     ClassName: StreamWriter
     Name: .ctor
     ArgTypes: (System.String, System.Boolean, System.Text.Encoding)
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   StreamWriter4:
@@ -1573,7 +1592,7 @@ Behavior:
     ClassName: StreamWriter
     Name: .ctor
     ArgTypes: (System.String, System.Boolean, System.Text.Encoding, System.Int32)
-    InjectableArguments: [0, 1]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
  # FileStream
@@ -1583,7 +1602,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.IntPtr, System.IO.FileAccess)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   FileStream_Constructor2:
@@ -1591,7 +1610,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.IntPtr, System.IO.FileAccess, System.Boolean)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   FileStream_Constructor3:
@@ -1599,7 +1618,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.IntPtr, System.IO.FileAccess, System.Boolean, System.Int32)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   FileStream_Constructor4:
@@ -1607,7 +1626,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.IntPtr, System.IO.FileAccess, System.Boolean, System.Int32, System.Boolean)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   FileStream_Constructor5:
@@ -1615,7 +1634,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (Microsoft.Win32.SafeHandles.SafeFileHandle, System.IO.FileAccess)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   FileStream_Constructor6:
@@ -1623,7 +1642,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (Microsoft.Win32.SafeHandles.SafeFileHandle, System.IO.FileAccess, System.Int32)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   FileStream_Constructor7:
@@ -1631,7 +1650,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (Microsoft.Win32.SafeHandles.SafeFileHandle, System.IO.FileAccess, System.Int32, System.Boolean)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   FileStream_Constructor8:
@@ -1639,7 +1658,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   FileStream_Constructor9:
@@ -1647,7 +1666,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   FileStream_Constructor10:
@@ -1655,7 +1674,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   FileStream_Constructor11:
@@ -1663,7 +1682,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare, System.Int32)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   FileStream_Constructor12:
@@ -1671,7 +1690,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare, System.Int32, System.Boolean)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   FileStream_Constructor13:
@@ -1679,7 +1698,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare, System.Int32, System.IO.FileOptions)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   FileStream_Constructor14:
@@ -1687,7 +1706,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.Security.AccessControl.FileSystemRights, System.IO.FileShare, System.Int32, System.IO.FileOptions)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
   FileStream_Constructor15:
@@ -1695,7 +1714,7 @@ Behavior:
     ClassName: FileStream
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.Security.AccessControl.FileSystemRights, System.IO.FileShare, System.Int32, System.IO.FileOptions, System.Security.AccessControl.FileSecurity)
-    InjectableArguments: [0]
+    InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
  # LDAP injection

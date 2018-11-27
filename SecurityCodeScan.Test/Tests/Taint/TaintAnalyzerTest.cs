@@ -2301,7 +2301,6 @@ Friend Class MyPage
     Private Sub Sink(ByVal input As String)
     End Sub
 End Class
-
 ";
 
             var testConfig = @"

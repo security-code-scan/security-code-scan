@@ -19,7 +19,8 @@ namespace SecurityCodeScan.Test.Taint
 
         private static readonly PortableExecutableReference[] References =
         {
-            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Web.UI.Page).Assembly.Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
@@ -29,16 +30,10 @@ namespace SecurityCodeScan.Test.Taint
 
         [DataRow("FS.Open(path, System.IO.FileMode.CreateNew)")]
         [DataRow("Open(path, System.IO.FileMode.CreateNew)")]
-        [DataRow("FS.Open(\"c:\\aaa.txt\", fileMode)")]
-        [DataRow("Open(\"c:\\aaa.txt\", fileMode)")]
-        [DataRow("FS.Open(\"c:\\aaa.txt\", System.IO.FileMode.CreateNew, access)")]
-        [DataRow("Open(\"c:\\aaa.txt\", System.IO.FileMode.CreateNew, access)")]
-        [DataRow("FS.Open(path, System.IO.FileMode.CreateNew, FileAccess.Read)")]
-        [DataRow("Open(path, System.IO.FileMode.CreateNew, FileAccess.Read)")]
-        [DataRow("FS.Open(\"c:\\aaa.txt\", System.IO.FileMode.CreateNew, FileAccess.Read, share)")]
-        [DataRow("Open(\"c:\\aaa.txt\", System.IO.FileMode.CreateNew, FileAccess.Read, share)")]
         [DataRow("FS.Open(path, System.IO.FileMode.CreateNew, FileAccess.Read, FileShare.None)")]
         [DataRow("Open(path, System.IO.FileMode.CreateNew, FileAccess.Read, FileShare.None)")]
+        [DataRow("FS.Open(path, System.IO.FileMode.CreateNew, FileAccess.Read)")]
+        [DataRow("Open(path, System.IO.FileMode.CreateNew, FileAccess.Read)")]
 
         [DataRow("FS.OpenRead(path)")]
         [DataRow("OpenRead(path)")]
@@ -78,26 +73,16 @@ namespace SecurityCodeScan.Test.Taint
 
         [DataRow("FS.WriteAllBytes(path, null)")]
         [DataRow("WriteAllBytes(path, null)")]
-        [DataRow("FS.WriteAllBytes(\"c:\\aaa.txt\", bytes)")]
-        [DataRow("WriteAllBytes(\"c:\\aaa.txt\", bytes)")]
 
         [DataRow("FS.WriteAllLines(path, null)")]
         [DataRow("WriteAllLines(path, null)")]
-        [DataRow("FS.WriteAllLines(\"c:\\aaa.txt\", contents)")]
-        [DataRow("WriteAllLines(\"c:\\aaa.txt\", contents)")]
         [DataRow("FS.WriteAllLines(path, null, System.Text.Encoding.ASCII)")]
         [DataRow("WriteAllLines(path, null, System.Text.Encoding.ASCII)")]
-        [DataRow("FS.WriteAllLines(\"c:\\aaa.txt\", contents, System.Text.Encoding.ASCII)")]
-        [DataRow("WriteAllLines(\"c:\\aaa.txt\", contents, System.Text.Encoding.ASCII)")]
 
         [DataRow("FS.WriteAllText(path, \"\")")]
         [DataRow("WriteAllText(path, \"\")")]
         [DataRow("FS.WriteAllText(path, \"\", System.Text.Encoding.ASCII)")]
         [DataRow("WriteAllText(path, \"\", System.Text.Encoding.ASCII)")]
-        [DataRow("FS.WriteAllText(\"c:\\aaa.txt\", path)")]
-        [DataRow("WriteAllText(\"c:\\aaa.txt\", path)")]
-        [DataRow("FS.WriteAllText(\"c:\\aaa.txt\", path, System.Text.Encoding.ASCII)")]
-        [DataRow("WriteAllText(\"c:\\aaa.txt\", path, System.Text.Encoding.ASCII)")]
         [TestCategory("Detect")]
         [DataTestMethod]
         public async Task PathTraversalMethods(string sink)
@@ -116,8 +101,8 @@ namespace SecurityCodeScan.Test.Taint
 class PathTraversal : Controller
 {{
     public void Run(string path, IEnumerable<String> contents, bool flag,
-                           FileMode fileMode, FileAccess access, FileShare share, byte[] bytes,
-                           FileSecurity fileSecurity, FileOptions fileOptions)
+                    FileMode fileMode, FileAccess access, FileShare share, byte[] bytes,
+                    FileSecurity fileSecurity, FileOptions fileOptions)
     {{
         {sink};
     }}
@@ -140,8 +125,8 @@ Class PathTraversal
     Inherits Controller
 
     Public Sub Run(path As String, contents As IEnumerable(Of String), flag As Boolean, fileMode As FileMode,
-                          access as FileAccess, share As FileShare, bytes As Byte(), fileSecurity As FileSecurity,
-                          fileOptions As FileOptions)
+                   access as FileAccess, share As FileShare, bytes As Byte(), fileSecurity As FileSecurity,
+                   fileOptions As FileOptions)
         {sink}
     End Sub
 End Class
@@ -160,14 +145,12 @@ End Class
         [DataRow("FS.Delete(\"c:\\aaa.txt\")")]
         [DataRow("Delete(\"c:\\aaa.txt\")")]
 
-        [DataRow("FS.Open(\"c:\\aaa.txt\", System.IO.FileMode.CreateNew)")]
-        [DataRow("Open(\"c:\\aaa.txt\", System.IO.FileMode.CreateNew)")]
-        [DataRow("FS.Open(\"c:\\aaa.txt\", System.IO.FileMode.CreateNew, FileAccess.Read)")]
-        [DataRow("Open(\"c:\\aaa.txt\", System.IO.FileMode.CreateNew, FileAccess.Read)")]
-        [DataRow("FS.Open(\"c:\\aaa.txt\", System.IO.FileMode.CreateNew, FileAccess.Read)")]
-        [DataRow("Open(\"c:\\aaa.txt\", System.IO.FileMode.CreateNew, FileAccess.Read)")]
-        [DataRow("FS.Open(\"c:\\aaa.txt\", System.IO.FileMode.CreateNew, FileAccess.Read, FileShare.None)")]
-        [DataRow("Open(\"c:\\aaa.txt\", System.IO.FileMode.CreateNew, FileAccess.Read, FileShare.None)")]
+        [DataRow("FS.Open(\"c:\\aaa.txt\", fileMode)")]
+        [DataRow("Open(\"c:\\aaa.txt\", fileMode)")]
+        [DataRow("FS.Open(\"c:\\aaa.txt\", fileMode, access)")]
+        [DataRow("Open(\"c:\\aaa.txt\", fileMode, access)")]
+        [DataRow("FS.Open(\"c:\\aaa.txt\", System.IO.FileMode.CreateNew, FileAccess.Read, share)")]
+        [DataRow("Open(\"c:\\aaa.txt\", System.IO.FileMode.CreateNew, FileAccess.Read, share)")]
 
         [DataRow("FS.OpenRead(\"c:\\aaa.txt\")")]
         [DataRow("OpenRead(\"c:\\aaa.txt\")")]
@@ -201,18 +184,18 @@ End Class
         [DataRow("FS.Replace(\"c:\\aaa.txt\", \"c:\\aaa.txt\", \"c:\\aaa.txt\", false)")]
         [DataRow("Replace(\"c:\\aaa.txt\", \"c:\\aaa.txt\", \"c:\\aaa.txt\", false)")]
 
-        [DataRow("FS.WriteAllBytes(\"c:\\aaa.txt\", null)")]
-        [DataRow("WriteAllBytes(\"c:\\aaa.txt\", null)")]
+        [DataRow("FS.WriteAllBytes(\"c:\\aaa.txt\", bytes)")]
+        [DataRow("WriteAllBytes(\"c:\\aaa.txt\", bytes)")]
 
-        [DataRow("FS.WriteAllLines(\"c:\\aaa.txt\", null)")]
-        [DataRow("WriteAllLines(\"c:\\aaa.txt\", null)")]
-        [DataRow("FS.WriteAllLines(\"c:\\aaa.txt\", null, encoding)")]
-        [DataRow("WriteAllLines(\"c:\\aaa.txt\", null, encoding)")]
+        [DataRow("FS.WriteAllLines(\"c:\\aaa.txt\", contents)")]
+        [DataRow("WriteAllLines(\"c:\\aaa.txt\", contents)")]
+        [DataRow("FS.WriteAllLines(\"c:\\aaa.txt\", contents, encoding)")]
+        [DataRow("WriteAllLines(\"c:\\aaa.txt\", contents, encoding)")]
 
-        [DataRow("FS.WriteAllText(\"c:\\aaa.txt\", \"\")")]
-        [DataRow("WriteAllText(\"c:\\aaa.txt\", \"\")")]
-        [DataRow("FS.WriteAllText(\"c:\\aaa.txt\", \"\", encoding)")]
-        [DataRow("WriteAllText(\"c:\\aaa.txt\", \"\", encoding)")]
+        [DataRow("FS.WriteAllText(\"c:\\aaa.txt\", path)")]
+        [DataRow("WriteAllText(\"c:\\aaa.txt\", path)")]
+        [DataRow("FS.WriteAllText(\"c:\\aaa.txt\", path, encoding)")]
+        [DataRow("WriteAllText(\"c:\\aaa.txt\", path, encoding)")]
         [TestCategory("Safe")]
         [DataTestMethod]
         public async Task PathTraversalMethodsConst(string sink)
@@ -230,7 +213,9 @@ End Class
 
 class PathTraversal : Controller
 {{
-    public void Run(bool flag, int digit, System.Text.Encoding encoding)
+    public void Run(string path, IEnumerable<String> contents, bool flag,
+                    FileMode fileMode, FileAccess access, FileShare share, byte[] bytes,
+                    FileSecurity fileSecurity, FileOptions fileOptions, int digit, System.Text.Encoding encoding)
     {{
         {sink};
     }}
@@ -252,7 +237,9 @@ class PathTraversal : Controller
 Class PathTraversal
     Inherits Controller
 
-    Public Sub Run(flag As Boolean, digit As Int32, encoding As System.Text.Encoding)
+    Public Sub Run(path As String, contents As IEnumerable(Of String), flag As Boolean, fileMode As FileMode,
+                   access as FileAccess, share As FileShare, bytes As Byte(), fileSecurity As FileSecurity,
+                   fileOptions As FileOptions, digit As Int32, encoding As System.Text.Encoding)
         {sink}
     End Sub
 End Class
@@ -262,6 +249,43 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [DataTestMethod]
+        [DataRow("FS.OpenRead(Server.MapPath(Request[\"file\"]))")]
+        [DataRow("FS.OpenRead(Request.MapPath(Request[\"file\"]))")]
+        public async Task PathTraversalMapPath(string payload)
+        {
+            var cSharpTest = $@"
+using FS = System.IO.File;
+using System.Web.UI;
+
+class MyPage : Page
+{{
+    public void Run()
+    {{
+        {payload};
+    }}
+}}
+";
+
+            payload = payload.CSharpReplaceToVBasic();
+            var visualBasicTest = $@"
+Imports FS = System.IO.File
+Imports System.Web.UI
+
+Friend Class MyPage
+    Inherits Page
+
+    Public Sub Run()
+        {payload}
+    End Sub
+End Class
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+
         [DataRow("StreamReader(input)")]
         [DataRow("StreamReader(input, false)")]
         [DataRow("StreamReader(input, System.Text.Encoding.ASCII)")]
@@ -270,11 +294,8 @@ End Class
 
         [DataRow("StreamWriter(input)")]
         [DataRow("StreamWriter(input, false)")]
-        [DataRow("StreamWriter(\"\",  flag)")]
         [DataRow("StreamWriter(input, false, System.Text.Encoding.ASCII)")]
         [DataRow("StreamWriter(input, false, System.Text.Encoding.ASCII, 10)")]
-        [DataRow("StreamWriter(\"\", flag, System.Text.Encoding.ASCII)")]
-        [DataRow("StreamWriter(\"\", flag, System.Text.Encoding.ASCII, 10)")]
 
         [DataRow("FileStream(handle, FileAccess.Read)")]
         [DataRow("FileStream(handle, FileAccess.Read, false)")]
@@ -346,11 +367,11 @@ End Class
         [DataRow("StreamReader(\"\", encoding, flag, digit)")]
 
         [DataRow("StreamWriter(\"\")")]
-        [DataRow("StreamWriter(\"\", false)")]
-        [DataRow("StreamWriter(\"\", false, encoding)")]
-        [DataRow("StreamWriter(\"\", false, encoding, digit)")]
-        [DataRow("StreamWriter(\"\", false, System.Text.Encoding.ASCII, digit)")]
-        [DataRow("StreamWriter(\"\", false, encoding, 10)")]
+        [DataRow("StreamWriter(\"\", flag)")]
+        [DataRow("StreamWriter(\"\", flag, encoding)")]
+        [DataRow("StreamWriter(\"\", flag, encoding, digit)")]
+        [DataRow("StreamWriter(\"\", flag, System.Text.Encoding.ASCII, digit)")]
+        [DataRow("StreamWriter(\"\", flag, encoding, 10)")]
 
         [DataRow("FileStream(IntPtr.Zero, FileAccess.Read)")]
         [DataRow("FileStream(IntPtr.Zero, access)")]

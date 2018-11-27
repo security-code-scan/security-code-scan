@@ -30,6 +30,83 @@ namespace SecurityCodeScan.Test.Config
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [TestCategory("Detect")]
+        [DataTestMethod]
+        [DataRow("static ", "Manager.Validator",                  "",  true)]
+        [DataRow("",        "var m = new Manager(); m.Validator", "",  true)]
+        [DataRow("",        "new Manager().Validator",            "",  false)]
+        // [DataRow("",        "new Manager { Validator",            "}", false)] todo: fix to work as in the previous line
+        public async Task PasswordValidatorAsMember(string modifier, string payload, string payload2, bool vb)
+        {
+            var cSharpTest = $@"
+using Microsoft.AspNet.Identity;
+
+namespace WebApplicationSandbox.Controllers
+{{
+    public class Manager
+    {{
+        public {modifier}PasswordValidator Validator;
+    }}
+
+    public class TestApp
+    {{
+        public void TestMethod()
+        {{
+            {payload} = new PasswordValidator
+            {{
+                RequiredLength = 8,
+                RequireNonLetterOrDigit = true,
+                RequireDigit = true,
+                RequireLowercase = true,
+                RequireUppercase = true,
+            }}{payload2};
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports Microsoft.AspNet.Identity
+
+Namespace WebApplicationSandbox.Controllers
+    Public Class Manager
+        Public {modifier.CSharpReplaceToVBasic()}Validator As PasswordValidator
+    End Class
+
+    Public Class TestApp
+        Public Sub TestMethod()
+            {payload.CSharpReplaceToVBasic()} = New PasswordValidator With {{
+                .RequiredLength = 8,
+                .RequireNonLetterOrDigit = True,
+                .RequireDigit = True,
+                .RequireLowercase = True,
+                .RequireUppercase = True
+            }}
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            if (vb)
+                await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+
+            var testConfig = @"
+PasswordValidatorRequiredLength: 9
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0032",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            if (vb)
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task PasswordValidatorIncreaseRequiredLength()
         {

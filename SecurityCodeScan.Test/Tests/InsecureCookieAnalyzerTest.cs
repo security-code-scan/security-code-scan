@@ -45,6 +45,56 @@ namespace SecurityCodeScan.Test.InsecureCookie
 
         [TestCategory("Detect")]
         [DataTestMethod]
+        [DataRow("",        "var cookie = new HttpCookie(\"test\")",                      true)]
+        [DataRow("static ", "Manager.Cookie = new HttpCookie(\"test\")",                  true)]
+        [DataRow("",        "var m = new Manager(); m.Cookie = new HttpCookie(\"test\")", true)]
+        [DataRow("",        "new Manager().Cookie = new HttpCookie(\"test\")",            false)]
+        //[DataRow("",        "new Manager { Cookie = new HttpCookie(\"test\") }",          false)] todo: fix to work as in the previous line
+        public async Task CookieAsMember(string modifier, string payload, bool vb)
+        {
+            var cSharpTest = $@"
+using System.Web;
+
+namespace VulnerableApp
+{{
+    public class Manager
+    {{
+        public {modifier}HttpCookie Cookie;
+    }}
+
+    class CookieCreation
+    {{
+        static void TestCookie()
+        {{
+            {payload};
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports System.Web
+
+Namespace VulnerableApp
+    Public Class Manager
+        Public {modifier.CSharpReplaceToVBasic()}Cookie As HttpCookie
+    End Class
+
+    Class CookieCreation
+        Private Shared Sub TestCookie()
+            {payload.CSharpReplaceToVBasic()}
+        End Sub
+    End Class
+End Namespace
+
+";
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            if (vb)
+                await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [DataTestMethod]
         [DataRow("Cookie = System.Web.HttpCookie",  "Cookie")]
         [DataRow("System.Web",                      "HttpCookie")]
         public async Task CookieWithoutFlags(string alias, string name)

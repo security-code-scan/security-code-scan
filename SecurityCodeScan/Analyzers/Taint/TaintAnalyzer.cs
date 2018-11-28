@@ -4,6 +4,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
+using SecurityCodeScan.Analyzers.Utils;
+using SecurityCodeScan.Config;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
@@ -12,13 +14,19 @@ namespace SecurityCodeScan.Analyzers.Taint
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class TaintAnalyzerCSharp : DiagnosticAnalyzer
     {
-        private readonly CSharpCodeEvaluation CodeEval = new CSharpCodeEvaluation();
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(AnalysisContext analysisContext)
         {
-            context.RegisterSyntaxNodeAction(CodeEval.VisitMethods, CSharp.SyntaxKind.MethodDeclaration);
-            context.RegisterSyntaxNodeAction(CodeEval.VisitMethods, CSharp.SyntaxKind.ConstructorDeclaration);
-            context.RegisterSyntaxNodeAction(CodeEval.VisitMethods, CSharp.SyntaxKind.DestructorDeclaration);
-            context.RegisterSyntaxNodeAction(CodeEval.VisitMethods, CSharp.SyntaxKind.PropertyDeclaration);
+            analysisContext.RegisterCompilationStartAction(
+                context =>
+                {
+                    var taintAnalyzer = new CSharpCodeEvaluation(CSharpSyntaxNodeHelper.Default,
+                                                                 ConfigurationManager.Instance
+                                                                                     .GetUpdatedProjectConfiguration(context.Options.AdditionalFiles));
+                    context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, CSharp.SyntaxKind.MethodDeclaration);
+                    context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, CSharp.SyntaxKind.ConstructorDeclaration);
+                    context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, CSharp.SyntaxKind.DestructorDeclaration);
+                    context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, CSharp.SyntaxKind.PropertyDeclaration);
+                });
         }
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -61,13 +69,19 @@ namespace SecurityCodeScan.Analyzers.Taint
     [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
     public class TaintAnalyzerVisualBasic : DiagnosticAnalyzer
     {
-        private readonly VbCodeEvaluation CodeEval = new VbCodeEvaluation();
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(AnalysisContext analysisContext)
         {
-            context.RegisterSyntaxNodeAction(CodeEval.VisitMethods,     VB.SyntaxKind.SubBlock);
-            context.RegisterSyntaxNodeAction(CodeEval.VisitMethods,     VB.SyntaxKind.FunctionBlock);
-            context.RegisterSyntaxNodeAction(CodeEval.VisitMethods,     VB.SyntaxKind.ConstructorBlock);
-            context.RegisterSyntaxNodeAction(CodeEval.VisitMethods,     VB.SyntaxKind.PropertyBlock);
+            analysisContext.RegisterCompilationStartAction(
+                context =>
+                {
+                    var taintAnalyzer = new VbCodeEvaluation(VBSyntaxNodeHelper.Default,
+                                                             ConfigurationManager.Instance
+                                                                                 .GetUpdatedProjectConfiguration(context.Options.AdditionalFiles));
+                    context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, VB.SyntaxKind.SubBlock);
+                    context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, VB.SyntaxKind.FunctionBlock);
+                    context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, VB.SyntaxKind.ConstructorBlock);
+                    context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, VB.SyntaxKind.PropertyBlock);
+                });
         }
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

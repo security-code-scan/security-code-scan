@@ -154,27 +154,27 @@ namespace SecurityCodeScan.Config
 
         private ConfigurationManager() { }
 
-        private Configuration CachedConfiguration;
+        private Configuration CachedBuiltInAndUserConfiguration;
+        private ConfigData    CachedBuiltInConfiguration;
 
-        private Configuration Configuration
+        private Configuration GetBuiltInAndUserConfiguration(bool refreshUserConfig = false)
         {
-            get
+            lock (ConfigurationLock)
             {
-                lock (ConfigurationLock)
-                {
-                    if (CachedConfiguration != null)
-                        return CachedConfiguration;
+                if (refreshUserConfig == false && CachedBuiltInAndUserConfiguration != null)
+                    return CachedBuiltInAndUserConfiguration;
 
-                    var builtinConfiguration = ConfigurationReader.GetBuiltinConfiguration();
-                    CachedConfiguration = new Configuration(builtinConfiguration);
+                if (CachedBuiltInAndUserConfiguration == null)
+                    CachedBuiltInConfiguration = ConfigurationReader.GetBuiltinConfiguration();
 
-                    var userConfig = ConfigurationReader.GetUserConfiguration();
-                    if (userConfig != null)
-                        CachedConfiguration.MergeWith(userConfig);
+                CachedBuiltInAndUserConfiguration = new Configuration(CachedBuiltInConfiguration);
 
-                    CachedConfiguration.PrepareForQueries();
-                    return CachedConfiguration;
-                }
+                var userConfig = ConfigurationReader.GetUserConfiguration();
+                if (userConfig != null)
+                    CachedBuiltInAndUserConfiguration.MergeWith(userConfig);
+
+                CachedBuiltInAndUserConfiguration.PrepareForQueries();
+                return CachedBuiltInAndUserConfiguration;
             }
         }
 
@@ -191,10 +191,28 @@ namespace SecurityCodeScan.Config
                 var projectConfig = ConfigurationReader.GetProjectConfiguration(additionalFiles, out var configPath);
                 if (projectConfig == null)
                 {
-                    return Configuration;
+                    return GetBuiltInAndUserConfiguration();
                 }
 
-                var mergedConfig = new Configuration(Configuration);
+                var mergedConfig = new Configuration(GetBuiltInAndUserConfiguration());
+                mergedConfig.MergeWith(projectConfig);
+                mergedConfig.PrepareForQueries();
+                ProjectConfigs[configPath] = mergedConfig;
+                return mergedConfig;
+            }
+        }
+
+        public Configuration GetUpdatedProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
+        {
+            lock (ProjectConfigsLock)
+            {
+                var projectConfig = ConfigurationReader.GetProjectConfiguration(additionalFiles, out var configPath);
+                if (projectConfig == null)
+                {
+                    return GetBuiltInAndUserConfiguration(refreshUserConfig:true);
+                }
+
+                var mergedConfig = new Configuration(GetBuiltInAndUserConfiguration(refreshUserConfig: true));
                 mergedConfig.MergeWith(projectConfig);
                 mergedConfig.PrepareForQueries();
                 ProjectConfigs[configPath] = mergedConfig;

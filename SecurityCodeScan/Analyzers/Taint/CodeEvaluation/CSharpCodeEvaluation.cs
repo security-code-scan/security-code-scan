@@ -19,6 +19,16 @@ namespace SecurityCodeScan.Analyzers.Taint
     {
         public static List<TaintAnalyzerExtensionCSharp> Extensions { get; set; } = new List<TaintAnalyzerExtensionCSharp>();
 
+        private Configuration ProjectConfiguration;
+
+        private SyntaxNodeHelper SyntaxNodeHelper;
+
+        public CSharpCodeEvaluation(SyntaxNodeHelper syntaxHelper, Configuration projectConfiguration)
+        {
+            SyntaxNodeHelper     = syntaxHelper;
+            ProjectConfiguration = projectConfiguration;
+        }
+
         public void VisitMethods(SyntaxNodeAnalysisContext ctx)
         {
             try
@@ -79,13 +89,9 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <summary>
         /// Entry point that visits the method statements.
         /// </summary>
-        /// <param name="node"></param>
-        /// <param name="state"></param>
-        /// <returns></returns>
         private VariableState VisitMethodDeclaration(BaseMethodDeclarationSyntax node, ExecutionState state)
         {
-            var config = ConfigurationManager.Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles);
-            if (config.AuditMode)
+            if (ProjectConfiguration.AuditMode)
             {
                 TaintParameters(node, state);
             }
@@ -94,7 +100,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 var symbol = state.AnalysisContext.SemanticModel.GetDeclaredSymbol(node);
                 if (symbol != null)
                 {
-                    if (symbol.IsTaintEntryPoint(config.TaintEntryPoints))
+                    if (symbol.IsTaintEntryPoint(ProjectConfiguration.TaintEntryPoints))
                         TaintParameters(node, state);
                 }
             }
@@ -166,8 +172,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                     {
                         switch (fromSymbol)
                         {
-                            case IPropertySymbol propertyFromSymbol when propertyFromSymbol.Type.IsTaintType(state.CachedMethodBehaviors):
-                            case IFieldSymbol fieldFromSymbol when fieldFromSymbol.Type.IsTaintType(state.CachedMethodBehaviors):
+                            case IPropertySymbol propertyFromSymbol when propertyFromSymbol.Type.IsTaintType(ProjectConfiguration.Behavior):
+                            case IFieldSymbol fieldFromSymbol when fieldFromSymbol.Type.IsTaintType(ProjectConfiguration.Behavior):
                                 return new VariableState(fromClauseSyntax, VariableTaint.Tainted);
                         }
                     }
@@ -491,7 +497,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             var  methodSymbol      = symbol as IMethodSymbol;
             bool isExtensionMethod = methodSymbol?.ReducedFrom != null;
-            var  behavior          = symbol.GetMethodBehavior(state.CachedMethodBehaviors);
+            var  behavior          = symbol.GetMethodBehavior(ProjectConfiguration.Behavior);
             bool applyCustomTaint  = behavior != null && CheckPreconditions(behavior, isExtensionMethod, argList, state);
 
             VariableState returnState = initialTaint != null && !symbol.IsStatic
@@ -500,7 +506,6 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                                           ? VariableTaint.Unset
                                                                           : VariableTaint.Unknown);
 
-            var config = ConfigurationManager.Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles);
             var argCount       = argList?.Arguments.Count;
             var argumentStates = argCount.HasValue &&
                                  argCount.Value > 0 &&
@@ -524,7 +529,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 {
                     var adjustedArgumentIdx = isExtensionMethod ? i + 1 : i;
 
-                    if ((argumentState.Taint & (config.AuditMode ? VariableTaint.Tainted | VariableTaint.Unknown : VariableTaint.Tainted)) != 0)
+                    if ((argumentState.Taint & (ProjectConfiguration.AuditMode ? VariableTaint.Tainted | VariableTaint.Unknown : VariableTaint.Tainted)) != 0)
                     {
                         //If the current parameter can be injected.
                         if (behavior.InjectableArguments.TryGetValue(adjustedArgumentIdx, out var requiredTaintBits) &&
@@ -649,7 +654,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             var            leftSymbol = state.GetSymbol(node.Left);
             MethodBehavior behavior   = null;
             if (leftSymbol != null)
-                behavior = leftSymbol.GetMethodBehavior(state.CachedMethodBehaviors);
+                behavior = leftSymbol.GetMethodBehavior(ProjectConfiguration.Behavior);
 
             var variableState = VisitExpression(node.Right, state);
 
@@ -670,13 +675,11 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return new VariableState(node.Right, VariableTaint.Unknown);
             }
 
-            var config = ConfigurationManager.Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles);
-
             if (variableState.Taint != VariableTaint.Constant &&
                 behavior != null &&
                 // compare if all required sanitization bits are set
                 ((ulong)(variableState.Taint & VariableTaint.Safe) & behavior.InjectableField) != behavior.InjectableField &&
-                (variableState.Taint & (config.AuditMode ? VariableTaint.Tainted | VariableTaint.Unknown : VariableTaint.Tainted)) != 0)
+                (variableState.Taint & (ProjectConfiguration.AuditMode ? VariableTaint.Tainted | VariableTaint.Unknown : VariableTaint.Tainted)) != 0)
             {
                 var newRule    = LocaleUtil.GetDescriptor(behavior.LocaleInjection, "title_assignment");
                 var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
@@ -788,7 +791,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         private VariableState CheckIfTaintSource(ExpressionSyntax expression, ExecutionState state)
         {
             var symbol   = state.GetSymbol(expression);
-            var behavior = symbol?.GetMethodBehavior(state.CachedMethodBehaviors);
+            var behavior = symbol?.GetMethodBehavior(ProjectConfiguration.Behavior);
             if (behavior != null && behavior.PostConditions.TryGetValue(-1, out var taint))
             {
                 return new VariableState(expression, (VariableTaint)taint.Taint);
@@ -811,10 +814,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     if (!field.IsReadOnly)
                         return new VariableState(expression, VariableTaint.Unknown);
 
-                    var constantFields = ConfigurationManager.Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles)
-                                                             .ConstantFields;
-
-                    if (constantFields.Contains(field.GetTypeName()))
+                    if (ProjectConfiguration.ConstantFields.Contains(field.GetTypeName()))
                     {
                         return new VariableState(expression, VariableTaint.Constant);
                     }

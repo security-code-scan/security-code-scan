@@ -175,6 +175,48 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitExpression(returnStatementSyntax.Expression, state);
                 case ForEachStatementSyntax forEachSyntax:
                     return VisitForEach(forEachSyntax, state);
+                case FromClauseSyntax fromClauseSyntax:
+                {
+                    var finalState = new VariableState(fromClauseSyntax, VariableTaint.Unset);
+                    foreach (var variable in fromClauseSyntax.Variables)
+                    {
+                        finalState.MergeTaint(VisitNode(variable, state).Taint);
+                    }
+
+                    return finalState;
+                }
+                case WhereClauseSyntax whereClauseSyntax:
+                    return VisitExpression(whereClauseSyntax.Condition, state);
+                case SelectClauseSyntax selectClauseSyntax:
+                {
+                    var finalState = new VariableState(selectClauseSyntax, VariableTaint.Unset);
+                    foreach (var variable in selectClauseSyntax.Variables)
+                    {
+                        finalState.MergeTaint(VisitNode(variable, state).Taint);
+                    }
+
+                    return finalState;
+                }
+                case ExpressionRangeVariableSyntax expressionRangeVariableSyntax:
+                    return VisitExpression(expressionRangeVariableSyntax.Expression, state);
+                case CollectionRangeVariableSyntax collectionRangeVariableSyntax:
+                {
+                    var expressionState = VisitExpression(collectionRangeVariableSyntax.Expression, state);
+                    var fromSymbol = SyntaxNodeHelper.GetSymbol(collectionRangeVariableSyntax.Expression, state.AnalysisContext.SemanticModel);
+                    if (fromSymbol != null)
+                    {
+                        switch (fromSymbol)
+                        {
+                            case IPropertySymbol propertyFromSymbol when propertyFromSymbol.Type.IsTaintType(state.CachedMethodBehaviors):
+                            case IFieldSymbol fieldFromSymbol when fieldFromSymbol.Type.IsTaintType(state.CachedMethodBehaviors):
+                                expressionState = new VariableState(collectionRangeVariableSyntax, VariableTaint.Tainted);
+                                break;
+                        }
+                    }
+
+                    state.AddNewValue(ResolveIdentifier(collectionRangeVariableSyntax.Identifier.Identifier), expressionState);
+                    return expressionState;
+                }
             }
 
             foreach (var n in node.ChildNodes())
@@ -258,6 +300,8 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             switch (expression)
             {
+                case ParenthesizedExpressionSyntax parenthesizedExpressionSyntax:
+                    return VisitExpression(parenthesizedExpressionSyntax.Expression, state);
                 case InvocationExpressionSyntax invocationExpressionSyntax:
                     return VisitMethodInvocation(invocationExpressionSyntax, state);
                 case ObjectCreationExpressionSyntax objectCreationExpressionSyntax:
@@ -291,7 +335,15 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return finalState;
                 }
                 case QueryExpressionSyntax queryExpressionSyntax:
-                    return new VariableState(queryExpressionSyntax, VariableTaint.Unknown);
+                {
+                    var finalState = new VariableState(queryExpressionSyntax, VariableTaint.Unset);
+                    foreach (var clause in queryExpressionSyntax.Clauses)
+                    {
+                        finalState.MergeTaint(VisitNode(clause, state).Taint);
+                    }
+
+                    return finalState;
+                }
                 case InterpolatedStringExpressionSyntax interpolatedStringExpressionSyntax:
                     return VisitInterpolatedString(interpolatedStringExpressionSyntax, state);
                 case DirectCastExpressionSyntax directCastExpressionSyntax:

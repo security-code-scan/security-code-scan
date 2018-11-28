@@ -158,6 +158,24 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitForEach(forEachSyntax, state);
                 case BlockSyntax blockSyntax:
                     return VisitBlock(blockSyntax, state);
+                case FromClauseSyntax fromClauseSyntax:
+                {
+                    var fromClauseState = VisitExpression(fromClauseSyntax.Expression, state);
+                    var fromSymbol = SyntaxNodeHelper.GetSymbol(fromClauseSyntax.Expression, state.AnalysisContext.SemanticModel);
+                    if (fromSymbol != null)
+                    {
+                        switch (fromSymbol)
+                        {
+                            case IPropertySymbol propertyFromSymbol when propertyFromSymbol.Type.IsTaintType(state.CachedMethodBehaviors):
+                            case IFieldSymbol fieldFromSymbol when fieldFromSymbol.Type.IsTaintType(state.CachedMethodBehaviors):
+                                return new VariableState(fromClauseSyntax, VariableTaint.Tainted);
+                        }
+                    }
+
+                    return fromClauseState;
+                }
+                case WhereClauseSyntax whereClauseSyntax:
+                    return VisitExpression(whereClauseSyntax.Condition, state);
             }
 
             foreach (var n in node.ChildNodes())
@@ -234,6 +252,8 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             switch (expression)
             {
+                case ParenthesizedExpressionSyntax parenthesizedExpressionSyntax:
+                    return VisitExpression(parenthesizedExpressionSyntax.Expression, state);
                 case InvocationExpressionSyntax invocationExpressionSyntax:
                     return VisitMethodInvocation(invocationExpressionSyntax, state);
                 case ObjectCreationExpressionSyntax objectCreationExpressionSyntax:
@@ -278,6 +298,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 case TypeOfExpressionSyntax typeOfExpressionSyntax:
                     return new VariableState(typeOfExpressionSyntax, VariableTaint.Safe);
                 case ConditionalExpressionSyntax conditionalExpressionSyntax:
+                {
                     VisitExpression(conditionalExpressionSyntax.Condition, state);
                     var finalState = new VariableState(conditionalExpressionSyntax, VariableTaint.Safe);
 
@@ -287,10 +308,18 @@ namespace SecurityCodeScan.Analyzers.Taint
                     finalState.MergeTaint(whenFalseState.Taint);
 
                     return finalState;
+                }
                 case CheckedExpressionSyntax checkedExpressionSyntax:
                     return VisitExpression(checkedExpressionSyntax.Expression, state);
                 case QueryExpressionSyntax queryExpressionSyntax:
-                    return new VariableState(queryExpressionSyntax, VariableTaint.Unknown);
+                {
+                    var finalState = new VariableState(queryExpressionSyntax, VariableTaint.Unset);
+                    var fromState = VisitNode(queryExpressionSyntax.FromClause, state);
+                    finalState.MergeTaint(fromState.Taint);
+                    var bodyState = VisitNode(queryExpressionSyntax.Body, state);
+                    finalState.MergeTaint(bodyState.Taint);
+                    return finalState;
+                }
                 case InterpolatedStringExpressionSyntax interpolatedStringExpressionSyntax:
                     return VisitInterpolatedString(interpolatedStringExpressionSyntax, state);
                 case CastExpressionSyntax castExpressionSyntax:

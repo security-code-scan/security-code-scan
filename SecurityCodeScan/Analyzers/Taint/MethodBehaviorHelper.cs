@@ -58,13 +58,25 @@ namespace SecurityCodeScan.Analyzers.Taint
             return false;
         }
 
+        public static bool IsTaintType(this ITypeSymbol symbol, IReadOnlyDictionary<string, MethodBehavior> behaviors)
+        {
+            string key = symbol.GetTypeName();
+            if (!behaviors.TryGetValue(key, out var behavior))
+                return false;
+
+            if (behavior.PostConditions.TryGetValue(-1, out PostCondition postCondition))
+                return postCondition.Taint == (uint)VariableTaint.Tainted;
+
+            return false;
+        }
+
         private const string VbIndexerName = "Item";
         private const string CsIndexerName = "this[]";
 
         /// <summary>
         /// Get the method behavior for a given symbol
         /// </summary>
-        public static MethodBehavior GetMethodBehavior(this ISymbol symbol, IReadOnlyDictionary<string, MethodBehavior> injectableArguments)
+        public static MethodBehavior GetMethodBehavior(this ISymbol symbol, IReadOnlyDictionary<string, MethodBehavior> behaviors)
         {
             var name = symbol.Name == VbIndexerName && symbol.Language == LanguageNames.VisualBasic ? CsIndexerName : symbol.Name;
             string nameSpaceWithClass = null;
@@ -81,7 +93,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 nameSpaceWithClass = GetNameSpaceWithClass();
                 var keyExtended = $"{nameSpaceWithClass}|{name}|{ExtractGenericParameterSignature(methodSymbol)}";
 
-                if (injectableArguments.TryGetValue(keyExtended, out var behavior1))
+                if (behaviors.TryGetValue(keyExtended, out var behavior1))
                     return behavior1;
             }
 
@@ -93,12 +105,12 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             // try to find generic rule by method name
             string key = $"{nameSpaceWithClass}|{name}";
-            if (injectableArguments.TryGetValue(key, out var behavior2))
+            if (behaviors.TryGetValue(key, out var behavior2))
                 return behavior2;
 
             // try to find generic rule by containing type name
             key = nameSpaceWithClass;
-            if (injectableArguments.TryGetValue(key, out var behavior3))
+            if (behaviors.TryGetValue(key, out var behavior3))
                 return behavior3;
 
             return null;

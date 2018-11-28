@@ -48,6 +48,7 @@ ConstantFields:
 #      Returns:
 #        Taint: HtmlEscaped
 # it means the return value of the function is HtmlEscaped
+# 'Tainted' and 'Safe' are reserved taint types and cannot be used here.
 TaintTypes:
   - LocalUrl
   - HtmlEscaped
@@ -78,11 +79,10 @@ Behavior:
 #       Value: [The rule is valid only if it equals to the value. Only strings and integers (even if it is an enum) are accepted.]
 #   PostConditions: (Optional)
 #     ['Returns' or Parameter index]:
-#        Taint: (Optional) [Single value or array of 'TaintTypes' (see the section above) to apply additionally to 'TaintFromArguments'.
+#        Taint: (Optional) [Single value or array of 'TaintTypes' (see the section above) to apply additionally to 'TaintFromArguments' or special keyword 'Safe'.
 #                           Sanitizers may apply the value to mark it as sanitized.
-#                           Taint sources may apply special value 'Tainted' to mark the value as untrusted.]
-#        TaintFromArguments: (Optional) [Single value or array of parameter indices that influence the taint of the output value.
-#                                        If the array is empty the output value is treated as safe.]
+#                           Taint sources may apply special keyword 'Tainted' to mark the value as untrusted.]
+#        TaintFromArguments: (Optional) [Single value or array of parameter indices that influence the taint of the output value.]
 #   InjectableArguments: (Optional) [Single value or array of parameter zero based indices in the format:
 #                                    Index or [Index: TaintType, ...]
 #                                    Analyzer shows a warning if tainted/unsafe date is passed to the API.
@@ -260,7 +260,7 @@ Behavior:
     ArgTypes: ()
     PostConditions:
       Returns:
-        TaintFromArguments: []
+        Taint: Safe
 
   MemoryStream_Constructor0:
     Namespace: System.IO
@@ -269,7 +269,7 @@ Behavior:
     ArgTypes: ()
     PostConditions:
       Returns:
-        TaintFromArguments: []
+        Taint: Safe
 
   Directory_GetCurrentDirectory:
     Namespace: System.IO
@@ -278,7 +278,7 @@ Behavior:
     ArgTypes: ()
     PostConditions:
       Returns:
-        TaintFromArguments: []
+        Taint: Safe
 
  # Path
 
@@ -289,7 +289,7 @@ Behavior:
     ArgTypes: ()
     PostConditions:
       Returns:
-        TaintFromArguments: []
+        Taint: Safe
 
   Path_GetInvalidPathChars:
     Namespace: System.IO
@@ -298,7 +298,7 @@ Behavior:
     ArgTypes: ()
     PostConditions:
       Returns:
-        TaintFromArguments: []
+        Taint: Safe
 
   Path_GetRandomFileName:
     Namespace: System.IO
@@ -307,7 +307,7 @@ Behavior:
     ArgTypes: ()
     PostConditions:
       Returns:
-        TaintFromArguments: []
+        Taint: Safe
 
   Path_GetTempFileName:
     Namespace: System.IO
@@ -316,7 +316,7 @@ Behavior:
     ArgTypes: ()
     PostConditions:
       Returns:
-        TaintFromArguments: []
+        Taint: Safe
 
   Path_GetTempPath:
     Namespace: System.IO
@@ -325,7 +325,7 @@ Behavior:
     ArgTypes: ()
     PostConditions:
       Returns:
-        TaintFromArguments: []
+        Taint: Safe
 
 # Pass-through
 

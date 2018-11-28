@@ -273,7 +273,7 @@ Behavior:
     Name: Safe
     PostConditions:
       Returns:
-        TaintFromArguments: []
+        Taint: Safe
 ";
 
             optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -376,7 +376,7 @@ Behavior:
     Name: Safe
     PostConditions:
       Returns:
-        TaintFromArguments: []
+        Taint: Safe
 ";
 
             optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

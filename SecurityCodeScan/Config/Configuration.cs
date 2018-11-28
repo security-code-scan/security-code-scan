@@ -231,6 +231,9 @@ namespace SecurityCodeScan.Config
 
             foreach (var typeName in typeNames)
             {
+                if (typeName == "Tainted" || typeName == "Safe")
+                    throw new Exception("'Tainted' or 'Safe' are reserved taint types and cannot be used for custom taint");
+
                 if (TaintTypeNameToBit.ContainsKey(typeName))
                     throw new Exception("Duplicate taint type");
 
@@ -288,10 +291,15 @@ namespace SecurityCodeScan.Config
 
         private ulong GetTaintBits(string taintType)
         {
-            if (taintType == "Tainted")
-                return (ulong)VariableTaint.Tainted;
-            else
-                return TaintTypeNameToBit[taintType];
+            switch (taintType)
+            {
+                case "Tainted":
+                    return (ulong)VariableTaint.Tainted;
+                case "Safe":
+                    return (ulong)VariableTaint.Safe;
+                default:
+                    return TaintTypeNameToBit[taintType];
+            }
         }
 
         private IReadOnlyDictionary<int, ulong> GetArguments(IReadOnlyList<object> arguments)
@@ -315,7 +323,7 @@ namespace SecurityCodeScan.Config
                             case string taintType:
                             {
                                 var i = int.Parse((string)indexToTaintType.Key);
-                                if (i == -1)
+                                if (i < 0)
                                     throw new Exception("Argument index cannot be negative");
 
                                 var taintBit = TaintTypeNameToBit[taintType]; // "Tainted" is not supported
@@ -341,8 +349,6 @@ namespace SecurityCodeScan.Config
 
             return outArguments;
         }
-
-        private readonly ImmutableHashSet<int> NoTaintFromArguments = new HashSet<int> { -1 }.ToImmutableHashSet();
 
         private IReadOnlyDictionary<int, PostCondition> GetPostConditions(IReadOnlyDictionary<object, object> arguments)
         {
@@ -381,8 +387,7 @@ namespace SecurityCodeScan.Config
                             var taintFrom = (List<object>)condition.Value;
                             if (taintFrom != null && taintFrom.Count == 0)
                             {
-                                taintFromArguments = NoTaintFromArguments;
-                                break;
+                                throw new Exception("Do not specify 'TaintFromArguments' or provide at least one value");
                             }
 
                             var args = GetArguments(taintFrom);
@@ -420,11 +425,6 @@ namespace SecurityCodeScan.Config
                     throw new Exception("Unknown injectable argument");
             }
         }
-
-        private readonly IReadOnlyDictionary<int, PostCondition> TaintSourceReturnArgument = new Dictionary<int, PostCondition>(1)
-        {
-            {-1, new PostCondition((ulong)VariableTaint.Tainted)}
-        };
 
         private KeyValuePair<string, MethodBehavior> CreateBehavior(MethodBehaviorData behavior)
         {

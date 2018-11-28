@@ -509,7 +509,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             var argCount       = argList?.Arguments.Count;
             var argumentStates = argCount.HasValue &&
                                  argCount.Value > 0 &&
-                                 (behavior?.PostConditions.Any(c => c.Key != -1 && (c.Value.TaintFromArguments.Any(t => t != -1) || c.Value.Taint != 0ul)) == true ||
+                                 (behavior?.PostConditions.Any(c => c.Key != -1 && c.Value.Taint != 0ul) == true ||
                                   methodSymbol != null && methodSymbol.Parameters.Any(x => x.RefKind != RefKind.None))
                                      ? new VariableState[argCount.Value]
                                      : null;
@@ -588,12 +588,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 if (behavior?.PostConditions != null &&
                     behavior.PostConditions.TryGetValue(-1, out var returnPostCondition))
                 {
-                    if (returnPostCondition.TaintFromArguments.Count   == 1 &&
-                        returnPostCondition.TaintFromArguments.First() == -1)
-                    {
-                        returnState = new VariableState(node, VariableTaint.Safe);
-                    }
-                    else if (argumentStates != null)
+                    if (argumentStates != null)
                     {
                         returnState = initialTaint != null && !symbol.IsStatic
                                           ? new VariableState(node, initialTaint.Value)

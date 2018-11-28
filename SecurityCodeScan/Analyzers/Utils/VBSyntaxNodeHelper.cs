@@ -52,6 +52,28 @@ namespace SecurityCodeScan.Analyzers.Utils
             return null;
         }
 
+        public override string GetAssignmentLeftNodeName(SyntaxNode node)
+        {
+            if (node == null)
+            {
+                return null;
+            }
+
+            SyntaxKind kind = node.Kind();
+            switch (kind)
+            {
+                case SyntaxKind.AddAssignmentStatement:
+                case SyntaxKind.SimpleAssignmentStatement:
+                    return ((AssignmentStatementSyntax)node).Left.ToString();
+                case SyntaxKind.VariableDeclarator:
+                    return ((VariableDeclaratorSyntax)node).Names.First().ToString();
+                case SyntaxKind.NamedFieldInitializer:
+                    return ((NamedFieldInitializerSyntax)node).Name.ToString();
+            }
+
+            return null;
+        }
+
         public override SyntaxNode GetAssignmentRightNode(SyntaxNode node)
         {
             if (node == null)

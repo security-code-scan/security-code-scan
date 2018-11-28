@@ -44,6 +44,20 @@ namespace SecurityCodeScan.Analyzers.Utils
             return (node as AssignmentExpressionSyntax)?.Left;
         }
 
+        public override string GetAssignmentLeftNodeName(SyntaxNode node)
+        {
+            if (node == null)
+            {
+                return null;
+            }
+
+            var kind = node.Kind();
+            if (kind == SyntaxKind.VariableDeclarator)
+                return ((VariableDeclaratorSyntax)node).Identifier.Text;
+
+            return (node as AssignmentExpressionSyntax)?.Left.ToString();
+        }
+
         public override SyntaxNode GetAssignmentRightNode(SyntaxNode node)
         {
             if (node == null)

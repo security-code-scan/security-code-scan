@@ -18,6 +18,7 @@ namespace SecurityCodeScan.Analyzers.Utils
         public abstract ITypeSymbol GetEnclosingTypeSymbol(SyntaxNode node, SemanticModel semanticModel);
         public abstract ITypeSymbol GetClassDeclarationTypeSymbol(SyntaxNode node, SemanticModel semanticModel);
         public abstract SyntaxNode GetAssignmentLeftNode(SyntaxNode node);
+        public abstract string GetAssignmentLeftNodeName(SyntaxNode node);
         public abstract SyntaxNode GetAssignmentRightNode(SyntaxNode node);
         public abstract SyntaxNode GetMemberAccessNameNode(SyntaxNode node);
         public abstract SyntaxNode GetMemberAccessExpressionNode(SyntaxNode node);

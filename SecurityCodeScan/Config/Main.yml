@@ -27,7 +27,6 @@ PasswordFields:
 # These field names are case insensitive
   - PASSWORD
   - SECRETKEY
-  - PWD
 
 # The fields aren't technically const, but taint analyzer should treat as const (safe).
 ConstantFields:

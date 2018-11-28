@@ -167,7 +167,8 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             var isBlockStatement = node is IfStatementSyntax ||
                                    node is ElseClauseSyntax ||
-                                   node is ForStatementSyntax;
+                                   node is ForStatementSyntax ||
+                                   node is UsingStatementSyntax;
 
             if (!isBlockStatement)
             {
@@ -359,7 +360,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 memberVariableState = VisitExpression(memberAccessExpression.Expression, state);
             }
 
-            return VisitInvocationAndCreation(node, node.ArgumentList, state, memberVariableState?.Taint);
+            return VisitInvocationAndCreation(node, node.ArgumentList, state, memberVariableState?.Taint, memberVariableState);
         }
 
         private VariableState VisitObjectCreation(ObjectCreationExpressionSyntax node, ExecutionState state)
@@ -452,7 +453,8 @@ namespace SecurityCodeScan.Analyzers.Taint
         private VariableState VisitInvocationAndCreation(ExpressionSyntax   node,
                                                          ArgumentListSyntax argList,
                                                          ExecutionState     state,
-                                                         VariableTaint?     initialTaint = null)
+                                                         VariableTaint?     initialTaint = null,
+                                                         VariableState      memberVariableState = null)
         {
             var symbol = state.GetSymbol(node);
             if (symbol == null)
@@ -593,6 +595,15 @@ namespace SecurityCodeScan.Analyzers.Taint
                             argumentStates[adjustedPostConditionIdx].ApplyTaint(postCondition.Value.Taint);
                     }
                 }
+            }
+
+            if (memberVariableState != null &&
+                methodSymbol != null &&
+                methodSymbol.ReturnsVoid &&
+                !methodSymbol.IsStatic &&
+                methodSymbol.Parameters.All(x => x.RefKind == RefKind.None))
+            {
+                memberVariableState.MergeTaint(returnState.Taint);
             }
 
             //Additional analysis by extension

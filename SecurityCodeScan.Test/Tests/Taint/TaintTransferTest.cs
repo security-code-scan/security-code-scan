@@ -531,7 +531,7 @@ End Class
         [DataRow("var query = \"\"; query = input", true)]
 
         [DataRow("var query = \"\"; var notused = query + input", false)]
-        public async Task TransferStringFormat(string payload, bool warn)
+        public async Task TransferString(string payload, bool warn)
         {
             var cSharpTest = $@"
 #pragma warning disable 8019
@@ -550,7 +550,10 @@ class SqlTransferTesting
 ";
 
             var visualBasicTest = $@"
-Imports System.Data.SqlClient
+#Disable Warning BC50001
+    Imports System
+    Imports System.Data.SqlClient
+#Enable Warning BC50001
 
 Class SqlTransferTesting
     Public Sub Run(input As String)
@@ -584,6 +587,75 @@ TaintEntryPoints:
                 await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
                 await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             }
+        }
+
+        [TestMethod]
+        public async Task TransferMemoryStream()
+        {
+            var cSharpTest = @"
+#pragma warning disable 8019
+    using System;
+    using System.IO;
+    using System.Text;
+    using System.Data.SqlClient;
+#pragma warning restore 8019
+
+class SqlTransferTesting
+{
+    public void Run(string input)
+    {
+        var query = """";
+        var bytes = Encoding.ASCII.GetBytes(input);
+        using(var stream = new MemoryStream())
+        {
+            stream.Write(bytes, 0, bytes.Length);
+            StreamReader reader = new StreamReader( stream );
+            query = reader.ReadToEnd();
+        }
+        new SqlCommand(query);
+    }
+}
+";
+
+            var visualBasicTest = @"
+#Disable Warning BC50001
+    Imports System
+    Imports System.IO
+    Imports System.Text
+    Imports System.Data.SqlClient
+#Enable Warning BC50001
+
+Friend Class SqlTransferTesting
+    Public Sub Run(ByVal input As String)
+        Dim query = """"
+        Dim bytes = Encoding.ASCII.GetBytes(input)
+
+        Using stream = New MemoryStream()
+            stream.Write(bytes, 0, bytes.Length)
+            Dim reader As StreamReader = New StreamReader(stream)
+            query = reader.ReadToEnd()
+        End Using
+
+        Dim a = New SqlCommand(query)
+    End Sub
+End Class
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    ClassName: SqlTransferTesting
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]

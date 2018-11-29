@@ -435,7 +435,7 @@ using System.IO;
 
 class PathTraversal
 {
-    public void Run(int input)
+    public void Run(string input)
     {
         File.OpenRead(input.ToString());
     }
@@ -446,7 +446,7 @@ class PathTraversal
 Imports System.IO
 
 Class PathTraversal
-    Public Sub Run(input As System.Int32)
+    Public Sub Run(input As System.String)
         File.OpenRead(input.ToString())
     End Sub
 End Class

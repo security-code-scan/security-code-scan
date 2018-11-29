@@ -1,1 +1,33 @@
 ﻿AuditMode: true
+
+Behavior:
+
+ # ToString
+
+  System.Int16.ToString:
+
+  System.Int32.ToString:
+
+  System.Int64.ToString:
+
+  System.IntPtr.ToString:
+
+  System.UInt16.ToString:
+
+  System.UInt32.ToString:
+
+  System.UInt64.ToString:
+
+  System.UIntPtr.ToString:
+
+  System.Double.ToString:
+
+  System.Decimal.ToString:
+
+  System.Guid.ToString:
+
+  System.DateTime.ToString:
+
+  System.DateTimeOffset.ToString:
+
+  System.Enum.ToString:

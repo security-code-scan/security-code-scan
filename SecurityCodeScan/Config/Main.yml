@@ -251,6 +251,120 @@ Behavior:
         Taint: LdapFilterEncoded
         TaintFromArguments: [0]
 
+ # ToString
+
+  System.Int16.ToString:
+    Namespace: System
+    ClassName: Int16
+    Name: ToString
+    PostConditions:
+      Returns:
+        Taint: Safe
+
+  System.Int32.ToString:
+    Namespace: System
+    ClassName: Int32
+    Name: ToString
+    PostConditions:
+      Returns:
+        Taint: Safe
+
+  System.Int64.ToString:
+    Namespace: System
+    ClassName: Int64
+    Name: ToString
+    PostConditions:
+      Returns:
+        Taint: Safe
+
+  System.IntPtr.ToString:
+    Namespace: System
+    ClassName: IntPtr
+    Name: ToString
+    PostConditions:
+      Returns:
+        Taint: Safe
+
+  System.UInt16.ToString:
+    Namespace: System
+    ClassName: UInt16
+    Name: ToString
+    PostConditions:
+      Returns:
+        Taint: Safe
+
+  System.UInt32.ToString:
+    Namespace: System
+    ClassName: UInt32
+    Name: ToString
+    PostConditions:
+      Returns:
+        Taint: Safe
+
+  System.UInt64.ToString:
+    Namespace: System
+    ClassName: UInt64
+    Name: ToString
+    PostConditions:
+      Returns:
+        Taint: Safe
+
+  System.UIntPtr.ToString:
+    Namespace: System
+    ClassName: UIntPtr
+    Name: ToString
+    PostConditions:
+      Returns:
+        Taint: Safe
+
+  System.Double.ToString:
+    Namespace: System
+    ClassName: Double
+    Name: ToString
+    PostConditions:
+      Returns:
+        Taint: Safe
+
+  System.Decimal.ToString:
+    Namespace: System
+    ClassName: Decimal
+    Name: ToString
+    PostConditions:
+      Returns:
+        Taint: Safe
+
+  System.Guid.ToString:
+    Namespace: System
+    ClassName: Guid
+    Name: ToString
+    PostConditions:
+      Returns:
+        Taint: Safe
+
+  System.DateTime.ToString:
+    Namespace: System
+    ClassName: DateTime
+    Name: ToString
+    PostConditions:
+      Returns:
+        Taint: Safe
+
+  System.DateTimeOffset.ToString:
+    Namespace: System
+    ClassName: DateTimeOffset
+    Name: ToString
+    PostConditions:
+      Returns:
+        Taint: Safe
+
+  System.Enum.ToString:
+    Namespace: System
+    ClassName: Enum
+    Name: ToString
+    PostConditions:
+      Returns:
+        Taint: Safe
+
 # Safe
 
   ProcessStartInfo_Constructor0:

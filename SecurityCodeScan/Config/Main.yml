@@ -1354,7 +1354,7 @@ Behavior:
 
  # Path traversal
 
- # File API
+ ## File API
 
   File_AppendAllLines:
     Namespace: System.IO
@@ -1503,7 +1503,7 @@ Behavior:
     InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
- # FileInfo
+ ## FileInfo
 
   FileInfo_Ctor:
     Namespace: System.IO
@@ -1535,7 +1535,7 @@ Behavior:
     InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
- # Assembly
+ ## Assembly
 
   Assembly_Load_0:
     Namespace: System.Reflection
@@ -1598,7 +1598,7 @@ Behavior:
     InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
- # XmlReader
+ ## XmlReader
 
   XmlReader_Create_uri:
     Namespace: System.Xml
@@ -1640,7 +1640,7 @@ Behavior:
     InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
- # StreamReader
+ ## StreamReader
 
   StreamReader_Create_path:
     Namespace: System.IO
@@ -1682,7 +1682,7 @@ Behavior:
     InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
- # StreamWriter
+ ## StreamWriter
 
   StreamWriter1:
     Namespace: System.IO
@@ -1716,7 +1716,7 @@ Behavior:
     InjectableArguments: [0: AbsolutePath]
     Locale: SCS0018
 
- # FileStream
+ ## FileStream
 
   FileStream_Constructor1:
     Namespace: System.IO
@@ -1836,6 +1836,36 @@ Behavior:
     Name: .ctor
     ArgTypes: (System.String, System.IO.FileMode, System.Security.AccessControl.FileSystemRights, System.IO.FileShare, System.Int32, System.IO.FileOptions, System.Security.AccessControl.FileSecurity)
     InjectableArguments: [0: AbsolutePath]
+    Locale: SCS0018
+
+ ## FilePathResult
+
+  System.Web.Mvc_FilePathResult_.ctor:
+    Namespace: System.Web.Mvc
+    ClassName: FilePathResult
+    Name: .ctor
+    InjectableArguments: [0: AbsolutePath]
+    Locale: SCS0018
+
+  System.Web.Mvc_FilePathResult_FileName:
+    Namespace: System.Web.Mvc
+    ClassName: FilePathResult
+    Name: FileName
+    InjectableField: AbsolutePath
+    Locale: SCS0018
+
+  Microsoft.AspNetCore.Mvc_PhysicalFileResult_.ctor:
+    Namespace: Microsoft.AspNetCore.Mvc
+    ClassName: PhysicalFileResult
+    Name: .ctor
+    InjectableArguments: [0: AbsolutePath]
+    Locale: SCS0018
+
+  Microsoft.AspNetCore.Mvc_PhysicalFileResult_FileName:
+    Namespace: Microsoft.AspNetCore.Mvc
+    ClassName: PhysicalFileResult
+    Name: FileName
+    InjectableField: AbsolutePath
     Locale: SCS0018
 
  # LDAP injection

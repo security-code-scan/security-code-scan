@@ -27,6 +27,7 @@ PasswordFields:
 # These field names are case insensitive
   - PASSWORD
   - SECRETKEY
+  - _KEY
 
 # The fields aren't technically const, but taint analyzer should treat as const (safe).
 ConstantFields:
@@ -251,7 +252,7 @@ Behavior:
         Taint: LdapFilterEncoded
         TaintFromArguments: [0]
 
- # ToString
+ ## ToString
 
   System.Int16.ToString:
     Namespace: System
@@ -394,7 +395,7 @@ Behavior:
       Returns:
         Taint: Safe
 
- # Path
+ ## Path
 
   Path_GetInvalidFileNameChars:
     Namespace: System.IO
@@ -451,7 +452,7 @@ Behavior:
       Returns:
         TaintFromArguments: [0]
 
- # Path
+ ## Path
 
   Path_ChangeExtension:
     Namespace: System.IO
@@ -570,8 +571,8 @@ Behavior:
       Returns:
         TaintFromArguments: [0]
 
- # string constructors
- # https://msdn.microsoft.com/en-us/library/system.string.string(v=vs.110).aspx
+ ## string constructors
+ ## https://msdn.microsoft.com/en-us/library/system.string.string(v=vs.110).aspx
 
   StringConstructor_1:
     Namespace: System
@@ -600,8 +601,8 @@ Behavior:
       Returns:
         TaintFromArguments: [0]
 
- # String.Format
- # https://msdn.microsoft.com/en-us/library/system.string.format(v=vs.110).aspx
+ ## String.Format
+ ## https://msdn.microsoft.com/en-us/library/system.string.format(v=vs.110).aspx
 
   StringFormat_1:
     Namespace: System
@@ -675,7 +676,7 @@ Behavior:
       Returns:
         TaintFromArguments: [0,1,2,3]
 
- # String.Join
+ ## String.Join
 
   StringJoin_1:
     Namespace: System
@@ -751,7 +752,7 @@ Behavior:
 
  # SQL Injection
 
- # MySql.Data.MySqlClient
+ ## MySql.Data.MySqlClient
 
   MySql.Data.MySqlClient_MySqlHelper_ExecuteNonQuery:
     Namespace: MySql.Data.MySqlClient
@@ -825,7 +826,7 @@ Behavior:
     InjectableField: true
     Locale: SCS0026
 
- # Microsoft.Data.Sqlite
+ ## Microsoft.Data.Sqlite
 
   MicrosoftDataSqlite_sqlcommand_constructor:
     Namespace: Microsoft.Data.Sqlite
@@ -841,7 +842,7 @@ Behavior:
     InjectableField: true
     Locale: SCS0026
 
- # Mono.Data.Sqlite
+ ## Mono.Data.Sqlite
 
   Mono.Data.Sqlite_SqliteDataAdapter_constructor1:
     Namespace: Mono.Data.Sqlite
@@ -890,7 +891,7 @@ Behavior:
     InjectableField: true
     Locale: SCS0026
 
- # System.Data.SQLite
+ ## System.Data.SQLite
 
   System.Data.SQLite_SQLiteDataAdapter_constructor1:
     Namespace: System.Data.SQLite
@@ -954,7 +955,7 @@ Behavior:
     InjectableArguments: [0]
     Locale: SCS0026
 
- # System.Data
+ ## System.Data
 
   SqlDataAdapter_constructor_1:
     Namespace: System.Data.SqlClient
@@ -1000,7 +1001,7 @@ Behavior:
     InjectableField: true
     Locale: SCS0026
 
- # OLE DB
+ ## OLE DB
 
   oledbcommand_constructor:
     Namespace: System.Data.OleDb
@@ -1030,7 +1031,7 @@ Behavior:
     InjectableArguments: [0]
     Locale: SCS0025
 
- # System.Data.Linq
+ ## System.Data.Linq
 
   DataContext_ExecuteQuery_0:
     Namespace: System.Data.Linq
@@ -1056,7 +1057,7 @@ Behavior:
     InjectableArguments: [0]
     Locale: SCS0002
 
- # System.Web.UI.WebControls
+ ## System.Web.UI.WebControls
 
   SqlDataSource_constructor_1:
     Namespace: System.Web.UI.WebControls
@@ -1088,7 +1089,7 @@ Behavior:
     InjectableField: true
     Locale: SCS0014
 
- # Microsoft.Whos.Framework.Data
+ ## Microsoft.Whos.Framework.Data
 
   sqlutility_method:
     Namespace: Microsoft.Whos.Framework.Data
@@ -1097,7 +1098,7 @@ Behavior:
     InjectableArguments: [0]
     Locale: SCS0014
 
- # Entity Framework
+ ## Entity Framework
 
   Database_SqlQuery_1:
     Namespace: System.Data.Entity
@@ -1211,7 +1212,7 @@ Behavior:
     InjectableArguments: [1]
     Locale: SCS0035
 
- # Microsoft.Practices.EnterpriseLibrary.Data
+ ## Microsoft.Practices.EnterpriseLibrary.Data
 
   Database_ExecuteDataSet_1:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data

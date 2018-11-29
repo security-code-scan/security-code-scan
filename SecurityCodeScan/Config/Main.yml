@@ -751,6 +751,80 @@ Behavior:
 
  # SQL Injection
 
+ # MySql.Data.MySqlClient
+
+  MySql.Data.MySqlClient_MySqlHelper_ExecuteNonQuery:
+    Namespace: MySql.Data.MySqlClient
+    ClassName: MySqlHelper
+    Name: ExecuteNonQuery
+    InjectableArguments: [1]
+    Locale: SCS0026
+
+  MySql.Data.MySqlClient_MySqlHelper_ExecuteDataRow:
+    Namespace: MySql.Data.MySqlClient
+    ClassName: MySqlHelper
+    Name: ExecuteDataRow
+    InjectableArguments: [1]
+    Locale: SCS0026
+
+  MySql.Data.MySqlClient_MySqlHelper_ExecuteDataset:
+    Namespace: MySql.Data.MySqlClient
+    ClassName: MySqlHelper
+    Name: ExecuteDataset
+    InjectableArguments: [1]
+    Locale: SCS0026
+
+  MySql.Data.MySqlClient_MySqlHelper_UpdateDataSet:
+    Namespace: MySql.Data.MySqlClient
+    ClassName: MySqlHelper
+    Name: UpdateDataSet
+    InjectableArguments: [1]
+    Locale: SCS0026
+
+  MySql.Data.MySqlClient_MySqlHelper_ExecuteReader:
+    Namespace: MySql.Data.MySqlClient
+    ClassName: MySqlHelper
+    Name: ExecuteReader
+    InjectableArguments: [1]
+    Locale: SCS0026
+
+  MySql.Data.MySqlClient_MySqlHelper_ExecuteScalar:
+    Namespace: MySql.Data.MySqlClient
+    ClassName: MySqlHelper
+    Name: ExecuteScalar
+    InjectableArguments: [1]
+    Locale: SCS0026
+
+  MySql.Data.MySqlClient_MySqlDataAdapter_.ctor1:
+    Namespace: MySql.Data.MySqlClient
+    ClassName: MySqlDataAdapter
+    Name: .ctor
+    ArgTypes: (System.String, MySql.Data.MySqlClient.MySqlConnection)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  MySql.Data.MySqlClient_MySqlDataAdapter_.ctor2:
+    Namespace: MySql.Data.MySqlClient
+    ClassName: MySqlDataAdapter
+    Name: .ctor
+    ArgTypes: (System.String, System.String)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  MySql.Data.MySqlClient_MySqlCommand_.ctor:
+    Namespace: MySql.Data.MySqlClient
+    ClassName: MySqlCommand
+    Name: .ctor
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  MySql.Data.MySqlClient_MySqlCommand_CommandText:
+    Namespace: MySql.Data.MySqlClient
+    ClassName: MySqlCommand
+    Name: CommandText
+    InjectableField: true
+    Locale: SCS0026
+
  # Microsoft.Data.Sqlite
 
   MicrosoftDataSqlite_sqlcommand_constructor:
@@ -767,12 +841,78 @@ Behavior:
     InjectableField: true
     Locale: SCS0026
 
-  # System.Data.SQLite
+ # Mono.Data.Sqlite
 
-  SystemDataSQLite_Execute:
+  Mono.Data.Sqlite_SqliteDataAdapter_constructor1:
+    Namespace: Mono.Data.Sqlite
+    ClassName: SqliteDataAdapter
+    Name: .ctor
+    ArgTypes: (System.String, Mono.Data.Sqlite.SqliteConnection)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  Mono.Data.Sqlite_SqliteDataAdapter_constructor2:
+    Namespace: Mono.Data.Sqlite
+    ClassName: SqliteDataAdapter
+    Name: .ctor
+    ArgTypes: (System.String, System.String)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  Mono.Data.Sqlite_SqliteCommand_constructor1:
+    Namespace: Mono.Data.Sqlite
+    ClassName: SqliteCommand
+    Name: .ctor
+    ArgTypes: (System.String, Mono.Data.Sqlite.SqliteConnection, Mono.Data.Sqlite.SqliteTransaction)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  Mono.Data.Sqlite_SqliteCommand_constructor2:
+    Namespace: Mono.Data.Sqlite
+    ClassName: SqliteCommand
+    Name: .ctor
+    ArgTypes: (System.String, Mono.Data.Sqlite.SqliteConnection)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  Mono.Data.Sqlite_SqliteCommand_constructor3:
+    Namespace: Mono.Data.Sqlite
+    ClassName: SqliteCommand
+    Name: .ctor
+    ArgTypes: (System.String)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  Mono.Data.Sqlite_SqliteCommand_CommandText:
+    Namespace: Mono.Data.Sqlite
+    ClassName: SqliteCommand
+    Name: CommandText
+    InjectableField: true
+    Locale: SCS0026
+
+ # System.Data.SQLite
+
+  System.Data.SQLite_SQLiteDataAdapter_constructor1:
     Namespace: System.Data.SQLite
-    ClassName: SQLiteCommand
-    Name: Execute
+    ClassName: SQLiteDataAdapter
+    Name: .ctor
+    ArgTypes: (System.String, System.Data.SQLite.SQLiteConnection)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  System.Data.SQLite_SQLiteDataAdapter_constructor2:
+    Namespace: System.Data.SQLite
+    ClassName: SQLiteDataAdapter
+    Name: .ctor
+    ArgTypes: (System.String, System.String)
+    InjectableArguments: [0]
+    Locale: SCS0026
+
+  System.Data.SQLite_SQLiteDataAdapter_constructor3:
+    Namespace: System.Data.SQLite
+    ClassName: SQLiteDataAdapter
+    Name: .ctor
+    ArgTypes: (System.String, System.String, System.Boolean)
     InjectableArguments: [0]
     Locale: SCS0026
 
@@ -805,6 +945,13 @@ Behavior:
     ClassName: SQLiteCommand
     Name: CommandText
     InjectableField: true
+    Locale: SCS0026
+
+  SystemDataSQLite_Execute:
+    Namespace: System.Data.SQLite
+    ClassName: SQLiteCommand
+    Name: Execute
+    InjectableArguments: [0]
     Locale: SCS0026
 
  # System.Data

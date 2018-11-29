@@ -2022,6 +2022,13 @@ Behavior:
       InjectableArguments: [0: LocalUrl]
       Locale: SCS0027
 
+  System.Web.Http_ApiController_Redirect:
+    Namespace: System.Web.Http
+    ClassName: ApiController
+    Name: Redirect
+    InjectableArguments: [0: LocalUrl]
+    Locale: SCS0027
+
   AspNetCore_Controller_Redirect_string:
       Namespace: Microsoft.AspNetCore.Mvc
       ClassName: ControllerBase

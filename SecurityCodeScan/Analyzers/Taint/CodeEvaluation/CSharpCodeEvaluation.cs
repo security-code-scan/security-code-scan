@@ -306,20 +306,32 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             foreach (var variable in declaration.Variables)
             {
-                var identifier  = variable.Identifier;
-                var initializer = variable.Initializer;
-                if (initializer == null)
-                    continue;
+                VariableState varState;
+                if (variable.Initializer != null)
+                {
+                    varState = VisitExpression(variable.Initializer.Value, state);
+                    var type = state.AnalysisContext.SemanticModel.GetTypeInfo(variable.Initializer.Value);
 
-                EqualsValueClauseSyntax equalsClause = initializer;
+                    if (type.ConvertedType != null && (type.ConvertedType.IsType("System.String") || type.ConvertedType.IsValueType))
+                    {
+                        var copy = new VariableState(varState.Node, varState.Taint, varState.Value);
+                        foreach (var property in varState.PropertyStates)
+                        {
+                            copy.AddProperty(property.Key, property.Value);
+                        }
 
-                VariableState varState = VisitExpression(equalsClause.Value, state);
-                //varState.SetType(lastState.type);
-                state.AddNewValue(ResolveIdentifier(identifier), varState);
+                        varState = copy;
+                    }
+                }
+                else
+                {
+                    varState = new VariableState(variable, VariableTaint.Constant);
+                }
+
+                state.AddNewValue(ResolveIdentifier(variable.Identifier), varState);
                 lastState = varState;
             }
 
-            //
             return lastState;
         }
 

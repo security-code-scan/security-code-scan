@@ -388,25 +388,34 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             foreach (var variable in declaration.Names)
             {
-                var identifier  = variable.Identifier;
-                var initializer = declaration.Initializer;
-                if (initializer != null)
+                VariableState varState;
+                if (declaration.Initializer != null)
                 {
-                    EqualsValueSyntax equalsClause = initializer;
+                    varState = VisitExpression(declaration.Initializer.Value, state);
+                    var type = state.AnalysisContext.SemanticModel.GetTypeInfo(declaration.Initializer.Value);
 
-                    VariableState varState = VisitExpression(equalsClause.Value, state);
+                    if (type.ConvertedType != null && (type.ConvertedType.IsType("System.String") || type.ConvertedType.IsValueType))
+                    {
+                        var copy = new VariableState(varState.Node, varState.Taint, varState.Value);
+                        foreach (var property in varState.PropertyStates)
+                        {
+                            copy.AddProperty(property.Key, property.Value);
+                        }
 
-                    //varState.SetType(lastState.type);
-                    state.AddNewValue(ResolveIdentifier(identifier), varState);
-                    lastState = varState;
+                        varState = copy;
+                    }
+                }
+                else if (declaration.AsClause is AsNewClauseSyntax asNewClauseSyntax)
+                {
+                    varState = VisitExpression(asNewClauseSyntax.NewExpression, state);
+                }
+                else
+                {
+                    varState = new VariableState(variable, VariableTaint.Constant);
                 }
 
-                if (declaration.AsClause is AsNewClauseSyntax asNewClauseSyntax)
-                {
-                    VariableState varState = VisitExpression(asNewClauseSyntax.NewExpression, state);
-                    state.AddNewValue(ResolveIdentifier(identifier), varState);
-                    lastState = varState;
-                }
+                state.AddNewValue(ResolveIdentifier(variable.Identifier), varState);
+                lastState = varState;
             }
 
             return lastState;

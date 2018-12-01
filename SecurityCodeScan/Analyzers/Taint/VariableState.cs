@@ -172,7 +172,11 @@ namespace SecurityCodeScan.Analyzers.Taint
             Value = Taint == Constant ? secondState.Value : null;
             Node  = secondState.Node;
 
-            Properties = secondState.Properties;
+            Properties.Clear();
+            foreach (var property in secondState.PropertyStates)
+            {
+                Properties.Add(property.Key, property.Value);
+            }
         }
 
         public void AddOrMergeProperty(string identifier, VariableState secondState)

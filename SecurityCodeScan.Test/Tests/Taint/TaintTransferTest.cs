@@ -679,6 +679,54 @@ TaintEntryPoints:
             }
         }
 
+        [DataTestMethod]
+        [DataRow("var query = input;input = null;", "Dim query = input\r\ninput = Nothing")]
+        [DataRow("string query; query = input; input = null;", "Dim query As String\r\nquery = input\r\ninput = Nothing")]
+        [DataRow("string query, q = \"const\"; q = query = input; input = null;",
+                 "Dim query As String, q As String = \"const\"\r\nquery = input\r\ninput = Nothing")]
+        public async Task TaintVariableReassign(string cs, string vb)
+        {
+            var cSharpTest = $@"
+using System.Data.SqlClient;
+
+class SqlTransferTesting
+{{
+    public void Run(string input, string input2)
+    {{
+        {cs}
+        new SqlCommand(query);
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports System.Data.SqlClient
+
+Class SqlTransferTesting
+    Public Sub Run(ByVal input As String)
+        {vb}
+        Dim temp = New SqlCommand(query)
+    End Sub
+End Class
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    ClassName: SqlTransferTesting
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
         [TestMethod]
         public async Task TransferMemoryStream()
         {

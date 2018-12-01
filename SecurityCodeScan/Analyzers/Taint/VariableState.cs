@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using static SecurityCodeScan.Analyzers.Taint.VariableTaint;
 
@@ -32,6 +33,45 @@ namespace SecurityCodeScan.Analyzers.Taint
             Properties = new Dictionary<string, VariableState>();
         }
 
+        public static void Merge(Queue<KeyValuePair<VariableState, VariableState>> queue, Dictionary<VariableState, VariableState> otherToSelf)
+        {
+            while (queue.Any())
+            {
+                var correspondingVariables = queue.Dequeue();
+                var otherVariable          = correspondingVariables.Key;
+                var selfVariable           = correspondingVariables.Value;
+
+                selfVariable.MergeTaint(otherVariable.Taint, otherVariable.Value);
+
+                foreach (var otherProperty in otherVariable.PropertyStates)
+                {
+                    selfVariable.PropertyStates.TryGetValue(otherProperty.Key, out var selfProperty);
+                    otherToSelf.TryGetValue(otherProperty.Value, out var correspondingSelfProperty);
+
+                    if (selfProperty == null)
+                    {
+                        if (correspondingSelfProperty == null)
+                        {
+                            correspondingSelfProperty = new VariableState(otherProperty.Value.Node,
+                                                                          otherProperty.Value.Taint,
+                                                                          otherProperty.Value.Value);
+                            otherToSelf.Add(otherProperty.Value, correspondingSelfProperty);
+                        }
+
+                        selfVariable.Properties.Add(otherProperty.Key, correspondingSelfProperty);
+                    }
+                    else if (correspondingSelfProperty != null)
+                    {
+                        continue;
+                    }
+
+                    queue.Enqueue(new KeyValuePair<VariableState, VariableState>(
+                                      otherProperty.Value,
+                                      selfVariable.PropertyStates[otherProperty.Key]));
+                }
+            }
+        }
+
         /// <summary>
         /// Adds additional custom taint bit, or taint. Usually in post conditions.
         /// Differently from 'MergeTaint', bits are only added to existing ones.
@@ -57,7 +97,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// Merges two taints (in concatenation case for example). The worst case wins.
         /// So tainted + sanitized gives tainted.
         /// </summary>
-        public void MergeTaint(VariableTaint newTaint)
+        public void MergeTaint(VariableTaint newTaint, object value = null)
         {
             if (newTaint == Unset)
                 return;
@@ -115,6 +155,9 @@ namespace SecurityCodeScan.Analyzers.Taint
             {
                 Taint = Safe;
             }
+
+            if (Taint == Constant)
+                Value = value;
         }
 
         /// <summary>
@@ -134,9 +177,6 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         public void AddOrMergeProperty(string identifier, VariableState secondState)
         {
-            if (ReferenceEquals(this, secondState))
-                throw new Exception("Recursive call detected.");
-
             if (PropertyStates.ContainsKey(identifier))
             {
                 PropertyStates[identifier].Replace(secondState);
@@ -146,6 +186,11 @@ namespace SecurityCodeScan.Analyzers.Taint
             {
                 Properties.Add(identifier, secondState);
             }
+        }
+
+        public void AddProperty(string identifier, VariableState secondState)
+        {
+            Properties.Add(identifier, secondState);
         }
 
 #if DEBUG

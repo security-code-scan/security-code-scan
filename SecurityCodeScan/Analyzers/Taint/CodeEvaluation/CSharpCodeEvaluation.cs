@@ -62,8 +62,12 @@ namespace SecurityCodeScan.Analyzers.Taint
         private VariableState VisitBlock(BlockSyntax node, ExecutionState state)
         {
             var lastState = new VariableState(node, VariableTaint.Unknown);
+            return VisitStatements(node.Statements, state, lastState);
+        }
 
-            foreach (StatementSyntax statement in node.Statements)
+        private VariableState VisitStatements(SyntaxList<StatementSyntax> statements, ExecutionState state, VariableState lastState)
+        {
+            foreach (StatementSyntax statement in statements)
             {
                 var statementState = VisitNode(statement, state);
                 lastState = statementState;
@@ -143,18 +147,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 case DestructorDeclarationSyntax destructorDeclarationSyntax:
                     return VisitMethodDeclaration(destructorDeclarationSyntax, state);
                 case PropertyDeclarationSyntax propertyDeclarationSyntax:
-                {
-                    if (propertyDeclarationSyntax.ExpressionBody != null)
-                        return VisitNode(propertyDeclarationSyntax.ExpressionBody, state);
-
-                    foreach (var accessor in propertyDeclarationSyntax.AccessorList.Accessors)
-                    {
-                        if (accessor.Body != null)
-                            VisitBlock(accessor.Body, state);
-                    }
-
-                    return new VariableState(node, VariableTaint.Unknown);
-                }
+                    return VisitPropertyDeclaration(propertyDeclarationSyntax, state);
                 case ReturnStatementSyntax returnStatementSyntax:
                     if (returnStatementSyntax.Expression == null)
                         return new VariableState(node, VariableTaint.Unknown);
@@ -165,23 +158,17 @@ namespace SecurityCodeScan.Analyzers.Taint
                 case BlockSyntax blockSyntax:
                     return VisitBlock(blockSyntax, state);
                 case FromClauseSyntax fromClauseSyntax:
-                {
-                    var fromClauseState = VisitExpression(fromClauseSyntax.Expression, state);
-                    var fromSymbol = SyntaxNodeHelper.GetSymbol(fromClauseSyntax.Expression, state.AnalysisContext.SemanticModel);
-                    if (fromSymbol != null)
-                    {
-                        switch (fromSymbol)
-                        {
-                            case IPropertySymbol propertyFromSymbol when propertyFromSymbol.Type.IsTaintType(ProjectConfiguration.Behavior):
-                            case IFieldSymbol fieldFromSymbol when fieldFromSymbol.Type.IsTaintType(ProjectConfiguration.Behavior):
-                                return new VariableState(fromClauseSyntax, VariableTaint.Tainted);
-                        }
-                    }
-
-                    return fromClauseState;
-                }
+                    return VisitFromClause(fromClauseSyntax, state);
                 case WhereClauseSyntax whereClauseSyntax:
                     return VisitExpression(whereClauseSyntax.Condition, state);
+                case IfStatementSyntax ifStatementSyntax:
+                    return VisitIf(ifStatementSyntax, state);
+                case ElseClauseSyntax elseClauseSyntax:
+                    return VisitNode(elseClauseSyntax.Statement, state);
+                case SwitchStatementSyntax switchStatementSyntax:
+                    return VisitSwitch(switchStatementSyntax, state);
+                case SwitchSectionSyntax switchSectionSyntax:
+                    return VisitStatements(switchSectionSyntax.Statements, state, new VariableState(node, VariableTaint.Unset));
             }
 
             foreach (var n in node.ChildNodes())
@@ -189,9 +176,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 VisitNode(n, state);
             }
 
-            var isBlockStatement = node is IfStatementSyntax ||
-                                   node is ElseClauseSyntax ||
-                                   node is ForStatementSyntax ||
+            var isBlockStatement = node is ForStatementSyntax ||
                                    node is UsingStatementSyntax;
 
             if (!isBlockStatement)
@@ -203,6 +188,100 @@ namespace SecurityCodeScan.Analyzers.Taint
             }
 
             return new VariableState(node, VariableTaint.Unknown);
+        }
+
+        private VariableState VisitPropertyDeclaration(PropertyDeclarationSyntax propertyDeclarationSyntax, ExecutionState state)
+        {
+            if (propertyDeclarationSyntax.ExpressionBody != null)
+                return VisitNode(propertyDeclarationSyntax.ExpressionBody, state);
+
+            foreach (var accessor in propertyDeclarationSyntax.AccessorList.Accessors)
+            {
+                if (accessor.Body != null)
+                    VisitBlock(accessor.Body, state);
+            }
+
+            return new VariableState(propertyDeclarationSyntax, VariableTaint.Unknown);
+        }
+
+        private VariableState VisitFromClause(FromClauseSyntax fromClauseSyntax, ExecutionState state)
+        {
+            var fromClauseState = VisitExpression(fromClauseSyntax.Expression, state);
+            var fromSymbol      = SyntaxNodeHelper.GetSymbol(fromClauseSyntax.Expression, state.AnalysisContext.SemanticModel);
+            if (fromSymbol != null)
+            {
+                switch (fromSymbol)
+                {
+                    case IPropertySymbol propertyFromSymbol when propertyFromSymbol.Type.IsTaintType(ProjectConfiguration.Behavior):
+                    case IFieldSymbol fieldFromSymbol when fieldFromSymbol.Type.IsTaintType(ProjectConfiguration.Behavior):
+                        return new VariableState(fromClauseSyntax, VariableTaint.Tainted);
+                }
+            }
+
+            return fromClauseState;
+        }
+
+        private VariableState VisitSwitch(SwitchStatementSyntax switchStatementSyntax, ExecutionState state)
+        {
+            var exprVarState = VisitExpression(switchStatementSyntax.Expression, state);
+            if (switchStatementSyntax.Sections.Count <= 0)
+                return exprVarState;
+
+            var firstCaseState  = new ExecutionState(state);
+            var sectionVarState = VisitNode(switchStatementSyntax.Sections[0], firstCaseState);
+            exprVarState.MergeTaint(sectionVarState.Taint);
+
+            for (var i = 1; i < switchStatementSyntax.Sections.Count; i++)
+            {
+                var section   = switchStatementSyntax.Sections[i];
+                var caseState = new ExecutionState(state);
+                sectionVarState = VisitNode(section, caseState);
+                exprVarState.MergeTaint(sectionVarState.Taint);
+                firstCaseState.Merge(caseState);
+            }
+
+            if (switchStatementSyntax.Sections.Any(section => section.Labels.Any(label => label.Kind() == SyntaxKind.DefaultSwitchLabel)))
+                state.Replace(firstCaseState);
+            else
+                state.Merge(firstCaseState);
+
+            return exprVarState;
+        }
+
+        private VariableState VisitIf(IfStatementSyntax ifStatementSyntax, ExecutionState state)
+        {
+            var condition = VisitExpression(ifStatementSyntax.Condition, state);
+
+            var ifState     = new ExecutionState(state);
+            var ifStatement = VisitNode(ifStatementSyntax.Statement, ifState);
+            condition.MergeTaint(ifStatement.Taint);
+
+            if (ifStatementSyntax.Else != null)
+            {
+                var elseState     = new ExecutionState(state);
+                var elseStatement = VisitNode(ifStatementSyntax.Else, elseState);
+                condition.MergeTaint(elseStatement.Taint);
+
+                var @else = ifStatementSyntax.Else;
+                while (@else?.Statement != null && @else.Statement is IfStatementSyntax elseIf)
+                {
+                    @else = elseIf.Else;
+                }
+
+                if (@else != null)
+                {
+                    ifState.Merge(elseState);
+                    state.Replace(ifState);
+                    return condition;
+                }
+                else
+                {
+                    state.Merge(elseState);
+                }
+            }
+
+            state.Merge(ifState);
+            return condition;
         }
 
         /// <summary>
@@ -277,7 +356,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                             return VisitNode(binaryExpressionSyntax.Left, state);
                     }
 
-                    return VisitBinaryExpression(binaryExpressionSyntax, state);
+                    return VisitBinaryExpression(binaryExpressionSyntax, binaryExpressionSyntax.Left, binaryExpressionSyntax.Right, state);
                 }
                 case AssignmentExpressionSyntax assignmentExpressionSyntax:
                     if (assignmentExpressionSyntax.Kind() != SyntaxKind.SimpleAssignmentExpression)
@@ -306,7 +385,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 case ConditionalExpressionSyntax conditionalExpressionSyntax:
                 {
                     VisitExpression(conditionalExpressionSyntax.Condition, state);
-                    var finalState = new VariableState(conditionalExpressionSyntax, VariableTaint.Safe);
+                    var finalState = new VariableState(conditionalExpressionSyntax, VariableTaint.Unset);
 
                     var whenTrueState = VisitExpression(conditionalExpressionSyntax.WhenTrue, state);
                     finalState.MergeTaint(whenTrueState.Taint);
@@ -659,16 +738,16 @@ namespace SecurityCodeScan.Analyzers.Taint
                 ext.VisitAssignment(node, state, behavior, leftSymbol, variableState);
             }
 
-            if (leftSymbol != null)
-            {
-                var rightTypeSymbol = state.AnalysisContext.SemanticModel.GetTypeInfo(node.Right).Type;
-                if (rightTypeSymbol == null)
-                    return new VariableState(node.Right, VariableTaint.Unknown);
+            //if (leftSymbol != null)
+            //{
+            //    var rightTypeSymbol = state.AnalysisContext.SemanticModel.GetTypeInfo(node.Right).Type;
+            //    if (rightTypeSymbol == null)
+            //        return new VariableState(node.Right, VariableTaint.Unknown);
 
-                var leftTypeSymbol = state.AnalysisContext.SemanticModel.GetTypeInfo(node.Left).Type;
-                if (!state.AnalysisContext.SemanticModel.Compilation.ClassifyConversion(rightTypeSymbol, leftTypeSymbol).IsImplicit)
-                    return new VariableState(node.Right, VariableTaint.Unknown);
-            }
+            //    var leftTypeSymbol = state.AnalysisContext.SemanticModel.GetTypeInfo(node.Left).Type;
+            //    if (!state.AnalysisContext.SemanticModel.Compilation.ClassifyConversion(rightTypeSymbol, leftTypeSymbol).IsImplicit)
+            //        return new VariableState(node.Right, VariableTaint.Unknown);
+            //}
 
             if (variableState.Taint != VariableTaint.Constant &&
                 behavior != null &&
@@ -849,12 +928,15 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <param name="expression"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        private VariableState VisitBinaryExpression(BinaryExpressionSyntax expression, ExecutionState state)
+        private VariableState VisitBinaryExpression(ExpressionSyntax expression,
+                                                    ExpressionSyntax leftExpression,
+                                                    ExpressionSyntax rightExpression,
+                                                    ExecutionState state)
         {
             var result = new VariableState(expression, VariableTaint.Unset);
-            var left = VisitExpression(expression.Left, state);
+            var left = VisitExpression(leftExpression, state);
             result.MergeTaint(left.Taint);
-            var right = VisitExpression(expression.Right, state);
+            var right = VisitExpression(rightExpression, state);
             result.MergeTaint(right.Taint);
             return result;
         }

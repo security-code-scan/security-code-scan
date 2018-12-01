@@ -15,9 +15,75 @@ namespace SecurityCodeScan.Analyzers.Taint
     /// </summary>
     public class ExecutionState
     {
-        public  SyntaxNodeAnalysisContext                  AnalysisContext       { get; }
+        public  SyntaxNodeAnalysisContext                  AnalysisContext       { get; private set; }
         public  IReadOnlyDictionary<string, VariableState> VariableStates        => Variables;
-        private Dictionary<string, VariableState>          Variables             { get; }
+        private Dictionary<string, VariableState>          Variables             { get; set; }
+
+        public ExecutionState(ExecutionState other)
+        {
+            AnalysisContext = other.AnalysisContext;
+            Variables       = new Dictionary<string, VariableState>(other.VariableStates.Count);
+
+            var otherVariableStateToNew = new Dictionary<VariableState, VariableState>();
+            foreach (var otherVariablePair in other.VariableStates)
+            {
+                CollectVariableStates(otherVariableStateToNew, otherVariablePair.Value);
+                Variables.Add(otherVariablePair.Key, otherVariableStateToNew[otherVariablePair.Value]);
+            }
+
+            foreach (var otherToNewPair in otherVariableStateToNew)
+            {
+                foreach (var property in otherToNewPair.Key.PropertyStates)
+                {
+                    otherToNewPair.Value.AddProperty(property.Key, otherVariableStateToNew[property.Value]);
+                }
+            }
+        }
+
+        private void CollectVariableStates(Dictionary<VariableState, VariableState> otherVariableStateToNew, VariableState other)
+        {
+            if (otherVariableStateToNew.ContainsKey(other))
+                return;
+
+            otherVariableStateToNew.Add(other, new VariableState(other.Node, other.Taint, other.Value));
+
+            foreach (var otherVariablePair in other.PropertyStates)
+            {
+                CollectVariableStates(otherVariableStateToNew, otherVariablePair.Value);
+            }
+        }
+
+        public void Replace(ExecutionState state)
+        {
+            AnalysisContext = state.AnalysisContext;
+            Variables       = state.Variables;
+        }
+
+        public void Merge(ExecutionState other)
+        {
+            var queue = new Queue<KeyValuePair<VariableState, VariableState>>();
+            var otherToSelf = new Dictionary<VariableState, VariableState>();
+
+            foreach (var otherVariableState in other.VariableStates)
+            {
+                if (!Variables.TryGetValue(otherVariableState.Key, out var selfVariableState))
+                {
+                    selfVariableState = new VariableState(otherVariableState.Value.Node,
+                                                          otherVariableState.Value.Taint,
+                                                          otherVariableState.Value.Value);
+
+                    Variables.Add(otherVariableState.Key, selfVariableState);
+                }
+
+                if (!otherToSelf.ContainsKey(otherVariableState.Value))
+                {
+                    queue.Enqueue(new KeyValuePair<VariableState, VariableState>(otherVariableState.Value, selfVariableState));
+                    otherToSelf.Add(otherVariableState.Value, selfVariableState);
+                }
+            }
+
+            VariableState.Merge(queue, otherToSelf);
+        }
 
         /// <summary>
         /// Initialize the state with no variable recorded yet.

@@ -177,6 +177,96 @@ End Namespace
 
         [TestCategory("Safe")]
         [TestMethod]
+        public async Task SelfTaintAssignment2()
+        {
+            var cSharpTest = @"
+namespace sample
+{
+    class B
+    {
+        public A z = null;
+    }
+
+    class A
+    {
+        public B y = null;
+
+        public static void Run()
+        {
+            A x = null;
+            x.y.z = x;
+            var a = x;
+            a.y = null;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Namespace sample
+    Friend Class MyFoo
+        Private x As Integer = 1
+        Private y As Integer = 0
+
+        Private Sub foo()
+        End Sub
+
+        Public Shared Sub Run(ByVal aa As MyFoo())
+            For Each a In aa
+                a.foo()
+                a.x = a.y
+            Next
+        End Sub
+    End Class
+End Namespace
+";
+
+            // should not throw
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestCategory("Safe")]
+        [TestMethod]
+        public async Task SelfTaintAssignment3()
+        {
+            var cSharpTest = @"
+namespace sample
+{
+    class A
+    {
+        public A y = null;
+
+        public static void Run()
+        {
+            A x = null;
+            x.y = x;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Namespace sample
+    Class A
+        Public y As A = Nothing
+
+        Public Shared Sub Run()
+            Dim x As A = Nothing
+            x.y = x
+        End Sub
+    End Class
+End Namespace
+
+";
+
+            // should not throw
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestCategory("Safe")]
+        [TestMethod]
         public async Task RecursiveStateAssignment()
         {
             var cSharpTest = @"

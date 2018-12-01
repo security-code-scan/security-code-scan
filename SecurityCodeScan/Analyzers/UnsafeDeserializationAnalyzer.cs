@@ -35,9 +35,10 @@ namespace SecurityCodeScan.Analyzers
 
     public abstract class UnsafeDeserializationAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0028", titleId: "title_analyzer");
+        private static readonly DiagnosticDescriptor TypeNameHandlingRule    = LocaleUtil.GetDescriptor("SCS0028", titleId: "title_typenamehandling_analyzer");
+        private static readonly DiagnosticDescriptor JavaScriptSerializerRule = LocaleUtil.GetDescriptor("SCS0028", titleId: "title_javascriptserializer_analyzer");
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(TypeNameHandlingRule, JavaScriptSerializerRule);
 
         protected void VisitAttributeArgument(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
@@ -88,7 +89,7 @@ namespace SecurityCodeScan.Analyzers
 
             //check if it is really integer, because visual basic allows to assign string values to enums
             if (value.Value is int intValue && intValue != 0 /*TypeNameHandling.None*/ )
-                ctx.ReportDiagnostic(Diagnostic.Create(Rule, expression.GetLocation()));
+                ctx.ReportDiagnostic(Diagnostic.Create(TypeNameHandlingRule, expression.GetLocation()));
         }
 
         protected void VisitObjectCreation(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
@@ -105,7 +106,7 @@ namespace SecurityCodeScan.Analyzers
                 return;
 
             if (ctx.SemanticModel.GetSymbolInfo(firstArgument).Symbol != null)
-                ctx.ReportDiagnostic(Diagnostic.Create(Rule, ctx.Node.GetLocation()));
+                ctx.ReportDiagnostic(Diagnostic.Create(JavaScriptSerializerRule, ctx.Node.GetLocation()));
         }
     }
 }

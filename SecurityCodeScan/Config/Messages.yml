@@ -61,7 +61,8 @@ SCS0003:
 
 SCS0028:
   title: "Possibly unsafe deserialization"
-  title_analyzer: "TypeNameHandling is set to other value than 'None' that may lead to deserialization vulnerability"
+  title_typenamehandling_analyzer: "TypeNameHandling is set to other value than 'None' that may lead to deserialization vulnerability"
+  title_javascriptserializer_analyzer: "Type information is used, it may lead to deserialization vulnerability"
   title_assignment: "Possibly unsafe deserialization setting enabled"
   description: Deserialization from untrusted source is unsafe.
 

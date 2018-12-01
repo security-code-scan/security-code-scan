@@ -750,6 +750,120 @@ Behavior:
     InjectableArguments: [0: HtmlEscaped]
     Locale: SCS0029
 
+ ## WebControls
+
+  System.Web.UI_Page_Title:
+    Namespace: System.Web.UI
+    ClassName: Page
+    Name: Title
+    InjectableField: HtmlEscaped
+    Locale: SCS0029
+
+  System.Web.UI.WebControls_CheckBox_Text:
+    Namespace: System.Web.UI.WebControls
+    ClassName: CheckBox
+    Name: Text
+    InjectableField: HtmlEscaped
+    Locale: SCS0029
+
+  System.Web.UI.WebControls_CompareValidator_Text:
+    Namespace: System.Web.UI.WebControls
+    ClassName: CompareValidator
+    Name: Text
+    InjectableField: HtmlEscaped
+    Locale: SCS0029
+
+  System.Web.UI.WebControls_CustomValidator_Text:
+    Namespace: System.Web.UI.WebControls
+    ClassName: CustomValidator
+    Name: Text
+    InjectableField: HtmlEscaped
+    Locale: SCS0029
+
+  System.Web.UI.WebControls_DropDownList_Text:
+    Namespace: System.Web.UI.WebControls
+    ClassName: DropDownList
+    Name: Text
+    InjectableField: HtmlEscaped
+    Locale: SCS0029
+
+  System.Web.UI.WebControls_HyperLink_Text:
+    Namespace: System.Web.UI.WebControls
+    ClassName: HyperLink
+    Name: Text
+    InjectableField: HtmlEscaped
+    Locale: SCS0029
+
+  System.Web.UI.WebControls_Label_Text:
+    Namespace: System.Web.UI.WebControls
+    ClassName: Label
+    Name: Text
+    InjectableField: HtmlEscaped
+    Locale: SCS0029
+
+  System.Web.UI.WebControls_LinkButton_Text:
+    Namespace: System.Web.UI.WebControls
+    ClassName: LinkButton
+    Name: Text
+    InjectableField: HtmlEscaped
+    Locale: SCS0029
+
+  System.Web.UI.WebControls_ListBox_Text:
+    Namespace: System.Web.UI.WebControls
+    ClassName: ListBox
+    Name: Text
+    InjectableField: HtmlEscaped
+    Locale: SCS0029
+
+  System.Web.UI.WebControls_ListControl_Text:
+    Namespace: System.Web.UI.WebControls
+    ClassName: ListControl
+    Name: Text
+    InjectableField: HtmlEscaped
+    Locale: SCS0029
+
+  System.Web.UI.WebControls_Literal_Text:
+    Namespace: System.Web.UI.WebControls
+    ClassName: Literal
+    Name: Text
+    InjectableField: HtmlEscaped
+    Locale: SCS0029
+
+  System.Web.UI.WebControls_RadioButton_Text:
+    Namespace: System.Web.UI.WebControls
+    ClassName: RadioButton
+    Name: Text
+    InjectableField: HtmlEscaped
+    Locale: SCS0029
+    
+  System.Web.UI.WebControls_RadioButtonList_Text:
+    Namespace: System.Web.UI.WebControls
+    ClassName: RadioButtonList
+    Name: Text
+    InjectableField: HtmlEscaped
+    Locale: SCS0029
+
+  System.Web.UI.WebControls_RangeValidator_Text:
+    Namespace: System.Web.UI.WebControls
+    ClassName: RangeValidator
+    Name: Text
+    InjectableField: HtmlEscaped
+    Locale: SCS0029
+    
+  System.Web.UI.WebControls_RegularExpressionValidator_Text:
+    Namespace: System.Web.UI.WebControls
+    ClassName: RegularExpressionValidator
+    Name: Text
+    InjectableField: HtmlEscaped
+    Locale: SCS0029
+
+  System.Web.UI.WebControls_RequiredFieldValidator_Text:
+    Namespace: System.Web.UI.WebControls
+    ClassName: RequiredFieldValidator
+    Name: Text
+    InjectableField: HtmlEscaped
+    Locale: SCS0029
+
  # SQL Injection
 
  ## MySql.Data.MySqlClient

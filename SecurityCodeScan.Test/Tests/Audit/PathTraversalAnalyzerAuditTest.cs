@@ -159,11 +159,11 @@ End Class
             // same warnings in audit mode
             await VerifyCSharpDiagnostic(cSharpTest,
                                          expected,
-                                         await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
+                                         await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false)).ConfigureAwait(false);
 
             await VerifyVisualBasicDiagnostic(visualBasicTest,
                                               expected,
-                                              await AuditTest.GetAuditModeConfigOptions()).ConfigureAwait(false);
+                                              await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false)).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]

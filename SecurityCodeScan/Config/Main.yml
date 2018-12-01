@@ -23,11 +23,8 @@ MinimumPasswordValidatorProperties: 3
 # Possible values: RequiredLength, RequireUppercase, RequireDigit, RequireLowercase, RequireNonLetterOrDigit
 PasswordValidatorRequiredProperties: [RequiredLength]
 
+# The list is empty by default, see AuditMode.yml
 PasswordFields:
-# These field names are case insensitive
-  - PASSWORD
-  - SECRETKEY
-  - _KEY
 
 # The fields aren't technically const, but taint analyzer should treat as const (safe).
 ConstantFields:

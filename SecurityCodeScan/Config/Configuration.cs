@@ -98,9 +98,12 @@ namespace SecurityCodeScan.Config
                 AddAntiCsrfTAttributeToConfiguration(data);
             }
 
-            foreach (var data in configData.PasswordFields)
+            if (configData.PasswordFields != null)
             {
-                _PasswordFields.Add(data.ToUpperInvariant());
+                foreach (var data in configData.PasswordFields)
+                {
+                    _PasswordFields.Add(data.ToUpperInvariant());
+                }
             }
 
             foreach (var data in configData.ConstantFields)

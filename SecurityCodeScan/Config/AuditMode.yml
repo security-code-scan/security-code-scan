@@ -1,5 +1,11 @@
 ﻿AuditMode: true
 
+# These field names are case insensitive
+PasswordFields:
+  - PASSWORD
+  - SECRETKEY
+  - _KEY
+
 Behavior:
 
  # ToString

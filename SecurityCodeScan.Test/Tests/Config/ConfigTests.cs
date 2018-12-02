@@ -106,7 +106,8 @@ Behavior:
     Namespace: NS
     ClassName: CL
     Name: Foo
-    ArgTypes: ""{payload}""
+    Method:
+      ArgTypes: ""{payload}""
 ");
 
             if (shouldThrow)

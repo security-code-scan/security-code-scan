@@ -24,17 +24,17 @@ namespace SecurityCodeScan.Config
 
         private readonly char[] Parenthesis = { '(', ')' };
 
-        private void ValidateArgTypes(IEnumerable<Signature> methods)
+        private void ValidateArgTypes(IEnumerable<Signature> signatures)
         {
-            if (methods == null)
+            if (signatures == null)
                 return;
 
-            foreach (var method in methods)
+            foreach (var method in signatures)
             {
-                if (method?.ArgTypes == null)
+                if (method?.Method?.ArgTypes == null)
                     continue;
 
-                var argTypes = method.ArgTypes;
+                var argTypes = method.Method.ArgTypes;
                 if (argTypes.Length == 0)
                     throw new Exception($"Do not specify 'ArgTypes:' in {method.Namespace}.{method.ClassName}.{method.Name} to match any overload");
 
@@ -236,7 +236,7 @@ namespace SecurityCodeScan.Config
         public int?                                   MinimumPasswordValidatorProperties  { get; set; }
         public List<string>                           PasswordValidatorRequiredProperties { get; set; }
         public Dictionary<string, MethodBehaviorData> Behavior                            { get; set; }
-        public Dictionary<string, TaintSourceData>    TaintEntryPoints                    { get; set; }
+        public Dictionary<string, TaintEntryPointData>    TaintEntryPoints                    { get; set; }
         public List<CsrfProtectionData>               CsrfProtectionAttributes            { get; set; }
         public List<string>                           PasswordFields                      { get; set; }
         public List<string>                           ConstantFields                      { get; set; }
@@ -245,13 +245,24 @@ namespace SecurityCodeScan.Config
 
     internal class Signature
     {
-        public string Namespace { get; set; }
-        public string ClassName { get; set; }
-        public string Name     { get; set; }
+        public string     Namespace { get; set; }
+        public string     ClassName { get; set; }
+        public string     Name      { get; set; }
+        public MethodData Method    { get; set; }
+        public FieldData  Field     { get; set; }
+    }
+
+    internal class MethodData
+    {
         public string ArgTypes { get; set; }
     }
 
-    internal class TaintSourceData : Signature
+    internal class FieldData
+    {
+
+    }
+
+    internal class TaintEntryPointData : Signature
     {
     }
 

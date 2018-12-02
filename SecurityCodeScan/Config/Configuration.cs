@@ -84,13 +84,13 @@ namespace SecurityCodeScan.Config
 
             foreach (var source in configData.TaintEntryPoints)
             {
-                if (source.Value.ArgTypes != null)
+                if (source.Value?.Method?.ArgTypes != null)
                     throw new Exception("Taint entry point ArgTypes are not supported.");
 
                 _TaintEntryPoints.Add(MethodBehaviorHelper.GetMethodBehaviorKey(source.Value.Namespace,
                                                                                 source.Value.ClassName,
                                                                                 source.Value.Name,
-                                                                                source.Value.ArgTypes));
+                                                                                source.Value?.Method?.ArgTypes));
             }
 
             foreach (var data in configData.CsrfProtectionAttributes)
@@ -175,19 +175,19 @@ namespace SecurityCodeScan.Config
             {
                 foreach (var source in config.TaintEntryPoints)
                 {
-                    if (source.Value == default(TaintSourceData))
+                    if (source.Value == default(TaintEntryPointData))
                     {
                         _TaintEntryPoints.Remove(source.Key);
                     }
                     else
                     {
-                        if (source.Value.ArgTypes != null)
+                        if (source.Value?.Method?.ArgTypes != null)
                             throw new Exception("Taint entry point ArgTypes are not supported.");
 
                         _TaintEntryPoints.Add(MethodBehaviorHelper.GetMethodBehaviorKey(source.Value.Namespace,
                                                                                         source.Value.ClassName,
                                                                                         source.Value.Name,
-                                                                                        source.Value.ArgTypes));
+                                                                                        source.Value?.Method?.ArgTypes));
                     }
                 }
             }
@@ -431,7 +431,7 @@ namespace SecurityCodeScan.Config
 
         private KeyValuePair<string, MethodBehavior> CreateBehavior(MethodBehaviorData behavior)
         {
-            var key = MethodBehaviorHelper.GetMethodBehaviorKey(behavior.Namespace, behavior.ClassName, behavior.Name, behavior.ArgTypes);
+            var key = MethodBehaviorHelper.GetMethodBehaviorKey(behavior.Namespace, behavior.ClassName, behavior.Name, behavior.Method?.ArgTypes);
 
             return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetPreConditions(behavior.PreConditions),
                                                                                     GetPostConditions(behavior.PostConditions),

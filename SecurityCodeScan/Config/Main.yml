@@ -106,7 +106,6 @@ Behavior:
         Then:
           2:
             Taint: LocalUrl
-    PostConditions:
       2:
         TaintFromArguments: [0]
 
@@ -114,7 +113,7 @@ Behavior:
     Namespace: System.Web.Mvc
     ClassName: UrlHelper
     Name: IsLocalUrl
-    PostConditions:
+    Method:
       0:
         Taint: LocalUrl
 
@@ -122,7 +121,7 @@ Behavior:
     Namespace: Microsoft.AspNetCore.Mvc
     ClassName: IUrlHelper
     Name: IsLocalUrl
-    PostConditions:
+    Method:
       0:
         Taint: LocalUrl
 
@@ -132,7 +131,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpServerUtility
     Name: MapPath
-    PostConditions:
+    Method:
       Returns:
         Taint: AbsolutePath
         TaintFromArguments: [0]
@@ -141,7 +140,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: MapPath
-    PostConditions:
+    Method:
       Returns:
         Taint: AbsolutePath
         TaintFromArguments: [0]
@@ -150,7 +149,7 @@ Behavior:
     Namespace: System.Web.Mvc
     ClassName: UrlHelper
     Name: RouteUrl
-    PostConditions:
+    Method:
       Returns:
         Taint: LocalUrl
         TaintFromArguments: [0, 1, 2, 3]
@@ -159,7 +158,7 @@ Behavior:
     Namespace: Microsoft.AspNetCore.Mvc
     ClassName: UrlHelperExtensions
     Name: RouteUrl
-    PostConditions:
+    Method:
       Returns:
         Taint: LocalUrl
         TaintFromArguments: [1, 2, 3, 4, 5]
@@ -168,7 +167,7 @@ Behavior:
     Namespace: Microsoft.Security.Application
     ClassName: Encoder
     Name: HtmlEncode
-    PostConditions:
+    Method:
       Returns:
         Taint: HtmlEscaped
         TaintFromArguments: [0]
@@ -179,7 +178,6 @@ Behavior:
     Name: HtmlEncode
     Method:
       ArgTypes: (System.String)
-    PostConditions:
       Returns:
         Taint: HtmlEscaped
         TaintFromArguments: [0]
@@ -190,7 +188,6 @@ Behavior:
     Name: HtmlEncode
     Method:
       ArgTypes: (System.String, System.IO.TextWriter)
-    PostConditions:
       1:
         Taint: HtmlEscaped
         TaintFromArguments: [0]
@@ -201,7 +198,6 @@ Behavior:
     Name: Encode
     Method:
       ArgTypes: (System.String)
-    PostConditions:
       Returns:
         Taint: HtmlEscaped
         TaintFromArguments: [0]
@@ -212,7 +208,6 @@ Behavior:
     Name: Encode
     Method:
       ArgTypes: (System.IO.TextWriter, System.String)
-    PostConditions:
       0:
         Taint: HtmlEscaped
         TaintFromArguments: [1]
@@ -223,7 +218,6 @@ Behavior:
     Name: Encode
     Method:
       ArgTypes: (System.IO.TextWriter, System.String, System.Int32, System.Int32)
-    PostConditions:
       0:
         Taint: HtmlEscaped
         TaintFromArguments: [1]
@@ -234,7 +228,6 @@ Behavior:
     Name: Encode
     Method:
       ArgTypes: (System.IO.TextWriter, System.Char[], System.Int32, System.Int32)
-    PostConditions:
       0:
         Taint: HtmlEscaped
         TaintFromArguments: [1]
@@ -243,7 +236,7 @@ Behavior:
     Namespace: Microsoft.Security.Application
     ClassName: Encoder
     Name: LdapDistinguishedNameEncode
-    PostConditions:
+    Method:
       Returns:
         Taint: LdapDistinguishedNameEncoded
         TaintFromArguments: [0]
@@ -252,7 +245,7 @@ Behavior:
     Namespace: Microsoft.Security.Application
     ClassName: Encoder
     Name: LdapFilterEncode
-    PostConditions:
+    Method:
       Returns:
         Taint: LdapFilterEncoded
         TaintFromArguments: [0]
@@ -263,7 +256,7 @@ Behavior:
     Namespace: System
     ClassName: Int16
     Name: ToString
-    PostConditions:
+    Method:
       Returns:
         Taint: Safe
 
@@ -271,7 +264,7 @@ Behavior:
     Namespace: System
     ClassName: Int32
     Name: ToString
-    PostConditions:
+    Method:
       Returns:
         Taint: Safe
 
@@ -279,7 +272,7 @@ Behavior:
     Namespace: System
     ClassName: Int64
     Name: ToString
-    PostConditions:
+    Method:
       Returns:
         Taint: Safe
 
@@ -287,7 +280,7 @@ Behavior:
     Namespace: System
     ClassName: IntPtr
     Name: ToString
-    PostConditions:
+    Method:
       Returns:
         Taint: Safe
 
@@ -295,7 +288,7 @@ Behavior:
     Namespace: System
     ClassName: UInt16
     Name: ToString
-    PostConditions:
+    Method:
       Returns:
         Taint: Safe
 
@@ -303,7 +296,7 @@ Behavior:
     Namespace: System
     ClassName: UInt32
     Name: ToString
-    PostConditions:
+    Method:
       Returns:
         Taint: Safe
 
@@ -311,7 +304,7 @@ Behavior:
     Namespace: System
     ClassName: UInt64
     Name: ToString
-    PostConditions:
+    Method:
       Returns:
         Taint: Safe
 
@@ -319,7 +312,7 @@ Behavior:
     Namespace: System
     ClassName: UIntPtr
     Name: ToString
-    PostConditions:
+    Method:
       Returns:
         Taint: Safe
 
@@ -327,7 +320,7 @@ Behavior:
     Namespace: System
     ClassName: Double
     Name: ToString
-    PostConditions:
+    Method:
       Returns:
         Taint: Safe
 
@@ -335,7 +328,7 @@ Behavior:
     Namespace: System
     ClassName: Decimal
     Name: ToString
-    PostConditions:
+    Method:
       Returns:
         Taint: Safe
 
@@ -343,7 +336,7 @@ Behavior:
     Namespace: System
     ClassName: Guid
     Name: ToString
-    PostConditions:
+    Method:
       Returns:
         Taint: Safe
 
@@ -351,7 +344,7 @@ Behavior:
     Namespace: System
     ClassName: DateTime
     Name: ToString
-    PostConditions:
+    Method:
       Returns:
         Taint: Safe
 
@@ -359,7 +352,7 @@ Behavior:
     Namespace: System
     ClassName: DateTimeOffset
     Name: ToString
-    PostConditions:
+    Method:
       Returns:
         Taint: Safe
 
@@ -367,7 +360,7 @@ Behavior:
     Namespace: System
     ClassName: Enum
     Name: ToString
-    PostConditions:
+    Method:
       Returns:
         Taint: Safe
 
@@ -379,7 +372,6 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: ()
-    PostConditions:
       Returns:
         Taint: Safe
 
@@ -389,7 +381,6 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: ()
-    PostConditions:
       Returns:
         Taint: Safe
 
@@ -399,7 +390,6 @@ Behavior:
     Name: GetCurrentDirectory
     Method:
       ArgTypes: ()
-    PostConditions:
       Returns:
         Taint: Safe
 
@@ -411,7 +401,6 @@ Behavior:
     Name: GetInvalidFileNameChars
     Method:
       ArgTypes: ()
-    PostConditions:
       Returns:
         Taint: Safe
 
@@ -421,7 +410,6 @@ Behavior:
     Name: GetInvalidPathChars
     Method:
       ArgTypes: ()
-    PostConditions:
       Returns:
         Taint: Safe
 
@@ -431,7 +419,6 @@ Behavior:
     Name: GetRandomFileName
     Method:
       ArgTypes: ()
-    PostConditions:
       Returns:
         Taint: Safe
 
@@ -441,7 +428,6 @@ Behavior:
     Name: GetTempFileName
     Method:
       ArgTypes: ()
-    PostConditions:
       Returns:
         Taint: Safe
 
@@ -451,7 +437,6 @@ Behavior:
     Name: GetTempPath
     Method:
       ArgTypes: ()
-    PostConditions:
       Returns:
         Taint: Safe
 
@@ -461,7 +446,7 @@ Behavior:
     Namespace: System
     ClassName: Environment
     Name: GetEnvironmentVariable
-    PostConditions:
+    Method:
       Returns:
         TaintFromArguments: [0]
 
@@ -473,7 +458,6 @@ Behavior:
     Name: ChangeExtension
     Method:
       ArgTypes: (System.String, System.String)
-    PostConditions:
       Returns:
         TaintFromArguments: [0,1]
 
@@ -483,7 +467,6 @@ Behavior:
     Name: Combine
     Method:
       ArgTypes: (System.String, System.String)
-    PostConditions:
       Returns:
         TaintFromArguments: [0,1]
 
@@ -493,7 +476,6 @@ Behavior:
     Name: Combine
     Method:
       ArgTypes: (System.String, System.String, System.String)
-    PostConditions:
       Returns:
         TaintFromArguments: [0,1,2]
 
@@ -503,7 +485,6 @@ Behavior:
     Name: Combine
     Method:
       ArgTypes: (System.String, System.String, System.String, System.String)
-    PostConditions:
       Returns:
         TaintFromArguments: [0,1,2,3]
 
@@ -513,7 +494,6 @@ Behavior:
     Name: Combine
     Method:
       ArgTypes: (params System.String[])
-    PostConditions:
       Returns:
         TaintFromArguments: [0]
 
@@ -523,7 +503,6 @@ Behavior:
     Name: GetDirectoryName
     Method:
       ArgTypes: (System.String)
-    PostConditions:
       Returns:
         TaintFromArguments: [0]
 
@@ -533,7 +512,6 @@ Behavior:
     Name: GetExtension
     Method:
       ArgTypes: (System.String)
-    PostConditions:
       Returns:
         TaintFromArguments: [0]
 
@@ -543,7 +521,6 @@ Behavior:
     Name: GetFileName
     Method:
       ArgTypes: (System.String)
-    PostConditions:
       Returns:
         TaintFromArguments: [0]
 
@@ -553,7 +530,6 @@ Behavior:
     Name: GetFileNameWithoutExtension
     Method:
       ArgTypes: (System.String)
-    PostConditions:
       Returns:
         TaintFromArguments: [0]
 
@@ -563,7 +539,6 @@ Behavior:
     Name: GetFullPath
     Method:
       ArgTypes: (System.String)
-    PostConditions:
       Returns:
         TaintFromArguments: [0]
 
@@ -573,7 +548,6 @@ Behavior:
     Name: GetPathRoot
     Method:
       ArgTypes: (System.String)
-    PostConditions:
       Returns:
         TaintFromArguments: [0]
 
@@ -583,7 +557,6 @@ Behavior:
     Name: HasExtension
     Method:
       ArgTypes: (System.String)
-    PostConditions:
       Returns:
         TaintFromArguments: [0]
 
@@ -593,7 +566,6 @@ Behavior:
     Name: IsPathRooted
     Method:
       ArgTypes: (System.String)
-    PostConditions:
       Returns:
         TaintFromArguments: [0]
 
@@ -606,7 +578,6 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.Char, System.Int32)
-    PostConditions:
       Returns:
         TaintFromArguments: [0,1]
 
@@ -616,7 +587,6 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.Char[])
-    PostConditions:
       Returns:
         TaintFromArguments: [0]
 
@@ -626,7 +596,6 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.Char[], System.Int32, System.Int32)
-    PostConditions:
       Returns:
         TaintFromArguments: [0]
 
@@ -639,7 +608,6 @@ Behavior:
     Name: Format
     Method:
       ArgTypes: (System.IFormatProvider, System.String, params System.Object[])
-    PostConditions:
       Returns:
         TaintFromArguments: [1,2]
 
@@ -649,7 +617,6 @@ Behavior:
     Name: Format
     Method:
       ArgTypes: (System.IFormatProvider, System.String, System.Object)
-    PostConditions:
       Returns:
         TaintFromArguments: [1,2]
 
@@ -659,7 +626,6 @@ Behavior:
     Name: Format
     Method:
       ArgTypes: (System.IFormatProvider, System.String, System.Object, System.Object)
-    PostConditions:
       Returns:
         TaintFromArguments: [1,2,3]
 
@@ -669,7 +635,6 @@ Behavior:
     Name: Format
     Method:
       ArgTypes: (System.IFormatProvider, System.String, System.Object, System.Object, System.Object)
-    PostConditions:
       Returns:
         TaintFromArguments: [1,2,3,4]
 
@@ -679,7 +644,6 @@ Behavior:
     Name: Format
     Method:
       ArgTypes: (System.String, params System.Object[])
-    PostConditions:
       Returns:
         TaintFromArguments: [0,1]
 
@@ -689,7 +653,6 @@ Behavior:
     Name: Format
     Method:
       ArgTypes: (System.String, System.Object)
-    PostConditions:
       Returns:
         TaintFromArguments: [0,1]
 
@@ -699,7 +662,6 @@ Behavior:
     Name: Format
     Method:
       ArgTypes: (System.String, System.Object, System.Object)
-    PostConditions:
       Returns:
         TaintFromArguments: [0,1,2]
 
@@ -709,7 +671,6 @@ Behavior:
     Name: Format
     Method:
       ArgTypes: (System.String, System.Object, System.Object, System.Object)
-    PostConditions:
       Returns:
         TaintFromArguments: [0,1,2,3]
 
@@ -721,7 +682,6 @@ Behavior:
     Name: Join
     Method:
       ArgTypes: (System.String, System.Collections.Generic.IEnumerable)
-    PostConditions:
       Returns:
         TaintFromArguments: [0,1]
 
@@ -731,7 +691,6 @@ Behavior:
     Name: Join
     Method:
       ArgTypes: (System.String, params System.String[])
-    PostConditions:
       Returns:
         TaintFromArguments: [0,1]
 
@@ -741,7 +700,6 @@ Behavior:
     Name: Join
     Method:
       ArgTypes: (System.String, System.String[], System.Int32, System.Int32)
-    PostConditions:
       Returns:
         TaintFromArguments: [0,1]
 
@@ -751,7 +709,6 @@ Behavior:
     Name: Join
     Method:
       ArgTypes: (System.String, params System.Object[])
-    PostConditions:
       Returns:
         TaintFromArguments: [0,1]
 
@@ -2901,7 +2858,7 @@ Behavior:
   Microsoft.AspNetCore.Http_IHeaderDictionary:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: IHeaderDictionary
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -2909,7 +2866,7 @@ Behavior:
   Microsoft.AspNetCore.Http_HostString:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: HostString
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -2917,14 +2874,14 @@ Behavior:
   Microsoft.AspNetCore.Http_HttpContext:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: HttpContext
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
   Microsoft.AspNetCore.Http_DefaultHttpContext:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: DefaultHttpContext
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -2933,7 +2890,7 @@ Behavior:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: HttpRequest
     Name: Body
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -2941,7 +2898,7 @@ Behavior:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: HttpRequest
     Name: ContentType
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -2949,7 +2906,7 @@ Behavior:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: HttpRequest
     Name: QueryString
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -2957,7 +2914,7 @@ Behavior:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: HttpRequest
     Name: Query
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -2965,7 +2922,7 @@ Behavior:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: HttpRequest
     Name: ReadFormAsync
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -2973,7 +2930,7 @@ Behavior:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: RequestFormReaderExtensions
     Name: ReadFormAsync
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -2981,14 +2938,14 @@ Behavior:
   Microsoft.AspNetCore.Http_IRequestCookieCollection:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: IRequestCookieCollection
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
   Microsoft.AspNetCore.Http.Internal_RequestCookieCollection:
     Namespace: Microsoft.AspNetCore.Http.Internal
     ClassName: IRequestCookieCollection
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -2996,14 +2953,14 @@ Behavior:
   Microsoft.AspNetCore.Http_IFormCollection:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: IFormCollection
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
   Microsoft.AspNetCore.Http_FormCollection:
     Namespace: Microsoft.AspNetCore.Http
     ClassName: FormCollection
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3011,7 +2968,7 @@ Behavior:
   System.Web.Routing_RequestContext:
     Namespace: System.Web.Routing
     ClassName: RequestContext
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3019,21 +2976,21 @@ Behavior:
   System.Web_HttpPostedFileBase:
     Namespace: System.Web
     ClassName: HttpPostedFileBase
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
   System.Web_HttpPostedFile:
     Namespace: System.Web
     ClassName: HttpPostedFile
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
   System.Web_HttpPostedFileWrapper:
     Namespace: System.Web
     ClassName: HttpPostedFileWrapper
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3042,7 +2999,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: RawUrl
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3050,7 +3007,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: RawUrl
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3058,7 +3015,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: RawUrl
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3067,7 +3024,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: this[]
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3075,7 +3032,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: this[]
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3083,7 +3040,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: this[]
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3092,7 +3049,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: Params
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3100,7 +3057,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: Params
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3108,7 +3065,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: Params
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3117,7 +3074,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: QueryString
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3125,7 +3082,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: QueryString
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3133,7 +3090,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: QueryString
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3142,7 +3099,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: Headers
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3150,7 +3107,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: Headers
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3158,7 +3115,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: Headers
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3167,7 +3124,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: UserAgent
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3175,7 +3132,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: UserAgent
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3183,7 +3140,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: UserAgent
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3192,7 +3149,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: UserHostName
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3200,7 +3157,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: UserHostName
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3208,7 +3165,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: UserHostName
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3217,7 +3174,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: UserHostAddress
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3225,7 +3182,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: UserHostAddress
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3233,7 +3190,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: UserHostAddress
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3242,7 +3199,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: Url
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3250,7 +3207,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: Url
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3258,7 +3215,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: Url
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3267,7 +3224,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: UrlReferrer
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3275,7 +3232,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: UrlReferrer
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3283,7 +3240,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: UrlReferrer
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3292,7 +3249,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: Unvalidated
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3300,7 +3257,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: Unvalidated
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3308,7 +3265,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: Unvalidated
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3317,7 +3274,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: InputStream
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3325,7 +3282,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: InputStream
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3333,7 +3290,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: InputStream
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3342,7 +3299,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: Form
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3350,7 +3307,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: Form
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3358,7 +3315,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: Form
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3367,7 +3324,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: Cookies
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3375,7 +3332,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: Cookies
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3383,7 +3340,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: Cookies
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3392,7 +3349,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: AcceptTypes
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3400,7 +3357,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: AcceptTypes
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3408,7 +3365,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: AcceptTypes
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3417,7 +3374,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: UserLanguages
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3425,7 +3382,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: UserLanguages
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3433,7 +3390,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: UserLanguages
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3442,7 +3399,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: ContentType
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3450,7 +3407,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: ContentType
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3458,7 +3415,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: ContentType
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3467,7 +3424,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: IsLocal
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3475,7 +3432,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: IsLocal
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3483,7 +3440,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: IsLocal
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3492,7 +3449,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: BinaryRead
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3500,7 +3457,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: BinaryRead
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3508,7 +3465,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: BinaryRead
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3517,7 +3474,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: GetBufferedInputStream
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3525,7 +3482,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: GetBufferedInputStream
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3533,7 +3490,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: GetBufferedInputStream
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3542,7 +3499,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: GetBufferlessInputStream
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3550,7 +3507,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: GetBufferlessInputStream
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3558,7 +3515,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: GetBufferlessInputStream
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3567,7 +3524,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: ClientCertificate
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3575,7 +3532,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: ClientCertificate
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3583,7 +3540,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: ClientCertificate
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3592,7 +3549,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: Browser
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3600,7 +3557,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: Browser
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3608,7 +3565,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: Browser
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3618,7 +3575,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: AnonymousID
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3626,7 +3583,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: AnonymousID
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3634,7 +3591,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: AnonymousID
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3645,7 +3602,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestBase
     Name: ServerVariables
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3653,7 +3610,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequest
     Name: ServerVariables
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3661,7 +3618,7 @@ Behavior:
     Namespace: System.Web
     ClassName: HttpRequestWrapper
     Name: ServerVariables
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3670,7 +3627,7 @@ Behavior:
     Namespace: System.Web.UI.WebControls
     ClassName: FileUpload
     Name: FileName
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3678,7 +3635,7 @@ Behavior:
     Namespace: System.Web.UI.WebControls
     ClassName: FileUpload
     Name: FileContent
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3686,7 +3643,7 @@ Behavior:
     Namespace: System.Web.UI.WebControls
     ClassName: HiddenField
     Name: Value
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3694,7 +3651,7 @@ Behavior:
     Namespace: System.Web.UI.WebControls
     ClassName: TextBox
     Name: Text
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3702,7 +3659,7 @@ Behavior:
     Namespace: System.Web.UI.HtmlControls
     ClassName: HtmlInputFile
     Name: Value
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3710,7 +3667,7 @@ Behavior:
     Namespace: System.Web.UI.HtmlControls
     ClassName: HtmlInputControl
     Name: Value
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3718,7 +3675,7 @@ Behavior:
     Namespace: System.Web.UI.HtmlControls
     ClassName: HtmlInputText
     Name: Value
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 
@@ -3726,7 +3683,7 @@ Behavior:
     Namespace: System.Web.UI.HtmlControls
     ClassName: HtmlTextArea
     Name: Value
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 

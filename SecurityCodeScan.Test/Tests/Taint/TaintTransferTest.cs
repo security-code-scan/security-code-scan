@@ -957,7 +957,6 @@ Behavior:
         Then:
           {outParam}:
             Taint: LocalUrl
-    PostConditions:
       {outParam}:
         {taintFromArguments}
 ";
@@ -1146,7 +1145,7 @@ Behavior:
   BBB:
     ClassName: {className}
     Name: {name}
-    PostConditions:
+    Method:
       {outParam}:
         {taintFromArguments}
 ";

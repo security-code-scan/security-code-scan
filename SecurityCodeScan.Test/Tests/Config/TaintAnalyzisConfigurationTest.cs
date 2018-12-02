@@ -272,7 +272,7 @@ Behavior:
     Namespace: sample
     ClassName: Test
     Name: Safe
-    PostConditions:
+    Method:
       Returns:
         Taint: Safe
 ";
@@ -377,7 +377,7 @@ Behavior:
     Namespace: sample
     ClassName: Test
     Name: Safe
-    PostConditions:
+    Method:
       Returns:
         Taint: Safe
 ";

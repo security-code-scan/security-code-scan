@@ -125,7 +125,7 @@ Behavior:
   db3:
     Namespace: Microsoft.EntityFrameworkCore
     ClassName: DbSet
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 ";

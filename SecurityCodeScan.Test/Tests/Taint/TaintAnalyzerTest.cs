@@ -262,7 +262,7 @@ Behavior:
     Namespace: sample
     ClassName: Test
     Name: GetUntrusted
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 ";
@@ -1667,7 +1667,7 @@ Behavior:
     Namespace: sample
     ClassName: SqlConstant
     Name: GetQueryDataClass
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 ";
@@ -2466,7 +2466,7 @@ Behavior:
   sample_HttpRequest:
     Namespace: sample
     ClassName: HttpRequest
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 ";
@@ -2488,7 +2488,7 @@ Behavior:
   sample_HttpRequest:
     Namespace: sample
     ClassName: HttpRequest
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 ";

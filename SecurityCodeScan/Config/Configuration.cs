@@ -248,14 +248,24 @@ namespace SecurityCodeScan.Config
             }
         }
 
-        private IReadOnlyList<Condition> GetPreConditions(ConditionData ifSection,
+        private IReadOnlyList<Condition> GetPreConditions(Dictionary<object, object> ifSection,
                                                           IReadOnlyDictionary<int, PostCondition> mainPostConditions)
         {
-            if (ifSection?.Condition == null || ifSection.Then == null)
+            if (ifSection == null)
                 return null;
 
-            var conditions = new Dictionary<int, object>(ifSection.Condition.Count);
-            foreach (var argument in ifSection.Condition)
+            if (!ifSection.TryGetValue("Condition", out object value))
+                return null;
+
+            var configConditions = (Dictionary<object, object>)value;
+
+            if (!ifSection.TryGetValue("Then", out value))
+                return null;
+
+            var then = (Dictionary<object, object>)value;
+
+            var conditions = new Dictionary<int, object>(configConditions.Count);
+            foreach (var argument in configConditions)
             {
                 if (!(argument.Value is Dictionary<object, object> d))
                     throw new Exception("Invalid precondition format");
@@ -268,14 +278,14 @@ namespace SecurityCodeScan.Config
                 if ((string)condition.Key != "Value")
                     throw new Exception("Only 'Value' preconditions are supported");
 
-                var value = (string)condition.Value;
-                if (int.TryParse(value, out var intVal))
+                var conditionValue = (string)condition.Value;
+                if (int.TryParse(conditionValue, out var intVal))
                     conditions.Add(idx, intVal);
                 else
-                    conditions.Add(idx, value);
+                    conditions.Add(idx, conditionValue);
             }
 
-            return new List<Condition> {new Condition(conditions, GetPostConditions(ifSection.Then, mainPostConditions)) };
+            return new List<Condition> { new Condition(conditions, GetPostConditions(then, mainPostConditions)) };
         }
 
         private ulong GetTaintBits(IEnumerable<object> taintTypes)
@@ -363,10 +373,13 @@ namespace SecurityCodeScan.Config
             var conditions = new Dictionary<int, PostCondition>(arguments.Count);
             foreach (var argument in arguments)
             {
+                var argKey = (string)argument.Key;
+                if (argKey == "ArgTypes" || argKey == "If" || argKey == "InjectableArguments")
+                    continue;
+
                 if (!(argument.Value is Dictionary<object, object> d))
                     throw new Exception("Invalid postcondition format");
 
-                var                   argKey             = (string)argument.Key;
                 var                   idx                = argKey == "Returns" ? -1 : int.Parse(argKey);
                 ulong                 taintBit           = 0ul;
                 ImmutableHashSet<int> taintFromArguments = null;
@@ -440,17 +453,116 @@ namespace SecurityCodeScan.Config
             }
         }
 
-        private KeyValuePair<string, MethodBehavior> CreateBehavior(MethodBehaviorData behavior)
-        {
-            var key = MethodBehaviorHelper.GetMethodBehaviorKey(behavior.Namespace, behavior.ClassName, behavior.Name, behavior.Method?.ArgTypes);
+        private readonly char[] Parenthesis = { '(', ')' };
 
-            var mainPostConditions = GetPostConditions(behavior.PostConditions);
-            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetPreConditions(behavior.Method?.If, mainPostConditions),
+        private void ValidateArgTypes(string argTypes, string nameSpace, string className, string name)
+        {
+            if (argTypes == null)
+                return;
+
+            if (argTypes.Length == 0)
+                throw new Exception($"Do not specify 'ArgTypes:' in {nameSpace}.{className}.{name} to match any overload");
+
+            if (argTypes.Trim() != argTypes)
+                throw new Exception($"Leading or trailing white space in {nameSpace}.{className}.{name}");
+
+            if (argTypes[0] != '(' || argTypes[argTypes.Length - 1] != ')')
+                throw new Exception($"Invalid parenthesis in {nameSpace}.{className}.{name}");
+
+            argTypes = argTypes.Substring(1, argTypes.Length - 2);
+            if (argTypes.IndexOfAny(Parenthesis) != -1)
+                throw new Exception($"Parenthesis detected inside of 'ArgTypes:' in {nameSpace}.{className}.{name}");
+
+            if (argTypes != string.Empty)
+            {
+                foreach (var argType in argTypes.Split(new[] { ", " }, StringSplitOptions.None))
+                {
+                    if (argType.Trim() != argType)
+                        throw new Exception(
+                            $"Leading or trailing white space in argument of {nameSpace}.{className}.{name}");
+
+                    if (!argType.Contains("."))
+                        throw new Exception($"Argument type lacks namespace in {nameSpace}.{className}.{name}");
+
+                    if (argType.Contains("this "))
+                        throw new Exception($"'this' keyword should be omitted in {nameSpace}.{className}.{name}");
+
+                    var arg = argType;
+                    if (argType.Contains("params "))
+                        arg = argType.Replace("params ", "");
+                    if (argType.Contains("out "))
+                        arg = argType.Replace("out ", "");
+
+                    if (arg.Contains(" "))
+                        throw new Exception($"Argument name should be omitted in {nameSpace}.{className}.{name}");
+                }
+            }
+        }
+
+        private KeyValuePair<string, MethodBehavior> CreateBehavior(object behavior)
+        {
+            var behaviorDict = (Dictionary<object, object>)behavior;
+
+            string nameSpace = null;
+            if (behaviorDict.TryGetValue("Namespace", out object value))
+                nameSpace = (string)value;
+
+            string className = null;
+            if (behaviorDict.TryGetValue("ClassName", out value))
+                className = (string)value;
+
+            string name = null;
+            if (behaviorDict.TryGetValue("Name", out value))
+                name = (string)value;
+
+            string locale = null;
+            if (behaviorDict.TryGetValue("Locale", out value))
+                locale = (string)value;
+
+            IEnumerable<int> passwordArguments = null;
+            if (behaviorDict.TryGetValue("PasswordArguments", out value))
+                passwordArguments = ((IReadOnlyList<object>)value).Select(Convert.ToInt32);
+
+            string                     argTypes            = null;
+            Dictionary<object, object> ifCondition         = null;
+            IReadOnlyList<object>      injectableArguments = null;
+
+            Dictionary<object, object> method = null;
+            if (behaviorDict.TryGetValue("Method", out value))
+            {
+                method = (Dictionary<object, object>)value;
+                if (method.TryGetValue("ArgTypes", out value))
+                {
+                    argTypes = (string)value;
+                    ValidateArgTypes(argTypes, nameSpace, className, name);
+                }
+
+                if (method.TryGetValue("If", out value))
+                    ifCondition = (Dictionary<object, object>)value;
+
+                if (method.TryGetValue("InjectableArguments", out value))
+                    injectableArguments = (IReadOnlyList<object>)value;
+            }
+
+            object injectable = null;
+
+            if (behaviorDict.TryGetValue("Field", out value))
+            {
+                var field = (Dictionary<object, object>)value;
+
+                if (field.TryGetValue("Injectable", out value))
+                    injectable = value;
+            }
+
+            var key = MethodBehaviorHelper.GetMethodBehaviorKey(nameSpace, className, name, argTypes);
+
+            var mainPostConditions = GetPostConditions(method);
+            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetPreConditions(ifCondition, mainPostConditions),
                                                                                     mainPostConditions,
-                                                                                    GetArguments(behavior.Method?.InjectableArguments),
-                                                                                    behavior.PasswordArguments?.ToImmutableHashSet(),
-                                                                                    behavior.Locale,
-                                                                                    GetField(behavior.Field?.Injectable)));
+                                                                                    GetArguments(injectableArguments),
+                                                                                    passwordArguments?.ToImmutableHashSet<int>(),
+                                                                                    locale,
+                                                                                    GetField(injectable)));
         }
 
         public void AddAntiCsrfTAttributeToConfiguration(CsrfProtectionData csrfData)

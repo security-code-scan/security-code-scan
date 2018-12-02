@@ -86,7 +86,7 @@ Behavior:
 #                                    Analyzer shows a warning if tainted/unsafe date is passed to the API.
 #                                    For example InjectableArguments: [0: HtmlEscaped]
 #                                    Means the first argument must be HtmlEscaped to keep analyzer silent.]
-#   InjectableField: (Optional) [true or TaintType, similar to InjectableArguments, but for class member fields or setters.]
+#   Injectable: (Optional) [true or TaintType, similar to InjectableArguments, but for class member fields or setters.]
 #   PasswordArguments : (Optional) [Similar to InjectableArguments for the special hardcoded password sinks.]
 #   Locale: (Valid only for sinks) [ID of a localization in Messages.yml. This value can be reused for multiple sinks.]
 # <<<
@@ -800,112 +800,128 @@ Behavior:
     Namespace: System.Web.UI
     ClassName: Page
     Name: Title
-    InjectableField: HtmlEscaped
+    Field:
+      Injectable: HtmlEscaped
     Locale: SCS0029
 
   System.Web.UI.WebControls_CheckBox_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: CheckBox
     Name: Text
-    InjectableField: HtmlEscaped
+    Field:
+      Injectable: HtmlEscaped
     Locale: SCS0029
 
   System.Web.UI.WebControls_CompareValidator_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: CompareValidator
     Name: Text
-    InjectableField: HtmlEscaped
+    Field:
+      Injectable: HtmlEscaped
     Locale: SCS0029
 
   System.Web.UI.WebControls_CustomValidator_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: CustomValidator
     Name: Text
-    InjectableField: HtmlEscaped
+    Field:
+      Injectable: HtmlEscaped
     Locale: SCS0029
 
   System.Web.UI.WebControls_DropDownList_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: DropDownList
     Name: Text
-    InjectableField: HtmlEscaped
+    Field:
+      Injectable: HtmlEscaped
     Locale: SCS0029
 
   System.Web.UI.WebControls_HyperLink_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: HyperLink
     Name: Text
-    InjectableField: HtmlEscaped
+    Field:
+      Injectable: HtmlEscaped
     Locale: SCS0029
 
   System.Web.UI.WebControls_Label_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: Label
     Name: Text
-    InjectableField: HtmlEscaped
+    Field:
+      Injectable: HtmlEscaped
     Locale: SCS0029
 
   System.Web.UI.WebControls_LinkButton_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: LinkButton
     Name: Text
-    InjectableField: HtmlEscaped
+    Field:
+      Injectable: HtmlEscaped
     Locale: SCS0029
 
   System.Web.UI.WebControls_ListBox_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: ListBox
     Name: Text
-    InjectableField: HtmlEscaped
+    Field:
+      Injectable: HtmlEscaped
     Locale: SCS0029
 
   System.Web.UI.WebControls_ListControl_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: ListControl
     Name: Text
-    InjectableField: HtmlEscaped
+    Field:
+      Injectable: HtmlEscaped
     Locale: SCS0029
 
   System.Web.UI.WebControls_Literal_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: Literal
     Name: Text
-    InjectableField: HtmlEscaped
+    Field:
+      Injectable: HtmlEscaped
     Locale: SCS0029
 
   System.Web.UI.WebControls_RadioButton_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: RadioButton
     Name: Text
-    InjectableField: HtmlEscaped
+    Field:
+      Injectable: HtmlEscaped
     Locale: SCS0029
     
   System.Web.UI.WebControls_RadioButtonList_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: RadioButtonList
     Name: Text
-    InjectableField: HtmlEscaped
+    Field:
+      Injectable: HtmlEscaped
     Locale: SCS0029
 
   System.Web.UI.WebControls_RangeValidator_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: RangeValidator
     Name: Text
-    InjectableField: HtmlEscaped
+    Field:
+      Injectable: HtmlEscaped
     Locale: SCS0029
     
   System.Web.UI.WebControls_RegularExpressionValidator_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: RegularExpressionValidator
     Name: Text
-    InjectableField: HtmlEscaped
+    Field:
+      Injectable: HtmlEscaped
     Locale: SCS0029
 
   System.Web.UI.WebControls_RequiredFieldValidator_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: RequiredFieldValidator
     Name: Text
-    InjectableField: HtmlEscaped
+    Field:
+      Injectable: HtmlEscaped
     Locale: SCS0029
 
  # SQL Injection
@@ -990,7 +1006,8 @@ Behavior:
     Namespace: MySql.Data.MySqlClient
     ClassName: MySqlCommand
     Name: CommandText
-    InjectableField: true
+    Field:
+      Injectable: true
     Locale: SCS0026
 
  ## Microsoft.Data.Sqlite
@@ -1007,7 +1024,8 @@ Behavior:
     Namespace: Microsoft.Data.Sqlite
     ClassName: SqliteCommand
     Name: CommandText
-    InjectableField: true
+    Field:
+      Injectable: true
     Locale: SCS0026
 
  ## Mono.Data.Sqlite
@@ -1061,7 +1079,8 @@ Behavior:
     Namespace: Mono.Data.Sqlite
     ClassName: SqliteCommand
     Name: CommandText
-    InjectableField: true
+    Field:
+      Injectable: true
     Locale: SCS0026
 
  ## System.Data.SQLite
@@ -1124,7 +1143,8 @@ Behavior:
     Namespace: System.Data.SQLite
     ClassName: SQLiteCommand
     Name: CommandText
-    InjectableField: true
+    Field:
+      Injectable: true
     Locale: SCS0026
 
   SystemDataSQLite_Execute:
@@ -1167,21 +1187,24 @@ Behavior:
     Namespace: System.Data.SqlClient
     ClassName: SqlCommand
     Name: CommandText
-    InjectableField: true
+    Field:
+      Injectable: true
     Locale: SCS0026
 
   dbcommand_field:
     Namespace: System.Data.Common
     ClassName: DbCommand
     Name: CommandText
-    InjectableField: true
+    Field:
+      Injectable: true
     Locale: SCS0026
 
   idbcommand_field:
     Namespace: System.Data
     ClassName: IDbCommand
     Name: CommandText
-    InjectableField: true
+    Field:
+      Injectable: true
     Locale: SCS0026
 
  ## OLE DB
@@ -1271,14 +1294,16 @@ Behavior:
     Namespace: System.Web.UI.WebControls
     ClassName: SqlDataSource
     Name: SelectCommand
-    InjectableField: true
+    Field:
+      Injectable: true
     Locale: SCS0014
 
   sqldatasourceview_field:
     Namespace: System.Web.UI.WebControls
     ClassName: SqlDataSourceView
     Name: SelectCommand
-    InjectableField: true
+    Field:
+      Injectable: true
     Locale: SCS0014
 
  ## Microsoft.Whos.Framework.Data
@@ -1579,14 +1604,16 @@ Behavior:
     Namespace: System.Diagnostics
     ClassName: ProcessStartInfo
     Name: FileName
-    InjectableField: true
+    Field:
+      Injectable: true
     Locale: SCS0001
 
   systemdiagnostic_process_arguments:
     Namespace: System.Diagnostics
     ClassName: ProcessStartInfo
     Name: Arguments
-    InjectableField: true
+    Field:
+      Injectable: true
     Locale: SCS0001
 
  # XPath
@@ -2303,7 +2330,8 @@ Behavior:
     Namespace: System.Web.Mvc
     ClassName: FilePathResult
     Name: FileName
-    InjectableField: AbsolutePath
+    Field:
+      Injectable: AbsolutePath
     Locale: SCS0018
 
   Microsoft.AspNetCore.Mvc_PhysicalFileResult_.ctor:
@@ -2318,7 +2346,8 @@ Behavior:
     Namespace: Microsoft.AspNetCore.Mvc
     ClassName: PhysicalFileResult
     Name: FileName
-    InjectableField: AbsolutePath
+    Field:
+      Injectable: AbsolutePath
     Locale: SCS0018
 
  # LDAP injection
@@ -2381,7 +2410,8 @@ Behavior:
     Namespace: System.DirectoryServices
     ClassName: DirectorySearcher
     Name: Filter
-    InjectableField: LdapFilterEncoded
+    Field:
+      Injectable: LdapFilterEncoded
     Locale: SCS0031
 
   DirectoryEntry_constructor_0:
@@ -2415,7 +2445,8 @@ Behavior:
     Namespace: System.DirectoryServices
     ClassName: DirectoryEntry
     Name: Path
-    InjectableField: LdapDistinguishedNameEncoded
+    Field:
+      Injectable: LdapDistinguishedNameEncoded
     Locale: SCS0031
 
  # Open Redirects
@@ -2585,7 +2616,8 @@ Behavior:
     Namespace: Microsoft.AspNetCore.Mvc
     ClassName: RedirectResult
     Name: Url
-    InjectableField: LocalUrl
+    Field:
+      Injectable: LocalUrl
     Locale: SCS0027
 
  # Deserialization
@@ -2842,7 +2874,8 @@ Behavior:
     Namespace: Newtonsoft.Json
     ClassName: JsonSerializerSettings
     Name: TypeNameHandling
-    InjectableField: true
+    Field:
+      Injectable: true
     Locale: SCS0028
 
  # Password

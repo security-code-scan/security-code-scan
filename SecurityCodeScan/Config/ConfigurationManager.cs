@@ -260,7 +260,7 @@ namespace SecurityCodeScan.Config
 
     internal class FieldData
     {
-
+        public object Injectable { get; set; }
     }
 
     internal class TaintEntryPointData : Signature
@@ -274,7 +274,6 @@ namespace SecurityCodeScan.Config
         public Dictionary<object, object> PostConditions     { get; set; }
 
         // sink specific
-        public object   InjectableField     { get; set; }
         public string   Locale              { get; set; }
 
         // password sink specific

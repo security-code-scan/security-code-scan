@@ -438,7 +438,7 @@ namespace SecurityCodeScan.Config
                                                                                     GetArguments(behavior.Method?.InjectableArguments),
                                                                                     behavior.PasswordArguments?.ToImmutableHashSet(),
                                                                                     behavior.Locale,
-                                                                                    GetField(behavior.InjectableField)));
+                                                                                    GetField(behavior.Field?.Injectable)));
         }
 
         public void AddAntiCsrfTAttributeToConfiguration(CsrfProtectionData csrfData)

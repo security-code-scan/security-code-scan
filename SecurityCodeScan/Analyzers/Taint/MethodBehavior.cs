@@ -40,15 +40,5 @@ namespace SecurityCodeScan.Analyzers.Taint
             LocaleInjection     = localeInjection;
             InjectableField     = injectableField;
         }
-
-        public MethodBehavior(IReadOnlyDictionary<int, PostCondition> postConditions)
-        {
-            InjectableArguments = EmptyDictionary<int, ulong>.Value;
-            PasswordArguments   = ImmutableHashSet<int>.Empty;
-            PostConditions      = postConditions ?? EmptyDictionary<int, PostCondition>.Value;
-            PreConditions       = EmptyDictionary<int, object>.Value;
-            LocaleInjection     = null;
-            InjectableField     = 0ul;
-        }
     }
 }

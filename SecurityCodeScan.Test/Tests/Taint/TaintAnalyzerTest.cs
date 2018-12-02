@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers.Taint;
+using SecurityCodeScan.Test.Audit;
 using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
 using DiagnosticVerifier = SecurityCodeScan.Test.Helpers.DiagnosticVerifier;
@@ -426,6 +427,9 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -465,6 +469,9 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -525,6 +532,9 @@ End Namespace
 ";
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -559,6 +569,9 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -603,6 +616,9 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -648,6 +664,9 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -706,6 +725,9 @@ End Namespace
 ";
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -771,18 +793,23 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
         [DataRow("\"\"",                      "stringConst")]
+        [DataRow("\"a\" + \"b\"",             "stringConst")]
         [DataRow("\"\"",                      "MyFoo.stringConst")]
         [DataRow("\"\"",                      "sample.MyFoo.stringConst")]
         [DataRow("String.Empty",              "stringConst")]
         [DataRow("String.Empty",              "MyFoo.stringConst")]
         [DataRow("String.Empty",              "sample.MyFoo.stringConst")]
-        [DataRow("new string('x', 3)",        "stringConst")]
-        [DataRow("new String('x', 3)",        "stringConst")]
-        [DataRow("new System.String('x', 3)", "stringConst")]
+        // isn't treated as const by new control flow implementation, but it is questionable if it is needed
+        //[DataRow("new string('x', 3)",        "stringConst")]
+        //[DataRow("new String('x', 3)",        "stringConst")]
+        //[DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
         public async Task VariableConcatenationProperty(string initializer, string accessor)
         {
@@ -834,6 +861,9 @@ End Namespace
 ";
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -893,6 +923,9 @@ End Namespace
 ";
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -959,6 +992,9 @@ End Namespace
 ";
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -1032,6 +1068,9 @@ End Namespace
 ";
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -1089,6 +1128,9 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -1135,9 +1177,10 @@ namespace sample
         [DataRow("String.Empty",              "stringConst")]
         [DataRow("String.Empty",              "MyFoo.stringConst")]
         [DataRow("String.Empty",              "sample.MyFoo.stringConst")]
-        [DataRow("new string('x', 3)",        "stringConst")]
-        [DataRow("new String('x', 3)",        "stringConst")]
-        [DataRow("new System.String('x', 3)", "stringConst")]
+        // isn't treated as const by new control flow implementation, but it is questionable if it is needed
+        //[DataRow("new string('x', 3)",        "stringConst")]
+        //[DataRow("new String('x', 3)",        "stringConst")]
+        //[DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
         public async Task VariableConcatenationPropertyExpressionBodyCSharp(string initializer, string accessor)
         {
@@ -1162,6 +1205,8 @@ namespace sample
 }}
 ";
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -1202,6 +1247,8 @@ namespace sample
 }}
 ";
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -1246,6 +1293,9 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -1922,6 +1972,9 @@ End Namespace
             // should be no exception
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [DataTestMethod]

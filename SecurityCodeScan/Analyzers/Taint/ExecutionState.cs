@@ -142,7 +142,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             {
                 return node != null ? AnalysisContext.SemanticModel.GetSymbolInfo(node).Symbol : null;
             }
-            catch (ArgumentException) // todo: find better way to skip or load symbols outside the syntax tree
+            catch (ArgumentException) // todo: should be not needed, remove and test
             {
                 return null; // Syntax node is not within syntax tree
             }

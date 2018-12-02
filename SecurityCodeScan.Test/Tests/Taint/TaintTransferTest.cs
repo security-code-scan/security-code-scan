@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers.Taint;
+using SecurityCodeScan.Test.Audit;
 using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
 using DiagnosticVerifier = SecurityCodeScan.Test.Helpers.DiagnosticVerifier;
@@ -173,6 +174,9 @@ End Namespace
             // should not throw
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -224,6 +228,9 @@ End Namespace
             // should not throw
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -263,6 +270,9 @@ End Namespace
             // should not throw
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -317,6 +327,9 @@ End Namespace
             // should not throw
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -352,6 +365,9 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -454,6 +470,9 @@ End Class
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [DataRow("File.OpenRead(Directory.GetCurrentDirectory() + \"aaa.txt\")")]
@@ -514,6 +533,9 @@ End Class
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -594,6 +616,9 @@ End Class
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [DataTestMethod]
@@ -843,6 +868,9 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -891,6 +919,9 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]

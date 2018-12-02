@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
@@ -832,7 +833,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <param name="expression"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        private VariableState VisitIdentifierName(IdentifierNameSyntax expression, ExecutionState state)
+        private VariableState VisitIdentifierName(ExpressionSyntax expression, ExecutionState state)
         {
             var varState = GetVariableState(expression, state);
             if (varState != null)
@@ -847,20 +848,15 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         private VariableState VisitMemberAccessExpression(MemberAccessExpressionSyntax expression, ExecutionState state)
         {
-            var varState = GetVariableState(expression, state);
-            if (varState != null)
-                return varState;
+            var varState = VisitIdentifierName(expression, state);
 
-            var taintSourceState = CheckIfTaintSource(expression, state);
-            if (taintSourceState != null)
-                return taintSourceState;
-
-            varState = ResolveVariableState(expression, state);
-            if (varState.Taint != VariableTaint.Constant && expression.Expression != null)
+            if (varState.Taint == VariableTaint.Constant || expression.Expression == null)
             {
-                var expressionState = VisitExpression(expression.Expression, state);
-                varState.MergeTaint(expressionState.Taint);
+                return varState;
             }
+
+            var expressionState = VisitExpression(expression.Expression, state);
+            varState.MergeTaint(expressionState.Taint);
 
             return varState;
         }
@@ -877,9 +873,13 @@ namespace SecurityCodeScan.Analyzers.Taint
             return null;
         }
 
-        private VariableState ResolveVariableState(ExpressionSyntax expression, ExecutionState state)
+        private VariableState ResolveVariableState(ExpressionSyntax          expression,
+                                                   ExecutionState            state,
+                                                   SemanticModel             semanticModel = null,
+                                                   HashSet<ExpressionSyntax> visited       = null)
         {
-            var symbol = state.GetSymbol(expression);
+            semanticModel = semanticModel ?? state.AnalysisContext.SemanticModel;
+            var symbol    = semanticModel.GetSymbolInfo(expression).Symbol;
             switch (symbol)
             {
                 case null:
@@ -904,20 +904,50 @@ namespace SecurityCodeScan.Analyzers.Taint
                     // TODO: Use public API
                     var syntaxNodeProperty = prop.GetMethod.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("Syntax");
                     var syntaxNode         = (VisualBasicSyntaxNode)syntaxNodeProperty?.GetValue(prop.GetMethod);
-                    switch (syntaxNode)
+                    if (syntaxNode == null)
+                        return new VariableState(expression, VariableTaint.Unknown);
+
+                    var possiblyOtherSemanticModel = semanticModel.Compilation.GetSemanticModel(syntaxNode.SyntaxTree);
+
+                    if (!(syntaxNode is AccessorBlockSyntax accessorBlockSyntax) || accessorBlockSyntax.Statements.Count  <= 0)
+                        return new VariableState(expression, VariableTaint.Unknown);
+
+                    var flow = possiblyOtherSemanticModel.AnalyzeControlFlow(accessorBlockSyntax.Statements.First(),
+                                                                             accessorBlockSyntax.Statements.Last());
+                    if (flow.Succeeded && AllReturnConstant(flow.ExitPoints, possiblyOtherSemanticModel, visited))
                     {
-                        case null:
-                            return new VariableState(expression, VariableTaint.Unknown);
-                        case AccessorBlockSyntax blockSyntax:
-                            // Recursion prevention: set the value into the map if we'll get back resolving it while resolving it dependency
-                            MergeVariableState(expression, new VariableState(expression, VariableTaint.Unknown), state);
-                            return VisitBlock(blockSyntax, state);
+                        return new VariableState(expression, VariableTaint.Constant);
                     }
 
                     return new VariableState(expression, VariableTaint.Unknown);
             }
 
             return new VariableState(expression, VariableTaint.Unknown);
+        }
+
+        private bool AllReturnConstant(ImmutableArray<SyntaxNode> exitPoints, SemanticModel semanticModel, HashSet<ExpressionSyntax> visited)
+        {
+            foreach (var exitPoint in exitPoints)
+            {
+                if (!(exitPoint is ReturnStatementSyntax returnStatementSyntax))
+                    return false;
+
+                if (semanticModel.GetConstantValue(returnStatementSyntax.Expression)
+                                 .HasValue)
+                {
+                    continue;
+                }
+
+                if (visited == null)
+                    visited = new HashSet<ExpressionSyntax>();
+                else if (!visited.Add(returnStatementSyntax.Expression))
+                    return false;
+
+                if (ResolveVariableState(returnStatementSyntax.Expression, null, semanticModel, visited).Taint != VariableTaint.Constant)
+                    return false;
+            }
+
+            return true;
         }
 
         private VariableState VisitExpressionStatement(ExpressionStatementSyntax node, ExecutionState state)

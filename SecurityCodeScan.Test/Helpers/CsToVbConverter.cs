@@ -25,6 +25,7 @@ namespace SecurityCodeScan.Test.Helpers
             vb.Replace("static ", "Shared ");
             vb.Replace("using ", "Imports ");
             vb.Replace("out ", "");
+            vb.Replace("ref ", "");
             vb.Replace("[", "(");
             vb.Replace("]", ")");
 

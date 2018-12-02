@@ -615,6 +615,9 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (behavior != null)
                 postConditions = GetPostConditions(behavior, isExtensionMethod, argList, state);
 
+            PostCondition returnPostCondition = null;
+            postConditions?.TryGetValue(-1, out returnPostCondition);
+
             VariableState returnState = initialTaint != null && !symbol.IsStatic
                                             ? new VariableState(node, initialTaint.Value)
                                             : new VariableState(node, argList?.Arguments.Count > 0 && behavior != null
@@ -624,7 +627,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             var argCount = argList?.Arguments.Count;
             var argumentStates = argCount.HasValue &&
                                  argCount.Value > 0 &&
-                                 (postConditions?.Any(c => c.Key != -1 && c.Value.Taint != 0ul) == true ||
+                                 (postConditions?.Any(c => c.Key != -1 && (c.Value.Taint != 0ul || c.Value.TaintFromArguments.Any())) == true ||
                                   methodSymbol != null && methodSymbol.Parameters.Any(x => x.RefKind != RefKind.None))
                                      ? new VariableState[argCount.Value]
                                      : null;
@@ -640,10 +643,10 @@ namespace SecurityCodeScan.Analyzers.Taint
                 Logger.Log(symbol.ContainingType + "." + symbol.Name + " -> " + argumentState);
 #endif
 
+                var adjustedArgumentIdx = isExtensionMethod ? i + 1 : i;
+
                 if (behavior != null)
                 {
-                    var adjustedArgumentIdx = isExtensionMethod ? i + 1 : i;
-
                     if ((argumentState.Taint & (ProjectConfiguration.AuditMode ? VariableTaint.Tainted | VariableTaint.Unknown : VariableTaint.Tainted)) != 0)
                     {
                         //If the current parameter can be injected.
@@ -666,65 +669,55 @@ namespace SecurityCodeScan.Analyzers.Taint
                     }
                 }
 
-                returnState.MergeTaint(argumentState.Taint);
+                var argumentToSearch = adjustedArgumentIdx;
+                if (methodSymbol != null                           &&
+                    i            >= methodSymbol.Parameters.Length &&
+                    methodSymbol.Parameters[methodSymbol.Parameters.Length - 1].IsParams)
+                {
+                    argumentToSearch = isExtensionMethod ? methodSymbol.Parameters.Length : methodSymbol.Parameters.Length - 1;
+                }
+
+                if (returnPostCondition == null ||
+                    returnPostCondition.TaintFromArguments.Contains(argumentToSearch))
+                {
+                    returnState.MergeTaint(argumentState.Taint);
+                }
 
                 //TODO: taint all objects passed as arguments
             }
 
-            if (postConditions == null &&
-                methodSymbol != null &&
-                argumentStates != null)
+            if (returnPostCondition != null)
+            {
+                returnState.ApplyTaint(returnPostCondition.Taint);
+            }
+
+            if (argumentStates != null)
             {
                 for (var i = 0; i < argList.Arguments.Count; i++)
                 {
-                    if (i >= methodSymbol.Parameters.Length)
+                    var adjustedPostConditionIdx = isExtensionMethod ? i + 1 : i;
+
+                    if (postConditions != null && postConditions.TryGetValue(adjustedPostConditionIdx, out var postCondition))
                     {
-                        if (!methodSymbol.Parameters[methodSymbol.Parameters.Length - 1].IsParams)
-                            throw new IndexOutOfRangeException();
-                    }
-                    else if (methodSymbol.Parameters[i].RefKind != RefKind.None)
-                    {
-                        argumentStates[i].MergeTaint(returnState.Taint);
-                    }
-                }
-            }
-            else
-            {
-                if (postConditions != null &&
-                    postConditions.TryGetValue(-1, out var returnPostCondition))
-                {
-                    if (argumentStates != null)
-                    {
-                        returnState = initialTaint != null && !symbol.IsStatic
-                                          ? new VariableState(node, initialTaint.Value)
-                                          : new VariableState(node, VariableTaint.Unset);
-
-                        foreach (var argIdx in returnPostCondition.TaintFromArguments)
-                        {
-                            var adjustedArgumentIdx = isExtensionMethod ? argIdx - 1 : argIdx;
-                            returnState.MergeTaint(argumentStates[adjustedArgumentIdx].Taint);
-                        }
-                    }
-
-                    returnState.ApplyTaint(returnPostCondition.Taint);
-                }
-
-                if (argumentStates != null)
-                {
-                    foreach (var postCondition in postConditions)
-                    {
-                        if (postCondition.Key == -1)
-                            continue; // return state was already calculated
-
-                        var adjustedPostConditionIdx = isExtensionMethod ? postCondition.Key + 1 : postCondition.Key;
-
-                        foreach (var argIdx in postCondition.Value.TaintFromArguments)
+                        foreach (var argIdx in postCondition.TaintFromArguments)
                         {
                             var adjustedArgumentIdx = isExtensionMethod ? argIdx + 1 : argIdx;
                             argumentStates[adjustedPostConditionIdx].MergeTaint(argumentStates[adjustedArgumentIdx].Taint);
                         }
 
-                        argumentStates[adjustedPostConditionIdx].ApplyTaint(postCondition.Value.Taint);
+                        argumentStates[adjustedPostConditionIdx].ApplyTaint(postCondition.Taint);
+                    }
+                    else if (methodSymbol != null)
+                    {
+                        if (i >= methodSymbol.Parameters.Length)
+                        {
+                            if (!methodSymbol.Parameters[methodSymbol.Parameters.Length - 1].IsParams)
+                                throw new IndexOutOfRangeException();
+                        }
+                        else if (methodSymbol.Parameters[i].RefKind != RefKind.None)
+                        {
+                            argumentStates[i].MergeTaint(returnState.Taint);
+                        }
                     }
                 }
             }

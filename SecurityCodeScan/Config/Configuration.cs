@@ -435,7 +435,7 @@ namespace SecurityCodeScan.Config
 
             return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetPreConditions(behavior.PreConditions),
                                                                                     GetPostConditions(behavior.PostConditions),
-                                                                                    GetArguments(behavior.InjectableArguments),
+                                                                                    GetArguments(behavior.Method?.InjectableArguments),
                                                                                     behavior.PasswordArguments?.ToImmutableHashSet(),
                                                                                     behavior.Locale,
                                                                                     GetField(behavior.InjectableField)));

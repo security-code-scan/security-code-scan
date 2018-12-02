@@ -118,7 +118,8 @@ Behavior:
     Namespace: sample
     ClassName: MyFoo
     Name: Sink
-    InjectableArguments: [0]
+    Method:
+      InjectableArguments: [0]
     Locale: SCS0035
 
   db3:

@@ -255,6 +255,7 @@ namespace SecurityCodeScan.Config
     internal class MethodData
     {
         public string ArgTypes { get; set; }
+        public object[] InjectableArguments { get; set; }
     }
 
     internal class FieldData
@@ -273,7 +274,6 @@ namespace SecurityCodeScan.Config
         public Dictionary<object, object> PostConditions     { get; set; }
 
         // sink specific
-        public object[] InjectableArguments { get; set; }
         public object   InjectableField     { get; set; }
         public string   Locale              { get; set; }
 

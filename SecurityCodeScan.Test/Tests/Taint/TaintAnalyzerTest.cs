@@ -2027,7 +2027,8 @@ Behavior:
   MyKey:
     ClassName: Test
     Name: Sink
-    InjectableArguments: [0]
+    Method:
+      InjectableArguments: [0]
     Locale: SCS0026
 ";
 
@@ -2096,7 +2097,8 @@ Behavior:
   MyKey:
     ClassName: Test
     Name: Sink
-    InjectableArguments: [0]
+    Method:
+      InjectableArguments: [0]
     Locale: SCS0026
 ";
 
@@ -2205,7 +2207,8 @@ Behavior:
   MyKey:
     ClassName: MyController
     Name: Sink
-    InjectableArguments: [0]
+    Method:
+      InjectableArguments: [0]
     Locale: SCS0026
 ";
 
@@ -2282,7 +2285,8 @@ Behavior:
   MyKey:
     ClassName: MyController
     Name: Sink
-    InjectableArguments: [0]
+    Method:
+      InjectableArguments: [0]
     Locale: SCS0026
 ";
 
@@ -2361,7 +2365,8 @@ Behavior:
   MyKey:
     ClassName: MyPage
     Name: Sink
-    InjectableArguments: [0]
+    Method:
+      InjectableArguments: [0]
     Locale: SCS0026
 ";
 
@@ -2454,7 +2459,8 @@ Behavior:
     Namespace: sample
     ClassName: HttpResponse
     Name: Write
-    InjectableArguments: [0]
+    Method:
+      InjectableArguments: [0]
     Locale: SCS0029
 
   sample_HttpRequest:
@@ -2475,7 +2481,8 @@ Behavior:
     Namespace: sample
     ClassName: HttpResponse
     Name: Write
-    InjectableArguments: [0]
+    Method:
+      InjectableArguments: [0]
     Locale: SCS0029
 
   sample_HttpRequest:
@@ -2534,7 +2541,8 @@ Behavior:
   MyKey:
     ClassName: Test
     Name: Sink
-    InjectableArguments: [0]
+    Method:
+      InjectableArguments: [0]
     Locale: SCS0026
 ";
 

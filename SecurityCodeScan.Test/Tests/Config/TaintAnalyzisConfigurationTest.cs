@@ -127,7 +127,8 @@ Behavior:
     Namespace: sample
     ClassName: Test
     Name: Vulnerable
-    InjectableArguments: [0]
+    Method:
+      InjectableArguments: [0]
     Locale: SCS0001
 ";
 
@@ -345,7 +346,8 @@ Behavior:
     Namespace: sample
     ClassName: Test
     Name: Vulnerable
-    InjectableArguments: [0]
+    Method:
+      InjectableArguments: [0]
     Locale: SCS0001
 ";
 
@@ -367,7 +369,8 @@ Behavior:
     Namespace: sample
     ClassName: Test
     Name: Vulnerable
-    InjectableArguments: [0]
+    Method:
+      InjectableArguments: [0]
     Locale: SCS0001
 
   MyKey2:

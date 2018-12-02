@@ -248,13 +248,13 @@ namespace SecurityCodeScan.Config
             }
         }
 
-        private IReadOnlyDictionary<int, object> GetPreConditions(IReadOnlyDictionary<object, object> arguments)
+        private IReadOnlyList<Condition> GetPreConditions(ConditionData ifSection)
         {
-            if (arguments == null || !arguments.Any())
+            if (ifSection?.Condition == null || ifSection.Then == null)
                 return null;
 
-            var conditions = new Dictionary<int, object>(arguments.Count);
-            foreach (var argument in arguments)
+            var conditions = new Dictionary<int, object>(ifSection.Condition.Count);
+            foreach (var argument in ifSection.Condition)
             {
                 if (!(argument.Value is Dictionary<object, object> d))
                     throw new Exception("Invalid precondition format");
@@ -274,7 +274,7 @@ namespace SecurityCodeScan.Config
                     conditions.Add(idx, value);
             }
 
-            return conditions;
+            return new List<Condition> {new Condition(conditions, GetPostConditions(ifSection.Then)) };
         }
 
         private ulong GetTaintBits(IEnumerable<object> taintTypes)
@@ -433,7 +433,7 @@ namespace SecurityCodeScan.Config
         {
             var key = MethodBehaviorHelper.GetMethodBehaviorKey(behavior.Namespace, behavior.ClassName, behavior.Name, behavior.Method?.ArgTypes);
 
-            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetPreConditions(behavior.Method?.If?.Condition),
+            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetPreConditions(behavior.Method?.If),
                                                                                     GetPostConditions(behavior.PostConditions),
                                                                                     GetArguments(behavior.Method?.InjectableArguments),
                                                                                     behavior.PasswordArguments?.ToImmutableHashSet(),

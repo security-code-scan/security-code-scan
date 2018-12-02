@@ -103,10 +103,12 @@ Behavior:
       ArgTypes: (System.String, System.UriKind, out System.Uri)
       If:
         Condition: {1: {Value: 2}} # UriKind.Relative
-
+        Then:
+          2:
+            Taint: LocalUrl
+            TaintFromArguments: [0]
     PostConditions:
       2:
-        Taint: LocalUrl
         TaintFromArguments: [0]
 
   UrlHelper_IsLocalUrl:

@@ -262,6 +262,7 @@ namespace SecurityCodeScan.Config
     internal class ConditionData
     {
         public Dictionary<object, object> Condition { get; set; }
+        public Dictionary<object, object> Then      { get; set; }
     }
 
     internal class FieldData

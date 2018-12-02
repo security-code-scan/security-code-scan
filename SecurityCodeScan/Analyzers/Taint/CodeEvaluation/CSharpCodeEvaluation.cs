@@ -545,17 +545,28 @@ namespace SecurityCodeScan.Analyzers.Taint
             return methodName;
         }
 
-        private bool CheckPreconditions(MethodBehavior behavior, bool isExtensionMethod, ArgumentListSyntax argList, ExecutionState state)
+        private IReadOnlyDictionary<int, PostCondition> GetPostConditions(MethodBehavior behavior, bool isExtensionMethod, ArgumentListSyntax argList, ExecutionState state)
         {
-            if (behavior.PreConditions == null || !behavior.PreConditions.Any())
-                return true;
+            if (behavior.Conditions == null)
+                return behavior.PostConditions;
 
+            foreach (var condition in behavior.Conditions)
+            {
+                if (CheckPrecondition(condition.If, isExtensionMethod, argList, state))
+                    return condition.Then;
+            }
+
+            return behavior.PostConditions;
+        }
+
+        private bool CheckPrecondition(IReadOnlyDictionary<int, object> condition, bool isExtensionMethod, ArgumentListSyntax argList, ExecutionState state)
+        {
             for (var i = 0; i < argList?.Arguments.Count; i++)
             {
                 var argument            = argList.Arguments[i];
                 var adjustedArgumentIdx = isExtensionMethod ? i + 1 : i;
 
-                if (!behavior.PreConditions.TryGetValue(adjustedArgumentIdx, out var preconditionArgumentValue))
+                if (!condition.TryGetValue(adjustedArgumentIdx, out var preconditionArgumentValue))
                 {
                     continue;
                 }
@@ -590,7 +601,9 @@ namespace SecurityCodeScan.Analyzers.Taint
             var  methodSymbol      = symbol as IMethodSymbol;
             bool isExtensionMethod = methodSymbol?.ReducedFrom != null;
             var  behavior          = symbol.GetMethodBehavior(ProjectConfiguration.Behavior);
-            bool applyCustomTaint  = behavior != null && CheckPreconditions(behavior, isExtensionMethod, argList, state);
+            IReadOnlyDictionary<int, PostCondition> postConditions = null;
+            if (behavior != null)
+                postConditions = GetPostConditions(behavior, isExtensionMethod, argList, state);
 
             VariableState returnState = initialTaint != null && !symbol.IsStatic
                                             ? new VariableState(node, initialTaint.Value)
@@ -601,7 +614,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             var argCount       = argList?.Arguments.Count;
             var argumentStates = argCount.HasValue &&
                                  argCount.Value > 0 &&
-                                 (behavior?.PostConditions.Any(c => c.Key != -1 && c.Value.Taint != 0ul) == true ||
+                                 (postConditions?.Any(c => c.Key != -1 && c.Value.Taint != 0ul) == true ||
                                   methodSymbol != null && methodSymbol.Parameters.Any(x => x.RefKind != RefKind.None))
                                      ? new VariableState[argCount.Value]
                                      : null;
@@ -658,7 +671,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 //}
             }
 
-            if (behavior?.PostConditions == null &&
+            if (postConditions == null &&
                 methodSymbol != null &&
                 argumentStates != null)
             {
@@ -677,8 +690,8 @@ namespace SecurityCodeScan.Analyzers.Taint
             }
             else
             {
-                if (behavior?.PostConditions != null &&
-                    behavior.PostConditions.TryGetValue(-1, out var returnPostCondition))
+                if (postConditions != null &&
+                    postConditions.TryGetValue(-1, out var returnPostCondition))
                 {
                     if (argumentStates != null)
                     {
@@ -693,13 +706,12 @@ namespace SecurityCodeScan.Analyzers.Taint
                         }
                     }
 
-                    if (applyCustomTaint)
-                        returnState.ApplyTaint(returnPostCondition.Taint);
+                    returnState.ApplyTaint(returnPostCondition.Taint);
                 }
 
                 if (argumentStates != null)
                 {
-                    foreach (var postCondition in behavior.PostConditions)
+                    foreach (var postCondition in postConditions)
                     {
                         if (postCondition.Key == -1)
                             continue; // return state was already calculated
@@ -712,8 +724,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                             argumentStates[adjustedPostConditionIdx].MergeTaint(argumentStates[adjustedArgumentIdx].Taint);
                         }
 
-                        if (applyCustomTaint)
-                            argumentStates[adjustedPostConditionIdx].ApplyTaint(postCondition.Value.Taint);
+                        argumentStates[adjustedPostConditionIdx].ApplyTaint(postCondition.Value.Taint);
                     }
                 }
             }

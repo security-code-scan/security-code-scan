@@ -17,16 +17,28 @@ namespace SecurityCodeScan.Analyzers.Taint
         public ImmutableHashSet<int> TaintFromArguments { get; }
     }
 
+    public class Condition
+    {
+        public Condition(IReadOnlyDictionary<int, object> @if, IReadOnlyDictionary<int, PostCondition> then)
+        {
+            If = @if;
+            Then = then;
+        }
+
+        public IReadOnlyDictionary<int, object>        If   { get; }
+        public IReadOnlyDictionary<int, PostCondition> Then { get; }
+    }
+
     public class MethodBehavior
     {
         public IReadOnlyDictionary<int, ulong>         InjectableArguments { get; }
         public ImmutableHashSet<int>                   PasswordArguments   { get; }
-        public IReadOnlyDictionary<int, object>        PreConditions       { get; }
+        public IReadOnlyList<Condition>                Conditions          { get; }
         public IReadOnlyDictionary<int, PostCondition> PostConditions      { get; }
         public string                                  LocaleInjection     { get; }
         public ulong                                   InjectableField     { get; }
 
-        public MethodBehavior(IReadOnlyDictionary<int, object>        preConditions,
+        public MethodBehavior(IReadOnlyList<Condition>                preConditions,
                               IReadOnlyDictionary<int, PostCondition> postConditions,
                               IReadOnlyDictionary<int, ulong>         injectableArguments,
                               ImmutableHashSet<int>                   passwordArguments,
@@ -36,7 +48,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             InjectableArguments = injectableArguments ?? EmptyDictionary<int, ulong>.Value;
             PasswordArguments   = passwordArguments   ?? ImmutableHashSet<int>.Empty;
             PostConditions      = postConditions      ?? EmptyDictionary<int, PostCondition>.Value;
-            PreConditions       = preConditions       ?? EmptyDictionary<int, object>.Value;
+            Conditions          = preConditions       ?? EmptyList<Condition>.Value;
             LocaleInjection     = localeInjection;
             InjectableField     = injectableField;
         }

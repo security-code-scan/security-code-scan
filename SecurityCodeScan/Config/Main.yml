@@ -101,9 +101,9 @@ Behavior:
     Name: TryCreate
     Method:
       ArgTypes: (System.String, System.UriKind, out System.Uri)
-    PreConditions:
-      1:
-        Value: 2 # UriKind.Relative
+      If:
+        Condition: {1: {Value: 2}} # UriKind.Relative
+
     PostConditions:
       2:
         Taint: LocalUrl

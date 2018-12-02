@@ -433,7 +433,7 @@ namespace SecurityCodeScan.Config
         {
             var key = MethodBehaviorHelper.GetMethodBehaviorKey(behavior.Namespace, behavior.ClassName, behavior.Name, behavior.Method?.ArgTypes);
 
-            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetPreConditions(behavior.PreConditions),
+            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetPreConditions(behavior.Method?.If?.Condition),
                                                                                     GetPostConditions(behavior.PostConditions),
                                                                                     GetArguments(behavior.Method?.InjectableArguments),
                                                                                     behavior.PasswordArguments?.ToImmutableHashSet(),

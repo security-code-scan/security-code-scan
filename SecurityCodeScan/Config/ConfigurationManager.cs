@@ -254,8 +254,14 @@ namespace SecurityCodeScan.Config
 
     internal class MethodData
     {
-        public string ArgTypes { get; set; }
-        public object[] InjectableArguments { get; set; }
+        public string        ArgTypes            { get; set; }
+        public object[]      InjectableArguments { get; set; }
+        public ConditionData If                  { get; set; }
+    }
+
+    internal class ConditionData
+    {
+        public Dictionary<object, object> Condition { get; set; }
     }
 
     internal class FieldData
@@ -269,14 +275,10 @@ namespace SecurityCodeScan.Config
 
     internal class MethodBehaviorData : Signature
     {
-        // behavior, validator, sanitizer, taint source specific
-        public Dictionary<object, object> PreConditions      { get; set; }
         public Dictionary<object, object> PostConditions     { get; set; }
 
-        // sink specific
         public string   Locale              { get; set; }
 
-        // password sink specific
         public int[] PasswordArguments { get; set; }
     }
 

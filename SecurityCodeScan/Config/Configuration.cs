@@ -248,7 +248,8 @@ namespace SecurityCodeScan.Config
             }
         }
 
-        private IReadOnlyList<Condition> GetPreConditions(ConditionData ifSection)
+        private IReadOnlyList<Condition> GetPreConditions(ConditionData ifSection,
+                                                          IReadOnlyDictionary<int, PostCondition> mainPostConditions)
         {
             if (ifSection?.Condition == null || ifSection.Then == null)
                 return null;
@@ -274,7 +275,7 @@ namespace SecurityCodeScan.Config
                     conditions.Add(idx, value);
             }
 
-            return new List<Condition> {new Condition(conditions, GetPostConditions(ifSection.Then)) };
+            return new List<Condition> {new Condition(conditions, GetPostConditions(ifSection.Then, mainPostConditions)) };
         }
 
         private ulong GetTaintBits(IEnumerable<object> taintTypes)
@@ -353,7 +354,8 @@ namespace SecurityCodeScan.Config
             return outArguments;
         }
 
-        private IReadOnlyDictionary<int, PostCondition> GetPostConditions(IReadOnlyDictionary<object, object> arguments)
+        private IReadOnlyDictionary<int, PostCondition> GetPostConditions(IReadOnlyDictionary<object, object> arguments,
+                                                                          IReadOnlyDictionary<int, PostCondition> defaultPostConditions = null)
         {
             if (arguments == null || !arguments.Any())
                 return null;
@@ -404,6 +406,15 @@ namespace SecurityCodeScan.Config
                     }
                 }
 
+                if (defaultPostConditions != null)
+                {
+                    if (taintBit == 0ul)
+                        taintBit = defaultPostConditions[idx].Taint;
+
+                    if (taintFromArguments == null)
+                        taintFromArguments = defaultPostConditions[idx].TaintFromArguments;
+                }
+
                 conditions.Add(idx, new PostCondition(taintBit, taintFromArguments));
             }
 
@@ -433,8 +444,9 @@ namespace SecurityCodeScan.Config
         {
             var key = MethodBehaviorHelper.GetMethodBehaviorKey(behavior.Namespace, behavior.ClassName, behavior.Name, behavior.Method?.ArgTypes);
 
-            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetPreConditions(behavior.Method?.If),
-                                                                                    GetPostConditions(behavior.PostConditions),
+            var mainPostConditions = GetPostConditions(behavior.PostConditions);
+            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetPreConditions(behavior.Method?.If, mainPostConditions),
+                                                                                    mainPostConditions,
                                                                                     GetArguments(behavior.Method?.InjectableArguments),
                                                                                     behavior.PasswordArguments?.ToImmutableHashSet(),
                                                                                     behavior.Locale,

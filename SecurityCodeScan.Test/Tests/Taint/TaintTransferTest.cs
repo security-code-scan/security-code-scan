@@ -896,6 +896,86 @@ TaintEntryPoints:
         }
 
         [DataTestMethod]
+        [DataRow("var query = Foo(a, \"\");", "Test", "Foo", "Returns", "TaintFromArguments: [0]", true)]
+        public async Task MergePostConditions(string cs, string className, string name, string outParam, string taintFromArguments, bool warn)
+        {
+            var cSharpTest = $@"
+using System.Data.SqlClient;
+
+class Test
+{{
+    public string Foo(string a, string b)
+    {{
+        return null;
+    }}
+
+    public void Run(string a, string b)
+    {{
+#pragma warning disable CS0219
+        Test o = null;
+#pragma warning restore CS0219
+        {cs}
+        new SqlCommand(query);
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports System.Data.SqlClient
+
+Class Test
+    Public Function Foo(ByVal a As String, ByVal b As String) As String
+        Return Nothing
+    End Function
+
+    Public Sub Run(ByVal a As String, ByVal b As String)
+        Dim o As Test = Nothing
+        {cs.CSharpReplaceToVBasic()}
+        Dim temp = New SqlCommand(query)
+    End Sub
+End Class
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            var testConfig = $@"
+TaintEntryPoints:
+  AAA:
+    ClassName: Test
+
+Behavior:
+  BBB:
+    ClassName: {className}
+    Name: {name}
+    Method:
+      If:
+        Condition: {{1: {{Value: """"}}}}
+        Then:
+          {outParam}:
+            Taint: LocalUrl
+    PostConditions:
+      {outParam}:
+        {taintFromArguments}
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+        }
+
+        [DataTestMethod]
         [DataRow("var query = Foo(a, b);", "Test", "Foo", "Returns", "TaintFromArguments: [0]", true)]
         [DataRow("var query = Foo(a, null);", "Test", "Foo", "Returns", "TaintFromArguments: [0]", true)]
         [DataRow("var query = Foo(null, b);", "Test", "Foo", "Returns", "TaintFromArguments: [0]", false)]

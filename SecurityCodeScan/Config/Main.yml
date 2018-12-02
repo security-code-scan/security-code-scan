@@ -106,7 +106,6 @@ Behavior:
         Then:
           2:
             Taint: LocalUrl
-            TaintFromArguments: [0]
     PostConditions:
       2:
         TaintFromArguments: [0]

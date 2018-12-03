@@ -483,6 +483,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitExpression(directCastExpressionSyntax.Expression, state);
                 case CTypeExpressionSyntax cTypeExpressionSyntax:
                     return VisitExpression(cTypeExpressionSyntax.Expression, state);
+                case UnaryExpressionSyntax unaryExpressionSyntax:
+                    return VisitExpression(unaryExpressionSyntax.Operand, state);
             }
 
 #if DEBUG

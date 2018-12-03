@@ -503,24 +503,28 @@ namespace SecurityCodeScan.Config
             return conditions;
         }
 
-        //private InjectableArgument GetField(object value)
-        //{
-        //    if (value == null)
-        //        return null;
+        private InjectableArgument GetField(object value)
+        {
+            if (value == null)
+                return null;
 
-        //    switch (value)
-        //    {
-        //        case string s when s == "true":
-        //            return (ulong)VariableTaint.Safe;
-        //        case string s:
-        //            return TaintTypeNameToBit[s];
-        //        case List <object> taintTypes: {
-        //            return GetTaintBits(taintTypes);
-        //        }
-        //        default:
-        //            throw new Exception("Unknown injectable argument");
-        //    }
-        //}
+            switch (value)
+            {
+                case string s:
+                    return new InjectableArgument((ulong)VariableTaint.Safe, s);
+                case List<object> taintTypes when taintTypes.Count == 1:
+                {
+                    var types = (Dictionary<object, object>)taintTypes.First();
+                    if (types.Count != 1)
+                        throw new Exception("Unknown injectable argument");
+
+                    var t = types.First();
+                    return new InjectableArgument(GetTaintBits((string)t.Value), (string)t.Key);
+                }
+                default:
+                    throw new Exception("Unknown injectable argument");
+            }
+        }
 
         private readonly char[] Parenthesis = { '(', ')' };
 
@@ -626,7 +630,7 @@ namespace SecurityCodeScan.Config
                                                                                     mainPostConditions,
                                                                                     GetInjectableArguments(injectableArguments),
                                                                                     null/*passwordArguments?.ToImmutableHashSet<int>()*/,
-                                                                                    null/*GetField(injectable)*/));
+                                                                                    GetField(injectable)));
         }
 
         public void AddAntiCsrfTAttributeToConfiguration(CsrfProtectionData csrfData)

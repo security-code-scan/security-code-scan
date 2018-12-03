@@ -17,16 +17,17 @@ CsrfProtectionAttributes:
   - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
     AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
 
+# Password validator analysis preferences:
 PasswordValidatorRequiredLength: 8
 MinimumPasswordValidatorProperties: 3
-
-# Possible values: RequiredLength, RequireUppercase, RequireDigit, RequireLowercase, RequireNonLetterOrDigit
+## Possible values: RequiredLength, RequireUppercase, RequireDigit, RequireLowercase, RequireNonLetterOrDigit
 PasswordValidatorRequiredProperties: [RequiredLength]
 
-# The list is empty by default, see AuditMode.yml
+# The list of words to search in variables names for hardcoded passwords.
+# It is empty by default, see AuditMode.yml
 PasswordFields:
 
-# The fields aren't technically const, but taint analyzer should treat as const (safe).
+# The fields aren't declared as constants, but taint analyzer should treat as const (safe).
 ConstantFields:
   - "System.String.Empty"
   - "System.IntPtr.Zero"
@@ -39,14 +40,15 @@ ConstantFields:
 # The taint type is used in sinks and sanitizers/validators.
 # New custom taint type can be added to the list for the usage in sinks and sanitizers/validators.
 # When it is used in sink like:
-# InjectableArguments: [0: HtmlEscaped]
-# it means the first argument must be HtmlEscaped to keep analyzer silent
+# InjectableArguments: [SCS0029: [0: HtmlEscaped]]
+# it means the first argument must be HtmlEscaped to keep analyzer silent.
 # When it is used in sanitizer as:
-#     PostConditions:
+#     Method:
 #      Returns:
 #        Taint: HtmlEscaped
-# it means the return value of the function is HtmlEscaped
-# 'Tainted' and 'Safe' are reserved taint types and cannot be used here.
+# it means the return value of the function is HtmlEscaped.
+# 'Tainted', 'Safe' and 'Constant' are reserved taint types and cannot be used here.
+# Also the name cannot start from '~'.
 TaintTypes:
   - LocalUrl
   - HtmlEscaped
@@ -71,24 +73,30 @@ Behavior:
 #   Namespace: (Optional) [Namespace where the class is present]
 #   ClassName: [Class of the API]
 #   Name:      (Optional) [Class member name. If not specified applies to all members of the class]
-#   ArgTypes:  (Optional) [Function arguments signature. If not specified applies to all overloads]
-#   PreConditions: (Optional)
-#     [Parameter index]:
-#       Value: [The rule is valid only if it equals to the value. Only strings and integers (even if it is an enum) are accepted.]
-#   PostConditions: (Optional)
-#     ['Returns' or Parameter index]:
+#   Method: (If it describes a function. Required if child properties are provided, otherwise optional)
+#     ArgTypes:  (Optional) [Function arguments signature. If not specified applies to all overloads]
+#     InjectableArguments: (Optional) [Warning ID, argument index and taint type this possible format:
+#                                      [SCS0018: [0: AbsolutePath, 1: AbsolutePath]] or
+#                                      [SCS0018: [0: AbsolutePath]] or
+#                                      [SCS0018: 0]
+#                                      Analyzer shows a warning if tainted/unsafe date is passed to the API.
+#                                      For example InjectableArguments: [HtmlEscaped: 0]
+#                                      Means the first argument must be HtmlEscaped to keep analyzer silent.]
+#     If: (Optional) (Precondition)
+#       Condition: (The condition to check, can be one liner like 'Condition: {1: {Value: 2}}')
+#         [Argument index]:
+#           Value: [Apply 'Then' part only if it equals to the value. Only strings and integers (even if it is an enum) are accepted.]
+#     Then:
+#       ['Returns' or Argument index]:
+#         Taint: (Optional) [Registered TaintType, see above or reserved taint type keyword] (If not specified 'Taint:' value from unconditional part is taken)
+#         TaintFromArguments: (Optional) [Argument index or comma separated list of indices] (Arguments to transfer taint from to specified output. If not specified 'TaintFromArguments:' value from uncoditional part is taken)
+#     ['Returns' or Argument index]:
 #        Taint: (Optional) [Single value or array of 'TaintTypes' (see the section above) to apply additionally to 'TaintFromArguments' or special keyword 'Safe'.
 #                           Sanitizers may apply the value to mark it as sanitized.
 #                           Taint sources may apply special keyword 'Tainted' to mark the value as untrusted.]
 #        TaintFromArguments: (Optional) [Single value or array of parameter indices that influence the taint of the output value.]
-#   InjectableArguments: (Optional) [Single value or array of parameter zero based indices in the format:
-#                                    Index or [Index: TaintType, ...]
-#                                    Analyzer shows a warning if tainted/unsafe date is passed to the API.
-#                                    For example InjectableArguments: [0: HtmlEscaped]
-#                                    Means the first argument must be HtmlEscaped to keep analyzer silent.]
-#   Injectable: (Optional) [true or TaintType, similar to InjectableArguments, but for class member fields or setters.]
-#   PasswordArguments : (Optional) [Similar to InjectableArguments for the special hardcoded password sinks.]
-#   Locale: (Valid only for sinks) [ID of a localization in Messages.yml. This value can be reused for multiple sinks.]
+#   Field: (If it describes a property or field. Required if child properties are provided, otherwise optional)
+#     Injectable: (Optional) [true or TaintType, similar to InjectableArguments, but for class member fields or setters.]
 # <<<
 #
 # Review the rules bellow to better understand the format.

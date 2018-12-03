@@ -722,8 +722,7 @@ Behavior:
     Name: Write
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: HtmlEscaped]
-    Locale: SCS0029
+      InjectableArguments: [0: [SCS0029: HtmlEscaped]]
 
   System.Web.HttpResponse_Write_array:
     Namespace: System.Web
@@ -731,8 +730,7 @@ Behavior:
     Name: Write
     Method:
       ArgTypes: (System.Char[], System.Int32, System.Int32)
-      InjectableArguments: [0: HtmlEscaped]
-    Locale: SCS0029
+      InjectableArguments: [0: [SCS0029: HtmlEscaped]]
 
   System.Web.HttpResponseBase_Write_string:
     Namespace: System.Web
@@ -740,8 +738,7 @@ Behavior:
     Name: Write
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: HtmlEscaped]
-    Locale: SCS0029
+      InjectableArguments: [0: [SCS0029: HtmlEscaped]]
 
   System.Web.HttpResponseBase_Write_array:
     Namespace: System.Web
@@ -749,8 +746,7 @@ Behavior:
     Name: Write
     Method:
       ArgTypes: (System.Char[], System.Int32, System.Int32)
-      InjectableArguments: [0: HtmlEscaped]
-    Locale: SCS0029
+      InjectableArguments: [0: [SCS0029: HtmlEscaped]]
 
  ## WebControls
 
@@ -759,128 +755,112 @@ Behavior:
     ClassName: Page
     Name: Title
     Field:
-      Injectable: HtmlEscaped
-    Locale: SCS0029
+      Injectable: [SCS0029: HtmlEscaped]
 
   System.Web.UI.WebControls_CheckBox_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: CheckBox
     Name: Text
     Field:
-      Injectable: HtmlEscaped
-    Locale: SCS0029
+      Injectable: [SCS0029: HtmlEscaped]
 
   System.Web.UI.WebControls_CompareValidator_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: CompareValidator
     Name: Text
     Field:
-      Injectable: HtmlEscaped
-    Locale: SCS0029
+      Injectable: [SCS0029: HtmlEscaped]
 
   System.Web.UI.WebControls_CustomValidator_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: CustomValidator
     Name: Text
     Field:
-      Injectable: HtmlEscaped
-    Locale: SCS0029
+      Injectable: [SCS0029: HtmlEscaped]
 
   System.Web.UI.WebControls_DropDownList_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: DropDownList
     Name: Text
     Field:
-      Injectable: HtmlEscaped
-    Locale: SCS0029
+      Injectable: [SCS0029: HtmlEscaped]
 
   System.Web.UI.WebControls_HyperLink_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: HyperLink
     Name: Text
     Field:
-      Injectable: HtmlEscaped
-    Locale: SCS0029
+      Injectable: [SCS0029: HtmlEscaped]
 
   System.Web.UI.WebControls_Label_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: Label
     Name: Text
     Field:
-      Injectable: HtmlEscaped
-    Locale: SCS0029
+      Injectable: [SCS0029: HtmlEscaped]
 
   System.Web.UI.WebControls_LinkButton_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: LinkButton
     Name: Text
     Field:
-      Injectable: HtmlEscaped
-    Locale: SCS0029
+      Injectable: [SCS0029: HtmlEscaped]
 
   System.Web.UI.WebControls_ListBox_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: ListBox
     Name: Text
     Field:
-      Injectable: HtmlEscaped
-    Locale: SCS0029
+      Injectable: [SCS0029: HtmlEscaped]
 
   System.Web.UI.WebControls_ListControl_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: ListControl
     Name: Text
     Field:
-      Injectable: HtmlEscaped
-    Locale: SCS0029
+      Injectable: [SCS0029: HtmlEscaped]
 
   System.Web.UI.WebControls_Literal_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: Literal
     Name: Text
     Field:
-      Injectable: HtmlEscaped
-    Locale: SCS0029
+      Injectable: [SCS0029: HtmlEscaped]
 
   System.Web.UI.WebControls_RadioButton_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: RadioButton
     Name: Text
     Field:
-      Injectable: HtmlEscaped
-    Locale: SCS0029
+      Injectable: [SCS0029: HtmlEscaped]
     
   System.Web.UI.WebControls_RadioButtonList_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: RadioButtonList
     Name: Text
     Field:
-      Injectable: HtmlEscaped
-    Locale: SCS0029
+      Injectable: [SCS0029: HtmlEscaped]
 
   System.Web.UI.WebControls_RangeValidator_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: RangeValidator
     Name: Text
     Field:
-      Injectable: HtmlEscaped
-    Locale: SCS0029
+      Injectable: [SCS0029: HtmlEscaped]
     
   System.Web.UI.WebControls_RegularExpressionValidator_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: RegularExpressionValidator
     Name: Text
     Field:
-      Injectable: HtmlEscaped
-    Locale: SCS0029
+      Injectable: [SCS0029: HtmlEscaped]
 
   System.Web.UI.WebControls_RequiredFieldValidator_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: RequiredFieldValidator
     Name: Text
     Field:
-      Injectable: HtmlEscaped
-    Locale: SCS0029
+      Injectable: [SCS0029: HtmlEscaped]
 
  # SQL Injection
 
@@ -891,48 +871,42 @@ Behavior:
     ClassName: MySqlHelper
     Name: ExecuteNonQuery
     Method:
-      InjectableArguments: [1]
-    Locale: SCS0026
+      InjectableArguments: [1: SCS0026]
 
   MySql.Data.MySqlClient_MySqlHelper_ExecuteDataRow:
     Namespace: MySql.Data.MySqlClient
     ClassName: MySqlHelper
     Name: ExecuteDataRow
     Method:
-      InjectableArguments: [1]
-    Locale: SCS0026
+      InjectableArguments: [1: SCS0026]
 
   MySql.Data.MySqlClient_MySqlHelper_ExecuteDataset:
     Namespace: MySql.Data.MySqlClient
     ClassName: MySqlHelper
     Name: ExecuteDataset
     Method:
-      InjectableArguments: [1]
-    Locale: SCS0026
+      InjectableArguments: [1: SCS0026]
 
   MySql.Data.MySqlClient_MySqlHelper_UpdateDataSet:
     Namespace: MySql.Data.MySqlClient
     ClassName: MySqlHelper
     Name: UpdateDataSet
     Method:
-      InjectableArguments: [1]
-    Locale: SCS0026
+      InjectableArguments: [1: SCS0026]
 
   MySql.Data.MySqlClient_MySqlHelper_ExecuteReader:
     Namespace: MySql.Data.MySqlClient
     ClassName: MySqlHelper
     Name: ExecuteReader
     Method:
-      InjectableArguments: [1]
-    Locale: SCS0026
+      InjectableArguments: [1: SCS0026]
 
   MySql.Data.MySqlClient_MySqlHelper_ExecuteScalar:
     Namespace: MySql.Data.MySqlClient
     ClassName: MySqlHelper
     Name: ExecuteScalar
     Method:
-      InjectableArguments: [1]
-    Locale: SCS0026
+      InjectableArguments: [1: SCS0026]
 
   MySql.Data.MySqlClient_MySqlDataAdapter_.ctor1:
     Namespace: MySql.Data.MySqlClient
@@ -940,8 +914,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, MySql.Data.MySqlClient.MySqlConnection)
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [0: SCS0026]
 
   MySql.Data.MySqlClient_MySqlDataAdapter_.ctor2:
     Namespace: MySql.Data.MySqlClient
@@ -949,24 +922,21 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.String)
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [0: SCS0026]
 
   MySql.Data.MySqlClient_MySqlCommand_.ctor:
     Namespace: MySql.Data.MySqlClient
     ClassName: MySqlCommand
     Name: .ctor
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [0: SCS0026]
 
   MySql.Data.MySqlClient_MySqlCommand_CommandText:
     Namespace: MySql.Data.MySqlClient
     ClassName: MySqlCommand
     Name: CommandText
     Field:
-      Injectable: true
-    Locale: SCS0026
+      Injectable: SCS0026
 
  ## Microsoft.Data.Sqlite
 
@@ -975,16 +945,14 @@ Behavior:
     ClassName: SqliteCommand
     Name: .ctor
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [0: SCS0026]
 
   MicrosoftDataSqlite_sqlcommand_field:
     Namespace: Microsoft.Data.Sqlite
     ClassName: SqliteCommand
     Name: CommandText
     Field:
-      Injectable: true
-    Locale: SCS0026
+      Injectable: SCS0026
 
  ## Mono.Data.Sqlite
 
@@ -994,8 +962,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, Mono.Data.Sqlite.SqliteConnection)
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [0: SCS0026]
 
   Mono.Data.Sqlite_SqliteDataAdapter_constructor2:
     Namespace: Mono.Data.Sqlite
@@ -1003,8 +970,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.String)
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [0: SCS0026]
 
   Mono.Data.Sqlite_SqliteCommand_constructor1:
     Namespace: Mono.Data.Sqlite
@@ -1012,8 +978,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, Mono.Data.Sqlite.SqliteConnection, Mono.Data.Sqlite.SqliteTransaction)
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [0: SCS0026]
 
   Mono.Data.Sqlite_SqliteCommand_constructor2:
     Namespace: Mono.Data.Sqlite
@@ -1021,8 +986,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, Mono.Data.Sqlite.SqliteConnection)
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [0: SCS0026]
 
   Mono.Data.Sqlite_SqliteCommand_constructor3:
     Namespace: Mono.Data.Sqlite
@@ -1030,16 +994,14 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [0: SCS0026]
 
   Mono.Data.Sqlite_SqliteCommand_CommandText:
     Namespace: Mono.Data.Sqlite
     ClassName: SqliteCommand
     Name: CommandText
     Field:
-      Injectable: true
-    Locale: SCS0026
+      Injectable: SCS0026
 
  ## System.Data.SQLite
 
@@ -1049,8 +1011,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.Data.SQLite.SQLiteConnection)
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [0: SCS0026]
 
   System.Data.SQLite_SQLiteDataAdapter_constructor2:
     Namespace: System.Data.SQLite
@@ -1058,8 +1019,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.String)
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [0: SCS0026]
 
   System.Data.SQLite_SQLiteDataAdapter_constructor3:
     Namespace: System.Data.SQLite
@@ -1067,8 +1027,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.String, System.Boolean)
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [0: SCS0026]
 
   SystemDataSQLite_sqlcommand_constructor1:
     Namespace: System.Data.SQLite
@@ -1076,8 +1035,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.Data.SQLite.SQLiteConnection, System.Data.SQLite.SQLiteTransaction)
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [0: SCS0026]
 
   SystemDataSQLite_sqlcommand_constructor2:
     Namespace: System.Data.SQLite
@@ -1085,8 +1043,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.Data.SQLite.SQLiteConnection)
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [0: SCS0026]
 
   SystemDataSQLite_sqlcommand_constructor3:
     Namespace: System.Data.SQLite
@@ -1094,24 +1051,21 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [0: SCS0026]
 
   SystemDataSQLite_sqlcommand_field:
     Namespace: System.Data.SQLite
     ClassName: SQLiteCommand
     Name: CommandText
     Field:
-      Injectable: true
-    Locale: SCS0026
+      Injectable: SCS0026
 
   SystemDataSQLite_Execute:
     Namespace: System.Data.SQLite
     ClassName: SQLiteCommand
     Name: Execute
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [0: SCS0026]
 
  ## System.Data
 
@@ -1121,8 +1075,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.Data.SqlClient.SqlConnection)
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [0: SCS0026]
 
   SqlDataAdapter_constructor_2:
     Namespace: System.Data.SqlClient
@@ -1130,40 +1083,35 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.String)
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [0: SCS0026]
 
   sqlcommand_constructor:
     Namespace: System.Data.SqlClient
     ClassName: SqlCommand
     Name: .ctor
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [0: SCS0026]
 
   sqlcommand_field:
     Namespace: System.Data.SqlClient
     ClassName: SqlCommand
     Name: CommandText
     Field:
-      Injectable: true
-    Locale: SCS0026
+      Injectable: SCS0026
 
   dbcommand_field:
     Namespace: System.Data.Common
     ClassName: DbCommand
     Name: CommandText
     Field:
-      Injectable: true
-    Locale: SCS0026
+      Injectable: SCS0026
 
   idbcommand_field:
     Namespace: System.Data
     ClassName: IDbCommand
     Name: CommandText
     Field:
-      Injectable: true
-    Locale: SCS0026
+      Injectable: SCS0026
 
  ## OLE DB
 
@@ -1172,32 +1120,28 @@ Behavior:
     ClassName: OleDbCommand
     Name: .ctor
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0020
+      InjectableArguments: [0: SCS0020]
 
   oledbdataadapter_constructor:
     Namespace: System.Data.OleDb
     ClassName: OleDbDataAdapter
     Name: .ctor
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0020
+      InjectableArguments: [0: SCS0020]
 
   odbccommand_constructor:
     Namespace: System.Data.Odbc
     ClassName: OdbcCommand
     Name: .ctor
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0025
+      InjectableArguments: [0: SCS0025]
 
   odbcdataadapter_constructor:
     Namespace: System.Data.Odbc
     ClassName: OdbcDataAdapter
     Name: .ctor
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0025
+      InjectableArguments: [0: SCS0025]
 
  ## System.Data.Linq
 
@@ -1207,8 +1151,7 @@ Behavior:
     Name: ExecuteQuery
     Method:
       ArgTypes: (System.String, params System.Object[])
-      InjectableArguments: [0]
-    Locale: SCS0002
+      InjectableArguments: [0: SCS0002]
 
   DataContext_ExecuteQuery_1:
     Namespace: System.Data.Linq
@@ -1216,8 +1159,7 @@ Behavior:
     Name: ExecuteQuery
     Method:
       ArgTypes: (System.Type, System.String, params System.Object[])
-      InjectableArguments: [1]
-    Locale: SCS0002
+      InjectableArguments: [1: SCS0002]
 
   DataContext_ExecuteCommand:
     Namespace: System.Data.Linq
@@ -1225,8 +1167,7 @@ Behavior:
     Name: ExecuteCommand
     Method:
       ArgTypes: (System.String, params System.Object[])
-      InjectableArguments: [0]
-    Locale: SCS0002
+      InjectableArguments: [0: SCS0002]
 
  ## System.Web.UI.WebControls
 
@@ -1236,8 +1177,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.String)
-      InjectableArguments: [1]
-    Locale: SCS0014
+      InjectableArguments: [1: SCS0014]
 
   SqlDataSource_constructor_2:
     Namespace: System.Web.UI.WebControls
@@ -1245,24 +1185,21 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.String, System.String)
-      InjectableArguments: [2]
-    Locale: SCS0014
+      InjectableArguments: [2: SCS0014]
 
   sqldatasource_field:
     Namespace: System.Web.UI.WebControls
     ClassName: SqlDataSource
     Name: SelectCommand
     Field:
-      Injectable: true
-    Locale: SCS0014
+      Injectable: SCS0014
 
   sqldatasourceview_field:
     Namespace: System.Web.UI.WebControls
     ClassName: SqlDataSourceView
     Name: SelectCommand
     Field:
-      Injectable: true
-    Locale: SCS0014
+      Injectable: SCS0014
 
  ## Microsoft.Whos.Framework.Data
 
@@ -1271,8 +1208,7 @@ Behavior:
     ClassName: SqlUtility
     Name: ExecuteDataset
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0014
+      InjectableArguments: [0: SCS0014]
 
  ## Entity Framework
 
@@ -1282,8 +1218,7 @@ Behavior:
     Name: SqlQuery
     Method:
       ArgTypes: (System.Type, System.String, params System.Object[])
-      InjectableArguments: [1]
-    Locale: SCS0035
+      InjectableArguments: [1: SCS0035]
 
   Database_SqlQuery_2:
     Namespace: System.Data.Entity
@@ -1291,8 +1226,7 @@ Behavior:
     Name: SqlQuery
     Method:
       ArgTypes: (System.String, params System.Object[])
-      InjectableArguments: [0]
-    Locale: SCS0035
+      InjectableArguments: [0: SCS0035]
 
   DbSet_SqlQuery_1:
     Namespace: System.Data.Entity
@@ -1300,8 +1234,7 @@ Behavior:
     Name: SqlQuery
     Method:
       ArgTypes: (System.Type, System.String, params System.Object[])
-      InjectableArguments: [1]
-    Locale: SCS0035
+      InjectableArguments: [1: SCS0035]
 
   DbSet_SqlQuery_2:
     Namespace: System.Data.Entity
@@ -1309,8 +1242,7 @@ Behavior:
     Name: SqlQuery
     Method:
       ArgTypes: (System.String, params System.Object[])
-      InjectableArguments: [0]
-    Locale: SCS0035
+      InjectableArguments: [0: SCS0035]
 
   Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions_ExecuteSqlCommand1:
     Namespace: Microsoft.EntityFrameworkCore
@@ -1318,8 +1250,7 @@ Behavior:
     Name: ExecuteSqlCommand
     Method:
       ArgTypes: (Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade, Microsoft.EntityFrameworkCore.RawSqlString, params System.Object[])
-      InjectableArguments: [1]
-    Locale: SCS0035
+      InjectableArguments: [1: SCS0035]
 
   Database_ExecuteSqlCommand_1:
     Namespace: System.Data.Entity
@@ -1327,8 +1258,7 @@ Behavior:
     Name: ExecuteSqlCommand
     Method:
       ArgTypes: (System.String, params System.Object[])
-      InjectableArguments: [0]
-    Locale: SCS0035
+      InjectableArguments: [0: SCS0035]
 
   Database_ExecuteSqlCommand_2:
     Namespace: System.Data.Entity
@@ -1336,8 +1266,7 @@ Behavior:
     Name: ExecuteSqlCommand
     Method:
       ArgTypes: (System.Data.Entity.TransactionalBehavior, System.String, params System.Object[])
-      InjectableArguments: [1]
-    Locale: SCS0035
+      InjectableArguments: [1: SCS0035]
 
   Database_ExecuteSqlCommandAsync_1:
     Namespace: System.Data.Entity
@@ -1345,8 +1274,7 @@ Behavior:
     Name: ExecuteSqlCommandAsync
     Method:
       ArgTypes: (System.String, params System.Object[])
-      InjectableArguments: [0]
-    Locale: SCS0035
+      InjectableArguments: [0: SCS0035]
 
   Database_ExecuteSqlCommandAsync_2:
     Namespace: System.Data.Entity
@@ -1354,8 +1282,7 @@ Behavior:
     Name: ExecuteSqlCommandAsync
     Method:
       ArgTypes: (System.Data.Entity.TransactionalBehavior, System.String, params System.Object[])
-      InjectableArguments: [1]
-    Locale: SCS0035
+      InjectableArguments: [1: SCS0035]
 
   Database_ExecuteSqlCommandAsync_3:
     Namespace: System.Data.Entity
@@ -1363,8 +1290,7 @@ Behavior:
     Name: ExecuteSqlCommandAsync
     Method:
       ArgTypes: (System.String, System.Threading.CancellationToken, params System.Object[])
-      InjectableArguments: [0]
-    Locale: SCS0035
+      InjectableArguments: [0: SCS0035]
 
   Database_ExecuteSqlCommandAsync_4:
     Namespace: System.Data.Entity
@@ -1372,8 +1298,7 @@ Behavior:
     Name: ExecuteSqlCommandAsync
     Method:
       ArgTypes: (System.Data.Entity.TransactionalBehavior, System.String, System.Threading.CancellationToken, params System.Object[])
-      InjectableArguments: [1]
-    Locale: SCS0035
+      InjectableArguments: [1: SCS0035]
 
   RelationalQueryableExtensions_FromSql_1:
     Namespace: Microsoft.EntityFrameworkCore
@@ -1381,8 +1306,7 @@ Behavior:
     Name: FromSql
     Method:
       ArgTypes: (System.Linq.IQueryable, System.String, params System.Object[])
-      InjectableArguments: [1]
-    Locale: SCS0035
+      InjectableArguments: [1: SCS0035]
 
   RelationalQueryableExtensions_FromSql_2:
     Namespace: Microsoft.EntityFrameworkCore
@@ -1390,8 +1314,7 @@ Behavior:
     Name: FromSql
     Method:
       ArgTypes: (System.Linq.IQueryable, Microsoft.EntityFrameworkCore.RawSqlString, params System.Object[])
-      InjectableArguments: [1]
-    Locale: SCS0035
+      InjectableArguments: [1: SCS0035]
 
   RelationalQueryableExtensions_FromSql_3:
     Namespace: Microsoft.EntityFrameworkCore
@@ -1399,8 +1322,7 @@ Behavior:
     Name: FromSql
     Method:
       ArgTypes: (System.Linq.IQueryable, System.FormattableString, params System.Object[])
-      InjectableArguments: [1]
-    Locale: SCS0035
+      InjectableArguments: [1: SCS0035]
 
  ## Microsoft.Practices.EnterpriseLibrary.Data
 
@@ -1410,8 +1332,7 @@ Behavior:
     Name: ExecuteDataSet
     Method:
       ArgTypes: (System.Data.CommandType, System.String)
-      InjectableArguments: [1]
-    Locale: SCS0036
+      InjectableArguments: [1: SCS0036]
 
   Database_ExecuteDataSet_2:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -1419,8 +1340,7 @@ Behavior:
     Name: ExecuteDataSet
     Method:
       ArgTypes: (System.String, params System.Object[])
-      InjectableArguments: [0]
-    Locale: SCS0036
+      InjectableArguments: [0: SCS0036]
 
   Database_ExecuteDataSet_3:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -1428,8 +1348,7 @@ Behavior:
     Name: ExecuteDataSet
     Method:
       ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
-      InjectableArguments: [1]
-    Locale: SCS0036
+      InjectableArguments: [1: SCS0036]
 
   Database_ExecuteDataSet_4:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -1437,8 +1356,7 @@ Behavior:
     Name: ExecuteDataSet
     Method:
       ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
-      InjectableArguments: [2]
-    Locale: SCS0036
+      InjectableArguments: [2: SCS0036]
 
   Database_ExecuteReader_1:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -1446,8 +1364,7 @@ Behavior:
     Name: ExecuteReader
     Method:
       ArgTypes: (System.Data.CommandType, System.String)
-      InjectableArguments: [1]
-    Locale: SCS0036
+      InjectableArguments: [1: SCS0036]
 
   Database_ExecuteReader_2:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -1455,8 +1372,7 @@ Behavior:
     Name: ExecuteReader
     Method:
       ArgTypes: (System.String, params System.Object[])
-      InjectableArguments: [0]
-    Locale: SCS0036
+      InjectableArguments: [0: SCS0036]
 
   Database_ExecuteReader_3:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -1464,8 +1380,7 @@ Behavior:
     Name: ExecuteReader
     Method:
       ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
-      InjectableArguments: [1]
-    Locale: SCS0036
+      InjectableArguments: [1: SCS0036]
 
   Database_ExecuteReader_4:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -1473,8 +1388,7 @@ Behavior:
     Name: ExecuteReader
     Method:
       ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
-      InjectableArguments: [2]
-    Locale: SCS0036
+      InjectableArguments: [2: SCS0036]
 
   Database_ExecuteNonQuery_1:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -1482,8 +1396,7 @@ Behavior:
     Name: ExecuteNonQuery
     Method:
       ArgTypes: (System.Data.CommandType, System.String)
-      InjectableArguments: [1]
-    Locale: SCS0036
+      InjectableArguments: [1: SCS0036]
 
   Database_ExecuteNonQuery_2:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -1491,8 +1404,7 @@ Behavior:
     Name: ExecuteNonQuery
     Method:
       ArgTypes: (System.String, params System.Object[])
-      InjectableArguments: [0]
-    Locale: SCS0036
+      InjectableArguments: [0: SCS0036]
 
   Database_ExecuteNonQuery_3:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -1500,8 +1412,7 @@ Behavior:
     Name: ExecuteNonQuery
     Method:
       ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
-      InjectableArguments: [1]
-    Locale: SCS0036
+      InjectableArguments: [1: SCS0036]
 
   Database_ExecuteNonQuery_4:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -1509,8 +1420,7 @@ Behavior:
     Name: ExecuteNonQuery
     Method:
       ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
-      InjectableArguments: [2]
-    Locale: SCS0036
+      InjectableArguments: [2: SCS0036]
 
   Database_ExecuteScalar_1:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -1518,8 +1428,7 @@ Behavior:
     Name: ExecuteScalar
     Method:
       ArgTypes: (System.Data.CommandType, System.String)
-      InjectableArguments: [1]
-    Locale: SCS0036
+      InjectableArguments: [1: SCS0036]
 
   Database_ExecuteScalar_2:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -1527,8 +1436,7 @@ Behavior:
     Name: ExecuteScalar
     Method:
       ArgTypes: (System.String, params System.Object[])
-      InjectableArguments: [0]
-    Locale: SCS0036
+      InjectableArguments: [0: SCS0036]
 
   Database_ExecuteScalar_3:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -1536,8 +1444,7 @@ Behavior:
     Name: ExecuteScalar
     Method:
       ArgTypes: (System.Data.Common.DbTransaction, System.String, params System.Object[])
-      InjectableArguments: [1]
-    Locale: SCS0036
+      InjectableArguments: [1: SCS0036]
 
   Database_ExecuteScalar_4:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data
@@ -1545,8 +1452,7 @@ Behavior:
     Name: ExecuteScalar
     Method:
       ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
-      InjectableArguments: [2]
-    Locale: SCS0036
+      InjectableArguments: [2: SCS0036]
 
   # Process
 
@@ -1555,24 +1461,21 @@ Behavior:
     ClassName: Process
     Name: Start
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0001
+      InjectableArguments: [0: SCS0001]
 
   systemdiagnostic_process_fileName:
     Namespace: System.Diagnostics
     ClassName: ProcessStartInfo
     Name: FileName
     Field:
-      Injectable: true
-    Locale: SCS0001
+      Injectable: SCS0001
 
   systemdiagnostic_process_arguments:
     Namespace: System.Diagnostics
     ClassName: ProcessStartInfo
     Name: Arguments
     Field:
-      Injectable: true
-    Locale: SCS0001
+      Injectable: SCS0001
 
  # XPath
 
@@ -1581,16 +1484,14 @@ Behavior:
     ClassName: XmlNode
     Name: SelectNodes
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0003
+      InjectableArguments: [0: SCS0003]
 
   XmlNode_SelectSingleNode:
     Namespace: System.Xml
     ClassName: XmlNode
     Name: SelectSingleNode
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0003
+      InjectableArguments: [0: SCS0003]
 
   XPathNavigator_SelectSingleNode_1:
     Namespace: System.Xml.XPath
@@ -1598,8 +1499,7 @@ Behavior:
     Name: SelectSingleNode
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0]
-    Locale: SCS0003
+      InjectableArguments: [0: SCS0003]
 
   XPathNavigator_SelectSingleNode_2:
     Namespace: System.Xml.XPath
@@ -1607,8 +1507,7 @@ Behavior:
     Name: SelectSingleNode
     Method:
       ArgTypes: (System.String, System.Xml.IXmlNamespaceResolver)
-      InjectableArguments: [0]
-    Locale: SCS0003
+      InjectableArguments: [0: SCS0003]
 
   XPathNavigator_Select_1:
     Namespace: System.Xml.XPath
@@ -1616,8 +1515,7 @@ Behavior:
     Name: Select
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0]
-    Locale: SCS0003
+      InjectableArguments: [0: SCS0003]
 
   XPathNavigator_Select_2:
     Namespace: System.Xml.XPath
@@ -1625,16 +1523,14 @@ Behavior:
     Name: Select
     Method:
       ArgTypes: (System.String, System.Xml.IXmlNamespaceResolver)
-      InjectableArguments: [0]
-    Locale: SCS0003
+      InjectableArguments: [0: SCS0003]
 
   XPathNavigator_Compile:
     Namespace: System.Xml.XPath
     ClassName: XPathNavigator
     Name: Compile
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0003
+      InjectableArguments: [0: SCS0003]
 
   XPathNavigator_Evaluate_1:
     Namespace: System.Xml.XPath
@@ -1642,8 +1538,7 @@ Behavior:
     Name: Evaluate
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0]
-    Locale: SCS0003
+      InjectableArguments: [0: SCS0003]
 
   XPathNavigator_Evaluate_2:
     Namespace: System.Xml.XPath
@@ -1651,8 +1546,7 @@ Behavior:
     Name: Evaluate
     Method:
       ArgTypes: (System.String, System.Xml.IXmlNamespaceResolver)
-      InjectableArguments: [0]
-    Locale: SCS0003
+      InjectableArguments: [0: SCS0003]
 
   XPathExpression_Compile_1:
     Namespace: System.Xml.XPath
@@ -1660,8 +1554,7 @@ Behavior:
     Name: Compile
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0]
-    Locale: SCS0003
+      InjectableArguments: [0: SCS0003]
 
   XPathExpression_Compile_2:
     Namespace: System.Xml.XPath
@@ -1669,8 +1562,7 @@ Behavior:
     Name: Compile
     Method:
       ArgTypes: (System.String, System.Xml.IXmlNamespaceResolver)
-      InjectableArguments: [0]
-    Locale: SCS0003
+      InjectableArguments: [0: SCS0003]
 
   Extensions_XPathSelectElement_1:
     Namespace: System.Xml.XPath
@@ -1678,8 +1570,7 @@ Behavior:
     Name: XPathSelectElement
     Method:
       ArgTypes: (System.Xml.Linq.XNode, System.String)
-      InjectableArguments: [1]
-    Locale: SCS0003
+      InjectableArguments: [1: SCS0003]
 
   Extensions_XPathSelectElement_2:
     Namespace: System.Xml.XPath
@@ -1687,8 +1578,7 @@ Behavior:
     Name: XPathSelectElement
     Method:
       ArgTypes: (System.Xml.Linq.XNode, System.String, System.Xml.IXmlNamespaceResolver)
-      InjectableArguments: [1]
-    Locale: SCS0003
+      InjectableArguments: [1: SCS0003]
 
   Extensions_XPathSelectElements_1:
     Namespace: System.Xml.XPath
@@ -1696,8 +1586,7 @@ Behavior:
     Name: XPathSelectElements
     Method:
       ArgTypes: (System.Xml.Linq.XNode, System.String)
-      InjectableArguments: [1]
-    Locale: SCS0003
+      InjectableArguments: [1: SCS0003]
 
   Extensions_XPathSelectElements_2:
     Namespace: System.Xml.XPath
@@ -1705,8 +1594,7 @@ Behavior:
     Name: XPathSelectElements
     Method:
       ArgTypes: (System.Xml.Linq.XNode, System.String, System.Xml.IXmlNamespaceResolver)
-      InjectableArguments: [1]
-    Locale: SCS0003
+      InjectableArguments: [1: SCS0003]
 
   Extensions_XPathEvaluate_1:
     Namespace: System.Xml.XPath
@@ -1714,8 +1602,7 @@ Behavior:
     Name: XPathEvaluate
     Method:
       ArgTypes: (System.Xml.Linq.XNode, System.String)
-      InjectableArguments: [1]
-    Locale: SCS0003
+      InjectableArguments: [1: SCS0003]
 
   Extensions_XPathEvaluate_2:
     Namespace: System.Xml.XPath
@@ -1723,8 +1610,7 @@ Behavior:
     Name: XPathEvaluate
     Method:
       ArgTypes: (System.Xml.Linq.XNode, System.String, System.Xml.IXmlNamespaceResolver)
-      InjectableArguments: [1]
-    Locale: SCS0003
+      InjectableArguments: [1: SCS0003]
 
  # Path traversal
 
@@ -1735,168 +1621,147 @@ Behavior:
     ClassName: File
     Name: AppendAllLines
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   File_AppendAllText:
     Namespace: System.IO
     ClassName: File
     Name: AppendAllText
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   File_AppendText:
     Namespace: System.IO
     ClassName: File
     Name: AppendText
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   File_Copy:
     Namespace: System.IO
     ClassName: File
     Name: Copy
     Method:
-      InjectableArguments: [0: AbsolutePath, 1: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath], 1: [SCS0018: AbsolutePath]]
 
   File_Create:
     Namespace: System.IO
     ClassName: File
     Name: Create
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   File_CreateText:
     Namespace: System.IO
     ClassName: File
     Name: CreateText
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   File_Move:
     Namespace: System.IO
     ClassName: File
     Name: Move
     Method:
-      InjectableArguments: [0: AbsolutePath, 1: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath], 1: [SCS0018: AbsolutePath]]
 
   File_SetAccessControl:
     Namespace: System.IO
     ClassName: File
     Name: SetAccessControl
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   File_Delete:
     Namespace: System.IO
     ClassName: File
     Name: Delete
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   File_Open:
     Namespace: System.IO
     ClassName: File
     Name: Open
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   File_OpenRead:
     Namespace: System.IO
     ClassName: File
     Name: OpenRead
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   File_OpenText:
     Namespace: System.IO
     ClassName: File
     Name: OpenText
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   File_OpenWrite:
     Namespace: System.IO
     ClassName: File
     Name: OpenWrite
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   File_ReadAllText:
     Namespace: System.IO
     ClassName: File
     Name: ReadAllText
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   File_ReadAllBytes:
     Namespace: System.IO
     ClassName: File
     Name: ReadAllBytes
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   File_ReadAllLines:
     Namespace: System.IO
     ClassName: File
     Name: ReadAllLines
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   File_ReadLines:
     Namespace: System.IO
     ClassName: File
     Name: ReadLines
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   File_Replace:
     Namespace: System.IO
     ClassName: File
     Name: Replace
     Method:
-      InjectableArguments: [0: AbsolutePath, 1: AbsolutePath, 2: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath], 1: [SCS0018: AbsolutePath], 2: [SCS0018: AbsolutePath]]
 
   File_WriteAllBytes:
     Namespace: System.IO
     ClassName: File
     Name: WriteAllBytes
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   File_WriteAllLines:
     Namespace: System.IO
     ClassName: File
     Name: WriteAllLines
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   File_WriteAllText:
     Namespace: System.IO
     ClassName: File
     Name: WriteAllText
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
  ## FileInfo
 
@@ -1906,24 +1771,21 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   FileInfo_CopyTo:
     Namespace: System.IO
     ClassName: FileInfo
     Name: CopyTo
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   FileInfo_Replace:
    Namespace: System.IO
    ClassName: FileInfo
    Name: Replace
    Method:
-     InjectableArguments: [0: AbsolutePath, 1: AbsolutePath]
-   Locale: SCS0018
+     InjectableArguments: [0: [SCS0018: AbsolutePath], 1: [SCS0018: AbsolutePath]]
 
   FileInfo_MoveTo:
     Namespace: System.IO
@@ -1931,8 +1793,7 @@ Behavior:
     Name: MoveTo
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
  ## Assembly
 
@@ -1942,8 +1803,7 @@ Behavior:
     Name: Load
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   Assembly_Load_1:
     Namespace: System.Reflection
@@ -1951,32 +1811,28 @@ Behavior:
     Name: Load
     Method:
       ArgTypes: (System.String, System.Security.Policy.Evidence)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   Assembly_LoadFile:
     Namespace: System.Reflection
     ClassName: Assembly
     Name: LoadFile
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   Assembly_LoadFrom:
     Namespace: System.Reflection
     ClassName: Assembly
     Name: LoadFrom
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   Assembly_LoadWithPartialName:
     Namespace: System.Reflection
     ClassName: Assembly
     Name: LoadWithPartialName
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   Assembly_ReflectionOnlyLoad:
     Namespace: System.Reflection
@@ -1984,8 +1840,7 @@ Behavior:
     Name: ReflectionOnlyLoad
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   Assembly_ReflectionOnlyLoadFrom:
     Namespace: System.Reflection
@@ -1993,8 +1848,7 @@ Behavior:
     Name: ReflectionOnlyLoadFrom
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   Assembly_UnsafeLoadFrom:
     Namespace: System.Reflection
@@ -2002,8 +1856,7 @@ Behavior:
     Name: UnsafeLoadFrom
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
  ## XmlReader
 
@@ -2013,8 +1866,7 @@ Behavior:
     Name: Create
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   XmlReader_Create_uri_settings:
     Namespace: System.Xml
@@ -2022,8 +1874,7 @@ Behavior:
     Name: Create
     Method:
       ArgTypes: (System.String, System.Xml.XmlReaderSettings)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   XmlReader_Create_uri_settings_context:
     Namespace: System.Xml
@@ -2031,8 +1882,7 @@ Behavior:
     Name: Create
     Method:
       ArgTypes: (System.String, System.Xml.XmlReaderSettings, System.Xml.XmlParserContext)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   XmlReader_Create_stream_settings_string:
     Namespace: System.Xml
@@ -2040,8 +1890,7 @@ Behavior:
     Name: Create
     Method:
       ArgTypes: (System.IO.Stream, System.Xml.XmlReaderSettings, System.String)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   XmlReader_Create_textreader_settings_string:
     Namespace: System.Xml
@@ -2049,8 +1898,7 @@ Behavior:
     Name: Create
     Method:
       ArgTypes: (System.IO.TextReader, System.Xml.XmlReaderSettings, System.String)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
  ## StreamReader
 
@@ -2060,8 +1908,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   StreamReader_Create_path_bool:
     Namespace: System.IO
@@ -2069,8 +1916,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.Boolean)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   StreamReader_Create_path_encoding:
     Namespace: System.IO
@@ -2078,8 +1924,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.Text.Encoding)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   StreamReader_Create_path_encoding_bool:
     Namespace: System.IO
@@ -2087,8 +1932,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.Text.Encoding, System.Boolean)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   StreamReader_Create_path_encoding_bool_int:
     Namespace: System.IO
@@ -2096,8 +1940,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.Text.Encoding, System.Boolean, System.Int32)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
  ## StreamWriter
 
@@ -2107,8 +1950,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   StreamWriter2:
     Namespace: System.IO
@@ -2116,8 +1958,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.Boolean)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   StreamWriter3:
     Namespace: System.IO
@@ -2125,8 +1966,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.Boolean, System.Text.Encoding)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   StreamWriter4:
     Namespace: System.IO
@@ -2134,8 +1974,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.Boolean, System.Text.Encoding, System.Int32)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
  ## FileStream
 
@@ -2145,8 +1984,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.IntPtr, System.IO.FileAccess)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   FileStream_Constructor2:
     Namespace: System.IO
@@ -2154,8 +1992,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.IntPtr, System.IO.FileAccess, System.Boolean)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   FileStream_Constructor3:
     Namespace: System.IO
@@ -2163,8 +2000,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.IntPtr, System.IO.FileAccess, System.Boolean, System.Int32)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   FileStream_Constructor4:
     Namespace: System.IO
@@ -2172,8 +2008,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.IntPtr, System.IO.FileAccess, System.Boolean, System.Int32, System.Boolean)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   FileStream_Constructor5:
     Namespace: System.IO
@@ -2181,8 +2016,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (Microsoft.Win32.SafeHandles.SafeFileHandle, System.IO.FileAccess)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   FileStream_Constructor6:
     Namespace: System.IO
@@ -2190,8 +2024,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (Microsoft.Win32.SafeHandles.SafeFileHandle, System.IO.FileAccess, System.Int32)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   FileStream_Constructor7:
     Namespace: System.IO
@@ -2199,8 +2032,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (Microsoft.Win32.SafeHandles.SafeFileHandle, System.IO.FileAccess, System.Int32, System.Boolean)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   FileStream_Constructor8:
     Namespace: System.IO
@@ -2208,8 +2040,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.IO.FileMode)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   FileStream_Constructor9:
     Namespace: System.IO
@@ -2217,8 +2048,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   FileStream_Constructor10:
     Namespace: System.IO
@@ -2226,8 +2056,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   FileStream_Constructor11:
     Namespace: System.IO
@@ -2235,8 +2064,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare, System.Int32)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   FileStream_Constructor12:
     Namespace: System.IO
@@ -2244,8 +2072,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare, System.Int32, System.Boolean)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   FileStream_Constructor13:
     Namespace: System.IO
@@ -2253,8 +2080,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.IO.FileMode, System.IO.FileAccess, System.IO.FileShare, System.Int32, System.IO.FileOptions)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   FileStream_Constructor14:
     Namespace: System.IO
@@ -2262,8 +2088,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.IO.FileMode, System.Security.AccessControl.FileSystemRights, System.IO.FileShare, System.Int32, System.IO.FileOptions)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   FileStream_Constructor15:
     Namespace: System.IO
@@ -2271,8 +2096,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.IO.FileMode, System.Security.AccessControl.FileSystemRights, System.IO.FileShare, System.Int32, System.IO.FileOptions, System.Security.AccessControl.FileSecurity)
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
  ## FilePathResult
 
@@ -2281,32 +2105,28 @@ Behavior:
     ClassName: FilePathResult
     Name: .ctor
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   System.Web.Mvc_FilePathResult_FileName:
     Namespace: System.Web.Mvc
     ClassName: FilePathResult
     Name: FileName
     Field:
-      Injectable: AbsolutePath
-    Locale: SCS0018
+      Injectable: [SCS0018: AbsolutePath]
 
   Microsoft.AspNetCore.Mvc_PhysicalFileResult_.ctor:
     Namespace: Microsoft.AspNetCore.Mvc
     ClassName: PhysicalFileResult
     Name: .ctor
     Method:
-      InjectableArguments: [0: AbsolutePath]
-    Locale: SCS0018
+      InjectableArguments: [0: [SCS0018: AbsolutePath]]
 
   Microsoft.AspNetCore.Mvc_PhysicalFileResult_FileName:
     Namespace: Microsoft.AspNetCore.Mvc
     ClassName: PhysicalFileResult
     Name: FileName
     Field:
-      Injectable: AbsolutePath
-    Locale: SCS0018
+      Injectable: [SCS0018: AbsolutePath]
 
  # LDAP injection
 
@@ -2316,8 +2136,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: LdapFilterEncoded]
-    Locale: SCS0031
+      InjectableArguments: [0: [SCS0031: LdapFilterEncoded]]
 
   DirectorySearcher_constructor_1:
     Namespace: System.DirectoryServices
@@ -2325,8 +2144,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.String[])
-      InjectableArguments: [0: LdapFilterEncoded, 1]
-    Locale: SCS0031
+      InjectableArguments: [0: [SCS0031: LdapFilterEncoded], 1: SCS0031]
 
   DirectorySearcher_constructor_2:
     Namespace: System.DirectoryServices
@@ -2334,8 +2152,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.DirectoryServices.DirectoryEntry, System.String)
-      InjectableArguments: [1: LdapFilterEncoded]
-    Locale: SCS0031
+      InjectableArguments: [1: [SCS0031: LdapFilterEncoded]]
 
   DirectorySearcher_constructor_3:
     Namespace: System.DirectoryServices
@@ -2343,8 +2160,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.DirectoryServices.DirectoryEntry, System.String, System.String[])
-      InjectableArguments: [1: LdapFilterEncoded, 2]
-    Locale: SCS0031
+      InjectableArguments: [1: [SCS0031: LdapFilterEncoded], 2: SCS0031]
 
   DirectorySearcher_constructor_4:
     Namespace: System.DirectoryServices
@@ -2352,8 +2168,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.String[], System.DirectoryServices.SearchScope)
-      InjectableArguments: [0: LdapFilterEncoded, 1]
-    Locale: SCS0031
+      InjectableArguments: [0: [SCS0031: LdapFilterEncoded], 1: SCS0031]
 
   DirectorySearcher_constructor_5:
     Namespace: System.DirectoryServices
@@ -2361,16 +2176,14 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.DirectoryServices.DirectoryEntry, System.String, System.String[], System.DirectoryServices.SearchScope)
-      InjectableArguments: [1: LdapFilterEncoded, 2]
-    Locale: SCS0031
+      InjectableArguments: [1: [SCS0031: LdapFilterEncoded], 2: SCS0031]
 
   DirectorySearcher_Filter:
     Namespace: System.DirectoryServices
     ClassName: DirectorySearcher
     Name: Filter
     Field:
-      Injectable: LdapFilterEncoded
-    Locale: SCS0031
+      Injectable: [SCS0031: LdapFilterEncoded]
 
   DirectoryEntry_constructor_0:
     Namespace: System.DirectoryServices
@@ -2378,8 +2191,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: LdapDistinguishedNameEncoded]
-    Locale: SCS0031
+      InjectableArguments: [0: [SCS0031: LdapDistinguishedNameEncoded]]
 
   DirectoryEntry_constructor_1:
     Namespace: System.DirectoryServices
@@ -2387,8 +2199,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.String, System.String)
-      InjectableArguments: [0: LdapDistinguishedNameEncoded]
-    Locale: SCS0031
+      InjectableArguments: [0: [SCS0031: LdapDistinguishedNameEncoded]]
 
   DirectoryEntry_constructor_2:
     Namespace: System.DirectoryServices
@@ -2396,16 +2207,14 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.String, System.String, System.DirectoryServices.AuthenticationTypes)
-      InjectableArguments: [0: LdapDistinguishedNameEncoded]
-    Locale: SCS0031
+      InjectableArguments: [0: [SCS0031: LdapDistinguishedNameEncoded]]
 
   DirectoryEntry_Path:
     Namespace: System.DirectoryServices
     ClassName: DirectoryEntry
     Name: Path
     Field:
-      Injectable: LdapDistinguishedNameEncoded
-    Locale: SCS0031
+      Injectable: [SCS0031: LdapDistinguishedNameEncoded]
 
  # Open Redirects
 
@@ -2415,8 +2224,7 @@ Behavior:
     Name: Redirect
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: LocalUrl]
-    Locale: SCS0027
+      InjectableArguments: [0: [SCS0027: LocalUrl]]
 
   System.Web.HttpResponse_Redirect_string_bool:
     Namespace: System.Web
@@ -2424,8 +2232,7 @@ Behavior:
     Name: Redirect
     Method:
       ArgTypes: (System.String, System.Boolean)
-      InjectableArguments: [0: LocalUrl]
-    Locale: SCS0027
+      InjectableArguments: [0: [SCS0027: LocalUrl]]
 
   System.Web.HttpResponse_RedirectPermanent_string:
     Namespace: System.Web
@@ -2433,8 +2240,7 @@ Behavior:
     Name: RedirectPermanent
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: LocalUrl]
-    Locale: SCS0027
+      InjectableArguments: [0: [SCS0027: LocalUrl]]
 
   System.Web.HttpResponse_RedirectPermanent_string_bool:
     Namespace: System.Web
@@ -2442,8 +2248,7 @@ Behavior:
     Name: RedirectPermanent
     Method:
       ArgTypes: (System.String, System.Boolean)
-      InjectableArguments: [0: LocalUrl]
-    Locale: SCS0027
+      InjectableArguments: [0: [SCS0027: LocalUrl]]
 
   Microsoft.AspNetCore.Http.HttpResponse_Redirect_string:
     Namespace: Microsoft.AspNetCore.Http
@@ -2451,8 +2256,7 @@ Behavior:
     Name: Redirect
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: LocalUrl]
-    Locale: SCS0027
+      InjectableArguments: [0: [SCS0027: LocalUrl]]
 
   Microsoft.AspNetCore.Http.HttpResponse_Redirect_string_bool:
     Namespace: Microsoft.AspNetCore.Http
@@ -2460,8 +2264,7 @@ Behavior:
     Name: Redirect
     Method:
       ArgTypes: (System.String, System.Boolean)
-      InjectableArguments: [0: LocalUrl]
-    Locale: SCS0027
+      InjectableArguments: [0: [SCS0027: LocalUrl]]
 
   Controller_Redirect_string:
     Namespace: System.Web.Mvc
@@ -2469,8 +2272,7 @@ Behavior:
     Name: Redirect
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: LocalUrl]
-    Locale: SCS0027
+      InjectableArguments: [0: [SCS0027: LocalUrl]]
 
   Controller_RedirectPermanent_string:
     Namespace: System.Web.Mvc
@@ -2478,16 +2280,14 @@ Behavior:
     Name: RedirectPermanent
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: LocalUrl]
-    Locale: SCS0027
+      InjectableArguments: [0: [SCS0027: LocalUrl]]
 
   System.Web.Http_ApiController_Redirect:
     Namespace: System.Web.Http
     ClassName: ApiController
     Name: Redirect
     Method:
-      InjectableArguments: [0: LocalUrl]
-    Locale: SCS0027
+      InjectableArguments: [0: [SCS0027: LocalUrl]]
 
   AspNetCore_Controller_Redirect_string:
     Namespace: Microsoft.AspNetCore.Mvc
@@ -2495,8 +2295,7 @@ Behavior:
     Name: Redirect
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: LocalUrl]
-    Locale: SCS0027
+      InjectableArguments: [0: [SCS0027: LocalUrl]]
 
   AspNetCore_Controller_RedirectPermanent_string:
     Namespace: Microsoft.AspNetCore.Mvc
@@ -2504,8 +2303,7 @@ Behavior:
     Name: RedirectPermanent
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: LocalUrl]
-    Locale: SCS0027
+      InjectableArguments: [0: [SCS0027: LocalUrl]]
 
   AspNetCore_Controller_RedirectPreserveMethod_string:
     Namespace: Microsoft.AspNetCore.Mvc
@@ -2513,8 +2311,7 @@ Behavior:
     Name: RedirectPreserveMethod
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: LocalUrl]
-    Locale: SCS0027
+      InjectableArguments: [0: [SCS0027: LocalUrl]]
 
   AspNetCore_Controller_RedirectPermanentPreserveMethod_string:
     Namespace: Microsoft.AspNetCore.Mvc
@@ -2522,8 +2319,7 @@ Behavior:
     Name: RedirectPermanentPreserveMethod
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: LocalUrl]
-    Locale: SCS0027
+      InjectableArguments: [0: [SCS0027: LocalUrl]]
 
   Controller_RedirectResult_string:
     Namespace: System.Web.Mvc
@@ -2531,8 +2327,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: LocalUrl]
-    Locale: SCS0027
+      InjectableArguments: [0: [SCS0027: LocalUrl]]
 
   Controller_RedirectResult_string_bool:
     Namespace: System.Web.Mvc
@@ -2540,8 +2335,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.Boolean)
-      InjectableArguments: [0: LocalUrl]
-    Locale: SCS0027
+      InjectableArguments: [0: [SCS0027: LocalUrl]]
 
   AspNetCore_RedirectResult_string:
     Namespace: Microsoft.AspNetCore.Mvc
@@ -2549,8 +2343,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String)
-      InjectableArguments: [0: LocalUrl]
-    Locale: SCS0027
+      InjectableArguments: [0: [SCS0027: LocalUrl]]
 
   AspNetCore_RedirectResult_string_bool:
     Namespace: Microsoft.AspNetCore.Mvc
@@ -2558,8 +2351,7 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.Boolean)
-      InjectableArguments: [0: LocalUrl]
-    Locale: SCS0027
+      InjectableArguments: [0: [SCS0027: LocalUrl]]
 
   AspNetCore_RedirectResult_string_bool_bool:
     Namespace: Microsoft.AspNetCore.Mvc
@@ -2567,16 +2359,14 @@ Behavior:
     Name: .ctor
     Method:
       ArgTypes: (System.String, System.Boolean, System.Boolean)
-      InjectableArguments: [0: LocalUrl]
-    Locale: SCS0027
+      InjectableArguments: [0: [SCS0027: LocalUrl]]
 
   AspNetCore_RedirectResult_Url:
     Namespace: Microsoft.AspNetCore.Mvc
     ClassName: RedirectResult
     Name: Url
     Field:
-      Injectable: LocalUrl
-    Locale: SCS0027
+      Injectable: [SCS0027: LocalUrl]
 
  # Deserialization
 
@@ -2585,256 +2375,224 @@ Behavior:
     ClassName: BinaryFormatter
     Name: Deserialize
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028]
 
   BinaryFormatter_UnsafeDeserialize:
     Namespace: System.Runtime.Serialization.Formatters.Binary
     ClassName: BinaryFormatter
     Name: UnsafeDeserialize
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028]
 
   BinaryFormatter_UnsafeDeserializeMethodResponse:
     Namespace: System.Runtime.Serialization.Formatters.Binary
     ClassName: BinaryFormatter
     Name: UnsafeDeserializeMethodResponse
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028]
 
   BinaryMessageFormatter_Read:
     Namespace: System.Messaging
     ClassName: BinaryMessageFormatter
     Name: Read
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028]
 
   SoapFormatter_Deserialize:
     Namespace: System.Runtime.Serialization.Formatters.Soap
     ClassName: SoapFormatter
     Name: Deserialize
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028]
 
   ObjectStateFormatter_Deserialize:
     Namespace: System.Web.UI
     ClassName: ObjectStateFormatter
     Name: Deserialize
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028]
 
   XmlObjectSerializer_ReadObject:
     Namespace: System.Runtime.Serialization
     ClassName: XmlObjectSerializer
     Name: ReadObject
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028]
 
   NetDataContractSerializer_Deserialize:
     Namespace: System.Runtime.Serialization
     ClassName: NetDataContractSerializer
     Name: Deserialize
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028]
 
   NetDataContractSerializer_ReadObject:
     Namespace: System.Runtime.Serialization
     ClassName: NetDataContractSerializer
     Name: ReadObject
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028]
 
   DataContractSerializer_ctor:
     Namespace: System.Runtime.Serialization
     ClassName: DataContractSerializer
     Name: .ctor
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028]
 
   DataContractSerializer_ReadObject:
     Namespace: System.Runtime.Serialization
     ClassName: DataContractSerializer
     Name: ReadObject
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028]
 
   DataContractJsonSerializer_ctor:
     Namespace: System.Runtime.Serialization.Json
     ClassName: DataContractJsonSerializer
     Name: .ctor
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028]
 
   DataContractJsonSerializer_ReadObject:
     Namespace: System.Runtime.Serialization.Json
     ClassName: DataContractJsonSerializer
     Name: ReadObject
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028]
 
   XmlSerializer_ctor:
     Namespace: System.Xml.Serialization
     ClassName: XmlSerializer
     Name: .ctor
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028]
 
   XmlSerializer_Deserialize:
     Namespace: System.Xml.Serialization
     ClassName: XmlSerializer
     Name: Deserialize
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028]
 
   XmlMessageFormatter_Read:
     Namespace: System.Messaging
     ClassName: XmlMessageFormatter
     Name: Read
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028]
 
   LosFormatter_Desearialize:
     Namespace: System.Web.UI
     ClassName: LosFormatter
     Name: Deserialize
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028]
 
   fastJSON_ToObject:
     Namespace: fastJSON
     ClassName: JSON
     Name: ToObject
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028]
 
   ServiceStack_JsonDeserializeFromString:
     Namespace: ServiceStack.Text
     ClassName: JsonSerializer
     Name: DeserializeFromString
     Method:
-      InjectableArguments: [0, 1]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028, 1: SCS0028]
 
   ServiceStack_JsonDeserializeFromReader:
     Namespace: ServiceStack.Text
     ClassName: JsonSerializer
     Name: DeserializeFromReader
     Method:
-      InjectableArguments: [0, 1]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028, 1: SCS0028]
 
   ServiceStack_JsonDeserializeFromStream:
     Namespace: ServiceStack.Text
     ClassName: JsonSerializer
     Name: DeserializeFromStream
     Method:
-      InjectableArguments: [0, 1]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028, 1: SCS0028]
 
   ServiceStack_TypeDeserializeFromString:
     Namespace: ServiceStack.Text
     ClassName: TypeSerializer
     Name: DeserializeFromString
     Method:
-      InjectableArguments: [0, 1]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028, 1: SCS0028]
 
   ServiceStack_TypeDeserializeFromReader:
     Namespace: ServiceStack.Text
     ClassName: TypeSerializer
     Name: DeserializeFromReader
     Method:
-      InjectableArguments: [0, 1]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028, 1: SCS0028]
 
   ServiceStack_TypeDeserializeFromStream:
     Namespace: ServiceStack.Text
     ClassName: TypeSerializer
     Name: DeserializeFromStream
     Method:
-      InjectableArguments: [0, 1]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028, 1: SCS0028]
 
   ServiceStack_CsvDeserializeFromString:
     Namespace: ServiceStack.Text
     ClassName: CsvSerializer
     Name: DeserializeFromString
     Method:
-      InjectableArguments: [0, 1]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028, 1: SCS0028]
 
   ServiceStack_CsvDeserializeFromReader:
     Namespace: ServiceStack.Text
     ClassName: CsvSerializer
     Name: DeserializeFromReader
     Method:
-      InjectableArguments: [0, 1]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028, 1: SCS0028]
 
   ServiceStack_CsvDeserializeFromStream:
     Namespace: ServiceStack.Text
     ClassName: CsvSerializer
     Name: DeserializeFromStream
     Method:
-      InjectableArguments: [0, 1]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028, 1: SCS0028]
 
   ServiceStack_XmlDeserializeFromString:
     Namespace: ServiceStack.Text
     ClassName: XmlSerializer
     Name: DeserializeFromString
     Method:
-      InjectableArguments: [0, 1]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028, 1: SCS0028]
 
   ServiceStack_XmlDeserializeFromReader:
     Namespace: ServiceStack.Text
     ClassName: XmlSerializer
     Name: DeserializeFromReader
     Method:
-      InjectableArguments: [0, 1]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028, 1: SCS0028]
 
   ServiceStack_XmlDeserializeFromStream:
     Namespace: ServiceStack.Text
     ClassName: XmlSerializer
     Name: DeserializeFromStream
     Method:
-      InjectableArguments: [0, 1]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028, 1: SCS0028]
 
   ResourceReader_ctor:
     Namespace: System.Resources
     ClassName: ResourceReader
     Name: .ctor
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0028
+      InjectableArguments: [0: SCS0028]
 
   TypeNameHandling_enum:
     Namespace: Newtonsoft.Json
     ClassName: JsonSerializerSettings
     Name: TypeNameHandling
     Field:
-      Injectable: true
-    Locale: SCS0028
+      Injectable: SCS0028
 
  # Password
 
@@ -2842,15 +2600,13 @@ Behavior:
     Namespace: System.Security.Cryptography
     ClassName: PasswordDeriveBytes
     Name: .ctor
-    PasswordArguments: [0]
-    Locale: SCS0015
+    PasswordArguments: [0: SCS0015]
 
   NetworkCredential:
     Namespace: System.Net
     ClassName: NetworkCredential
     Name: .ctor
-    PasswordArguments: [1]
-    Locale: SCS0015
+    PasswordArguments: [1: SCS0015]
 
 # Taint sources
 

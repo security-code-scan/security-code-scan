@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers.Taint;
+using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
 using DiagnosticVerifier = SecurityCodeScan.Test.Helpers.DiagnosticVerifier;
 
@@ -52,7 +53,7 @@ class OpenRedirect
 {{
     public static HttpResponse Response = null;
 
-    public static void Run(string input)
+    public void Run(string input)
     {{
         {sink};
     }}
@@ -65,14 +66,21 @@ Imports {@namespace}
 Class OpenRedirect
     Public Shared Response As HttpResponse
 
-    Public Shared Sub Run(input As String)
+    Public Sub Run(input As String)
         {sink}
     End Sub
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    ClassName: OpenRedirect
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -92,7 +100,7 @@ class OpenRedirect
 {{
     public static HttpResponse Response = null;
 
-    public static void Run(bool flag)
+    public void Run(bool flag)
     {{
         {sink};
     }}
@@ -105,14 +113,21 @@ Imports {@namespace}
 Class OpenRedirect
     Public Shared Response As HttpResponse
 
-    Public Shared Sub Run(flag As Boolean)
+    Public Sub Run(flag As Boolean)
         {sink}
     End Sub
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    ClassName: OpenRedirect
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]

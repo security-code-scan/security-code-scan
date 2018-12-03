@@ -40,12 +40,35 @@ namespace SecurityCodeScan.Analyzers.Utils
             SyntaxKind kind = node.Kind();
             switch (kind)
             {
+                case SyntaxKind.AddAssignmentStatement:
                 case SyntaxKind.SimpleAssignmentStatement:
                     return ((AssignmentStatementSyntax)node).Left;
                 case SyntaxKind.VariableDeclarator:
                     return ((VariableDeclaratorSyntax)node).Names.First();
                 case SyntaxKind.NamedFieldInitializer:
                     return ((NamedFieldInitializerSyntax)node).Name;
+            }
+
+            return null;
+        }
+
+        public override string GetAssignmentLeftNodeName(SyntaxNode node)
+        {
+            if (node == null)
+            {
+                return null;
+            }
+
+            SyntaxKind kind = node.Kind();
+            switch (kind)
+            {
+                case SyntaxKind.AddAssignmentStatement:
+                case SyntaxKind.SimpleAssignmentStatement:
+                    return ((AssignmentStatementSyntax)node).Left.ToString();
+                case SyntaxKind.VariableDeclarator:
+                    return ((VariableDeclaratorSyntax)node).Names.First().ToString();
+                case SyntaxKind.NamedFieldInitializer:
+                    return ((NamedFieldInitializerSyntax)node).Name.ToString();
             }
 
             return null;
@@ -128,7 +151,7 @@ namespace SecurityCodeScan.Analyzers.Utils
             return null;
         }
 
-        public override SyntaxNode GetAttributeArgumentExpresionNode(SyntaxNode node)
+        public override SyntaxNode GetAttributeArgumentExpressionNode(SyntaxNode node)
         {
             if (!(node is ArgumentSyntax argument))
                 return null;

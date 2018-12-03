@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers.Taint;
+using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
 using DiagnosticVerifier = SecurityCodeScan.Test.Helpers.DiagnosticVerifier;
 
@@ -96,7 +97,7 @@ namespace sample
 {{
     class MyFoo
     {{
-        public static void Run(XmlDocument doc, XPathNavigator nav, XNode element, string input)
+        public void Run(XmlDocument doc, XPathNavigator nav, XNode element, string input)
         {{
             {sink};
         }}
@@ -113,7 +114,7 @@ namespace sample
 
 Namespace sample
     Class MyFoo
-        Public Shared Sub Run(doc As XmlDocument, nav As XPathNavigator, element As XNode, input As System.String)
+        Public Sub Run(doc As XmlDocument, nav As XPathNavigator, element As XNode, input As System.String)
             {sink}
         End Sub
     End Class
@@ -125,15 +126,24 @@ End Namespace
                 Severity = DiagnosticSeverity.Warning,
             };
 
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: sample
+    ClassName: MyFoo
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
             if (warn)
             {
-                await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+                await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
             }
             else
             {
-                await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             }
         }
     }

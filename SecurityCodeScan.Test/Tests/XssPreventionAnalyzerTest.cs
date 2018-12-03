@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
+using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
 using DiagnosticVerifier = SecurityCodeScan.Test.Helpers.DiagnosticVerifier;
 
@@ -39,7 +40,8 @@ namespace SecurityCodeScan.Test
                                                      .Location),
             MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
                                                      .Location),
-            MetadataReference.CreateFromFile(typeof(HttpResponse).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(HttpResponse).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.DbContext).Assembly.Location),
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
@@ -53,35 +55,132 @@ namespace SecurityCodeScan.Test
 
         #region Tests that are producing diagnostics
 
-        [TestCategory("Detect")]
-        [DataRow("System.Web", "System.String", "Response.Write(userInput)")]
-        [DataRow("System.Web", "System.Char[]", "Response.Write(userInput, x, y)")]
+        [DataRow("Sink((from x in new SampleContext().TestProp where x == \"aaa\" select x).SingleOrDefault())", true)]
+        [DataRow("Sink((from x in new SampleContext().TestField where x == \"aaa\" select x).SingleOrDefault())", true)]
         [DataTestMethod]
-        public async Task HttpResponseWrite(string @namespace, string inputType, string sink)
+        public async Task XssFromEntityFrameworkCore(string sink, bool warn)
         {
+            var cSharpTest = $@"
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+
+namespace sample
+{{
+    public class SampleContext : DbContext
+    {{
+        public DbSet<string> TestProp {{ get; set; }}
+        public DbSet<string> TestField;
+    }}
+
+    class MyFoo
+    {{
+        private void Sink(string s) {{}}
+
+        public void Run()
+        {{
+            {sink};
+        }}
+    }}
+}}
+";
+
+            sink = sink.CSharpReplaceToVBasic().Replace("==", "Is");
+
+            var visualBasicTest = $@"
+Imports Microsoft.EntityFrameworkCore
+Imports System.Linq
+
+Namespace sample
+    Public Class SampleContext
+        Inherits DbContext
+
+        Public Property TestProp As DbSet(Of String)
+        Public          TestField As DbSet(Of String)
+    End Class
+
+    Class MyFoo
+        Private Sub Sink(s As String)
+        End Sub
+
+        Public Sub Run()
+            {sink}
+        End Sub
+    End Class
+End Namespace
+";
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0035",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            var testConfig = @"
+Behavior:
+  MyKey:
+    Namespace: sample
+    ClassName: MyFoo
+    Name: Sink
+    Method:
+      InjectableArguments: [SCS0035: 0]
+
+  db3:
+    Namespace: Microsoft.EntityFrameworkCore
+    ClassName: DbSet
+    Method:
+      Returns:
+        Taint: Tainted
+";
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+        }
+
+        [TestCategory("Detect")]
+        [DataRow("System.Web", "Request.Params[0]",            "",              "Response.Write(userInput)")]
+        [DataRow("System.Web", "Request.Params[0]",            "System.String", "Response.Write(userInput)")]
+        [DataRow("System.Web", "Request.Params[0].ToString()", "System.String", "Response.Write(userInput)")]
+        //[DataRow("System.Web", "(System.Char[])Request.Params[0]", "Response.Write(userInput, x, y)")]
+        [DataTestMethod]
+        public async Task HttpResponseWrite(string @namespace, string inputType, string cast, string sink)
+        {
+            var csInput = string.IsNullOrEmpty(cast) ? inputType : $"({cast}){inputType}";
             var cSharpTest = $@"
 using {@namespace};
 
 class Vulnerable
 {{
     public static HttpResponse Response = null;
+    public static HttpRequest  Request  = null;
 
-    public static void Run({inputType} userInput, int x, int y)
+    public static void Run()
     {{
+        var userInput = {csInput};
         {sink};
     }}
 }}
             ";
 
             inputType = inputType.CSharpReplaceToVBasic();
+            var vbInput = string.IsNullOrEmpty(cast) ? inputType : $"DirectCast({inputType}, {cast})";
 
             var visualBasicTest = $@"
 Imports {@namespace}
 
 Class Vulnerable
     Public Shared Response As HttpResponse
+    Public Shared Request  As HttpRequest
 
-    Public Shared Sub Run(userinput As {inputType}, x As System.Int32, y As System.Int32)
+    Public Shared Sub Run()
+        Dim userInput = {vbInput}
         {sink}
     End Sub
 End Class

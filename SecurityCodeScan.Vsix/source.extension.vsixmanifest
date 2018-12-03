@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="955196A7-ACBF-4F6B-820B-51B8507CE853" Version="2.8.0" Language="en-US" Publisher="Jaroslav Lobačevski"/>
+        <Identity Id="955196A7-ACBF-4F6B-820B-51B8507CE853" Version="3.0.0" Language="en-US" Publisher="Jaroslav Lobačevski"/>
         <DisplayName>Security Code Scan (for VS2017 and newer)</DisplayName>
         <Description xml:space="preserve">Security static code analyzer for .NET</Description>
         <MoreInfo>https://security-code-scan.github.io</MoreInfo>

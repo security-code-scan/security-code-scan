@@ -44,6 +44,20 @@ namespace SecurityCodeScan.Analyzers.Utils
             return (node as AssignmentExpressionSyntax)?.Left;
         }
 
+        public override string GetAssignmentLeftNodeName(SyntaxNode node)
+        {
+            if (node == null)
+            {
+                return null;
+            }
+
+            var kind = node.Kind();
+            if (kind == SyntaxKind.VariableDeclarator)
+                return ((VariableDeclaratorSyntax)node).Identifier.Text;
+
+            return (node as AssignmentExpressionSyntax)?.Left.ToString();
+        }
+
         public override SyntaxNode GetAssignmentRightNode(SyntaxNode node)
         {
             if (node == null)
@@ -54,6 +68,7 @@ namespace SecurityCodeScan.Analyzers.Utils
             SyntaxKind kind = node.Kind();
             switch (kind)
             {
+                case SyntaxKind.AddAssignmentExpression:
                 case SyntaxKind.SimpleAssignmentExpression:
                     return ((AssignmentExpressionSyntax)node).Right;
                 case SyntaxKind.VariableDeclarator:
@@ -128,7 +143,7 @@ namespace SecurityCodeScan.Analyzers.Utils
             return null;
         }
 
-        public override SyntaxNode GetAttributeArgumentExpresionNode(SyntaxNode node)
+        public override SyntaxNode GetAttributeArgumentExpressionNode(SyntaxNode node)
         {
             if (!(node is AttributeArgumentSyntax argument))
                 return null;

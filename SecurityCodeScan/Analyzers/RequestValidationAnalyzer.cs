@@ -88,7 +88,7 @@ namespace SecurityCodeScan.Analyzers
                 SyntaxNode expression = null;
                 foreach (var arg in nodeHelper.GetAttributeArgumentNodes(attribute))
                 {
-                    expression = nodeHelper.GetAttributeArgumentExpresionNode(arg);
+                    expression = nodeHelper.GetAttributeArgumentExpressionNode(arg);
                     var expressionValue = ctx.SemanticModel.GetConstantValue(expression);
                     if (!expressionValue.HasValue)
                         continue;

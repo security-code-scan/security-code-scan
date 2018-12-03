@@ -4,9 +4,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
-using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
-using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
@@ -36,7 +34,11 @@ namespace SecurityCodeScan.Analyzers
     {
         private static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0010");
 
-        private static readonly ImmutableArray<string> BadCiphers = ImmutableArray.Create("DES", "RC2");
+        private static readonly ImmutableArray<string> BadCipherCreate = ImmutableArray.Create("System.Security.Cryptography.DES.Create",
+                                                                                               "System.Security.Cryptography.RC2.Create");
+
+        private static readonly ImmutableArray<string> BadCipherProvider = ImmutableArray.Create("System.Security.Cryptography.DESCryptoServiceProvider",
+                                                                                                 "System.Security.Cryptography.RC2CryptoServiceProvider");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
@@ -46,28 +48,32 @@ namespace SecurityCodeScan.Analyzers
             if (expression != null)
             {
                 var symbol = ctx.SemanticModel.GetSymbolInfo(ctx.Node).Symbol;
-
-                foreach (string cipher in BadCiphers)
+                if (symbol != null)
                 {
-                    if (!AnalyzerUtil.SymbolMatch(symbol, type: cipher, name: "Create"))
-                        continue;
+                    foreach (string cipher in BadCipherCreate)
+                    {
+                        if (!symbol.IsType(cipher))
+                            continue;
 
-                    var diagnostic = Diagnostic.Create(Rule, expression.GetLocation(), cipher);
-                    ctx.ReportDiagnostic(diagnostic);
+                        var diagnostic = Diagnostic.Create(Rule, expression.GetLocation(), cipher);
+                        ctx.ReportDiagnostic(diagnostic);
+                    }
                 }
             }
 
             if (nodeHelper.IsObjectCreationExpressionNode(ctx.Node))
             {
                 var symbol = ctx.SemanticModel.GetSymbolInfo(ctx.Node).Symbol;
-
-                foreach (string cipher in BadCiphers)
+                if (symbol != null)
                 {
-                    if (!AnalyzerUtil.SymbolMatch(symbol, type: cipher + "CryptoServiceProvider"))
-                        continue;
+                    foreach (string cipher in BadCipherProvider)
+                    {
+                        if (!symbol.ContainingSymbol.IsType(cipher))
+                            continue;
 
-                    var diagnostic = Diagnostic.Create(Rule, ctx.Node.GetLocation(), cipher);
-                    ctx.ReportDiagnostic(diagnostic);
+                        var diagnostic = Diagnostic.Create(Rule, ctx.Node.GetLocation(), cipher);
+                        ctx.ReportDiagnostic(diagnostic);
+                    }
                 }
             }
         }

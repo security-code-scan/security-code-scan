@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
-using SecurityCodeScan.Analyzers.Taint;
+using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
 
 namespace SecurityCodeScan.Config
@@ -45,66 +45,18 @@ namespace SecurityCodeScan.Config
 
         private static readonly Version ConfigVersion = new Version(2,0);
 
-        private readonly char[] Parenthesis = { '(', ')' };
-
-        private void ValidateArgTypes(IEnumerable<MethodBehaviorData> methods)
-        {
-            if (methods == null)
-                return;
-
-            foreach (var method in methods)
-            {
-                if (method?.ArgTypes == null)
-                    continue;
-
-                var argTypes = method.ArgTypes;
-                if (argTypes.Length == 0)
-                    throw new Exception($"Do not specify 'ArgTypes:' in {method.Namespace}.{method.ClassName}.{method.Name} to match any overload");
-
-                if (argTypes.Trim() != argTypes)
-                    throw new Exception($"Leading or trailing white space in {method.Namespace}.{method.ClassName}.{method.Name}");
-
-                if (argTypes[0] != '(' || argTypes[argTypes.Length - 1] != ')')
-                    throw new Exception($"Invalid parenthesis in {method.Namespace}.{method.ClassName}.{method.Name}");
-
-                argTypes = argTypes.Substring(1, argTypes.Length - 2);
-                if (argTypes.IndexOfAny(Parenthesis) != -1)
-                    throw new Exception($"Parenthesis detected inside of 'ArgTypes:' in {method.Namespace}.{method.ClassName}.{method.Name}");
-
-                if (argTypes != string.Empty)
-                {
-                    foreach (var argType in argTypes.Split(new[] { ", " }, StringSplitOptions.None))
-                    {
-                        if (argType.Trim() != argType)
-                            throw new Exception(
-                                $"Leading or trailing white space in argument of {method.Namespace}.{method.ClassName}.{method.Name}");
-
-                        if (!argType.Contains("."))
-                            throw new Exception($"Argument type lacks namespace in {method.Namespace}.{method.ClassName}.{method.Name}");
-
-                        if (argType.Contains("this "))
-                            throw new Exception($"'this' keyword should be omitted in {method.Namespace}.{method.ClassName}.{method.Name}");
-
-                        var arg = argType;
-                        if (argType.Contains("params "))
-                            arg = argType.Replace("params ", "");
-                        if (argType.Contains("out "))
-                            arg = argType.Replace("out ", "");
-
-                        if (arg.Contains(" "))
-                            throw new Exception($"Argument name should be omitted in {method.Namespace}.{method.ClassName}.{method.Name}");
-                    }
-                }
-            }
-        }
-
         private T DeserializeAndValidate<T>(StreamReader reader) where T : ConfigData
         {
-            var deserializer = new Deserializer();
-            var data = deserializer.Deserialize<T>(reader);
-            ValidateArgTypes(data.Behavior?.Values);
-            ValidateArgTypes(data.Sinks?.Values);
-            return data;
+            var yaml = new YamlStream();
+            yaml.Load(reader); // throws if duplicates are found
+
+            reader.BaseStream.Seek(0, SeekOrigin.Begin);
+            using (var reader2 = new StreamReader(reader.BaseStream))
+            {
+                var deserializer = new Deserializer();
+                var data = deserializer.Deserialize<T>(reader2);
+                return data;
+            }
         }
 
         public ConfigData GetBuiltinConfiguration()
@@ -170,26 +122,27 @@ namespace SecurityCodeScan.Config
 
         private ConfigurationManager() { }
 
-        private Configuration CachedConfiguration;
+        private Configuration CachedBuiltInAndUserConfiguration;
+        private ConfigData    CachedBuiltInConfiguration;
 
-        private Configuration Configuration
+        private Configuration GetBuiltInAndUserConfiguration(bool refreshUserConfig = false)
         {
-            get
+            lock (ConfigurationLock)
             {
-                lock (ConfigurationLock)
-                {
-                    if (CachedConfiguration != null)
-                        return CachedConfiguration;
+                if (refreshUserConfig == false && CachedBuiltInAndUserConfiguration != null)
+                    return CachedBuiltInAndUserConfiguration;
 
-                    var builtinConfiguration = ConfigurationReader.GetBuiltinConfiguration();
-                    CachedConfiguration = new Configuration(builtinConfiguration);
+                if (CachedBuiltInAndUserConfiguration == null)
+                    CachedBuiltInConfiguration = ConfigurationReader.GetBuiltinConfiguration();
 
-                    var userConfig = ConfigurationReader.GetUserConfiguration();
-                    if (userConfig != null)
-                        CachedConfiguration.MergeWith(userConfig);
+                CachedBuiltInAndUserConfiguration = new Configuration(CachedBuiltInConfiguration);
 
-                    return CachedConfiguration;
-                }
+                var userConfig = ConfigurationReader.GetUserConfiguration();
+                if (userConfig != null)
+                    CachedBuiltInAndUserConfiguration.MergeWith(userConfig);
+
+                CachedBuiltInAndUserConfiguration.PrepareForQueries();
+                return CachedBuiltInAndUserConfiguration;
             }
         }
 
@@ -206,30 +159,33 @@ namespace SecurityCodeScan.Config
                 var projectConfig = ConfigurationReader.GetProjectConfiguration(additionalFiles, out var configPath);
                 if (projectConfig == null)
                 {
-                    return Configuration;
+                    return GetBuiltInAndUserConfiguration();
                 }
 
-                var mergedConfig = new Configuration(Configuration);
+                var mergedConfig = new Configuration(GetBuiltInAndUserConfiguration());
                 mergedConfig.MergeWith(projectConfig);
+                mergedConfig.PrepareForQueries();
                 ProjectConfigs[configPath] = mergedConfig;
                 return mergedConfig;
             }
         }
 
-        public IEnumerable<KeyValuePair<string, MethodBehavior>> GetBehaviors(ImmutableArray<AdditionalText> additionalFiles)
+        public Configuration GetUpdatedProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
         {
-            var config = GetProjectConfiguration(additionalFiles);
+            lock (ProjectConfigsLock)
+            {
+                var projectConfig = ConfigurationReader.GetProjectConfiguration(additionalFiles, out var configPath);
+                if (projectConfig == null)
+                {
+                    return GetBuiltInAndUserConfiguration(refreshUserConfig:true);
+                }
 
-            var behaviorInfos = new List<KeyValuePair<string, MethodBehavior>>(config.Behavior.Values);
-            behaviorInfos.AddRange(config.Sinks.Values);
-            return behaviorInfos;
-        }
-
-        public IEnumerable<string> GetAntiCsrfAttributes(ImmutableArray<AdditionalText> additionalFiles, string httpMethodsNamespace)
-        {
-            var config = GetProjectConfiguration(additionalFiles);
-
-            return config.AntiCsrfAttributes[httpMethodsNamespace];
+                var mergedConfig = new Configuration(GetBuiltInAndUserConfiguration(refreshUserConfig: true));
+                mergedConfig.MergeWith(projectConfig);
+                mergedConfig.PrepareForQueries();
+                ProjectConfigs[configPath] = mergedConfig;
+                return mergedConfig;
+            }
         }
     }
 
@@ -238,37 +194,56 @@ namespace SecurityCodeScan.Config
         public string Version { get; set; }
     }
 
+    /// <summary>
+    /// External YML configuration structure
+    /// </summary>
     internal class ConfigData
     {
-        public bool?                                  AuditMode                           { get; set; }
-        public int?                                   PasswordValidatorRequiredLength     { get; set; }
-        public int?                                   MinimumPasswordValidatorProperties  { get; set; }
-        public List<string>                           PasswordValidatorRequiredProperties { get; set; }
-        public Dictionary<string, MethodBehaviorData> Behavior                            { get; set; }
-        public Dictionary<string, MethodBehaviorData> Sinks                               { get; set; }
-        public List<CsrfProtectionData>               CsrfProtectionAttributes            { get; set; }
-        public List<string>                           PasswordFields                      { get; set; }
-        public List<string>                           ConstantFields                      { get; set; }
-        public List<string>                           SanitizerTypes                      { get; set; }
+        public bool?                                   AuditMode                           { get; set; }
+        public int?                                    PasswordValidatorRequiredLength     { get; set; }
+        public int?                                    MinimumPasswordValidatorProperties  { get; set; }
+        public List<string>                            PasswordValidatorRequiredProperties { get; set; }
+        public Dictionary<string, object>              Behavior                            { get; set; }
+        public Dictionary<string, TaintEntryPointData> TaintEntryPoints                    { get; set; }
+        public List<CsrfProtectionData>                CsrfProtectionAttributes            { get; set; }
+        public List<string>                            PasswordFields                      { get; set; }
+        public List<string>                            ConstantFields                      { get; set; }
+        public List<string>                            TaintTypes                          { get; set; }
     }
 
-    internal class MethodBehaviorData
+    internal class Signature
     {
-        public string   ClassName           { get; set; }
-        // TODO: use member field in taint analysis or remove it completely
-        public string   Member              { get; set; }
-        public string   Name                { get; set; }
-        public string   Namespace           { get; set; }
-        public string   ArgTypes            { get; set; }
-        public object[] InjectableArguments { get; set; }
-        public int[]    PasswordArguments   { get; set; }
-        public object[] TaintFromArguments  { get; set; }
-        public object[] PreConditions       { get; set; }
-        public object[] PostConditions      { get; set; }
-        public string   Locale              { get; set; }
-        public string   LocalePass          { get; set; }
-        public object   InjectableField     { get; set; }
-        public bool     IsPasswordField     { get; set; }
+        public string     Namespace { get; set; }
+        public string     ClassName { get; set; }
+        public string     Name      { get; set; }
+        public MethodData Method    { get; set; }
+        public FieldData  Field     { get; set; }
+    }
+
+    internal class MethodData
+    {
+        public string        ArgTypes            { get; set; }
+        public object[]      InjectableArguments { get; set; }
+        public ConditionData If                  { get; set; }
+    }
+
+    internal class ConditionData
+    {
+        public Dictionary<object, object> Condition { get; set; }
+        public Dictionary<object, object> Then      { get; set; }
+    }
+
+    internal class FieldData
+    {
+        public object Injectable { get; set; }
+    }
+
+    internal class TaintEntryPointData : Signature
+    {
+    }
+
+    internal class MethodBehaviorData : Signature
+    {
     }
 
     internal class CsrfProtectionData

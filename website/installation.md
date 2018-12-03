@@ -10,7 +10,7 @@ Installing it as NuGet package gives an advantage to choose projects in a soluti
 > In a .NET Core project, if you add a reference to a project that has SCS as a NuGet package, it is automatically added to the dependent project too. To disable this behavior, for example if the dependent project is a unit test project, mark the NuGet package as private in the *.csproj* or *.vbproj* file of the referenced project:
 >
 > ```xml
-> <PackageReference Include="SecurityCodeScan" Version="2.8.0" PrivateAssets="all" />
+> <PackageReference Include="SecurityCodeScan" Version="3.0.0" PrivateAssets="all" />
 > ```
 
 However it requires discipline to install SCS into every solution a developer works with. Installing it as a Visual Studio extension is a single install action.

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers.Taint;
+using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
 
 namespace SecurityCodeScan.Test.Taint
@@ -61,7 +62,7 @@ using System.IO;
 
 class A
 {
-    public static T DeepClone<T>(T obj)
+    public T DeepClone<T>(T obj)
     {
         using (var ms = new MemoryStream())
         {
@@ -81,7 +82,7 @@ Imports System.IO
 
 Class A
 
-    Public Shared Function DeepClone(Of T)(ByVal obj As T) As T
+    Public Function DeepClone(Of T)(ByVal obj As T) As T
         Using ms = New MemoryStream()
             Dim formatter = New BinaryFormatter()
             formatter.Serialize(ms, obj)
@@ -92,8 +93,15 @@ Class A
 End Class
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    ClassName: A
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -112,7 +120,7 @@ namespace VulnerableApp
 {{
     class Test
     {{
-        static void TestDeserialization(Stream input)
+        public void TestDeserialization(Stream input)
         {{
             var formatter = new BinaryFormatter();
             formatter.{method}(input{additionalParams});
@@ -129,7 +137,7 @@ Imports System.Runtime.Serialization.Formatters.Binary
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As Stream)
+        Public Sub TestDeserialization(input As Stream)
             Dim formatter = New BinaryFormatter()
             formatter.{method}(input{vbAdditionalParams})
         End Sub
@@ -137,8 +145,16 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(12)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(9)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(12), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(9), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -152,7 +168,7 @@ namespace VulnerableApp
 {
     class Test
     {
-        static void TestDeserialization(Message input)
+        public void TestDeserialization(Message input)
         {
             var formatter = new BinaryMessageFormatter();
             formatter.Read(input);
@@ -166,7 +182,7 @@ Imports System.Messaging
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As Message)
+        Public Sub TestDeserialization(input As Message)
             Dim formatter = New BinaryMessageFormatter()
             formatter.Read(input)
         End Sub
@@ -174,8 +190,16 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -192,7 +216,7 @@ namespace VulnerableApp
 {{
     class Test
     {{
-        static void TestDeserialization(Stream input)
+        public void TestDeserialization(Stream input)
         {{
             var formatter = new SoapFormatter();
             formatter.Deserialize(input{additionalParams});
@@ -209,7 +233,7 @@ Imports System.Runtime.Serialization.Formatters.Soap
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As Stream)
+        Public Sub TestDeserialization(input As Stream)
             Dim formatter = New SoapFormatter()
             formatter.Deserialize(input{vbAdditionalParams})
         End Sub
@@ -217,8 +241,16 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(12)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(9)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(12), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(9), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -234,7 +266,7 @@ namespace VulnerableApp
 {{
     class Test
     {{
-        static void TestDeserialization({inputType} input)
+        public void TestDeserialization({inputType} input)
         {{
             var formatter = new ObjectStateFormatter();
             formatter.Deserialize(input);
@@ -248,7 +280,7 @@ Imports System.Web.UI
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As {inputType})
+        Public Sub TestDeserialization(input As {inputType})
             Dim formatter = New ObjectStateFormatter()
             formatter.Deserialize(input)
         End Sub
@@ -256,8 +288,16 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -277,7 +317,7 @@ namespace VulnerableApp
 {{
     class Test
     {{
-        static void TestDeserialization({inputType} input)
+        public void TestDeserialization({inputType} input)
         {{
             var formatter = new NetDataContractSerializer();
             formatter.{methodName}(input{additionalParams});
@@ -291,7 +331,7 @@ Imports System.Runtime.Serialization
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As {inputType})
+        Public Sub TestDeserialization(input As {inputType})
             Dim formatter = New NetDataContractSerializer()
             formatter.{methodName}(input{additionalParams})
         End Sub
@@ -299,8 +339,16 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -319,7 +367,7 @@ namespace VulnerableApp
 {{
     class Test
     {{
-        static void TestDeserialization({inputType} input)
+        public void TestDeserialization({inputType} input)
         {{
             var formatter = new DataContractSerializer(typeof(Test));
             formatter.ReadObject(input{additionalParams});
@@ -333,7 +381,7 @@ Imports System.Runtime.Serialization
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As {inputType})
+        Public Sub TestDeserialization(input As {inputType})
             Dim formatter = New DataContractSerializer(GetType(Test))
             formatter.ReadObject(input{additionalParams})
         End Sub
@@ -341,8 +389,16 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -357,7 +413,7 @@ namespace VulnerableApp
 {
     class Test
     {
-        static void TestDeserialization(Type objectType)
+        public void TestDeserialization(Type objectType)
         {
             var formatter = new DataContractSerializer(objectType);
         }
@@ -371,15 +427,23 @@ Imports System.Runtime.Serialization
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(objectType as Type)
+        Public Sub TestDeserialization(objectType as Type)
             Dim formatter = New DataContractSerializer(objectType)
         End Sub
     End Class
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -398,7 +462,7 @@ namespace VulnerableApp
 {{
     class Test
     {{
-        static void TestDeserialization({inputType} input)
+        public void TestDeserialization({inputType} input)
         {{
             var formatter = new DataContractJsonSerializer(typeof(Test));
             formatter.ReadObject(input{additionalParams});
@@ -412,7 +476,7 @@ Imports System.Runtime.Serialization.Json
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As {inputType})
+        Public Sub TestDeserialization(input As {inputType})
             Dim formatter = New DataContractJsonSerializer(GetType(Test))
             formatter.ReadObject(input{additionalParams})
         End Sub
@@ -420,8 +484,16 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -436,7 +508,7 @@ namespace VulnerableApp
 {
     class Test
     {
-        static void TestDeserialization(Type objectType)
+        public void TestDeserialization(Type objectType)
         {
             var formatter = new DataContractJsonSerializer(objectType);
         }
@@ -450,15 +522,23 @@ Imports System.Runtime.Serialization.Json
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(objectType as Type)
+        Public Sub TestDeserialization(objectType as Type)
             Dim formatter = New DataContractJsonSerializer(objectType)
         End Sub
     End Class
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -478,7 +558,7 @@ namespace VulnerableApp
 {{
     class Test
     {{
-        static void TestDeserialization({inputType} input)
+        public void TestDeserialization({inputType} input)
         {{
             var formatter = new XmlSerializer(typeof(Test));
             formatter.Deserialize(input{additionalParams});
@@ -492,7 +572,7 @@ Imports System.Xml.Serialization
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As {inputType})
+        Public Sub TestDeserialization(input As {inputType})
             Dim formatter = New XmlSerializer(GetType(Test))
             formatter.Deserialize(input{additionalParams})
         End Sub
@@ -500,8 +580,16 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -516,7 +604,7 @@ namespace VulnerableApp
 {
     class Test
     {
-        static void TestDeserialization(Type objectType)
+        public void TestDeserialization(Type objectType)
         {
             var formatter = new XmlSerializer(objectType);
         }
@@ -530,15 +618,23 @@ Imports System.Xml.Serialization
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(objectType as Type)
+        Public Sub TestDeserialization(objectType as Type)
             Dim formatter = New XmlSerializer(objectType)
         End Sub
     End Class
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -552,7 +648,7 @@ namespace VulnerableApp
 {
     class Test
     {
-        static void TestDeserialization(Message input)
+        public void TestDeserialization(Message input)
         {
             var formatter = new XmlMessageFormatter();
             formatter.Read(input);
@@ -566,7 +662,7 @@ Imports System.Messaging
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As Message)
+        Public Sub TestDeserialization(input As Message)
             Dim formatter = New XmlMessageFormatter()
             formatter.Read(input)
         End Sub
@@ -574,8 +670,16 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -592,7 +696,7 @@ namespace VulnerableApp
 {{
     class Test
     {{
-        static void TestDeserialization({inputType} input)
+        public void TestDeserialization({inputType} input)
         {{
             var formatter = new LosFormatter();
             formatter.Deserialize(input);
@@ -606,7 +710,7 @@ Imports System.Web.UI
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As {inputType})
+        Public Sub TestDeserialization(input As {inputType})
             Dim formatter = New LosFormatter()
             formatter.Deserialize(input)
         End Sub
@@ -614,8 +718,16 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -629,7 +741,7 @@ namespace VulnerableApp
 {
     class Test
     {
-        static void TestDeserialization(string input)
+        public void TestDeserialization(string input)
         {
             JSON.ToObject(input);
         }
@@ -642,15 +754,23 @@ Imports fastJSON
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As String)
+        Public Sub TestDeserialization(input As String)
             JSON.ToObject(input)
         End Sub
     End Class
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -664,7 +784,7 @@ namespace VulnerableApp
 {
     class Test
     {
-        static void TestDeserialization(string input)
+        public void TestDeserialization(string input)
         {
             JSON.ToObject<Test>(input);
         }
@@ -677,15 +797,23 @@ Imports fastJSON
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As String)
+        Public Sub TestDeserialization(input As String)
             JSON.ToObject(Of Test)(input)
         End Sub
     End Class
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -702,7 +830,7 @@ namespace VulnerableApp
 {{
     class Test
     {{
-        static void TestDeserialization({firstParam} param1, {secondParam} param2)
+        public void TestDeserialization({firstParam} param1, {secondParam} param2)
         {{
             JsonSerializer.{method}(param1, param2);
         }}
@@ -710,22 +838,28 @@ namespace VulnerableApp
 }}
 ";
 
-            Console.WriteLine(cSharpTest);
-
             var visualBasicTest = $@"
 Imports ServiceStack.Text
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(param1 As {firstParam}, param2 as {secondParam})
+        Public Sub TestDeserialization(param1 As {firstParam}, param2 as {secondParam})
             JsonSerializer.{method}(param1, param2)
         End Sub
     End Class
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, new[] { Expected.WithLocation(10), Expected.WithLocation(10) }).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { Expected.WithLocation(7), Expected.WithLocation(7) }).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, new[] { Expected.WithLocation(10), Expected.WithLocation(10) }, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { Expected.WithLocation(7), Expected.WithLocation(7) }, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -745,7 +879,7 @@ namespace VulnerableApp
 {{
     class Test
     {{
-        static void TestDeserialization({inputType} input)
+        public void TestDeserialization({inputType} input)
         {{
             JsonSerializer.{cSharpMethod}(input);
         }}
@@ -753,22 +887,28 @@ namespace VulnerableApp
 }}
 ";
 
-            Console.WriteLine(cSharpTest);
-
             var visualBasicTest = $@"
 Imports ServiceStack.Text
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As {inputType})
+        Public Sub TestDeserialization(input As {inputType})
             JsonSerializer.{visualBasicMethod}(input)
         End Sub
     End Class
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -785,7 +925,7 @@ namespace VulnerableApp
 {{
     class Test
     {{
-        static void TestDeserialization({firstParam} param1, {secondParam} param2)
+        public void TestDeserialization({firstParam} param1, {secondParam} param2)
         {{
             TypeSerializer.{method}(param1, param2);
         }}
@@ -793,22 +933,28 @@ namespace VulnerableApp
 }}
 ";
 
-            Console.WriteLine(cSharpTest);
-
             var visualBasicTest = $@"
 Imports ServiceStack.Text
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(param1 As {firstParam}, param2 as {secondParam})
+        Public Sub TestDeserialization(param1 As {firstParam}, param2 as {secondParam})
             TypeSerializer.{method}(param1, param2)
         End Sub
     End Class
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, new[] { Expected.WithLocation(10), Expected.WithLocation(10) }).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { Expected.WithLocation(7), Expected.WithLocation(7) }).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, new[] { Expected.WithLocation(10), Expected.WithLocation(10) }, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { Expected.WithLocation(7), Expected.WithLocation(7) }, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -828,7 +974,7 @@ namespace VulnerableApp
 {{
     class Test
     {{
-        static void TestDeserialization({inputType} input)
+        public void TestDeserialization({inputType} input)
         {{
             TypeSerializer.{cSharpMethod}(input);
         }}
@@ -836,22 +982,28 @@ namespace VulnerableApp
 }}
 ";
 
-            Console.WriteLine(cSharpTest);
-
             var visualBasicTest = $@"
 Imports ServiceStack.Text
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As {inputType})
+        Public Sub TestDeserialization(input As {inputType})
             TypeSerializer.{visualBasicMethod}(input)
         End Sub
     End Class
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -868,7 +1020,7 @@ namespace VulnerableApp
 {{
     class Test
     {{
-        static void TestDeserialization({inputType} input, Type type)
+        public void TestDeserialization({inputType} input, Type type)
         {{
             CsvSerializer.{method}(type, input);
         }}
@@ -876,23 +1028,29 @@ namespace VulnerableApp
 }}
 ";
 
-            Console.WriteLine(cSharpTest);
-
             var visualBasicTest = $@"
 Imports System
 Imports ServiceStack.Text
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As {inputType}, type as Type)
+        Public Sub TestDeserialization(input As {inputType}, type as Type)
             CsvSerializer.{method}(type, input)
         End Sub
     End Class
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, new[] { Expected.WithLocation(11), Expected.WithLocation(11) }).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { Expected.WithLocation(8), Expected.WithLocation(8) }).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, new[] { Expected.WithLocation(11), Expected.WithLocation(11) }, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { Expected.WithLocation(8), Expected.WithLocation(8) }, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -912,7 +1070,7 @@ namespace VulnerableApp
 {{
     class Test
     {{
-        static void TestDeserialization({inputType} input)
+        public void TestDeserialization({inputType} input)
         {{
             CsvSerializer.{cSharpMethod}(input);
         }}
@@ -920,22 +1078,28 @@ namespace VulnerableApp
 }}
 ";
 
-            Console.WriteLine(cSharpTest);
-
             var visualBasicTest = $@"
 Imports ServiceStack.Text
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As {inputType})
+        Public Sub TestDeserialization(input As {inputType})
             CsvSerializer.{visualBasicMethod}(input)
         End Sub
     End Class
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -951,7 +1115,7 @@ namespace VulnerableApp
 {{
     class Test
     {{
-        static void TestDeserialization({firstParam} param1, {secondParam} param2)
+        public void TestDeserialization({firstParam} param1, {secondParam} param2)
         {{
             XmlSerializer.{method}(param1, param2);
         }}
@@ -959,22 +1123,28 @@ namespace VulnerableApp
 }}
 ";
 
-            Console.WriteLine(cSharpTest);
-
             var visualBasicTest = $@"
 Imports ServiceStack.Text
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(param1 As {firstParam}, param2 as {secondParam})
+        Public Sub TestDeserialization(param1 As {firstParam}, param2 as {secondParam})
             XmlSerializer.{method}(param1, param2)
         End Sub
     End Class
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, new[] { Expected.WithLocation(10), Expected.WithLocation(10) }).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { Expected.WithLocation(7), Expected.WithLocation(7) }).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, new[] { Expected.WithLocation(10), Expected.WithLocation(10) }, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, new[] { Expected.WithLocation(7), Expected.WithLocation(7) }, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -994,7 +1164,7 @@ namespace VulnerableApp
 {{
     class Test
     {{
-        static void TestDeserialization({inputType} input)
+        public void TestDeserialization({inputType} input)
         {{
             XmlSerializer.{cSharpMethod}(input);
         }}
@@ -1002,22 +1172,28 @@ namespace VulnerableApp
 }}
 ";
 
-            Console.WriteLine(cSharpTest);
-
             var visualBasicTest = $@"
 Imports ServiceStack.Text
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As {inputType})
+        Public Sub TestDeserialization(input As {inputType})
             XmlSerializer.{visualBasicMethod}(input)
         End Sub
     End Class
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -1033,7 +1209,7 @@ namespace VulnerableApp
 {{
     class Test
     {{
-        static void TestDeserialization({inputType} input)
+        public void TestDeserialization({inputType} input)
         {{
             var formatter = new ResourceReader(input);
         }}
@@ -1046,15 +1222,23 @@ Imports System.Resources
 
 Namespace VulnerableApp
     Class Test
-        Private Sub TestDeserialization(input As {inputType})
+        Public Sub TestDeserialization(input As {inputType})
             Dim formatter = New ResourceReader(input)
         End Sub
     End Class
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7)).ConfigureAwait(false);
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: VulnerableApp
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(7), optionsWithProjectConfig).ConfigureAwait(false);
         }
     }
 }

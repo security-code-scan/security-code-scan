@@ -4,9 +4,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
-using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
-using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
@@ -42,11 +40,13 @@ namespace SecurityCodeScan.Analyzers
                 return;
 
             var symbol = ctx.SemanticModel.GetSymbolInfo(ctx.Node).Symbol;
+            if (symbol == null)
+                return;
 
             //System.Random.Next()
-            if (AnalyzerUtil.SymbolMatch(symbol, type: "Random", name: "Next")      ||
-                AnalyzerUtil.SymbolMatch(symbol, type: "Random", name: "NextBytes") ||
-                AnalyzerUtil.SymbolMatch(symbol, type: "Random", name: "NextDouble"))
+            if (symbol.IsType("System.Random.Next")      ||
+                symbol.IsType("System.Random.NextBytes") ||
+                symbol.IsType("System.Random.NextDouble"))
             {
                 var diagnostic = Diagnostic.Create(Rule, expression.GetLocation());
                 ctx.ReportDiagnostic(diagnostic);

@@ -2028,8 +2028,7 @@ Behavior:
     ClassName: Test
     Name: Sink
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [SCS0026: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -2098,8 +2097,7 @@ Behavior:
     ClassName: Test
     Name: Sink
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [SCS0026: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -2208,8 +2206,7 @@ Behavior:
     ClassName: MyController
     Name: Sink
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [SCS0026: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -2286,8 +2283,7 @@ Behavior:
     ClassName: MyController
     Name: Sink
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [SCS0026: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -2366,8 +2362,7 @@ Behavior:
     ClassName: MyPage
     Name: Sink
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [SCS0026: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -2460,8 +2455,7 @@ Behavior:
     ClassName: HttpResponse
     Name: Write
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0029
+      InjectableArguments: [SCS0029: 0]
 
   sample_HttpRequest:
     Namespace: sample
@@ -2482,8 +2476,7 @@ Behavior:
     ClassName: HttpResponse
     Name: Write
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0029
+      InjectableArguments: [SCS0029: 0]
 
   sample_HttpRequest:
     Namespace: sample
@@ -2542,8 +2535,7 @@ Behavior:
     ClassName: Test
     Name: Sink
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0026
+      InjectableArguments: [SCS0026: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

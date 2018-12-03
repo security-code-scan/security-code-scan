@@ -364,6 +364,75 @@ namespace SecurityCodeScan.Config
             return outArguments;
         }
 
+        private IReadOnlyDictionary<int, InjectableArgument> GetInjectableArguments(IReadOnlyList<object> arguments)
+        {
+            if (arguments == null || !arguments.Any())
+                return null;
+
+            var outArguments = new Dictionary<int, InjectableArgument>(arguments.Count);
+            foreach (var argument in arguments)
+            {
+                switch (argument)
+                {
+                    case Dictionary<object, object> d when d.Count == 1:
+                        {
+                            var rule = d.First();
+                            var ruleId = (string)rule.Key;
+                            switch (rule.Value)
+                            {
+                                case string idxText:
+                                {
+                                    int idx = int.Parse(idxText);
+                                    if (idx < 0)
+                                        throw new Exception("Argument index cannot be negative");
+
+                                    outArguments.Add(idx, new InjectableArgument((ulong)VariableTaint.Safe, ruleId));
+                                    break;
+                                }
+                                case List<object> indices:
+                                    foreach (var index in indices)
+                                    {
+                                        switch (index)
+                                        {
+                                            case string idxText:
+                                            {
+                                                int idx = int.Parse(idxText);
+                                                if (idx < 0)
+                                                    throw new Exception("Argument index cannot be negative");
+
+                                                outArguments.Add(idx, new InjectableArgument((ulong)VariableTaint.Safe, ruleId));
+                                                break;
+                                            }
+                                            case Dictionary<object, object> idxToTaints when idxToTaints.Count == 1:
+                                            {
+                                                var idxToTaint = idxToTaints.First();
+                                                var idxText = (string)idxToTaint.Key;
+                                                int idx = int.Parse(idxText);
+                                                if (idx < 0)
+                                                    throw new Exception("Argument index cannot be negative");
+
+                                                var taintBit = GetTaintBits((string)idxToTaint.Value);
+                                                outArguments.Add(idx, new InjectableArgument(taintBit, ruleId));
+                                                break;
+                                            }
+                                            default:
+                                                throw new Exception("Unknown behavior argument");
+                                        }
+                                    }
+                                    break;
+                                default:
+                                    throw new Exception("Unknown behavior argument");
+                            }
+                            break;
+                        }
+                    default:
+                        throw new Exception("Unknown behavior argument");
+                }
+            }
+
+            return outArguments;
+        }
+
         private IReadOnlyDictionary<int, PostCondition> GetPostConditions(IReadOnlyDictionary<object, object> arguments,
                                                                           IReadOnlyDictionary<int, PostCondition> defaultPostConditions = null)
         {
@@ -434,24 +503,24 @@ namespace SecurityCodeScan.Config
             return conditions;
         }
 
-        private ulong GetField(object value)
-        {
-            if (value == null)
-                return 0ul;
+        //private InjectableArgument GetField(object value)
+        //{
+        //    if (value == null)
+        //        return null;
 
-            switch (value)
-            {
-                case string s when s == "true":
-                    return (ulong)VariableTaint.Safe;
-                case string s:
-                    return TaintTypeNameToBit[s];
-                case List <object> taintTypes: {
-                    return GetTaintBits(taintTypes);
-                }
-                default:
-                    throw new Exception("Unknown injectable argument");
-            }
-        }
+        //    switch (value)
+        //    {
+        //        case string s when s == "true":
+        //            return (ulong)VariableTaint.Safe;
+        //        case string s:
+        //            return TaintTypeNameToBit[s];
+        //        case List <object> taintTypes: {
+        //            return GetTaintBits(taintTypes);
+        //        }
+        //        default:
+        //            throw new Exception("Unknown injectable argument");
+        //    }
+        //}
 
         private readonly char[] Parenthesis = { '(', ')' };
 
@@ -515,10 +584,6 @@ namespace SecurityCodeScan.Config
             if (behaviorDict.TryGetValue("Name", out value))
                 name = (string)value;
 
-            string locale = null;
-            if (behaviorDict.TryGetValue("Locale", out value))
-                locale = (string)value;
-
             IEnumerable<int> passwordArguments = null;
             if (behaviorDict.TryGetValue("PasswordArguments", out value))
                 passwordArguments = ((IReadOnlyList<object>)value).Select(Convert.ToInt32);
@@ -559,10 +624,9 @@ namespace SecurityCodeScan.Config
             var mainPostConditions = GetPostConditions(method);
             return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetPreConditions(ifCondition, mainPostConditions),
                                                                                     mainPostConditions,
-                                                                                    GetArguments(injectableArguments),
-                                                                                    passwordArguments?.ToImmutableHashSet<int>(),
-                                                                                    locale,
-                                                                                    GetField(injectable)));
+                                                                                    GetInjectableArguments(injectableArguments),
+                                                                                    null/*passwordArguments?.ToImmutableHashSet<int>()*/,
+                                                                                    null/*GetField(injectable)*/));
         }
 
         public void AddAntiCsrfTAttributeToConfiguration(CsrfProtectionData csrfData)

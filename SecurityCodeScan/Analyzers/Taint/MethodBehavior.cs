@@ -29,27 +29,37 @@ namespace SecurityCodeScan.Analyzers.Taint
         public IReadOnlyDictionary<int, PostCondition> Then { get; }
     }
 
+    public class InjectableArgument
+    {
+        public InjectableArgument(ulong taint, string locale)
+        {
+            Locale            = locale;
+            RequiredTaintBits = taint;
+        }
+
+        public string Locale { get; }
+
+        public ulong RequiredTaintBits { get; }
+    }
+
     public class MethodBehavior
     {
-        public IReadOnlyDictionary<int, ulong>         InjectableArguments { get; }
-        public ImmutableHashSet<int>                   PasswordArguments   { get; }
-        public IReadOnlyList<Condition>                Conditions          { get; }
-        public IReadOnlyDictionary<int, PostCondition> PostConditions      { get; }
-        public string                                  LocaleInjection     { get; }
-        public ulong                                   InjectableField     { get; }
+        public IReadOnlyDictionary<int, InjectableArgument> InjectableArguments { get; }
+        public ImmutableHashSet<int>                        PasswordArguments   { get; }
+        public IReadOnlyList<Condition>                     Conditions          { get; }
+        public IReadOnlyDictionary<int, PostCondition>      PostConditions      { get; }
+        public InjectableArgument                           InjectableField     { get; }
 
-        public MethodBehavior(IReadOnlyList<Condition>                preConditions,
-                              IReadOnlyDictionary<int, PostCondition> postConditions,
-                              IReadOnlyDictionary<int, ulong>         injectableArguments,
-                              ImmutableHashSet<int>                   passwordArguments,
-                              string                                  localeInjection,
-                              ulong                                   injectableField)
+        public MethodBehavior(IReadOnlyList<Condition>                     preConditions,
+                              IReadOnlyDictionary<int, PostCondition>      postConditions,
+                              IReadOnlyDictionary<int, InjectableArgument> injectableArguments,
+                              ImmutableHashSet<int>                        passwordArguments,
+                              InjectableArgument                           injectableField)
         {
-            InjectableArguments = injectableArguments ?? EmptyDictionary<int, ulong>.Value;
+            InjectableArguments = injectableArguments ?? EmptyDictionary<int, InjectableArgument>.Value;
             PasswordArguments   = passwordArguments   ?? ImmutableHashSet<int>.Empty;
             PostConditions      = postConditions      ?? EmptyDictionary<int, PostCondition>.Value;
             Conditions          = preConditions       ?? EmptyList<Condition>.Value;
-            LocaleInjection     = localeInjection;
             InjectableField     = injectableField;
         }
     }

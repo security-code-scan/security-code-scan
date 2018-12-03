@@ -640,10 +640,10 @@ namespace SecurityCodeScan.Analyzers.Taint
                     if ((argumentState.Taint & (ProjectConfiguration.AuditMode ? VariableTaint.Tainted | VariableTaint.Unknown : VariableTaint.Tainted)) != 0)
                     {
                         //If the current parameter can be injected.
-                        if (behavior.InjectableArguments.TryGetValue(adjustedArgumentIdx, out var requiredTaintBits) &&
-                            (requiredTaintBits & (ulong)argumentState.Taint) != requiredTaintBits)
+                        if (behavior.InjectableArguments.TryGetValue(adjustedArgumentIdx, out var injectableArgument) &&
+                            (injectableArgument.RequiredTaintBits & (ulong)argumentState.Taint) != injectableArgument.RequiredTaintBits)
                         {
-                            var newRule    = LocaleUtil.GetDescriptor(behavior.LocaleInjection);
+                            var newRule    = LocaleUtil.GetDescriptor(injectableArgument.Locale);
                             var diagnostic = Diagnostic.Create(newRule, argument.Expression.GetLocation(), GetMethodName(node), (i + 1).ToNthString());
                             state.AnalysisContext.ReportDiagnostic(diagnostic);
                         }
@@ -653,7 +653,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                                          //If the current parameter is a password
                         behavior.PasswordArguments.Contains(adjustedArgumentIdx))
                     {
-                        var newRule    = LocaleUtil.GetDescriptor(behavior.LocaleInjection);
+                        var newRule    = LocaleUtil.GetDescriptor(behavior.InjectableField.Locale);
                         var diagnostic = Diagnostic.Create(newRule, argument.Expression.GetLocation(), GetMethodName(node), (i + 1).ToNthString());
                         state.AnalysisContext.ReportDiagnostic(diagnostic);
                     }
@@ -769,10 +769,10 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (variableState.Taint != VariableTaint.Constant &&
                 behavior != null &&
                 // compare if all required sanitization bits are set
-                ((ulong)(variableState.Taint & VariableTaint.Safe) & behavior.InjectableField) != behavior.InjectableField &&
+                ((ulong)(variableState.Taint & VariableTaint.Safe) & behavior.InjectableField.RequiredTaintBits) != behavior.InjectableField.RequiredTaintBits &&
                 (variableState.Taint & (ProjectConfiguration.AuditMode ? VariableTaint.Tainted | VariableTaint.Unknown : VariableTaint.Tainted)) != 0)
             {
-                var newRule    = LocaleUtil.GetDescriptor(behavior.LocaleInjection, "title_assignment");
+                var newRule    = LocaleUtil.GetDescriptor(behavior.InjectableField.Locale, "title_assignment");
                 var diagnostic = Diagnostic.Create(newRule, node.GetLocation());
                 state.AnalysisContext.ReportDiagnostic(diagnostic);
             }

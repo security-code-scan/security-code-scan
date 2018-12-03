@@ -128,8 +128,7 @@ Behavior:
     ClassName: Test
     Name: Vulnerable
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0001
+      InjectableArguments: [SCS0001: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -347,8 +346,7 @@ Behavior:
     ClassName: Test
     Name: Vulnerable
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0001
+      InjectableArguments: [SCS0001: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -370,8 +368,7 @@ Behavior:
     ClassName: Test
     Name: Vulnerable
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0001
+      InjectableArguments: [SCS0001: 0]
 
   MyKey2:
     Namespace: sample

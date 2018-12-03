@@ -119,8 +119,7 @@ Behavior:
     ClassName: MyFoo
     Name: Sink
     Method:
-      InjectableArguments: [0]
-    Locale: SCS0035
+      InjectableArguments: [SCS0035: 0]
 
   db3:
     Namespace: Microsoft.EntityFrameworkCore

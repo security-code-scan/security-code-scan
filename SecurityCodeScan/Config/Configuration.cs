@@ -234,8 +234,11 @@ namespace SecurityCodeScan.Config
 
             foreach (var typeName in typeNames)
             {
-                if (typeName == "Tainted" || typeName == "Safe")
-                    throw new Exception("'Tainted' or 'Safe' are reserved taint types and cannot be used for custom taint");
+                if (typeName == "Tainted" || typeName == "Safe" || typeName == "Constant")
+                    throw new Exception("'Tainted', 'Safe', and 'Constant' are reserved taint types and cannot be used for custom taint");
+
+                if (typeName.StartsWith("~"))
+                    throw new Exception("Custom taint type cannot start from '~'");
 
                 if (TaintTypeNameToBit.ContainsKey(typeName))
                     throw new Exception("Duplicate taint type");
@@ -294,7 +297,9 @@ namespace SecurityCodeScan.Config
             foreach (var type in taintTypes)
             {
                 var taintType = (string)type;
-                bits |= GetTaintBits(taintType);
+                bits |= GetTaintBits(taintType, out var negate);
+                if (negate)
+                    throw new Exception("Negation in arrays is not supported");
             }
 
             if (bits == 0ul)
@@ -303,17 +308,33 @@ namespace SecurityCodeScan.Config
             return bits;
         }
 
-        private ulong GetTaintBits(string taintType)
+        private ulong GetTaintBits(string taintType, out bool negate)
         {
+            negate = false;
+            if (taintType.StartsWith("~"))
+            {
+                negate = true;
+                taintType = taintType.Substring(1);
+            }
+
+            ulong taintBits;
             switch (taintType)
             {
                 case "Tainted":
-                    return (ulong)VariableTaint.Tainted;
+                    taintBits = (ulong)VariableTaint.Tainted;
+                    break;
                 case "Safe":
-                    return (ulong)VariableTaint.Safe;
+                    taintBits = (ulong)VariableTaint.Safe;
+                    break;
+                case "Constant":
+                    taintBits = (ulong)VariableTaint.Constant;
+                    break;
                 default:
-                    return TaintTypeNameToBit[taintType];
+                    taintBits = TaintTypeNameToBit[taintType];
+                    break;
             }
+
+            return taintBits;
         }
 
         private IReadOnlyDictionary<int, ulong> GetArguments(IReadOnlyList<object> arguments)
@@ -411,8 +432,8 @@ namespace SecurityCodeScan.Config
                                                 if (idx < 0)
                                                     throw new Exception("Argument index cannot be negative");
 
-                                                var taintBit = GetTaintBits((string)idxToTaint.Value);
-                                                outArguments.Add(idx, new InjectableArgument(taintBit, ruleId));
+                                                var taintBit = GetTaintBits((string)idxToTaint.Value, out var negate);
+                                                outArguments.Add(idx, new InjectableArgument(taintBit, ruleId, negate));
                                                 break;
                                             }
                                             default:
@@ -462,8 +483,10 @@ namespace SecurityCodeScan.Config
                             switch (condition.Value)
                             {
                                 case string taintType:
-                                    taintBit = GetTaintBits(taintType);
-                                    break;
+                                    taintBit = GetTaintBits(taintType, out var negate);
+                                    if (negate)
+                                        throw new Exception("Negation in postconditions is not supported");
+                                break;
                                 case List<object> taintTypes:
                                     taintBit = GetTaintBits(taintTypes);
                                     break;
@@ -519,7 +542,8 @@ namespace SecurityCodeScan.Config
                         throw new Exception("Unknown injectable argument");
 
                     var t = types.First();
-                    return new InjectableArgument(GetTaintBits((string)t.Value), (string)t.Key);
+                    var taintBits = GetTaintBits((string)t.Value, out var negate);
+                    return new InjectableArgument(taintBits, (string)t.Key, negate);
                 }
                 default:
                     throw new Exception("Unknown injectable argument");
@@ -588,10 +612,6 @@ namespace SecurityCodeScan.Config
             if (behaviorDict.TryGetValue("Name", out value))
                 name = (string)value;
 
-            IEnumerable<int> passwordArguments = null;
-            if (behaviorDict.TryGetValue("PasswordArguments", out value))
-                passwordArguments = ((IReadOnlyList<object>)value).Select(Convert.ToInt32);
-
             string                     argTypes            = null;
             Dictionary<object, object> ifCondition         = null;
             IReadOnlyList<object>      injectableArguments = null;
@@ -629,7 +649,6 @@ namespace SecurityCodeScan.Config
             return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetPreConditions(ifCondition, mainPostConditions),
                                                                                     mainPostConditions,
                                                                                     GetInjectableArguments(injectableArguments),
-                                                                                    null/*passwordArguments?.ToImmutableHashSet<int>()*/,
                                                                                     GetField(injectable)));
         }
 

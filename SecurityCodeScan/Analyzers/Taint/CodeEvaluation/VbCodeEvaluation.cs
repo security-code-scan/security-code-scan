@@ -647,7 +647,9 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                 if (behavior != null)
                 {
-                    if ((argumentState.Taint & (ProjectConfiguration.AuditMode ? VariableTaint.Tainted | VariableTaint.Unknown : VariableTaint.Tainted)) != 0)
+                    if ((argumentState.Taint & (ProjectConfiguration.AuditMode
+                                                    ? VariableTaint.Tainted | VariableTaint.Unknown
+                                                    : VariableTaint.Tainted)) != 0)
                     {
                         //If the current parameter can be injected.
                         if (behavior.InjectableArguments.TryGetValue(adjustedArgumentIdx, out var injectableArgument) &&
@@ -658,14 +660,15 @@ namespace SecurityCodeScan.Analyzers.Taint
                             state.AnalysisContext.ReportDiagnostic(diagnostic);
                         }
                     }
-
-                    if (argumentState.Taint == VariableTaint.Constant && //Hard coded value
-                                                                         //If the current parameter is a password
-                        behavior.PasswordArguments.Contains(adjustedArgumentIdx))
+                    else if (argumentState.Taint == VariableTaint.Constant)
                     {
-                        var newRule    = LocaleUtil.GetDescriptor(behavior.InjectableField.Locale);
-                        var diagnostic = Diagnostic.Create(newRule, argument.GetExpression().GetLocation(), GetMethodName(node), (i + 1).ToNthString());
-                        state.AnalysisContext.ReportDiagnostic(diagnostic);
+                        if (behavior.InjectableArguments.TryGetValue(adjustedArgumentIdx, out var injectableArgument) &&
+                            injectableArgument.Not                                                                    && (injectableArgument.RequiredTaintBits & (ulong)argumentState.Taint) != 0ul)
+                        {
+                            var newRule    = LocaleUtil.GetDescriptor(injectableArgument.Locale);
+                            var diagnostic = Diagnostic.Create(newRule, argument.GetExpression().GetLocation(), GetMethodName(node), (i + 1).ToNthString());
+                            state.AnalysisContext.ReportDiagnostic(diagnostic);
+                        }
                     }
                 }
 

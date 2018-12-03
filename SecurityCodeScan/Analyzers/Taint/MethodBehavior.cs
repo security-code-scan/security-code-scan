@@ -31,11 +31,14 @@ namespace SecurityCodeScan.Analyzers.Taint
 
     public class InjectableArgument
     {
-        public InjectableArgument(ulong taint, string locale)
+        public InjectableArgument(ulong taint, string locale, bool not = false)
         {
             Locale            = locale;
             RequiredTaintBits = taint;
+            Not                = not;
         }
+
+        public bool   Not;
 
         public string Locale { get; }
 
@@ -45,22 +48,21 @@ namespace SecurityCodeScan.Analyzers.Taint
     public class MethodBehavior
     {
         public IReadOnlyDictionary<int, InjectableArgument> InjectableArguments { get; }
-        public ImmutableHashSet<int>                        PasswordArguments   { get; }
         public IReadOnlyList<Condition>                     Conditions          { get; }
         public IReadOnlyDictionary<int, PostCondition>      PostConditions      { get; }
         public InjectableArgument                           InjectableField     { get; }
 
+        private readonly InjectableArgument NotInjectableArgument = new InjectableArgument(0ul, null);
+
         public MethodBehavior(IReadOnlyList<Condition>                     preConditions,
                               IReadOnlyDictionary<int, PostCondition>      postConditions,
                               IReadOnlyDictionary<int, InjectableArgument> injectableArguments,
-                              ImmutableHashSet<int>                        passwordArguments,
                               InjectableArgument                           injectableField)
         {
             InjectableArguments = injectableArguments ?? EmptyDictionary<int, InjectableArgument>.Value;
-            PasswordArguments   = passwordArguments   ?? ImmutableHashSet<int>.Empty;
             PostConditions      = postConditions      ?? EmptyDictionary<int, PostCondition>.Value;
             Conditions          = preConditions       ?? EmptyList<Condition>.Value;
-            InjectableField     = injectableField;
+            InjectableField     = injectableField     ?? NotInjectableArgument;
         }
     }
 }

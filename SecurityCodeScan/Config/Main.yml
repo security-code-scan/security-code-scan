@@ -2600,13 +2600,15 @@ Behavior:
     Namespace: System.Security.Cryptography
     ClassName: PasswordDeriveBytes
     Name: .ctor
-    PasswordArguments: [0: SCS0015]
+    Method:
+      InjectableArguments: [SCS0015: [0: ~Constant]]
 
   NetworkCredential:
     Namespace: System.Net
     ClassName: NetworkCredential
     Name: .ctor
-    PasswordArguments: [1: SCS0015]
+    Method:
+      InjectableArguments: [SCS0015: [0: ~Constant]]
 
 # Taint sources
 

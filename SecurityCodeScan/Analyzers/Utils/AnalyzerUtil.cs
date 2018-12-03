@@ -159,6 +159,11 @@ namespace SecurityCodeScan.Analyzers.Utils
         public static readonly T[] Value = new T[0];
     }
 
+    internal static class EmptyList<T>
+    {
+        public static readonly IReadOnlyList<T> Value = new List<T>();
+    }
+
     internal static class EmptyDictionary<TKey, TVal>
     {
         public static readonly IReadOnlyDictionary<TKey, TVal> Value = new Dictionary<TKey, TVal>();

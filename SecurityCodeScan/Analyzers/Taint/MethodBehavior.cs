@@ -17,38 +17,52 @@ namespace SecurityCodeScan.Analyzers.Taint
         public ImmutableHashSet<int> TaintFromArguments { get; }
     }
 
-    public class MethodBehavior
+    public class Condition
     {
-        public IReadOnlyDictionary<int, ulong>         InjectableArguments { get; }
-        public ImmutableHashSet<int>                   PasswordArguments   { get; }
-        public IReadOnlyDictionary<int, object>        PreConditions       { get; }
-        public IReadOnlyDictionary<int, PostCondition> PostConditions      { get; }
-        public string                                  LocaleInjection     { get; }
-        public ulong                                   InjectableField     { get; }
-
-        public MethodBehavior(IReadOnlyDictionary<int, object>        preConditions,
-                              IReadOnlyDictionary<int, PostCondition> postConditions,
-                              IReadOnlyDictionary<int, ulong>         injectableArguments,
-                              ImmutableHashSet<int>                   passwordArguments,
-                              string                                  localeInjection,
-                              ulong                                   injectableField)
+        public Condition(IReadOnlyDictionary<int, object> @if, IReadOnlyDictionary<int, PostCondition> then)
         {
-            InjectableArguments = injectableArguments ?? EmptyDictionary<int, ulong>.Value;
-            PasswordArguments   = passwordArguments   ?? ImmutableHashSet<int>.Empty;
-            PostConditions      = postConditions      ?? EmptyDictionary<int, PostCondition>.Value;
-            PreConditions       = preConditions       ?? EmptyDictionary<int, object>.Value;
-            LocaleInjection     = localeInjection;
-            InjectableField     = injectableField;
+            If = @if;
+            Then = then;
         }
 
-        public MethodBehavior(IReadOnlyDictionary<int, PostCondition> postConditions)
+        public IReadOnlyDictionary<int, object>        If   { get; }
+        public IReadOnlyDictionary<int, PostCondition> Then { get; }
+    }
+
+    public class InjectableArgument
+    {
+        public InjectableArgument(ulong taint, string locale, bool not = false)
         {
-            InjectableArguments = EmptyDictionary<int, ulong>.Value;
-            PasswordArguments   = ImmutableHashSet<int>.Empty;
-            PostConditions      = postConditions ?? EmptyDictionary<int, PostCondition>.Value;
-            PreConditions       = EmptyDictionary<int, object>.Value;
-            LocaleInjection     = null;
-            InjectableField     = 0ul;
+            Locale            = locale;
+            RequiredTaintBits = taint;
+            Not                = not;
+        }
+
+        public bool   Not;
+
+        public string Locale { get; }
+
+        public ulong RequiredTaintBits { get; }
+    }
+
+    public class MethodBehavior
+    {
+        public IReadOnlyDictionary<int, InjectableArgument> InjectableArguments { get; }
+        public IReadOnlyList<Condition>                     Conditions          { get; }
+        public IReadOnlyDictionary<int, PostCondition>      PostConditions      { get; }
+        public InjectableArgument                           InjectableField     { get; }
+
+        private readonly InjectableArgument NotInjectableArgument = new InjectableArgument(0ul, null);
+
+        public MethodBehavior(IReadOnlyList<Condition>                     preConditions,
+                              IReadOnlyDictionary<int, PostCondition>      postConditions,
+                              IReadOnlyDictionary<int, InjectableArgument> injectableArguments,
+                              InjectableArgument                           injectableField)
+        {
+            InjectableArguments = injectableArguments ?? EmptyDictionary<int, InjectableArgument>.Value;
+            PostConditions      = postConditions      ?? EmptyDictionary<int, PostCondition>.Value;
+            Conditions          = preConditions       ?? EmptyList<Condition>.Value;
+            InjectableField     = injectableField     ?? NotInjectableArgument;
         }
     }
 }

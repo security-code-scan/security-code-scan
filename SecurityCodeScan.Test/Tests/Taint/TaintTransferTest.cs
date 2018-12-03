@@ -752,6 +752,417 @@ TaintEntryPoints:
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [DataTestMethod]
+        [DataRow("var query = Foo(a, b);",       true)]
+        [DataRow("var query = Foo(a, null);",    true)]
+        [DataRow("var query = Foo(null, b);",    true)]
+        [DataRow("var query = Foo(null, null);", false)]
+
+        [DataRow("o.Foo(a, b); var query = o.ToString();",       false)]
+        [DataRow("o.Foo(a, null); var query = o.ToString();",    false)]
+        [DataRow("o.Foo(null, b); var query = o.ToString();",    false)]
+        [DataRow("o.Foo(null, null); var query = o.ToString();", false)]
+
+        [DataRow("o.Foo2(a, b); var query = o.ToString();",       true)]
+        [DataRow("o.Foo2(a, null); var query = o.ToString();",    true)]
+        [DataRow("o.Foo2(null, b); var query = o.ToString();",    true)]
+        [DataRow("o.Foo2(null, null); var query = o.ToString();", false)]
+
+        [DataRow("var query = \"\"; o.Foo3(a, out query);",       true)]
+        [DataRow("var query = \"\"; o.Foo3(query, out a);",       false)]
+        [DataRow("var query = \"\"; o.Foo3(null, out a);",        false)]
+        [DataRow("var query = \"\"; o.Foo3(null, out query);",    false)]
+
+        [DataRow("var query = \"\"; o.Foo4(a, ref query);",    true)]
+        [DataRow("var query = \"\"; o.Foo4(query, ref a);",    false)]
+        [DataRow("var query = \"\"; o.Foo4(null, ref a);",     false)]
+        [DataRow("var query = \"\"; o.Foo4(null, ref query);", false)]
+
+        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(a, query);", false)]
+        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(query, b);", false)]
+
+        [DataRow("StaticTest.Foo2(a, b); var query = StaticTest.Get();",       false)]
+        [DataRow("StaticTest.Foo2(a, null); var query = StaticTest.Get();",    false)]
+        [DataRow("StaticTest.Foo2(null, b); var query = StaticTest.Get();",    false)]
+        [DataRow("StaticTest.Foo2(null, null); var query = StaticTest.Get();", false)]
+        public async Task TaintArgumentsTransfer(string cs, bool warn)
+        {
+            var cSharpTest = $@"
+using System.Data.SqlClient;
+
+class StaticTest
+{{
+    public static void Foo2(string a, string b)
+    {{
+    }}
+
+    public static string Get()
+    {{
+        return null;
+    }}
+}}
+
+class Test
+{{
+    public string Foo(string a, string b)
+    {{
+        return null;
+    }}
+
+    public void Foo2(string a, string b) {{ }}
+
+    public string Foo3(string a, out string b)
+    {{
+        b = null;
+        return null;
+    }}
+
+    public string Foo4(string a, ref string b)
+    {{
+        return null;
+    }}
+
+    public void Run(string a, string b)
+    {{
+#pragma warning disable CS0219
+        Test o = null;
+#pragma warning restore CS0219
+        {cs}
+        new SqlCommand(query);
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports System.Data.SqlClient
+
+Class StaticTest
+    Public Shared Sub Foo2(ByVal a As String, ByVal b As String)
+    End Sub
+
+    Public Shared Function [Get]() As String
+        Return Nothing
+    End Function
+End Class
+
+Class Test
+    Public Function Foo(ByVal a As String, ByVal b As String) As String
+        Return Nothing
+    End Function
+
+    Public Sub Foo2(ByVal a As String, ByVal b As String)
+    End Sub
+
+    Public Function Foo3(ByVal a As String, <System.Runtime.InteropServices.Out> ByRef b As String) As String
+        b = Nothing
+        Return Nothing
+    End Function
+
+    Public Function Foo4(ByVal a As String, ByRef b As String) As String
+        Return Nothing
+    End Function
+
+    Public Sub Run(ByVal a As String, ByVal b As String)
+        Dim o As Test = Nothing
+        {cs.CSharpReplaceToVBasic()}
+        Dim temp = New SqlCommand(query)
+    End Sub
+End Class
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    ClassName: Test
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+        }
+
+        [DataTestMethod]
+        [DataRow("var query = Foo(a, \"\");", "Test", "Foo", "Returns", "TaintFromArguments: [0]", true)]
+        public async Task MergePostConditions(string cs, string className, string name, string outParam, string taintFromArguments, bool warn)
+        {
+            var cSharpTest = $@"
+using System.Data.SqlClient;
+
+class Test
+{{
+    public string Foo(string a, string b)
+    {{
+        return null;
+    }}
+
+    public void Run(string a, string b)
+    {{
+#pragma warning disable CS0219
+        Test o = null;
+#pragma warning restore CS0219
+        {cs}
+        new SqlCommand(query);
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports System.Data.SqlClient
+
+Class Test
+    Public Function Foo(ByVal a As String, ByVal b As String) As String
+        Return Nothing
+    End Function
+
+    Public Sub Run(ByVal a As String, ByVal b As String)
+        Dim o As Test = Nothing
+        {cs.CSharpReplaceToVBasic()}
+        Dim temp = New SqlCommand(query)
+    End Sub
+End Class
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            var testConfig = $@"
+TaintEntryPoints:
+  AAA:
+    ClassName: Test
+
+Behavior:
+  BBB:
+    ClassName: {className}
+    Name: {name}
+    Method:
+      If:
+        Condition: {{1: {{Value: """"}}}}
+        Then:
+          {outParam}:
+            Taint: LocalUrl
+      {outParam}:
+        {taintFromArguments}
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+        }
+
+        [DataTestMethod]
+        [DataRow("var query = Foo(a, b);", "Test", "Foo", "Returns", "TaintFromArguments: [0]", true)]
+        [DataRow("var query = Foo(a, null);", "Test", "Foo", "Returns", "TaintFromArguments: [0]", true)]
+        [DataRow("var query = Foo(null, b);", "Test", "Foo", "Returns", "TaintFromArguments: [0]", false)]
+        [DataRow("var query = Foo(null, null);", "Test", "Foo", "Returns", "TaintFromArguments: [0]", false)]
+
+        [DataRow("var query = Foo(a, b);", "Test", "Foo", "1", "TaintFromArguments: [0]", true)]
+        [DataRow("var query = Foo(a, null);", "Test", "Foo", "1", "TaintFromArguments: [0]", true)]
+        [DataRow("var query = Foo(null, b);", "Test", "Foo", "1", "TaintFromArguments: [0]", true)]
+        [DataRow("var query = Foo(null, null);", "Test", "Foo", "1", "TaintFromArguments: [0]", false)]
+
+        [DataRow("var query = Foo(a, b);", "Test", "Foo", "0", "TaintFromArguments: [1]", true)]
+        [DataRow("var query = Foo(a, null);", "Test", "Foo", "0", "TaintFromArguments: [1]", true)]
+        [DataRow("var query = Foo(null, b);", "Test", "Foo", "0", "TaintFromArguments: [1]", true)]
+        [DataRow("var query = Foo(null, null);", "Test", "Foo", "0", "TaintFromArguments: [1]", false)]
+
+        [DataRow("o.Foo(a, b); var query = o.ToString();", "Test", "Foo", "Returns", "TaintFromArguments: [0]", false)]
+        [DataRow("o.Foo(a, null); var query = o.ToString();", "Test", "Foo", "Returns", "TaintFromArguments: [0]", false)]
+        [DataRow("o.Foo(null, b); var query = o.ToString();", "Test", "Foo", "Returns", "TaintFromArguments: [0]", false)]
+        [DataRow("o.Foo(null, null); var query = o.ToString();", "Test", "Foo", "Returns", "TaintFromArguments: [0]", false)]
+
+        [DataRow("o.Foo2(a, b); var query = o.ToString();", "Test", "Foo2", "Returns", "TaintFromArguments: [0]", true)]
+        [DataRow("o.Foo2(a, null); var query = o.ToString();", "Test", "Foo2", "Returns", "TaintFromArguments: [0]", true)]
+        [DataRow("o.Foo2(null, b); var query = o.ToString();", "Test", "Foo2", "Returns", "TaintFromArguments: [0]", false)]
+        [DataRow("o.Foo2(null, null); var query = o.ToString();", "Test", "Foo2", "Returns", "TaintFromArguments: [0]", false)]
+
+        [DataRow("var query = \"\"; o.Foo3(a, out query);", "Test", "Foo3", "Returns", "TaintFromArguments: [0]", true)]
+        [DataRow("var query = \"\"; o.Foo3(query, out a);", "Test", "Foo3", "Returns", "TaintFromArguments: [0]", false)]
+        [DataRow("var query = \"\"; o.Foo3(null, out a);", "Test", "Foo3", "Returns", "TaintFromArguments: [0]", false)]
+        [DataRow("var query = \"\"; o.Foo3(null, out query);", "Test", "Foo3", "Returns", "TaintFromArguments: [0]", false)]
+
+        [DataRow("var query = \"\"; o.Foo3(a, out query);", "Test", "Foo3", "1", "TaintFromArguments: [0]", true)]
+        [DataRow("var query = \"\"; o.Foo3(query, out a);", "Test", "Foo3", "1", "TaintFromArguments: [0]", false)]
+        [DataRow("var query = \"\"; o.Foo3(null, out a);", "Test", "Foo3", "1", "TaintFromArguments: [0]", false)]
+        [DataRow("var query = \"\"; o.Foo3(null, out query);", "Test", "Foo3", "1", "TaintFromArguments: [0]", false)]
+
+        [DataRow("var query = \"\"; o.Foo3(a, out query);", "Test", "Foo3", "0", "TaintFromArguments: [1]", true)]
+        [DataRow("var query = \"\"; o.Foo3(query, out a);", "Test", "Foo3", "0", "TaintFromArguments: [1]", true)]
+        [DataRow("var query = \"\"; o.Foo3(null, out a);", "Test", "Foo3", "0", "TaintFromArguments: [1]", false)]
+        [DataRow("var query = \"\"; o.Foo3(null, out query);", "Test", "Foo3", "0", "TaintFromArguments: [1]", false)]
+
+        [DataRow("var query = \"\"; o.Foo4(a, ref query);", "Test", "Foo4", "Returns", "TaintFromArguments: [0]", true)]
+        [DataRow("var query = \"\"; o.Foo4(query, ref a);", "Test", "Foo4", "Returns", "TaintFromArguments: [0]", false)]
+        [DataRow("var query = \"\"; o.Foo4(null, ref a);", "Test", "Foo4", "Returns", "TaintFromArguments: [0]", false)]
+        [DataRow("var query = \"\"; o.Foo4(null, ref query);", "Test", "Foo4", "Returns", "TaintFromArguments: [0]", false)]
+
+        [DataRow("var query = \"\"; o.Foo4(a, ref query);", "Test", "Foo4", "1", "Taint: Safe", false)]
+        [DataRow("var query = \"\"; o.Foo4(a, ref query);", "Test", "Foo4", "1", "Taint: Tainted", true)]
+        [DataRow("var query = \"\"; o.Foo4(null, ref query);", "Test", "Foo4", "1", "Taint: Tainted", true)]
+
+        [DataRow("var query = \"\"; o.Foo4(a, ref query);", "Test", "Foo4", "1", "TaintFromArguments: [0]", true)]
+        [DataRow("var query = \"\"; o.Foo4(query, ref a);", "Test", "Foo4", "1", "TaintFromArguments: [0]", false)]
+        [DataRow("var query = \"\"; o.Foo4(null, ref a);", "Test", "Foo4", "1", "TaintFromArguments: [0]", false)]
+        [DataRow("var query = \"\"; o.Foo4(null, ref query);", "Test", "Foo4", "1", "TaintFromArguments: [0]", false)]
+
+        [DataRow("var query = \"\"; o.Foo4(a, ref query);", "Test", "Foo4", "0", "TaintFromArguments: [1]", true)]
+        [DataRow("var query = \"\"; o.Foo4(query, ref a);", "Test", "Foo4", "0", "TaintFromArguments: [1]", true)]
+        [DataRow("var query = \"\"; o.Foo4(null, ref a);", "Test", "Foo4", "0", "TaintFromArguments: [1]", false)]
+        [DataRow("var query = \"\"; o.Foo4(null, ref query);", "Test", "Foo4", "0", "TaintFromArguments: [1]", false)]
+
+        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(a, query);", "Test", "Foo2", "Returns", "TaintFromArguments: [0]", false)]
+        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(query, b);", "Test", "Foo2", "Returns", "TaintFromArguments: [0]", false)]
+        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(a, query);", "Test", "Foo2", "1", "TaintFromArguments: [0]", true)]
+        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(query, b);", "Test", "Foo2", "1", "TaintFromArguments: [0]", false)]
+        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(a, query);", "Test", "Foo2", "0", "TaintFromArguments: [1]", false)]
+        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(query, b);", "Test", "Foo2", "0", "TaintFromArguments: [1]", true)]
+
+        [DataRow("StaticTest.Foo2(a, b); var query = StaticTest.Get();", "StaticTest", "Get", "Returns", "TaintFromArguments: [0]", false)]
+        [DataRow("StaticTest.Foo2(a, null); var query = StaticTest.Get();", "StaticTest", "Get", "Returns", "TaintFromArguments: [0]", false)]
+        [DataRow("StaticTest.Foo2(null, b); var query = StaticTest.Get();", "StaticTest", "Get", "Returns", "TaintFromArguments: [0]", false)]
+        [DataRow("StaticTest.Foo2(null, null); var query = StaticTest.Get();", "StaticTest", "Get", "Returns", "TaintFromArguments: [0]", false)]
+        public async Task TaintFromArguments(string cs, string className, string name, string outParam, string taintFromArguments, bool warn)
+        {
+            var cSharpTest = $@"
+using System.Data.SqlClient;
+
+class StaticTest
+{{
+    public static void Foo2(string a, string b)
+    {{
+    }}
+
+    public static string Get()
+    {{
+        return null;
+    }}
+}}
+
+class Test
+{{
+    public string Foo(string a, string b)
+    {{
+        return null;
+    }}
+
+    public void Foo2(string a, string b) {{ }}
+
+    public string Foo3(string a, out string b)
+    {{
+        b = null;
+        return null;
+    }}
+
+    public string Foo4(string a, ref string b)
+    {{
+        return null;
+    }}
+
+    public void Run(string a, string b)
+    {{
+#pragma warning disable CS0219
+        Test o = null;
+#pragma warning restore CS0219
+        {cs}
+        new SqlCommand(query);
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports System.Data.SqlClient
+
+Class StaticTest
+    Public Shared Sub Foo2(ByVal a As String, ByVal b As String)
+    End Sub
+
+    Public Shared Function [Get]() As String
+        Return Nothing
+    End Function
+End Class
+
+Class Test
+    Public Function Foo(ByVal a As String, ByVal b As String) As String
+        Return Nothing
+    End Function
+
+    Public Sub Foo2(ByVal a As String, ByVal b As String)
+    End Sub
+
+    Public Function Foo3(ByVal a As String, <System.Runtime.InteropServices.Out> ByRef b As String) As String
+        b = Nothing
+        Return Nothing
+    End Function
+
+    Public Function Foo4(ByVal a As String, ByRef b As String) As String
+        Return Nothing
+    End Function
+
+    Public Sub Run(ByVal a As String, ByVal b As String)
+        Dim o As Test = Nothing
+        {cs.CSharpReplaceToVBasic()}
+        Dim temp = New SqlCommand(query)
+    End Sub
+End Class
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "SCS0026",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            var testConfig = $@"
+TaintEntryPoints:
+  AAA:
+    ClassName: Test
+
+Behavior:
+  BBB:
+    ClassName: {className}
+    Name: {name}
+    Method:
+      {outParam}:
+        {taintFromArguments}
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+        }
+
         [TestMethod]
         public async Task TransferMemoryStream()
         {

@@ -118,13 +118,13 @@ Behavior:
     Namespace: sample
     ClassName: MyFoo
     Name: Sink
-    InjectableArguments: [0]
-    Locale: SCS0035
+    Method:
+      InjectableArguments: [SCS0035: 0]
 
   db3:
     Namespace: Microsoft.EntityFrameworkCore
     ClassName: DbSet
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 ";

@@ -262,7 +262,7 @@ Behavior:
     Namespace: sample
     ClassName: Test
     Name: GetUntrusted
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 ";
@@ -1667,7 +1667,7 @@ Behavior:
     Namespace: sample
     ClassName: SqlConstant
     Name: GetQueryDataClass
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 ";
@@ -2027,8 +2027,8 @@ Behavior:
   MyKey:
     ClassName: Test
     Name: Sink
-    InjectableArguments: [0]
-    Locale: SCS0026
+    Method:
+      InjectableArguments: [SCS0026: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -2096,8 +2096,8 @@ Behavior:
   MyKey:
     ClassName: Test
     Name: Sink
-    InjectableArguments: [0]
-    Locale: SCS0026
+    Method:
+      InjectableArguments: [SCS0026: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -2205,8 +2205,8 @@ Behavior:
   MyKey:
     ClassName: MyController
     Name: Sink
-    InjectableArguments: [0]
-    Locale: SCS0026
+    Method:
+      InjectableArguments: [SCS0026: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -2282,8 +2282,8 @@ Behavior:
   MyKey:
     ClassName: MyController
     Name: Sink
-    InjectableArguments: [0]
-    Locale: SCS0026
+    Method:
+      InjectableArguments: [SCS0026: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -2361,8 +2361,8 @@ Behavior:
   MyKey:
     ClassName: MyPage
     Name: Sink
-    InjectableArguments: [0]
-    Locale: SCS0026
+    Method:
+      InjectableArguments: [SCS0026: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -2454,13 +2454,13 @@ Behavior:
     Namespace: sample
     ClassName: HttpResponse
     Name: Write
-    InjectableArguments: [0]
-    Locale: SCS0029
+    Method:
+      InjectableArguments: [SCS0029: 0]
 
   sample_HttpRequest:
     Namespace: sample
     ClassName: HttpRequest
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 ";
@@ -2475,13 +2475,13 @@ Behavior:
     Namespace: sample
     ClassName: HttpResponse
     Name: Write
-    InjectableArguments: [0]
-    Locale: SCS0029
+    Method:
+      InjectableArguments: [SCS0029: 0]
 
   sample_HttpRequest:
     Namespace: sample
     ClassName: HttpRequest
-    PostConditions:
+    Method:
       Returns:
         Taint: Tainted
 ";
@@ -2534,8 +2534,8 @@ Behavior:
   MyKey:
     ClassName: Test
     Name: Sink
-    InjectableArguments: [0]
-    Locale: SCS0026
+    Method:
+      InjectableArguments: [SCS0026: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

@@ -127,8 +127,8 @@ Behavior:
     Namespace: sample
     ClassName: Test
     Name: Vulnerable
-    InjectableArguments: [0]
-    Locale: SCS0001
+    Method:
+      InjectableArguments: [SCS0001: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -271,7 +271,7 @@ Behavior:
     Namespace: sample
     ClassName: Test
     Name: Safe
-    PostConditions:
+    Method:
       Returns:
         Taint: Safe
 ";
@@ -345,8 +345,8 @@ Behavior:
     Namespace: sample
     ClassName: Test
     Name: Vulnerable
-    InjectableArguments: [0]
-    Locale: SCS0001
+    Method:
+      InjectableArguments: [SCS0001: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -367,14 +367,14 @@ Behavior:
     Namespace: sample
     ClassName: Test
     Name: Vulnerable
-    InjectableArguments: [0]
-    Locale: SCS0001
+    Method:
+      InjectableArguments: [SCS0001: 0]
 
   MyKey2:
     Namespace: sample
     ClassName: Test
     Name: Safe
-    PostConditions:
+    Method:
       Returns:
         Taint: Safe
 ";

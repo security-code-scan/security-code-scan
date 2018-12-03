@@ -22,59 +22,6 @@ namespace SecurityCodeScan.Config
 
         private static readonly Version ConfigVersion = new Version(2,0);
 
-        private readonly char[] Parenthesis = { '(', ')' };
-
-        private void ValidateArgTypes(IEnumerable<Signature> methods)
-        {
-            if (methods == null)
-                return;
-
-            foreach (var method in methods)
-            {
-                if (method?.ArgTypes == null)
-                    continue;
-
-                var argTypes = method.ArgTypes;
-                if (argTypes.Length == 0)
-                    throw new Exception($"Do not specify 'ArgTypes:' in {method.Namespace}.{method.ClassName}.{method.Name} to match any overload");
-
-                if (argTypes.Trim() != argTypes)
-                    throw new Exception($"Leading or trailing white space in {method.Namespace}.{method.ClassName}.{method.Name}");
-
-                if (argTypes[0] != '(' || argTypes[argTypes.Length - 1] != ')')
-                    throw new Exception($"Invalid parenthesis in {method.Namespace}.{method.ClassName}.{method.Name}");
-
-                argTypes = argTypes.Substring(1, argTypes.Length - 2);
-                if (argTypes.IndexOfAny(Parenthesis) != -1)
-                    throw new Exception($"Parenthesis detected inside of 'ArgTypes:' in {method.Namespace}.{method.ClassName}.{method.Name}");
-
-                if (argTypes != string.Empty)
-                {
-                    foreach (var argType in argTypes.Split(new[] { ", " }, StringSplitOptions.None))
-                    {
-                        if (argType.Trim() != argType)
-                            throw new Exception(
-                                $"Leading or trailing white space in argument of {method.Namespace}.{method.ClassName}.{method.Name}");
-
-                        if (!argType.Contains("."))
-                            throw new Exception($"Argument type lacks namespace in {method.Namespace}.{method.ClassName}.{method.Name}");
-
-                        if (argType.Contains("this "))
-                            throw new Exception($"'this' keyword should be omitted in {method.Namespace}.{method.ClassName}.{method.Name}");
-
-                        var arg = argType;
-                        if (argType.Contains("params "))
-                            arg = argType.Replace("params ", "");
-                        if (argType.Contains("out "))
-                            arg = argType.Replace("out ", "");
-
-                        if (arg.Contains(" "))
-                            throw new Exception($"Argument name should be omitted in {method.Namespace}.{method.ClassName}.{method.Name}");
-                    }
-                }
-            }
-        }
-
         private T DeserializeAndValidate<T>(StreamReader reader) where T : ConfigData
         {
             var yaml = new YamlStream();
@@ -85,8 +32,6 @@ namespace SecurityCodeScan.Config
             {
                 var deserializer = new Deserializer();
                 var data = deserializer.Deserialize<T>(reader2);
-                ValidateArgTypes(data.Behavior?.Values);
-                //ValidateArgTypes(data.TaintEntryPoints?.Values);
                 return data;
             }
         }
@@ -231,43 +176,51 @@ namespace SecurityCodeScan.Config
     /// </summary>
     internal class ConfigData
     {
-        public bool?                                  AuditMode                           { get; set; }
-        public int?                                   PasswordValidatorRequiredLength     { get; set; }
-        public int?                                   MinimumPasswordValidatorProperties  { get; set; }
-        public List<string>                           PasswordValidatorRequiredProperties { get; set; }
-        public Dictionary<string, MethodBehaviorData> Behavior                            { get; set; }
-        public Dictionary<string, TaintSourceData>    TaintEntryPoints                    { get; set; }
-        public List<CsrfProtectionData>               CsrfProtectionAttributes            { get; set; }
-        public List<string>                           PasswordFields                      { get; set; }
-        public List<string>                           ConstantFields                      { get; set; }
-        public List<string>                           TaintTypes                          { get; set; }
+        public bool?                                   AuditMode                           { get; set; }
+        public int?                                    PasswordValidatorRequiredLength     { get; set; }
+        public int?                                    MinimumPasswordValidatorProperties  { get; set; }
+        public List<string>                            PasswordValidatorRequiredProperties { get; set; }
+        public Dictionary<string, object>              Behavior                            { get; set; }
+        public Dictionary<string, TaintEntryPointData> TaintEntryPoints                    { get; set; }
+        public List<CsrfProtectionData>                CsrfProtectionAttributes            { get; set; }
+        public List<string>                            PasswordFields                      { get; set; }
+        public List<string>                            ConstantFields                      { get; set; }
+        public List<string>                            TaintTypes                          { get; set; }
     }
 
     internal class Signature
     {
-        public string Namespace { get; set; }
-        public string ClassName { get; set; }
-        public string Name     { get; set; }
-        public string ArgTypes { get; set; }
+        public string     Namespace { get; set; }
+        public string     ClassName { get; set; }
+        public string     Name      { get; set; }
+        public MethodData Method    { get; set; }
+        public FieldData  Field     { get; set; }
     }
 
-    internal class TaintSourceData : Signature
+    internal class MethodData
+    {
+        public string        ArgTypes            { get; set; }
+        public object[]      InjectableArguments { get; set; }
+        public ConditionData If                  { get; set; }
+    }
+
+    internal class ConditionData
+    {
+        public Dictionary<object, object> Condition { get; set; }
+        public Dictionary<object, object> Then      { get; set; }
+    }
+
+    internal class FieldData
+    {
+        public object Injectable { get; set; }
+    }
+
+    internal class TaintEntryPointData : Signature
     {
     }
 
     internal class MethodBehaviorData : Signature
     {
-        // behavior, validator, sanitizer, taint source specific
-        public Dictionary<object, object> PreConditions      { get; set; }
-        public Dictionary<object, object> PostConditions     { get; set; }
-
-        // sink specific
-        public object[] InjectableArguments { get; set; }
-        public object   InjectableField     { get; set; }
-        public string   Locale              { get; set; }
-
-        // password sink specific
-        public int[] PasswordArguments { get; set; }
     }
 
     internal class CsrfProtectionData

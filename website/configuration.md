@@ -73,8 +73,7 @@ Behavior:
     Namespace: MyNamespace
     ClassName: Test
     Name: VulnerableFunctionName
-    InjectableArguments: [0: HtmlEscaped]
-    Locale: SCS0001
+    InjectableArguments: [SCS0001: [0: HtmlEscaped]]
 ```
 
 See the [configuration file](https://github.com/security-code-scan/security-code-scan/blob/master/SecurityCodeScan/Config/Main.yml) for comments and examples of usage.  

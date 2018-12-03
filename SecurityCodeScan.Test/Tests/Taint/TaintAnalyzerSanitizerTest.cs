@@ -38,6 +38,7 @@ namespace SecurityCodeScan.Test.Taint
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [DataTestMethod]
+        [DataRow("using System; using System.Web.Mvc;",           "!!Url.IsLocalUrl(input)",                                   "Redirect(input)",          false)]
         [DataRow("using System; using System.Web.Mvc;",           "Url.IsLocalUrl(input)",                                     "Redirect(input)",          false)]
         [DataRow("using System; using Microsoft.AspNetCore.Mvc;", "Url.IsLocalUrl(input)",                                     "Redirect(input)",          false)]
         [DataRow("using System; using System.Web.Mvc;",           "Uri.TryCreate(input, UriKind.Relative, out uri)",           "Redirect(uri.ToString())", false)]
@@ -65,6 +66,8 @@ namespace sample
 }}
 ";
 
+            var vb = validate.CSharpReplaceToVBasic().Replace("!", "Not ");
+
             var visualBasicTest = $@"
 {usingNamespace.CSharpReplaceToVBasic()}
 
@@ -76,7 +79,7 @@ Namespace sample
 #Disable Warning BC42024
             Dim uri As Uri = Nothing
 #Enable Warning BC42024
-            If {validate.CSharpReplaceToVBasic()} Then
+            If {vb} Then
                 Return {sink}
             Else
                 Return Nothing

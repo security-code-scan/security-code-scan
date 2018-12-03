@@ -425,6 +425,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                 case DefaultExpressionSyntax defaultExpressionSyntax:
                     var value = state.AnalysisContext.SemanticModel.GetConstantValue(defaultExpressionSyntax);
                     return new VariableState(defaultExpressionSyntax, VariableTaint.Constant, value.HasValue ? value.Value : null);
+                case PrefixUnaryExpressionSyntax prefixUnaryExpressionSyntax:
+                    return VisitExpression(prefixUnaryExpressionSyntax.Operand, state);
             }
 #if DEBUG
             Logger.Log("Unsupported expression " + expression.GetType() + " (" + expression + ")");

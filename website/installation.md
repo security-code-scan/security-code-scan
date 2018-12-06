@@ -15,7 +15,7 @@ Installing it as NuGet package gives an advantage to choose projects in a soluti
 
 However it requires discipline to install SCS into every solution a developer works with. Installing it as a Visual Studio extension is a single install action.
 
-Because of the [Roslyn](https://github.com/dotnet/roslyn) technology SCS is based on, only the NuGet version runs during a build (VS extension provides IntelliSense only) and can be integrated to any Continuous Integration (CI) server that supports [MSBuild](https://msdn.microsoft.com/en-us/library/dd393574.aspx).
+The NuGet version runs during a build and in background as IntelliSense (VS extension provides IntelliSense only) and can be integrated to any Continuous Integration (CI) server that supports [MSBuild](https://msdn.microsoft.com/en-us/library/dd393574.aspx).
 
 ## Continuous Integration Builds
 If the CI server of your choice is using MSBuild, then integration of SCS is just a matter of adding NuGet packages and collecting the output from the build. SCS warnings are in the form of  

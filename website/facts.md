@@ -1,4 +1,6 @@
-# Facts
+# Quick Facts
+
+<span class="octicon octicon-organization"/> Two modes: for Developers and Auditors.
 
 <span class="octicon octicon-bug"/> Detects various [security vulnerability patterns](#rules): SQL Injection, Cross-Site Scripting (XSS), Cross-Site Request Forgery (CSRF), XML eXternal Entity Injection (XXE), etc.
 

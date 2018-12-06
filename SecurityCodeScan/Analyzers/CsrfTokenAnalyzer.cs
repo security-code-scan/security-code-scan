@@ -62,7 +62,7 @@ namespace SecurityCodeScan.Analyzers
                                                                                                  titleId: "title_frombody_audit",
                                                                                                  descriptionId: "description_frombody_audit");
 
-        public override         ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override         ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
         protected CsrfTokenDiagnosticAnalyzer(string nameSpace,
                                               string allowAnonymousNamespace)

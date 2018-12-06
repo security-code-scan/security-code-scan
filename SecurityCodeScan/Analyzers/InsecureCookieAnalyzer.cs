@@ -55,7 +55,7 @@ namespace SecurityCodeScan.Analyzers
         public const            string               DiagnosticIdHttpOnly = "SCS0009";
         private static readonly DiagnosticDescriptor RuleHttpOnly         = LocaleUtil.GetDescriptor(DiagnosticIdHttpOnly);
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RuleSecure, RuleHttpOnly);
+        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(RuleSecure, RuleHttpOnly);
 
         public void CheckState(ExecutionState state)
         {

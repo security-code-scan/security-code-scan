@@ -195,6 +195,6 @@ namespace SecurityCodeScan.Analyzers
 
         protected static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor(DiagnosticId);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
     }
 }

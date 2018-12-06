@@ -15,7 +15,7 @@ namespace SecurityCodeScan.Analyzers
     {
         public static readonly DiagnosticDescriptor RuleValidateRequest = LocaleUtil.GetDescriptor("SCS0021");
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RuleValidateRequest);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(RuleValidateRequest);
 
         public override void Initialize(AnalysisContext context)
         {

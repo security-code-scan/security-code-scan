@@ -39,7 +39,7 @@ namespace SecurityCodeScan.Analyzers
     {
         private static readonly DiagnosticDescriptor                 Rule = LocaleUtil.GetDescriptor("SCS0017");
         private static readonly DiagnosticDescriptor                 InheritanceRule = LocaleUtil.GetDescriptor("SCS0017", "title_base");
-        public override         ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule, InheritanceRule);
+        public override         ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule, InheritanceRule);
 
         public override void Initialize(AnalysisContext context)
         {

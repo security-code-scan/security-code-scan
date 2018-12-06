@@ -59,7 +59,7 @@ namespace SecurityCodeScan.Analyzers
         public const string Sha1TypeName = "System.Security.Cryptography.SHA1";
         public const string Md5TypeName = "System.Security.Cryptography.MD5";
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Md5Rule,
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Md5Rule,
                                                                                                            Sha1Rule);
     }
 

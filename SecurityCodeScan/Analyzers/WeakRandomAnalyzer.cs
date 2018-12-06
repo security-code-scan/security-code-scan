@@ -30,7 +30,7 @@ namespace SecurityCodeScan.Analyzers
     {
         private static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0005");
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
         protected static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {

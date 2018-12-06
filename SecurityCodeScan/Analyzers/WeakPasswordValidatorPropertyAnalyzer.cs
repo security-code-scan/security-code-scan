@@ -61,7 +61,7 @@ namespace SecurityCodeScan.Analyzers
 
         private static readonly string[] BoolPropertyNames =  { "RequireDigit", "RequireLowercase", "RequireNonLetterOrDigit", "RequireUppercase" };
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RulePasswordLength,
+        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(RulePasswordLength,
                                                                                                   RulePasswordValidators,
                                                                                                   RuleRequiredPasswordValidators);
 

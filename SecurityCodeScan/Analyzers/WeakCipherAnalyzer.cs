@@ -40,7 +40,7 @@ namespace SecurityCodeScan.Analyzers
         private static readonly ImmutableArray<string> BadCipherProvider = ImmutableArray.Create("System.Security.Cryptography.DESCryptoServiceProvider",
                                                                                                  "System.Security.Cryptography.RC2CryptoServiceProvider");
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
         protected static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {

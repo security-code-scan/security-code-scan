@@ -34,7 +34,7 @@ namespace SecurityCodeScan.Analyzers
     public abstract class UnknownPasswordApiAnalyzer : DiagnosticAnalyzer
     {
         public static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0015", "title_assignment");
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
         private bool IsPasswordField(string name, ImmutableArray<AdditionalText> additionalTexts)
         {

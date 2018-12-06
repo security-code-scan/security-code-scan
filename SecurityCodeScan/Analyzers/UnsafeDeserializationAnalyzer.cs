@@ -38,7 +38,7 @@ namespace SecurityCodeScan.Analyzers
         private static readonly DiagnosticDescriptor TypeNameHandlingRule    = LocaleUtil.GetDescriptor("SCS0028", titleId: "title_typenamehandling_analyzer");
         private static readonly DiagnosticDescriptor JavaScriptSerializerRule = LocaleUtil.GetDescriptor("SCS0028", titleId: "title_javascriptserializer_analyzer");
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(TypeNameHandlingRule, JavaScriptSerializerRule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(TypeNameHandlingRule, JavaScriptSerializerRule);
 
         protected void VisitAttributeArgument(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {

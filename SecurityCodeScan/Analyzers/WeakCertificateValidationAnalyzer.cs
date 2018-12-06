@@ -99,7 +99,7 @@ namespace SecurityCodeScan.Analyzers
     {
         private static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0004");
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
         protected abstract SyntaxNode GetBody(SyntaxNode rightNode, SyntaxNodeAnalysisContext ctx);
 

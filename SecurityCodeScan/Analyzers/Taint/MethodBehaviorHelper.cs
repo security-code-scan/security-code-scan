@@ -126,7 +126,24 @@ namespace SecurityCodeScan.Analyzers.Taint
         private static string ExtractGenericParameterSignature(IMethodSymbol methodSymbol)
         {
             var methodSignature = methodSymbol.ToDisplayString(MethodFormat);
-            methodSignature = methodSignature.Substring(methodSignature.IndexOf('('));
+            var firstParenthesis = methodSignature.IndexOf('(');
+            if (firstParenthesis == -1)
+            {
+                // some weird COM interop indexers are treated as methods
+                // for example:
+                // [Guid("04A72314-32E9-48E2-9B87-A63603454F3E")]
+                // [TypeLibType(4160)]
+                // [ComImport]
+                // public interface _DTE
+                // ...
+                //      [DispId(212)]
+                //      [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
+                //      [return: MarshalAs(UnmanagedType.Interface)]
+                //      Properties get_Properties([MarshalAs(UnmanagedType.BStr)] string Category, [MarshalAs(UnmanagedType.BStr)] string Page);
+                return string.Empty;
+            }
+
+            methodSignature = methodSignature.Substring(firstParenthesis);
             if (methodSymbol.Language == LanguageNames.VisualBasic)
             {
                 if (methodSignature != "()")

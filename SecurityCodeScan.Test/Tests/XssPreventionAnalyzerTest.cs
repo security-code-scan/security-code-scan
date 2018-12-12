@@ -308,6 +308,120 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [DataRow("new TextBox(); temp.Text = input", true)]
+        [DataRow("new Control(); temp.ID = input", true)]
+        [DataRow("new Label(); temp.Text = input", true)]
+        [DataRow("new HyperLink(); temp.NavigateUrl = input", true)]
+        [DataRow("new HyperLink(); temp.Text = input", true)]
+        [DataRow("new HyperLink(); temp.ImageUrl = input", true)]
+        [DataRow("new Image(); temp.ImageUrl = input", true)]
+        [DataRow("new LinkButton(); temp.Text = input", true)]
+        [DataRow("new Literal(); temp.Text = input", true)]
+        [DataRow("new CheckBox(); temp.Text = input", true)]
+        [DataRow("new RadioButton(); temp.Text = input", true)]
+        [DataRow("new RadioButton(); temp.GroupName = input", true)]
+        [DataRow("new Calendar(); temp.Caption = input", true)]
+        [DataRow("new Table(); temp.Caption = input", true)]
+        [DataRow("new Panel(); temp.GroupingText = input", true)]
+        [DataRow("new HtmlInputText(); temp.Value = input", true)]
+        [DataRow("new HtmlTextArea(); temp.Value = input", true)]
+        [DataRow("new HtmlElement(); temp.InnerHtml = input", true)]
+        [DataRow("new HtmlElement(); temp.InnerText = input", true)]
+        [DataRow("new Page(); temp.ClientScript.RegisterStartupScript(null, \"constant\", input)", true)]
+        [DataRow("new Page(); temp.ClientScript.RegisterClientScriptBlock(null, \"constant\", input)", true)]
+        [DataRow("new Page(); temp.RegisterStartupScript(\"constant\", input)", true)]
+        [DataRow("new Page(); temp.RegisterClientScriptBlock(\"constant\", input)", true)]
+        [DataRow("new Page(); temp.Response.Write(input)", true)]
+        [DataRow("new Page(); temp.Response.Write(input.ToCharArray(), 0, 1)", true)]
+
+        [DataRow("new TextBox(); temp.Text = \"constant\"", false)]
+        [DataRow("new Control(); temp.ID = \"constant\"", false)]
+        [DataRow("new Label(); temp.Text = \"constant\"", false)]
+        [DataRow("new HyperLink(); temp.NavigateUrl = \"constant\"", false)]
+        [DataRow("new HyperLink(); temp.Text = \"constant\"", false)]
+        [DataRow("new HyperLink(); temp.ImageUrl = \"constant\"", false)]
+        [DataRow("new Image(); temp.ImageUrl = \"constant\"", false)]
+        [DataRow("new LinkButton(); temp.Text = \"constant\"", false)]
+        [DataRow("new Literal(); temp.Text = \"constant\"", false)]
+        [DataRow("new CheckBox(); temp.Text = \"constant\"", false)]
+        [DataRow("new RadioButton(); temp.Text = \"constant\"", false)]
+        [DataRow("new RadioButton(); temp.GroupName = \"constant\"", false)]
+        [DataRow("new Calendar(); temp.Caption = \"constant\"", false)]
+        [DataRow("new Table(); temp.Caption = \"constant\"", false)]
+        [DataRow("new Panel(); temp.GroupingText = \"constant\"", false)]
+        [DataRow("new HtmlInputText(); temp.Value = \"constant\"", false)]
+        [DataRow("new HtmlTextArea(); temp.Value = \"constant\"", false)]
+        [DataRow("new HtmlElement(); temp.InnerHtml = \"constant\"", false)]
+        [DataRow("new HtmlElement(); temp.InnerText = \"constant\"", false)]
+        [DataRow("new Page(); temp.ClientScript.RegisterStartupScript(null, \"constant\", \"constant\")", false)]
+        [DataRow("new Page(); temp.ClientScript.RegisterClientScriptBlock(null, \"constant\", \"constant\")", false)]
+        [DataRow("new Page(); temp.RegisterStartupScript(\"constant\", \"constant\")", false)]
+        [DataRow("new Page(); temp.RegisterClientScriptBlock(\"constant\", \"constant\")", false)]
+        [DataRow("new Page(); temp.Response.Write(\"constant\")", false)]
+        [DataRow("new Page(); temp.Response.Write(\"constant\".ToCharArray(), 0, 1)", false)]
+        [DataTestMethod]
+        public async Task XssInWebForms(string sink, bool warn)
+        {
+            var cSharpTest = $@"
+#pragma warning disable 8019
+    using System.Web;
+    using System.Web.UI;
+    using System.Web.UI.WebControls;
+    using System.Web.UI.HtmlControls;
+#pragma warning restore 8019
+
+class Vulnerable
+{{
+    public static HttpRequest Request = null;
+
+    public static void Run(string input)
+    {{
+        input = Request.QueryString[0];
+#pragma warning disable 618
+        var temp = {sink};
+#pragma warning restore 618
+    }}
+
+}}
+            ";
+
+            sink = sink.CSharpReplaceToVBasic();
+
+            var visualBasicTest = $@"
+#Disable Warning BC50001
+    Imports System.Web
+    Imports System.Web.UI
+    Imports System.Web.UI.WebControls
+    Imports System.Web.UI.HtmlControls
+#Enable Warning BC50001
+
+Class Vulnerable
+    Public Shared Request As HttpRequest
+    Public Shared Page As Page
+
+    Public Shared Sub Run(input As System.String)
+        input = Request.QueryString(0)
+#Disable Warning BC40000
+        Dim temp = {sink}
+#Enable Warning BC40000
+    End Sub
+End Class
+            ";
+
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            }
+        }
+
+
         #endregion
 
         #region Tests that are not producing diagnostics

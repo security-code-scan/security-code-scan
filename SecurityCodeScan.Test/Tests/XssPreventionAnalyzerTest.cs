@@ -40,6 +40,7 @@ namespace SecurityCodeScan.Test
                                                      .Location),
             MetadataReference.CreateFromFile(typeof(HttpResponse).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.DbContext).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.Security.Application.Encoder).Assembly.Location),
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
@@ -308,7 +309,6 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
-        [DataRow("new TextBox(); temp.Text = input", true)]
         [DataRow("new Control(); temp.ID = input", true)]
         [DataRow("new Label(); temp.Text = input", true)]
         [DataRow("new HyperLink(); temp.NavigateUrl = input", true)]
@@ -323,10 +323,7 @@ End Namespace
         [DataRow("new Calendar(); temp.Caption = input", true)]
         [DataRow("new Table(); temp.Caption = input", true)]
         [DataRow("new Panel(); temp.GroupingText = input", true)]
-        [DataRow("new HtmlInputText(); temp.Value = input", true)]
-        [DataRow("new HtmlTextArea(); temp.Value = input", true)]
         [DataRow("new HtmlElement(); temp.InnerHtml = input", true)]
-        [DataRow("new HtmlElement(); temp.InnerText = input", true)]
         [DataRow("new Page(); temp.ClientScript.RegisterStartupScript(null, \"constant\", input)", true)]
         [DataRow("new Page(); temp.ClientScript.RegisterClientScriptBlock(null, \"constant\", input)", true)]
         [DataRow("new Page(); temp.RegisterStartupScript(\"constant\", input)", true)]
@@ -334,7 +331,8 @@ End Namespace
         [DataRow("new Page(); temp.Response.Write(input)", true)]
         [DataRow("new Page(); temp.Response.Write(input.ToCharArray(), 0, 1)", true)]
 
-        [DataRow("new TextBox(); temp.Text = \"constant\"", false)]
+        #region False tests with using constant
+
         [DataRow("new Control(); temp.ID = \"constant\"", false)]
         [DataRow("new Label(); temp.Text = \"constant\"", false)]
         [DataRow("new HyperLink(); temp.NavigateUrl = \"constant\"", false)]
@@ -349,16 +347,28 @@ End Namespace
         [DataRow("new Calendar(); temp.Caption = \"constant\"", false)]
         [DataRow("new Table(); temp.Caption = \"constant\"", false)]
         [DataRow("new Panel(); temp.GroupingText = \"constant\"", false)]
-        [DataRow("new HtmlInputText(); temp.Value = \"constant\"", false)]
-        [DataRow("new HtmlTextArea(); temp.Value = \"constant\"", false)]
         [DataRow("new HtmlElement(); temp.InnerHtml = \"constant\"", false)]
-        [DataRow("new HtmlElement(); temp.InnerText = \"constant\"", false)]
         [DataRow("new Page(); temp.ClientScript.RegisterStartupScript(null, \"constant\", \"constant\")", false)]
         [DataRow("new Page(); temp.ClientScript.RegisterClientScriptBlock(null, \"constant\", \"constant\")", false)]
         [DataRow("new Page(); temp.RegisterStartupScript(\"constant\", \"constant\")", false)]
         [DataRow("new Page(); temp.RegisterClientScriptBlock(\"constant\", \"constant\")", false)]
         [DataRow("new Page(); temp.Response.Write(\"constant\")", false)]
         [DataRow("new Page(); temp.Response.Write(\"constant\".ToCharArray(), 0, 1)", false)]
+
+        #endregion
+
+        #region False tests with using sanitizer
+
+        [DataRow("new HyperLink(); temp.NavigateUrl = new Page().Server.UrlEncode(input)", false)]
+        [DataRow("new HyperLink(); var sw = new StringWriter(); var page = new Page(); page.Server.UrlEncode(input, sw); temp.NavigateUrl = sw.ToString()", false)]
+        [DataRow("new HyperLink(); temp.NavigateUrl = Encoder.UrlEncode(input)", false)]
+        [DataRow("new HyperLink(); temp.NavigateUrl = Encoder.UrlEncode(input, Encoding.UTF8)", false)]
+        [DataRow("new HyperLink(); temp.NavigateUrl = Encoder.UrlEncode(input, Encoding.UTF8.CodePage)", false)]
+        [DataRow("new Label(); temp.Text = new Page().Server.HtmlEncode(input)", false)]
+        [DataRow("new Label(); var sw = new StringWriter(); var page = new Page(); page.Server.HtmlEncode(input, sw); temp.Text = sw.ToString()", false)]
+
+        #endregion
+
         [DataTestMethod]
         public async Task XssInWebForms(string sink, bool warn)
         {
@@ -368,6 +378,9 @@ End Namespace
     using System.Web.UI;
     using System.Web.UI.WebControls;
     using System.Web.UI.HtmlControls;
+    using System.IO;
+    using System.Text;
+    using Encoder = Microsoft.Security.Application.Encoder;
 #pragma warning restore 8019
 
 class Vulnerable
@@ -393,6 +406,10 @@ class Vulnerable
     Imports System.Web.UI
     Imports System.Web.UI.WebControls
     Imports System.Web.UI.HtmlControls
+    Imports System.IO
+    Imports Microsoft.Security.Application
+    Imports System.Text
+    Imports Encoder = Microsoft.Security.Application.Encoder
 #Enable Warning BC50001
 
 Class Vulnerable

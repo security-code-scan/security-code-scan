@@ -55,6 +55,7 @@ TaintTypes:
   - LdapFilterEncoded
   - LdapDistinguishedNameEncoded
   - AbsolutePath
+  - UrlEncoded
 
 Behavior:
 # The section describes various types of API behavior:
@@ -257,6 +258,25 @@ Behavior:
       Returns:
         Taint: LdapFilterEncoded
         TaintFromArguments: [0]
+
+  Encoder_UrlEncode:
+    Namespace: Microsoft.Security.Application
+    ClassName: Encoder
+    Name: UrlEncode
+    Method:
+      Returns:
+        Taint: UrlEncoded
+        TaintFromArguments: [0]
+
+  HttpServerUtility_UrlEncode:
+    Namespace: System.Web
+    ClassName: HttpServerUtility
+    Name: UrlEncode
+    Method:
+      Returns:
+        Taint: UrlEncoded
+        TaintFromArguments: [0]
+
 
  ## ToString
 
@@ -805,14 +825,14 @@ Behavior:
     ClassName: HyperLink
     Name: NavigateUrl
     Field:
-      Injectable: [SCS0029: HtmlEscaped]
+      Injectable: [SCS0029: UrlEncoded]
 
   System.Web.UI.WebControls_HyperLink_ImageUrl:
     Namespace: System.Web.UI.WebControls
     ClassName: HyperLink
     Name: ImageUrl
     Field:
-      Injectable: [SCS0029: HtmlEscaped]
+      Injectable: [SCS0029: UrlEncoded]
 
   System.Web.UI.WebControls_Label_Text:
     Namespace: System.Web.UI.WebControls
@@ -896,7 +916,7 @@ Behavior:
     ClassName: Image
     Name: ImageUrl
     Field:
-      Injectable: [SCS0029: HtmlEscaped]
+      Injectable: [SCS0029: UrlEncoded]
 
   System.Web.UI.WebControls_TableCell_Text:
     Namespace: System.Web.UI.WebControls
@@ -930,13 +950,6 @@ Behavior:
     Namespace: System.Web.UI.HtmlControls
     ClassName: HtmlContainerControl
     Name: InnerHtml
-    Field:
-      Injectable: [SCS0029: HtmlEscaped]
-
-  System.Web.UI.HtmlControls_HtmlContainerControl_InnerText:
-    Namespace: System.Web.UI.HtmlControls
-    ClassName: HtmlContainerControl
-    Name: InnerText
     Field:
       Injectable: [SCS0029: HtmlEscaped]
 
@@ -3525,8 +3538,6 @@ Behavior:
     Method:
       Returns:
         Taint: Tainted
-    Field:
-      Injectable: [SCS0029: HtmlEscaped]
 
   System.Web.UI.HtmlControls_HtmlInputFile_Value:
     Namespace: System.Web.UI.HtmlControls
@@ -3553,8 +3564,6 @@ Behavior:
     Method:
       Returns:
         Taint: Tainted
-    Field:
-      Injectable: [SCS0029: HtmlEscaped]
 
   System.Web.UI.HtmlControls_HtmlTextArea_Value:
     Namespace: System.Web.UI.HtmlControls
@@ -3563,8 +3572,6 @@ Behavior:
     Method:
       Returns:
         Taint: Tainted
-    Field:
-      Injectable: [SCS0029: HtmlEscaped]
 
 # Taint entry points that introduce taint into the program like main(args).
 # All parameters of such API are treated as tainted.

@@ -56,6 +56,7 @@ TaintTypes:
   - LdapDistinguishedNameEncoded
   - AbsolutePath
   - UrlEncoded
+  - UrlPathEncoded
 
 Behavior:
 # The section describes various types of API behavior:
@@ -259,6 +260,15 @@ Behavior:
         Taint: LdapFilterEncoded
         TaintFromArguments: [0]
 
+  Encoder_UrlPathEncode:
+    Namespace: Microsoft.Security.Application
+    ClassName: Encoder
+    Name: UrlPathEncode
+    Method:
+      Returns:
+        Taint: UrlPathEncoded
+        TaintFromArguments: [0]
+
   Encoder_UrlEncode:
     Namespace: Microsoft.Security.Application
     ClassName: Encoder
@@ -268,15 +278,25 @@ Behavior:
         Taint: UrlEncoded
         TaintFromArguments: [0]
 
-  HttpServerUtility_UrlEncode:
+  HttpServerUtility_UrlEncode1:
     Namespace: System.Web
     ClassName: HttpServerUtility
     Name: UrlEncode
     Method:
+      ArgTypes: (System.String)
       Returns:
         Taint: UrlEncoded
         TaintFromArguments: [0]
 
+  HttpServerUtility_UrlEncode2:
+    Namespace: System.Web
+    ClassName: HttpServerUtility
+    Name: UrlEncode
+    Method:
+      ArgTypes: (System.String, System.IO.TextWriter)
+      1:
+        Taint: UrlEncoded
+        TaintFromArguments: [0]
 
  ## ToString
 
@@ -778,13 +798,6 @@ Behavior:
 
  ## WebControls
 
-  System.Web.UI_Page_Title:
-    Namespace: System.Web.UI
-    ClassName: Page
-    Name: Title
-    Field:
-      Injectable: [SCS0029: HtmlEscaped]
-
   System.Web.UI.WebControls_CheckBox_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: CheckBox
@@ -806,13 +819,6 @@ Behavior:
     Field:
       Injectable: [SCS0029: HtmlEscaped]
 
-  System.Web.UI.WebControls_DropDownList_Text:
-    Namespace: System.Web.UI.WebControls
-    ClassName: DropDownList
-    Name: Text
-    Field:
-      Injectable: [SCS0029: HtmlEscaped]
-
   System.Web.UI.WebControls_HyperLink_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: HyperLink
@@ -825,14 +831,7 @@ Behavior:
     ClassName: HyperLink
     Name: NavigateUrl
     Field:
-      Injectable: [SCS0029: UrlEncoded]
-
-  System.Web.UI.WebControls_HyperLink_ImageUrl:
-    Namespace: System.Web.UI.WebControls
-    ClassName: HyperLink
-    Name: ImageUrl
-    Field:
-      Injectable: [SCS0029: UrlEncoded]
+      Injectable: [SCS0029: UrlPathEncoded]
 
   System.Web.UI.WebControls_Label_Text:
     Namespace: System.Web.UI.WebControls
@@ -844,20 +843,6 @@ Behavior:
   System.Web.UI.WebControls_LinkButton_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: LinkButton
-    Name: Text
-    Field:
-      Injectable: [SCS0029: HtmlEscaped]
-
-  System.Web.UI.WebControls_ListBox_Text:
-    Namespace: System.Web.UI.WebControls
-    ClassName: ListBox
-    Name: Text
-    Field:
-      Injectable: [SCS0029: HtmlEscaped]
-
-  System.Web.UI.WebControls_ListControl_Text:
-    Namespace: System.Web.UI.WebControls
-    ClassName: ListControl
     Name: Text
     Field:
       Injectable: [SCS0029: HtmlEscaped]
@@ -883,13 +868,6 @@ Behavior:
     Field:
       Injectable: [SCS0029: HtmlEscaped]
 
-  System.Web.UI.WebControls_RadioButtonList_Text:
-    Namespace: System.Web.UI.WebControls
-    ClassName: RadioButtonList
-    Name: Text
-    Field:
-      Injectable: [SCS0029: HtmlEscaped]
-
   System.Web.UI.WebControls_RangeValidator_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: RangeValidator
@@ -910,13 +888,6 @@ Behavior:
     Name: Text
     Field:
       Injectable: [SCS0029: HtmlEscaped]
-
-  System.Web.UI.WebControls_Image_ImageUrl:
-    Namespace: System.Web.UI.WebControls
-    ClassName: Image
-    Name: ImageUrl
-    Field:
-      Injectable: [SCS0029: UrlEncoded]
 
   System.Web.UI.WebControls_TableCell_Text:
     Namespace: System.Web.UI.WebControls

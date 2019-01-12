@@ -313,8 +313,6 @@ End Namespace
         [DataRow("new Label(); temp.Text = input", true)]
         [DataRow("new HyperLink(); temp.NavigateUrl = input", true)]
         [DataRow("new HyperLink(); temp.Text = input", true)]
-        [DataRow("new HyperLink(); temp.ImageUrl = input", true)]
-        [DataRow("new Image(); temp.ImageUrl = input", true)]
         [DataRow("new LinkButton(); temp.Text = input", true)]
         [DataRow("new Literal(); temp.Text = input", true)]
         [DataRow("new CheckBox(); temp.Text = input", true)]
@@ -359,11 +357,7 @@ End Namespace
 
         #region False tests with using sanitizer
 
-        [DataRow("new HyperLink(); temp.NavigateUrl = new Page().Server.UrlEncode(input)", false)]
-        [DataRow("new HyperLink(); var sw = new StringWriter(); var page = new Page(); page.Server.UrlEncode(input, sw); temp.NavigateUrl = sw.ToString()", false)]
-        [DataRow("new HyperLink(); temp.NavigateUrl = Encoder.UrlEncode(input)", false)]
-        [DataRow("new HyperLink(); temp.NavigateUrl = Encoder.UrlEncode(input, Encoding.UTF8)", false)]
-        [DataRow("new HyperLink(); temp.NavigateUrl = Encoder.UrlEncode(input, Encoding.UTF8.CodePage)", false)]
+        [DataRow("new HyperLink(); temp.NavigateUrl = Encoder.UrlPathEncode(input)", false)]
         [DataRow("new Label(); temp.Text = new Page().Server.HtmlEncode(input)", false)]
         [DataRow("new Label(); var sw = new StringWriter(); var page = new Page(); page.Server.HtmlEncode(input, sw); temp.Text = sw.ToString()", false)]
 

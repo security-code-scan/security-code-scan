@@ -69,13 +69,10 @@ namespace SecurityCodeScan.Test.Config
         }
 
         [TestMethod]
-        public void DifferentConfigVersion_ChangesIgnored()
+        public void DifferentConfigVersion_Exception()
         {
             var options   = ConfigurationTest.CreateAnalyzersOptionsWithConfig("MinimumPasswordValidatorProperties: 0", new Version(1,2));
-            var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
-
-            Assert.AreNotEqual(StartupConfiguration.MinimumPasswordValidatorProperties, 0);
-            Assert.AreEqual(StartupConfiguration.MinimumPasswordValidatorProperties, newConfig.MinimumPasswordValidatorProperties);
+            Assert.ThrowsException<ArgumentException>(() => Manager.GetProjectConfiguration(options.AdditionalFiles));
         }
 
         [DataTestMethod]

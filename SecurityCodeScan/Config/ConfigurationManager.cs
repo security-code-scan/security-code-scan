@@ -74,8 +74,21 @@ namespace SecurityCodeScan.Config
                 {
                     var projectConfig = DeserializeAndValidate<ProjectConfigData>(reader);
 
-                    if (new Version(projectConfig.Version) != ConfigVersion)
-                        return null;
+                    Version projectConfigVersion;
+                    try
+                    {
+                        projectConfigVersion = new Version(projectConfig.Version);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new ArgumentException($"'Version' is missing or corrupted in the project configuration file '{file.Path}'. See https://security-code-scan.github.io/#ExternalConfigurationFiles",
+                                                    "Version",
+                                                    e);
+                    }
+
+                    if (projectConfigVersion != ConfigVersion)
+                        throw new ArgumentException($"Version mismatch in the project configuration file '{file.Path}'. Please read https://security-code-scan.github.io/#ReleaseNotes for the information what has changed in the configuration format.",
+                                                    "Version");
 
                     path = file.Path;
                     return projectConfig;

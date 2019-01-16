@@ -1,4 +1,4 @@
-﻿# Release Notes
+# Release Notes
 ## 3.0.0
 This is a major release that introduces configurable taint sources, sanitizers and validators. Configuration file schema version has changed to 2.0, so if you had custom config settings, you'll need to adjust to the schema and bump your file name from `config-1.0.yml` to `config-2.0.yml` or change from `Version: 1.0` to `Version: 2.0` if it was added to a project.  
 With the introduction of taint sources and taint entry points warning are shown only for the tainted data. Unknowns are reported only in the Audit Mode.  

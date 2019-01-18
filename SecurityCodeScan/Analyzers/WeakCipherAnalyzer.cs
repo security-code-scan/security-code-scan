@@ -3,15 +3,21 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
+using SecurityCodeScan.Config;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class WeakCipherAnalyzerCSharp : WeakCipherAnalyzer
+    [SecurityAnalyzer(LanguageNames.CSharp)]
+    internal class WeakCipherAnalyzerCSharp : WeakCipherAnalyzer
     {
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(ISecurityAnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
+        }
+
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
         {
             context.RegisterSyntaxNodeAction(ctx => VisitSyntaxNode(ctx, CSharpSyntaxNodeHelper.Default),
                                              CSharp.SyntaxKind.InvocationExpression,
@@ -19,10 +25,15 @@ namespace SecurityCodeScan.Analyzers
         }
     }
 
-    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
-    public class WeakCipherAnalyzerVisualBasic : WeakCipherAnalyzer
+    [SecurityAnalyzer(LanguageNames.VisualBasic)]
+    internal class WeakCipherAnalyzerVisualBasic : WeakCipherAnalyzer
     {
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(ISecurityAnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
+        }
+
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
         {
             context.RegisterSyntaxNodeAction(ctx => VisitSyntaxNode(ctx, VBSyntaxNodeHelper.Default),
                                              VB.SyntaxKind.InvocationExpression,
@@ -30,7 +41,7 @@ namespace SecurityCodeScan.Analyzers
         }
     }
 
-    public abstract class WeakCipherAnalyzer : DiagnosticAnalyzer
+    internal abstract class WeakCipherAnalyzer : SecurityAnalyzer
     {
         private static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0010");
 

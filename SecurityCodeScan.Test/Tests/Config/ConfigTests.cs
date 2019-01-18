@@ -16,7 +16,7 @@ namespace SecurityCodeScan.Test.Config
     {
         public ConfigTest()
         {
-            Manager              = ConfigurationManager.Instance;
+            Manager              = new ConfigurationManager();
             StartupConfiguration = Manager.GetProjectConfiguration(ImmutableArray<AdditionalText>.Empty);
         }
 

@@ -4,7 +4,7 @@ using SecurityCodeScan.Analyzers.Utils;
 
 namespace SecurityCodeScan.Analyzers.Taint
 {
-    public class PostCondition
+    internal class PostCondition
     {
         public PostCondition(ulong taint, ImmutableHashSet<int> taintFromArguments = null)
         {
@@ -17,7 +17,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         public ImmutableHashSet<int> TaintFromArguments { get; }
     }
 
-    public class Condition
+    internal class Condition
     {
         public Condition(IReadOnlyDictionary<int, object> @if, IReadOnlyDictionary<int, PostCondition> then)
         {
@@ -29,7 +29,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         public IReadOnlyDictionary<int, PostCondition> Then { get; }
     }
 
-    public class InjectableArgument
+    internal class InjectableArgument
     {
         public InjectableArgument(ulong taint, string locale, bool not = false)
         {
@@ -45,7 +45,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         public ulong RequiredTaintBits { get; }
     }
 
-    public class MethodBehavior
+    internal class MethodBehavior
     {
         public IReadOnlyDictionary<int, InjectableArgument> InjectableArguments { get; }
         public IReadOnlyList<Condition>                     Conditions          { get; }

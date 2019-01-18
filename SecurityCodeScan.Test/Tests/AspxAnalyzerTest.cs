@@ -11,7 +11,10 @@ namespace SecurityCodeScan.Test
     [TestClass]
     public class AspxAnalyzerTest : ExternalFileAnalyzerTest
     {
-        public AspxAnalyzerTest() : base(new HtmlValidateRequestAnalyzer()) { }
+        public AspxAnalyzerTest()
+        {
+            Initialize(new HtmlValidateRequestAnalyzer());
+        }
 
         [TestCategory("Detect")]
         [DataRow("<%@page validateRequest=\"false\"")]

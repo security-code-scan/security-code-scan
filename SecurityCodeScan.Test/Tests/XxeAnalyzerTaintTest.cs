@@ -12,7 +12,8 @@ namespace SecurityCodeScan.Test.XXE
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new DiagnosticAnalyzer[] { new XxeDiagnosticAnalyzerCSharp(), new XxeDiagnosticAnalyzerVisualBasic(), new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic(), };
+            return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new XxeDiagnosticAnalyzerCSharp(), new TaintAnalyzerCSharp()),
+                                              new VBasicAnalyzers(new XxeDiagnosticAnalyzerVisualBasic(), new TaintAnalyzerVisualBasic())};
         }
 
         [TestCategory("Safe")]

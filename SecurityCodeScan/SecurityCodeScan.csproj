@@ -35,14 +35,15 @@
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Analyzers\Analyzers.cs" />
     <Compile Include="Analyzers\CsrfTokenAnalyzer.cs" />
-    <Compile Include="Analyzers\CsrfTokenAnalyzerCSharp.cs" />
-    <Compile Include="Analyzers\CsrfTokenAnalyzerVBasic.cs" />
     <Compile Include="Analyzers\HtmlValidateRequestAnalyzer.cs" />
     <Compile Include="Analyzers\IExternalFileAnalyzer.cs" />
     <Compile Include="Analyzers\InsecureCookieAnalyzer.cs" />
     <Compile Include="Analyzers\RequestValidationAnalyzer.cs" />
     <Compile Include="Analyzers\OutputCacheAnnotationAnalyzer.cs" />
+    <Compile Include="Analyzers\SecurityAnalysisContext.cs" />
+    <Compile Include="Analyzers\SecurityAnalyzer.cs" />
     <Compile Include="Analyzers\Taint\CodeEvaluation\CSharpCodeEvaluation.cs" />
     <Compile Include="Analyzers\Taint\CodeEvaluation\TaintAnalyzerExtension.cs" />
     <Compile Include="Analyzers\UnknownPasswordApiAnalyzer.cs" />

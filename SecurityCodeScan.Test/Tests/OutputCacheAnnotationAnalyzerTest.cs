@@ -15,7 +15,7 @@ namespace SecurityCodeScan.Test
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new DiagnosticAnalyzer[]{ new OutputCacheAnnotationAnalyzer() };
+            return new DiagnosticAnalyzer[]{ new CSharpAnalyzers(new OutputCacheAnnotationAnalyzer()) };
         }
 
         private static readonly PortableExecutableReference[] References =

@@ -143,7 +143,7 @@ namespace SecurityCodeScan.Analyzers.Utils
         }
     }
 
-    public enum SymbolVisibility
+    internal enum SymbolVisibility
     {
         Public,
         Internal,

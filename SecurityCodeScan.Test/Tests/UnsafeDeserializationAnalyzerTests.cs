@@ -18,13 +18,10 @@ namespace SecurityCodeScan.Test
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new DiagnosticAnalyzer[]
-            {
-                new UnsafeDeserializationAnalyzerCSharp(),
-                new UnsafeDeserializationAnalyzerVisualBasic(),
-                new TaintAnalyzerCSharp(),
-                new TaintAnalyzerVisualBasic()
-            };
+            if (language == LanguageNames.CSharp)
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new TaintAnalyzerCSharp(), new UnsafeDeserializationAnalyzerCSharp()) };
+            else
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new TaintAnalyzerVisualBasic(), new UnsafeDeserializationAnalyzerVisualBasic()) };
         }
 
         private static readonly PortableExecutableReference[] References =

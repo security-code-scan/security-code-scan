@@ -15,16 +15,19 @@ namespace SecurityCodeScan.Analyzers.Taint
 {
     internal class VbCodeEvaluation
     {
-        public static List<TaintAnalyzerExtensionVisualBasic> Extensions { get; set; } = new List<TaintAnalyzerExtensionVisualBasic>();
+        private IEnumerable<TaintAnalyzerExtensionVisualBasic> Extensions { get; }
 
-        private Configuration ProjectConfiguration;
+        private readonly Configuration ProjectConfiguration;
 
         private SyntaxNodeHelper SyntaxNodeHelper;
 
-        public VbCodeEvaluation(SyntaxNodeHelper syntaxHelper, Configuration projectConfiguration)
+        public VbCodeEvaluation(SyntaxNodeHelper syntaxHelper,
+                                Configuration projectConfiguration,
+                                IEnumerable<TaintAnalyzerExtensionVisualBasic> extensions)
         {
             SyntaxNodeHelper     = syntaxHelper;
             ProjectConfiguration = projectConfiguration;
+            Extensions = extensions ?? Enumerable.Empty<TaintAnalyzerExtensionVisualBasic>();
         }
 
         public void VisitMethods(SyntaxNodeAnalysisContext ctx)
@@ -35,14 +38,14 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                 foreach (var ext in Extensions)
                 {
-                    ext.VisitBegin(ctx.Node, state);
+                    ext.VisitBegin(ctx.Node, state, ProjectConfiguration);
                 }
 
                 VisitNode(ctx.Node, state);
 
                 foreach (var ext in Extensions)
                 {
-                    ext.VisitEnd(ctx.Node, state);
+                    ext.VisitEnd(ctx.Node, state, ProjectConfiguration);
                 }
             }
             catch (Exception e)
@@ -72,7 +75,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                 foreach (var ext in Extensions)
                 {
-                    ext.VisitStatement(statement, state);
+                    ext.VisitStatement(statement, state, ProjectConfiguration);
                 }
             }
 
@@ -739,7 +742,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             //Additional analysis by extension
             foreach (var ext in Extensions)
             {
-                ext.VisitInvocationAndCreation(node, argList, state);
+                ext.VisitInvocationAndCreation(node, argList, state, ProjectConfiguration);
             }
 
             return returnState;
@@ -766,7 +769,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             //Additional analysis by extension
             foreach (var ext in Extensions)
             {
-                ext.VisitAssignment(node, state, behavior, leftSymbol, variableState);
+                ext.VisitAssignment(node, state, behavior, leftSymbol, variableState, ProjectConfiguration);
             }
 
             //if (leftSymbol != null)

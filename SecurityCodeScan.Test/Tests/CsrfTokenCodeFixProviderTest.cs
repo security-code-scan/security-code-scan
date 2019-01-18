@@ -70,11 +70,10 @@ public class TestController : Controller
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new DiagnosticAnalyzer[]
-            {
-                new MvcCsrfTokenAnalyzerCSharp(),
-                new MvcCsrfTokenAnalyzerVBasic()
-            };
+            if (language == LanguageNames.CSharp)
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new MvcCsrfTokenAnalyzer()) };
+            else
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new MvcCsrfTokenAnalyzer()) };
         }
     }
 
@@ -93,11 +92,10 @@ public class TestController : Controller
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new DiagnosticAnalyzer[]
-            {
-                new CoreCsrfTokenAnalyzerCSharp(),
-                new CoreCsrfTokenAnalyzerVBasic()
-            };
+            if (language == LanguageNames.CSharp)
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CoreCsrfTokenAnalyzer()) };
+            else
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CoreCsrfTokenAnalyzer()) };
         }
     }
 }

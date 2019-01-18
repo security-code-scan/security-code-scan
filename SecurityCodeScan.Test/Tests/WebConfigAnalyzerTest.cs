@@ -10,8 +10,9 @@ namespace SecurityCodeScan.Test
     [TestClass]
     public class WebConfigAnalyzerTest : ExternalFileAnalyzerTest
     {
-        public WebConfigAnalyzerTest() : base(new WebConfigAnalyzer())
+        public WebConfigAnalyzerTest()
         {
+            Initialize(new WebConfigAnalyzer());
         }
 
         [TestCategory("Detect")]

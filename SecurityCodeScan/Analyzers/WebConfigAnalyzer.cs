@@ -8,11 +8,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
+using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class WebConfigAnalyzer : DiagnosticAnalyzer, IExternalFileAnalyzer
+    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class WebConfigAnalyzer : SecurityAnalyzer, IExternalFileAnalyzer
     {
         public static readonly DiagnosticDescriptor RuleValidateRequest         = LocaleUtil.GetDescriptor("SCS0021");
         public static readonly DiagnosticDescriptor RuleRequestValidationMode   = LocaleUtil.GetDescriptor("SCS0030");
@@ -26,12 +27,12 @@ namespace SecurityCodeScan.Analyzers
                                                                                                            RuleViewStateEncryptionMode,
                                                                                                            RuleEnableViewStateMac);
 
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(ISecurityAnalysisContext context)
         {
-            context.RegisterCompilationAction(Compilation);
+            context.RegisterCompilationAction(OnCompilationAction);
         }
 
-        private void Compilation(CompilationAnalysisContext ctx)
+        private void OnCompilationAction(CompilationAnalysisContext ctx)
         {
             //Load Web.config files : ASP.net web application configuration
             foreach (AdditionalText file in ctx.Options

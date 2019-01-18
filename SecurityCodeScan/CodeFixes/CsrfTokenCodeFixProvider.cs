@@ -15,17 +15,17 @@ using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace SecurityCodeScan.CodeFixes
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(InsecureCookieCodeFixProvider)), Shared]
-    public class CsrfTokenCodeFixProvider : CodeFixProvider
+    public sealed class CsrfTokenCodeFixProvider : CodeFixProvider
     {
         private const          string                 CreateAnnotationTitle = "Add [ValidateAntiForgeryToken] validation";
-        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CsrfTokenDiagnosticAnalyzer.DiagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CsrfTokenDiagnosticAnalyzer.DiagnosticId);
 
-        public sealed override FixAllProvider GetFixAllProvider()
+        public override FixAllProvider GetFixAllProvider()
         {
             return WellKnownFixAllProviders.BatchFixer;
         }
 
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             // TODO: Replace the following code with your own analysis, generating a CodeAction for each fix to suggest
             var diagnostic = context.Diagnostics.First();

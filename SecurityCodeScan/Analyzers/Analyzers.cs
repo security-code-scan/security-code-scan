@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Taint;
+using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Analyzers
 {
@@ -127,6 +128,12 @@ namespace SecurityCodeScan.Analyzers
 
         public override void Initialize(AnalysisContext analysisContext)
         {
+            analysisContext.EnableConcurrentExecution();
+
+            var config = new ConfigurationManager().GetBuiltInAndUserConfiguration();
+            if (!config.AuditMode)
+                analysisContext.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             var ctx = new SecurityAnalysisContext();
             ctx.Initialize(analysisContext, Workers);
         }

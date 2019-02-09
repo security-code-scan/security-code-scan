@@ -10,6 +10,9 @@ using YamlDotNet.Serialization;
 
 namespace SecurityCodeScan.Config
 {
+    /// <summary>
+    /// The implementation must be thread-safe because it is used as static field!
+    /// </summary>
     internal class ConfigurationReader
     {
         private const string BuiltinConfigName = "SecurityCodeScan.Config.Main.yml";

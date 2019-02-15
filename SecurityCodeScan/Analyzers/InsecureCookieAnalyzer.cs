@@ -67,8 +67,12 @@ namespace SecurityCodeScan.Analyzers
                 return;
 
             // Only if it is the constructor of the HttpCookie instance
-            if (!symbol.IsConstructor() || !symbol.ContainingSymbol.ToString().Equals("System.Web.HttpCookie"))
+            if (!symbol.IsConstructor() ||
+                (!symbol.ContainingSymbol.ToString().Equals("System.Web.HttpCookie") &&
+                 !symbol.ContainingSymbol.ToString().Equals("Microsoft.AspNetCore.Http.CookieOptions")))
+            {
                 return;
+            }
 
             if (!variableState.PropertyStates.TryGetValue("Secure", out var secureState) ||
                 (secureState.Taint == VariableTaint.Constant &&

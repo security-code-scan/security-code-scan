@@ -24,7 +24,8 @@ namespace SecurityCodeScan.Test.InsecureCookie
 
         private static readonly PortableExecutableReference[] References =
         {
-            MetadataReference.CreateFromFile(typeof(HttpCookie).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(HttpCookie).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Http.CookieOptions).Assembly.Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
@@ -196,33 +197,35 @@ End Namespace
         }
 
         [TestCategory("Detect")]
-        [TestMethod]
-        public async Task CookieWithFalseFlags()
+        [DataTestMethod]
+        [DataRow("System.Web", @"HttpCookie(""test"")")]
+        [DataRow("Microsoft.AspNetCore.Http", @"CookieOptions()")]
+        public async Task CookieWithFalseFlags(string @namespace, string constructor)
         {
-            var cSharpTest = @"
-using System.Web;
+            var cSharpTest = $@"
+using {@namespace};
 
 namespace VulnerableApp
-{
+{{
     class CookieCreation
-    {
+    {{
         static void TestCookie()
-        {
-            var cookie = new HttpCookie(""test"");
+        {{
+            var cookie = new {constructor};
             cookie.Secure = false;
             cookie.HttpOnly = false;
-        }
-    }
-}
+        }}
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
-Imports System.Web
+            var visualBasicTest = $@"
+Imports {@namespace}
 
 Namespace VulnerableApp
     Class CookieCreation
         Private Shared Sub TestCookie()
-            Dim cookie = New HttpCookie(""test"")
+            Dim cookie = New {constructor}
             cookie.Secure = False
             cookie.HttpOnly = False
         End Sub

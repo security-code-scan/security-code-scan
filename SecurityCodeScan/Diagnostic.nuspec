@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata minClientVersion="2.8">
     <id>SecurityCodeScan</id>
-    <version>3.0.0</version>
+    <version>3.1.0</version>
     <title>Security Code Scan</title>
     <authors>Jaroslav Lobačevski, Philippe Arteau</authors>
     <owners>Jaroslav Lobačevski</owners>

@@ -1,4 +1,11 @@
 # Release Notes
+## 3.1.0
+The release adds support for VS2019 and bug fixes. Also:
+* Adds multiple XSS sinks for WebForms (thanks [Andrei!](https://github.com/zaichenko))
+* Changes in SCS configuration file doesn't require to restart Visual Studio anymore.
+* Warnings are suppressed for generated code.
+* Adds .NET Core cookie analyzer.
+
 ## 3.0.0
 This is a major release that introduces configurable taint sources, sanitizers and validators. Configuration file schema version has changed to 2.0, so if you had custom config settings, you'll need to adjust to the schema and bump your file name from `config-1.0.yml` to `config-2.0.yml` or change from `Version: 1.0` to `Version: 2.0` if it was added to a project.  
 With the introduction of taint sources and taint entry points warning are shown only for the tainted data. Unknowns are reported only in the Audit Mode.  

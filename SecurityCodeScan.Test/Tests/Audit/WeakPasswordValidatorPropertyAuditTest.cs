@@ -17,9 +17,9 @@ namespace SecurityCodeScan.Test.Audit
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new WeakPasswordValidatorPropertyAnalyzerCSharp(), new TaintAnalyzerCSharp() };
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new TaintAnalyzerCSharp(new WeakPasswordValidatorPropertyAnalyzerCSharp())) };
             else
-                return new DiagnosticAnalyzer[] { new WeakPasswordValidatorPropertyAnalyzerVisualBasic(), new TaintAnalyzerVisualBasic() };
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new TaintAnalyzerVisualBasic(new WeakPasswordValidatorPropertyAnalyzerVisualBasic())) };
         }
 
         private static readonly PortableExecutableReference[] References =

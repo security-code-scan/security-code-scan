@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
+using SecurityCodeScan.Config;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
@@ -12,12 +13,17 @@ using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class XssPreventionAnalyzerCSharp : XssPreventionAnalyzer
+    [SecurityAnalyzer(LanguageNames.CSharp)]
+    internal class XssPreventionAnalyzerCSharp : XssPreventionAnalyzer
     {
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(ISecurityAnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(VisitMethods,      CSharp.SyntaxKind.ClassDeclaration);
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
+        }
+
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        {
+            context.RegisterSyntaxNodeAction(VisitMethods, CSharp.SyntaxKind.ClassDeclaration);
         }
 
         private void VisitMethods(SyntaxNodeAnalysisContext ctx)
@@ -90,10 +96,15 @@ namespace SecurityCodeScan.Analyzers
         }
     }
 
-    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
-    public class XssPreventionAnalyzerVisualBasic : XssPreventionAnalyzer
+    [SecurityAnalyzer(LanguageNames.VisualBasic)]
+    internal class XssPreventionAnalyzerVisualBasic : XssPreventionAnalyzer
     {
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(ISecurityAnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
+        }
+
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
         {
             context.RegisterSyntaxNodeAction(VisitMethods, VB.SyntaxKind.ClassBlock);
         }
@@ -181,7 +192,7 @@ namespace SecurityCodeScan.Analyzers
     // Problem #1: So many language specific syntax nodes.
     // Problem #2: Literal strings are different.
 
-    public abstract class XssPreventionAnalyzer : DiagnosticAnalyzer
+    internal abstract class XssPreventionAnalyzer : SecurityAnalyzer
     {
         public const string DiagnosticId = "SCS0029";
 
@@ -195,6 +206,6 @@ namespace SecurityCodeScan.Analyzers
 
         protected static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor(DiagnosticId);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
     }
 }

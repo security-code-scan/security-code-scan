@@ -8,11 +8,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
+using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class WebConfigAnalyzer : DiagnosticAnalyzer, IExternalFileAnalyzer
+    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class WebConfigAnalyzer : SecurityAnalyzer, IExternalFileAnalyzer
     {
         public static readonly DiagnosticDescriptor RuleValidateRequest         = LocaleUtil.GetDescriptor("SCS0021");
         public static readonly DiagnosticDescriptor RuleRequestValidationMode   = LocaleUtil.GetDescriptor("SCS0030");
@@ -20,18 +21,18 @@ namespace SecurityCodeScan.Analyzers
         public static readonly DiagnosticDescriptor RuleViewStateEncryptionMode = LocaleUtil.GetDescriptor("SCS0023");
         public static readonly DiagnosticDescriptor RuleEnableViewStateMac      = LocaleUtil.GetDescriptor("SCS0024");
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RuleValidateRequest,
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(RuleValidateRequest,
                                                                                                            RuleRequestValidationMode,
                                                                                                            RuleEnableEventValidation,
                                                                                                            RuleViewStateEncryptionMode,
                                                                                                            RuleEnableViewStateMac);
 
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(ISecurityAnalysisContext context)
         {
-            context.RegisterCompilationAction(Compilation);
+            context.RegisterCompilationAction(OnCompilationAction);
         }
 
-        private void Compilation(CompilationAnalysisContext ctx)
+        private void OnCompilationAction(CompilationAnalysisContext ctx)
         {
             //Load Web.config files : ASP.net web application configuration
             foreach (AdditionalText file in ctx.Options

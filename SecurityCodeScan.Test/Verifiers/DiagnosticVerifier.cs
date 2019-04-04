@@ -26,7 +26,7 @@ namespace SecurityCodeScan.Test.Helpers
             var mockConfigReader = new Mock<ConfigurationReader>();
             mockConfigReader.Setup(mr => mr.GetUserConfiguration()).Returns(default(ConfigData)); // For the partially mocked methods
             mockConfigReader.CallBase = true; // To wire-up the concrete class.
-            ConfigurationManager.Instance.ConfigurationReader = mockConfigReader.Object;
+            ConfigurationManager.Reader = mockConfigReader.Object;
         }
 
         #region To be implemented by Test classes

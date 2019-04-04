@@ -16,21 +16,21 @@ using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace SecurityCodeScan.CodeFixes
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(InsecureCookieCodeFixProvider)), Shared]
-    public class InsecureCookieCodeFixProvider : CodeFixProvider
+    public sealed class InsecureCookieCodeFixProvider : CodeFixProvider
     {
         private const string SecureTitle   = "Add cookie flag Secure";
         private const string HttpOnlyTitle = "Add cookie flag HttpOnly";
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds =>
+        public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(InsecureCookieAnalyzer.DiagnosticIdSecure,
                                   InsecureCookieAnalyzer.DiagnosticIdHttpOnly);
 
-        public sealed override FixAllProvider GetFixAllProvider()
+        public override FixAllProvider GetFixAllProvider()
         {
             return WellKnownFixAllProviders.BatchFixer;
         }
 
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             // TODO: Replace the following code with your own analysis, generating a CodeAction for each fix to suggest
             var diagnostic = context.Diagnostics.First();

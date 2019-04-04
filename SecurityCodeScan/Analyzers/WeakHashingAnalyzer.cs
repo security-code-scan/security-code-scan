@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -11,88 +12,106 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class WeakHashingAnalyzerCSharp : WeakHashingAnalyzer
+    [SecurityAnalyzer(LanguageNames.CSharp)]
+    internal class WeakHashingAnalyzerCSharp : WeakHashingAnalyzer
     {
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(ISecurityAnalysisContext context)
         {
-            context.RegisterCompilationStartAction(ctx =>
-                                                   {
-                                                       var analyzer = new WeakHashingCompilationAnalyzer();
-                                                       ctx.RegisterSyntaxNodeAction(actionContext => analyzer.VisitInvocationSyntaxNode(actionContext, CSharpSyntaxNodeHelper.Default),
-                                                                                    CSharp.SyntaxKind.InvocationExpression);
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
+        }
 
-                                                       ctx.RegisterSyntaxNodeAction(analyzer.VisitMemberAccessSyntaxNode,
-                                                                                    CSharp.SyntaxKind.SimpleMemberAccessExpression);
+        private void OnCompilationStartAction(CompilationStartAnalysisContext ctx, Configuration config)
+        {
+            var analyzer = new WeakHashingCompilationAnalyzer(config);
+            ctx.RegisterSyntaxNodeAction(actionContext => analyzer.VisitInvocationSyntaxNode(actionContext, CSharpSyntaxNodeHelper.Default),
+                                         CSharp.SyntaxKind.InvocationExpression);
 
-                                                       ctx.RegisterSyntaxNodeAction(analyzer.VisitObjectCreationSyntaxNode,
-                                                                                    CSharp.SyntaxKind.ObjectCreationExpression);
-                                                   });
+            ctx.RegisterSyntaxNodeAction(analyzer.VisitMemberAccessSyntaxNode,
+                                         CSharp.SyntaxKind.SimpleMemberAccessExpression);
+
+            ctx.RegisterSyntaxNodeAction(analyzer.VisitObjectCreationSyntaxNode,
+                                         CSharp.SyntaxKind.ObjectCreationExpression);
         }
     }
 
-    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
-    public class WeakHashingAnalyzerVisualBasic: WeakHashingAnalyzer
+    [SecurityAnalyzer(LanguageNames.VisualBasic)]
+    internal class WeakHashingAnalyzerVisualBasic: WeakHashingAnalyzer
     {
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(ISecurityAnalysisContext context)
         {
-            context.RegisterCompilationStartAction(ctx =>
-            {
-                var analyzer = new WeakHashingCompilationAnalyzer();
-                ctx.RegisterSyntaxNodeAction(actionContext => analyzer.VisitInvocationSyntaxNode(actionContext, VBSyntaxNodeHelper.Default),
-                                             VB.SyntaxKind.InvocationExpression);
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
+        }
 
-                ctx.RegisterSyntaxNodeAction(analyzer.VisitMemberAccessSyntaxNode,
-                                             VB.SyntaxKind.SimpleMemberAccessExpression);
+        private void OnCompilationStartAction(CompilationStartAnalysisContext ctx, Configuration config)
+        {
+            var analyzer = new WeakHashingCompilationAnalyzer(config);
+            ctx.RegisterSyntaxNodeAction(actionContext => analyzer.VisitInvocationSyntaxNode(actionContext, VBSyntaxNodeHelper.Default),
+                                         VB.SyntaxKind.InvocationExpression);
 
-                ctx.RegisterSyntaxNodeAction(analyzer.VisitObjectCreationSyntaxNode,
-                                             VB.SyntaxKind.ObjectCreationExpression);
-            });
+            ctx.RegisterSyntaxNodeAction(analyzer.VisitMemberAccessSyntaxNode,
+                                         VB.SyntaxKind.SimpleMemberAccessExpression);
+
+            ctx.RegisterSyntaxNodeAction(analyzer.VisitObjectCreationSyntaxNode,
+                                         VB.SyntaxKind.ObjectCreationExpression);
         }
     }
 
-    public abstract class WeakHashingAnalyzer : DiagnosticAnalyzer
+    internal abstract class WeakHashingAnalyzer : SecurityAnalyzer
     {
         public static readonly DiagnosticDescriptor Md5Rule  = LocaleUtil.GetDescriptor("SCS0006", args: new[] { "MD5" });
         public static readonly DiagnosticDescriptor Sha1Rule = LocaleUtil.GetDescriptor("SCS0006", args: new[] { "SHA1" });
         public static readonly DiagnosticDescriptor UnknownHashRule = LocaleUtil.GetDescriptor("SCS0006", titleId:"title2", descriptionId: "description_unknown");
         public const string Sha1TypeName = "System.Security.Cryptography.SHA1";
-        public const string Md5TypeName = "System.Security.Cryptography.MD5";
+        public const string Md5TypeName  = "System.Security.Cryptography.MD5";
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Md5Rule,
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Md5Rule,
                                                                                                            Sha1Rule);
     }
 
     internal class WeakHashingCompilationAnalyzer
     {
-        private readonly List<Diagnostic> ReportedDiagnostics = new List<Diagnostic>();
+        private class DiagnosticComparer : IEqualityComparer<Diagnostic>
+        {
+            public bool Equals(Diagnostic x, Diagnostic y)
+            {
+                if (x.Id != y.Id)
+                    return false;
+
+                var xLineSpan = x.Location.GetLineSpan();
+                var yLineSpan = y.Location.GetLineSpan();
+
+                if (xLineSpan.Path != yLineSpan.Path)
+                    return false;
+
+                return xLineSpan.StartLinePosition == yLineSpan.StartLinePosition;
+            }
+
+            public int GetHashCode(Diagnostic x)
+            {
+                unchecked
+                {
+                    var hashCode = x.Id.GetHashCode();
+                    var lineSpan = x.Location.GetLineSpan();
+                    hashCode = (hashCode * 397) ^ lineSpan.Path.GetHashCode();
+                    hashCode = (hashCode * 397) ^ lineSpan.StartLinePosition.GetHashCode();
+                    return hashCode;
+                }
+            }
+        }
+
+        private readonly ConcurrentDictionary<Diagnostic, byte> Diagnostics = new ConcurrentDictionary<Diagnostic, byte>(new DiagnosticComparer());
+
+        private readonly Configuration Config;
+
+        public WeakHashingCompilationAnalyzer(Configuration config)
+        {
+            Config = config;
+        }
 
         private void Report(Diagnostic diagnostic, SyntaxNodeAnalysisContext ctx)
         {
-            var diagLineSpan = diagnostic.Location.GetLineSpan();
-
-            lock (ReportedDiagnostics)
-            {
-                if (ReportedDiagnostics.FirstOrDefault(x =>
-                                                        {
-                                                            if (x.Id != diagnostic.Id)
-                                                                return false;
-
-                                                            var xLineSpan = x.Location.GetLineSpan();
-
-                                                            if (xLineSpan.Path != diagLineSpan.Path)
-                                                                return false;
-
-                                                            return xLineSpan.StartLinePosition == diagLineSpan.StartLinePosition;
-                                                        }) != null)
-                {
-                    return;
-                }
-
-                ReportedDiagnostics.Add(diagnostic);
-            }
-
-            ctx.ReportDiagnostic(diagnostic);
+            if (Diagnostics.TryAdd(diagnostic, 0))
+                ctx.ReportDiagnostic(diagnostic);
         }
 
         public void VisitObjectCreationSyntaxNode(SyntaxNodeAnalysisContext ctx)
@@ -181,13 +200,13 @@ namespace SecurityCodeScan.Analyzers
             }
         }
 
-        private static DiagnosticDescriptor CheckParameter(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
+        private DiagnosticDescriptor CheckParameter(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
             Optional<object> argValue = ctx.SemanticModel.GetConstantValue(nodeHelper.GetCallArgumentExpressionNodes(ctx.Node).First());
 
             if (!argValue.HasValue)
             {
-                if (ConfigurationManager.Instance.GetProjectConfiguration(ctx.Options.AdditionalFiles).AuditMode)
+                if (Config.AuditMode)
                     return WeakHashingAnalyzer.UnknownHashRule;
 
                 return null;

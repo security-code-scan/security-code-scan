@@ -688,9 +688,9 @@ End Namespace
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new MvcCsrfTokenAnalyzerCSharp() };
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new MvcCsrfTokenAnalyzer()) };
             else
-                return new DiagnosticAnalyzer[] { new MvcCsrfTokenAnalyzerVBasic() };
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new MvcCsrfTokenAnalyzer()) };
         }
     }
 
@@ -714,9 +714,9 @@ End Namespace
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CoreCsrfTokenAnalyzerCSharp() };
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CoreCsrfTokenAnalyzer()) };
             else
-                return new DiagnosticAnalyzer[] { new CoreCsrfTokenAnalyzerVBasic() };
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CoreCsrfTokenAnalyzer()) };
         }
     }
 
@@ -990,9 +990,9 @@ End Namespace
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CoreCsrfTokenAnalyzerCSharp() };
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CoreCsrfTokenAnalyzer()) };
             else
-                return new DiagnosticAnalyzer[] { new CoreCsrfTokenAnalyzerVBasic() };
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CoreCsrfTokenAnalyzer()) };
         }
     }
 
@@ -1088,9 +1088,9 @@ End Namespace
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CoreCsrfTokenAnalyzerCSharp(), new MvcCsrfTokenAnalyzerCSharp() };
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CoreCsrfTokenAnalyzer(), new MvcCsrfTokenAnalyzer()) };
             else
-                return new DiagnosticAnalyzer[] { new CoreCsrfTokenAnalyzerVBasic(), new MvcCsrfTokenAnalyzerVBasic() };
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CoreCsrfTokenAnalyzer(), new MvcCsrfTokenAnalyzer()) };
         }
 
         private static readonly PortableExecutableReference[] References =

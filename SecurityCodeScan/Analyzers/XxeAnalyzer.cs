@@ -6,70 +6,73 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Utils;
 using SecurityCodeScan.Analyzers.Locale;
+using SecurityCodeScan.Config;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class XxeDiagnosticAnalyzerCSharp : XxeDiagnosticAnalyzer
+    [SecurityAnalyzer(LanguageNames.CSharp)]
+    internal class XxeDiagnosticAnalyzerCSharp : XxeDiagnosticAnalyzer
     {
-        public override void Initialize(AnalysisContext analysisContext)
+        public override void Initialize(ISecurityAnalysisContext context)
         {
-            analysisContext.RegisterCompilationStartAction(
-                context =>
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
+        }
+
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        {
+            Compilation compilation = context.Compilation;
+            var         xmlTypes    = new XxeSecurityTypes(compilation);
+
+            if (!xmlTypes.IsAnyTypeReferenced())
+                return;
+
+            Version version = compilation.GetDotNetFrameworkVersion();
+            if (version == null)
+                return;
+
+            context.RegisterCodeBlockStartAction<CSharp.SyntaxKind>(
+                c =>
                 {
-                    Compilation compilation = context.Compilation;
-                    var         xmlTypes    = new XxeSecurityTypes(compilation);
-
-                    if (!xmlTypes.IsAnyTypeReferenced())
-                        return;
-
-                    Version version = compilation.GetDotNetFrameworkVersion();
-                    if (version == null)
-                        return;
-
-                    context.RegisterCodeBlockStartAction<CSharp.SyntaxKind>(
-                        c =>
-                        {
-                            var analyzer = new XxeAnalyzerCSharp(xmlTypes, version);
-                            analyzer.RegisterSyntaxNodeAction(c);
-                            c.RegisterCodeBlockEndAction(analyzer.AnalyzeCodeBlockEnd);
-                        });
+                    var analyzer = new XxeAnalyzerCSharp(xmlTypes, version);
+                    analyzer.RegisterSyntaxNodeAction(c);
+                    c.RegisterCodeBlockEndAction(analyzer.AnalyzeCodeBlockEnd);
                 });
         }
     }
 
-    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
-    public class XxeDiagnosticAnalyzerVisualBasic : XxeDiagnosticAnalyzer
+    [SecurityAnalyzer(LanguageNames.VisualBasic)]
+    internal class XxeDiagnosticAnalyzerVisualBasic : XxeDiagnosticAnalyzer
     {
-        public override void Initialize(AnalysisContext analysisContext)
+        public override void Initialize(ISecurityAnalysisContext context)
         {
-            analysisContext.RegisterCompilationStartAction(
-                context =>
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
+        }
+
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        {
+            Compilation compilation = context.Compilation;
+            var         xmlTypes    = new XxeSecurityTypes(compilation);
+
+            if (!xmlTypes.IsAnyTypeReferenced())
+                return;
+
+            Version version = compilation.GetDotNetFrameworkVersion();
+            if (version == null)
+                return;
+
+            context.RegisterCodeBlockStartAction<VB.SyntaxKind>(
+                c =>
                 {
-                    Compilation compilation = context.Compilation;
-                    var         xmlTypes    = new XxeSecurityTypes(compilation);
-
-                    if (!xmlTypes.IsAnyTypeReferenced())
-                        return;
-
-                    Version version = compilation.GetDotNetFrameworkVersion();
-                    if (version == null)
-                        return;
-
-                    context.RegisterCodeBlockStartAction<VB.SyntaxKind>(
-                        c =>
-                        {
-                            var analyzer = new XxeAnalyzerVBasic(xmlTypes, version);
-                            analyzer.RegisterSyntaxNodeAction(c);
-                            c.RegisterCodeBlockEndAction(analyzer.AnalyzeCodeBlockEnd);
-                        });
+                    var analyzer = new XxeAnalyzerVBasic(xmlTypes, version);
+                    analyzer.RegisterSyntaxNodeAction(c);
+                    c.RegisterCodeBlockEndAction(analyzer.AnalyzeCodeBlockEnd);
                 });
         }
     }
 
-    public abstract class XxeDiagnosticAnalyzer : DiagnosticAnalyzer
+    internal abstract class XxeDiagnosticAnalyzer : SecurityAnalyzer
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0007");
 

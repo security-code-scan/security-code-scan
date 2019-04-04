@@ -11,6 +11,9 @@ using YamlDotNet.Serialization;
 
 namespace SecurityCodeScan.Config
 {
+    /// <summary>
+    /// The implementation must be thread-safe because it is used as static field!
+    /// </summary>
     internal class ConfigurationReader
     {
         private const string BuiltinConfigName = "SecurityCodeScan.Config.Main.yml";
@@ -97,8 +100,21 @@ namespace SecurityCodeScan.Config
                 {
                     var projectConfig = DeserializeAndValidate<ProjectConfigData>(reader);
 
-                    if (new Version(projectConfig.Version) != ConfigVersion)
-                        return null;
+                    Version projectConfigVersion;
+                    try
+                    {
+                        projectConfigVersion = new Version(projectConfig.Version);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new ArgumentException($"'Version' is missing or corrupted in the project configuration file '{file.Path}'. See https://security-code-scan.github.io/#ExternalConfigurationFiles",
+                                                    "Version",
+                                                    e);
+                    }
+
+                    if (projectConfigVersion != ConfigVersion)
+                        throw new ArgumentException($"Version mismatch in the project configuration file '{file.Path}'. Please read https://security-code-scan.github.io/#ReleaseNotes for the information what has changed in the configuration format.",
+                                                    "Version");
 
                     path = file.Path;
                     return projectConfig;
@@ -111,81 +127,34 @@ namespace SecurityCodeScan.Config
 
     internal class ConfigurationManager
     {
-        public static ConfigurationManager Instance { get; } = new ConfigurationManager();
+        internal static ConfigurationReader Reader { get; set; } = new ConfigurationReader();
 
-        private readonly Dictionary<string, Configuration> ProjectConfigs = new Dictionary<string, Configuration>();
+        private static readonly Lazy<ConfigData> CachedBuiltInConfiguration = new Lazy<ConfigData>(() => Reader.GetBuiltinConfiguration());
 
-        public ConfigurationReader ConfigurationReader { get; set; } = new ConfigurationReader();
-
-        private static readonly object ProjectConfigsLock = new object();
-        private static readonly object ConfigurationLock = new object();
-
-        private ConfigurationManager() { }
-
-        private Configuration CachedBuiltInAndUserConfiguration;
-        private ConfigData    CachedBuiltInConfiguration;
-
-        private Configuration GetBuiltInAndUserConfiguration(bool refreshUserConfig = false)
+        public Configuration GetBuiltInAndUserConfiguration()
         {
-            lock (ConfigurationLock)
-            {
-                if (refreshUserConfig == false && CachedBuiltInAndUserConfiguration != null)
-                    return CachedBuiltInAndUserConfiguration;
+            var configuration = new Configuration(CachedBuiltInConfiguration.Value);
 
-                if (CachedBuiltInAndUserConfiguration == null)
-                    CachedBuiltInConfiguration = ConfigurationReader.GetBuiltinConfiguration();
+            var userConfig = Reader.GetUserConfiguration();
+            if (userConfig != null)
+                configuration.MergeWith(userConfig);
 
-                CachedBuiltInAndUserConfiguration = new Configuration(CachedBuiltInConfiguration);
-
-                var userConfig = ConfigurationReader.GetUserConfiguration();
-                if (userConfig != null)
-                    CachedBuiltInAndUserConfiguration.MergeWith(userConfig);
-
-                CachedBuiltInAndUserConfiguration.PrepareForQueries();
-                return CachedBuiltInAndUserConfiguration;
-            }
+            configuration.PrepareForQueries();
+            return configuration;
         }
 
         public Configuration GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
         {
-            lock (ProjectConfigsLock)
+            var projectConfig = Reader.GetProjectConfiguration(additionalFiles, out var configPath);
+            if (projectConfig == null)
             {
-                foreach (var file in additionalFiles)
-                {
-                    if (ProjectConfigs.TryGetValue(file.Path, out var projectConfiguration))
-                        return projectConfiguration;
-                }
-
-                var projectConfig = ConfigurationReader.GetProjectConfiguration(additionalFiles, out var configPath);
-                if (projectConfig == null)
-                {
-                    return GetBuiltInAndUserConfiguration();
-                }
-
-                var mergedConfig = new Configuration(GetBuiltInAndUserConfiguration());
-                mergedConfig.MergeWith(projectConfig);
-                mergedConfig.PrepareForQueries();
-                ProjectConfigs[configPath] = mergedConfig;
-                return mergedConfig;
+                return GetBuiltInAndUserConfiguration();
             }
-        }
 
-        public Configuration GetUpdatedProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
-        {
-            lock (ProjectConfigsLock)
-            {
-                var projectConfig = ConfigurationReader.GetProjectConfiguration(additionalFiles, out var configPath);
-                if (projectConfig == null)
-                {
-                    return GetBuiltInAndUserConfiguration(refreshUserConfig:true);
-                }
-
-                var mergedConfig = new Configuration(GetBuiltInAndUserConfiguration(refreshUserConfig: true));
-                mergedConfig.MergeWith(projectConfig);
-                mergedConfig.PrepareForQueries();
-                ProjectConfigs[configPath] = mergedConfig;
-                return mergedConfig;
-            }
+            var mergedConfig = new Configuration(GetBuiltInAndUserConfiguration());
+            mergedConfig.MergeWith(projectConfig);
+            mergedConfig.PrepareForQueries();
+            return mergedConfig;
         }
     }
 

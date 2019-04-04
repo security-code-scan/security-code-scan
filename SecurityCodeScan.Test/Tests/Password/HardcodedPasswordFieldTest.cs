@@ -16,7 +16,10 @@ namespace SecurityCodeScan.Test.Password
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new DiagnosticAnalyzer[] { new TaintAnalyzerCSharp(), new TaintAnalyzerVisualBasic(), new UnknownPasswordApiAnalyzerCSharp(), new UnknownPasswordApiAnalyzerVisualBasic() };
+            if (language == LanguageNames.CSharp)
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new UnknownPasswordApiAnalyzerCSharp()) };
+            else
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new UnknownPasswordApiAnalyzerVisualBasic()) };
         }
 
         [TestCategory("Safe")]

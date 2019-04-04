@@ -3,36 +3,47 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
+using SecurityCodeScan.Config;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class WeakCipherModeAnalyzerCSharp : WeakCipherModeAnalyzer
+    [SecurityAnalyzer(LanguageNames.CSharp)]
+    internal class WeakCipherModeAnalyzerCSharp : WeakCipherModeAnalyzer
     {
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(ISecurityAnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
+        }
+
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
         {
             context.RegisterSyntaxNodeAction(VisitSyntaxNode, CSharp.SyntaxKind.IdentifierName);
         }
     }
 
-    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
-    public class WeakCipherModeAnalyzerVisualBasic : WeakCipherModeAnalyzer
+    [SecurityAnalyzer(LanguageNames.VisualBasic)]
+    internal class WeakCipherModeAnalyzerVisualBasic : WeakCipherModeAnalyzer
     {
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(ISecurityAnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
+        }
+
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
         {
             context.RegisterSyntaxNodeAction(VisitSyntaxNode, VB.SyntaxKind.IdentifierName);
         }
     }
 
-    public abstract class WeakCipherModeAnalyzer : DiagnosticAnalyzer
+    internal abstract class WeakCipherModeAnalyzer : SecurityAnalyzer
     {
         private static readonly DiagnosticDescriptor RuleCBC     = LocaleUtil.GetDescriptor("SCS0011");
         private static readonly DiagnosticDescriptor RuleECB     = LocaleUtil.GetDescriptor("SCS0012");
         private static readonly DiagnosticDescriptor RuleGeneric = LocaleUtil.GetDescriptor("SCS0013");
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RuleECB,
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(RuleECB,
                                                                                                            RuleCBC,
                                                                                                            RuleGeneric);
 

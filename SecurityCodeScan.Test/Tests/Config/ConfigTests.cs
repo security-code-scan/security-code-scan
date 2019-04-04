@@ -16,7 +16,7 @@ namespace SecurityCodeScan.Test.Config
     {
         public ConfigTest()
         {
-            Manager              = ConfigurationManager.Instance;
+            Manager              = new ConfigurationManager();
             StartupConfiguration = Manager.GetProjectConfiguration(ImmutableArray<AdditionalText>.Empty);
         }
 
@@ -69,13 +69,10 @@ namespace SecurityCodeScan.Test.Config
         }
 
         [TestMethod]
-        public void DifferentConfigVersion_ChangesIgnored()
+        public void DifferentConfigVersion_Exception()
         {
             var options   = ConfigurationTest.CreateAnalyzersOptionsWithConfig("MinimumPasswordValidatorProperties: 0", new Version(1,2));
-            var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
-
-            Assert.AreNotEqual(StartupConfiguration.MinimumPasswordValidatorProperties, 0);
-            Assert.AreEqual(StartupConfiguration.MinimumPasswordValidatorProperties, newConfig.MinimumPasswordValidatorProperties);
+            Assert.ThrowsException<ArgumentException>(() => Manager.GetProjectConfiguration(options.AdditionalFiles));
         }
 
         [DataTestMethod]
@@ -119,8 +116,10 @@ Behavior:
         [DataTestMethod]
         [DataRow("[aaa]",     false)]
         [DataRow("[aaa,aaa]", true)]
-        [DataRow("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58]", true)]
-        [DataRow("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57]",    false)]
+        // The test checks if an exception is thrown when custom taint type limit is reached. Taint type names are represented as numbers
+        // Remove a number if a new built-in taint type was added.
+        [DataRow("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56]", true)]
+        [DataRow("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55]",    false)]
         public void SanitizerTypesValidation(string payload, bool shouldThrow)
         {
             var options = ConfigurationTest.CreateAnalyzersOptionsWithConfig($@"

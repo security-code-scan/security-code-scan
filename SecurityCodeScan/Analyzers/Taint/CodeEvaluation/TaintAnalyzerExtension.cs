@@ -1,41 +1,65 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+﻿using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
+using SecurityCodeScan.Config;
 using CSharpSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers.Taint
 {
-    public abstract class TaintAnalyzerExtensionCSharp : DiagnosticAnalyzer
+    internal abstract class TaintAnalyzerExtension
     {
-        public virtual void VisitBegin(SyntaxNode node, ExecutionState state) { }
-        public virtual void VisitEnd(SyntaxNode   node, ExecutionState state) { }
+        public abstract ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+    }
 
-        public virtual void VisitStatement(CSharpSyntax.StatementSyntax node, ExecutionState state) { }
+    internal abstract class TaintAnalyzerExtensionCSharp : TaintAnalyzerExtension
+    {
+        public virtual void VisitBegin(SyntaxNode node, ExecutionState state,
+                                       Configuration projectConfiguration) { }
+        public virtual void VisitEnd(SyntaxNode   node, ExecutionState state,
+                                     Configuration projectConfiguration) { }
+
+        public virtual void VisitStatement(CSharpSyntax.StatementSyntax node,
+                                           ExecutionState state,
+                                           Configuration projectConfiguration) { }
 
         public virtual void VisitInvocationAndCreation(CSharpSyntax.ExpressionSyntax   node,
                                                        CSharpSyntax.ArgumentListSyntax argList,
-                                                       ExecutionState                  state) { }
+                                                       ExecutionState                  state,
+                                                       Configuration                   projectConfiguration) { }
 
         public virtual void VisitAssignment(CSharpSyntax.AssignmentExpressionSyntax node,
                                             ExecutionState                          state,
                                             MethodBehavior                          behavior,
                                             ISymbol                                 symbol,
-                                            VariableState                           variableRightState) { }
+                                            VariableState                           variableRightState,
+                                            Configuration                           projectConfiguration) { }
     }
 
-    public abstract class TaintAnalyzerExtensionVisualBasic : DiagnosticAnalyzer
+    internal abstract class TaintAnalyzerExtensionVisualBasic : TaintAnalyzerExtension
     {
-        public virtual void VisitBegin(SyntaxNode node, ExecutionState state) { }
-        public virtual void VisitEnd(SyntaxNode node, ExecutionState state) { }
+        public virtual void VisitBegin(SyntaxNode     node,
+                                       ExecutionState state,
+                                       Configuration  projectConfiguration) { }
 
-        public virtual void VisitStatement(VBSyntax.StatementSyntax node, ExecutionState state) { }
-        public virtual void VisitInvocationAndCreation(VBSyntax.ExpressionSyntax node, VBSyntax.ArgumentListSyntax argList, ExecutionState state) { }
+        public virtual void VisitEnd(SyntaxNode     node,
+                                     ExecutionState state,
+                                     Configuration  projectConfiguration) { }
+
+        public virtual void VisitStatement(VBSyntax.StatementSyntax node,
+                                           ExecutionState           state,
+                                           Configuration            projectConfiguration) { }
+
+        public virtual void VisitInvocationAndCreation(VBSyntax.ExpressionSyntax   node,
+                                                       VBSyntax.ArgumentListSyntax argList,
+                                                       ExecutionState              state,
+                                                       Configuration               projectConfiguration) { }
 
         public virtual void VisitAssignment(VisualBasicSyntaxNode node,
                                             ExecutionState        state,
                                             MethodBehavior        behavior,
                                             ISymbol               symbol,
-                                            VariableState         variableRightState) { }
+                                            VariableState         variableRightState,
+                                            Configuration         projectConfiguration) { }
     }
 }

@@ -4,15 +4,21 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
+using SecurityCodeScan.Config;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class UnsafeDeserializationAnalyzerCSharp : UnsafeDeserializationAnalyzer
+    [SecurityAnalyzer(LanguageNames.CSharp)]
+    internal class UnsafeDeserializationAnalyzerCSharp : UnsafeDeserializationAnalyzer
     {
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(ISecurityAnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
+        }
+
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
         {
             context.RegisterSyntaxNodeAction(ctx => VisitAttributeArgument(ctx, CSharpSyntaxNodeHelper.Default), CSharp.SyntaxKind.AttributeArgument);
             context.RegisterSyntaxNodeAction(ctx => VisitAssignment(ctx, CSharpSyntaxNodeHelper.Default),        CSharp.SyntaxKind.SimpleAssignmentExpression);
@@ -20,10 +26,15 @@ namespace SecurityCodeScan.Analyzers
         }
     }
 
-    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
-    public class UnsafeDeserializationAnalyzerVisualBasic : UnsafeDeserializationAnalyzer
+    [SecurityAnalyzer(LanguageNames.VisualBasic)]
+    internal class UnsafeDeserializationAnalyzerVisualBasic : UnsafeDeserializationAnalyzer
     {
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(ISecurityAnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
+        }
+
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
         {
             context.RegisterSyntaxNodeAction(ctx => VisitAttributeArgument(ctx, VBSyntaxNodeHelper.Default),     VB.SyntaxKind.SimpleArgument);
             context.RegisterSyntaxNodeAction(ctx => VisitAssignment(ctx, VBSyntaxNodeHelper.Default),            VB.SyntaxKind.SimpleAssignmentStatement);
@@ -33,12 +44,12 @@ namespace SecurityCodeScan.Analyzers
 
     }
 
-    public abstract class UnsafeDeserializationAnalyzer : DiagnosticAnalyzer
+    internal abstract class UnsafeDeserializationAnalyzer : SecurityAnalyzer
     {
         private static readonly DiagnosticDescriptor TypeNameHandlingRule    = LocaleUtil.GetDescriptor("SCS0028", titleId: "title_typenamehandling_analyzer");
         private static readonly DiagnosticDescriptor JavaScriptSerializerRule = LocaleUtil.GetDescriptor("SCS0028", titleId: "title_javascriptserializer_analyzer");
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(TypeNameHandlingRule, JavaScriptSerializerRule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(TypeNameHandlingRule, JavaScriptSerializerRule);
 
         protected void VisitAttributeArgument(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {

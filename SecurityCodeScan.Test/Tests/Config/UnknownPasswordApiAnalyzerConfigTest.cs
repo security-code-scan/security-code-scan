@@ -13,7 +13,10 @@ namespace SecurityCodeScan.Test.Config
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new DiagnosticAnalyzer[] { new UnknownPasswordApiAnalyzerCSharp(), new UnknownPasswordApiAnalyzerVisualBasic() };
+            if (language == LanguageNames.CSharp)
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new UnknownPasswordApiAnalyzerCSharp()) };
+            else
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new UnknownPasswordApiAnalyzerVisualBasic()) };
         }
 
         [DataTestMethod]

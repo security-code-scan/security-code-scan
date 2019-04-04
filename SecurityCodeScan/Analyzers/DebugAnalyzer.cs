@@ -9,8 +9,10 @@ using SecurityCodeScan.Analyzers.Utils;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class DebugAnalyzer : DiagnosticAnalyzer
+    //[DiagnosticAnalyzer(LanguageNames.CSharp)]
+#pragma warning disable RS1001 // Missing diagnostic analyzer attribute.
+    internal class DebugAnalyzer : DiagnosticAnalyzer
+#pragma warning restore RS1001 // Missing diagnostic analyzer attribute.
     {
         //Dummy descriptor, it will never be reported
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>

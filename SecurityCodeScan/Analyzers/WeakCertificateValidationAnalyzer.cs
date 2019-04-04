@@ -9,11 +9,17 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class WeakCertificateValidationAnalyzerCSharp : WeakCertificateValidationAnalyzer
+    [SecurityAnalyzer(LanguageNames.CSharp)]
+    internal class WeakCertificateValidationAnalyzerCSharp : WeakCertificateValidationAnalyzer
     {
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(ISecurityAnalysisContext context)
         {
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
+        }
+
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        {
+            OnCompilationStartAction(config);
             context.RegisterSyntaxNodeAction(ctx => VisitSyntaxNode(ctx, CSharpSyntaxNodeHelper.Default),
                                              CSharp.SyntaxKind.SimpleAssignmentExpression, CSharp.SyntaxKind.AddAssignmentExpression);
         }
@@ -54,11 +60,17 @@ namespace SecurityCodeScan.Analyzers
         }
     }
 
-    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
-    public class WeakCertificateValidationAnalyzerVisualBasic : WeakCertificateValidationAnalyzer
+    [SecurityAnalyzer(LanguageNames.VisualBasic)]
+    internal class WeakCertificateValidationAnalyzerVisualBasic : WeakCertificateValidationAnalyzer
     {
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(ISecurityAnalysisContext context)
         {
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
+        }
+
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        {
+            OnCompilationStartAction(config);
             context.RegisterSyntaxNodeAction(ctx => VisitSyntaxNode(ctx, VBSyntaxNodeHelper.Default),
                                              VB.SyntaxKind.SimpleAssignmentStatement, VB.SyntaxKind.AddAssignmentStatement);
         }
@@ -95,13 +107,21 @@ namespace SecurityCodeScan.Analyzers
         }
     }
 
-    public abstract class WeakCertificateValidationAnalyzer : DiagnosticAnalyzer
+    internal abstract class WeakCertificateValidationAnalyzer : SecurityAnalyzer
     {
         private static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0004");
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
         protected abstract SyntaxNode GetBody(SyntaxNode rightNode, SyntaxNodeAnalysisContext ctx);
+
+
+        private Configuration Config;
+
+        protected void OnCompilationStartAction(Configuration config)
+        {
+            Config = config;
+        }
 
         protected void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)
         {
@@ -110,10 +130,7 @@ namespace SecurityCodeScan.Analyzers
             if (symbol == null)
                 return;
 
-            var configuration = ConfigurationManager
-                                .Instance.GetProjectConfiguration(ctx.Options.AdditionalFiles);
-
-            if (configuration.AuditMode &&
+            if (Config.AuditMode &&
                 symbol.IsType("System.Net.ServicePointManager.CertificatePolicy"))
             {
                 ctx.ReportDiagnostic(Diagnostic.Create(Rule, ctx.Node.GetLocation()));
@@ -129,7 +146,7 @@ namespace SecurityCodeScan.Analyzers
 
             var rightValue = ctx.SemanticModel.GetConstantValue(rightNode);
 
-            if (!rightValue.HasValue && configuration.AuditMode)
+            if (!rightValue.HasValue && Config.AuditMode)
             {
                 ctx.ReportDiagnostic(Diagnostic.Create(Rule, ctx.Node.GetLocation()));
                 return;
@@ -141,7 +158,7 @@ namespace SecurityCodeScan.Analyzers
                 return;
             }
 
-            if (configuration.AuditMode)
+            if (Config.AuditMode)
                 ctx.ReportDiagnostic(Diagnostic.Create(Rule, ctx.Node.GetLocation()));
         }
 

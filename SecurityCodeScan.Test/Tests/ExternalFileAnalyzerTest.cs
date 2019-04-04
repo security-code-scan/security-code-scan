@@ -11,9 +11,9 @@ using SecurityCodeScan.Analyzers;
 
 public class ExternalFileAnalyzerTest
 {
-    private readonly IExternalFileAnalyzer Analyzer;
+    private IExternalFileAnalyzer Analyzer;
 
-    public ExternalFileAnalyzerTest(IExternalFileAnalyzer analyzer)
+    internal void Initialize(IExternalFileAnalyzer analyzer)
     {
         Analyzer = analyzer;
     }

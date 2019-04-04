@@ -10,19 +10,19 @@ using SecurityCodeScan.Analyzers.Utils;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class HtmlValidateRequestAnalyzer : DiagnosticAnalyzer, IExternalFileAnalyzer
+    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class HtmlValidateRequestAnalyzer : SecurityAnalyzer, IExternalFileAnalyzer
     {
         public static readonly DiagnosticDescriptor RuleValidateRequest = LocaleUtil.GetDescriptor("SCS0021");
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RuleValidateRequest);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(RuleValidateRequest);
 
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(ISecurityAnalysisContext context)
         {
-            context.RegisterCompilationAction(Compilation);
+            context.RegisterCompilationAction(OnCompilationAction);
         }
 
-        private void Compilation(CompilationAnalysisContext ctx)
+        private void OnCompilationAction(CompilationAnalysisContext ctx)
         {
             foreach (AdditionalText file in ctx.Options
                                                .AdditionalFiles

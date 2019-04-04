@@ -13,7 +13,7 @@ namespace SecurityCodeScan.Analyzers.Taint
     ///  * Keep the state of each variable
     ///  * Keep reference to utilities that are require along the taint analysis. (Such as resolving symbol)
     /// </summary>
-    public class ExecutionState
+    internal class ExecutionState
     {
         public  SyntaxNodeAnalysisContext                  AnalysisContext       { get; private set; }
         public  IReadOnlyDictionary<string, VariableState> VariableStates        => Variables;

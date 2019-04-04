@@ -8,14 +8,14 @@ using SecurityCodeScan.Analyzers.Utils;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class OutputCacheAnnotationAnalyzer : DiagnosticAnalyzer
+    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class OutputCacheAnnotationAnalyzer : SecurityAnalyzer
     {
         public const            string                               DiagnosticId = "SCS0019";
         private static readonly DiagnosticDescriptor                 Rule         = LocaleUtil.GetDescriptor(DiagnosticId);
-        public override         ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override         ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(ISecurityAnalysisContext context)
         {
             context.RegisterSymbolAction(VisitClass, SymbolKind.NamedType);
         }

@@ -8,12 +8,7 @@ namespace SecurityCodeScan.Analyzers.Locale
     internal class LocaleUtil
     {
         private static YamlResourceManager ResourceManager => ResourceManagerCached.Value;
-        private static readonly Lazy<YamlResourceManager> ResourceManagerCached = new Lazy<YamlResourceManager>(() =>
-                                                                                                                {
-                                                                                                                    var m = new YamlResourceManager();
-                                                                                                                    m.Load();
-                                                                                                                    return m;
-                                                                                                                });
+        private static readonly Lazy<YamlResourceManager> ResourceManagerCached = new Lazy<YamlResourceManager>(() => new YamlResourceManager());
 
         public static DiagnosticDescriptor GetDescriptor(string id, string titleId = "title", string descriptionId = "description", string[] args = null)
         {

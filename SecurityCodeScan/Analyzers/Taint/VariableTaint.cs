@@ -3,7 +3,7 @@
 namespace SecurityCodeScan.Analyzers.Taint
 {
     [Flags]
-    public enum VariableTaint : ulong
+    internal enum VariableTaint : ulong
     {
         /// <summary>
         /// Value is not determined

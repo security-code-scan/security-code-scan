@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Analyzers.Utils;
@@ -9,47 +8,27 @@ using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class WeakPasswordValidatorPropertyAnalyzerCSharp : TaintAnalyzerExtensionCSharp
+    internal class WeakPasswordValidatorPropertyAnalyzerCSharp : TaintAnalyzerExtensionCSharp
     {
         private readonly WeakPasswordValidatorPropertyAnalyzer Analyzer = new WeakPasswordValidatorPropertyAnalyzer();
 
-        public WeakPasswordValidatorPropertyAnalyzerCSharp()
-        {
-            TaintAnalyzerCSharp.RegisterExtension(this);
-        }
-
-        public override void Initialize(AnalysisContext context)
-        {
-        }
-
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Analyzer.SupportedDiagnostics;
 
-        public override void VisitEnd(SyntaxNode node, ExecutionState state)
+        public override void VisitEnd(SyntaxNode node, ExecutionState state, Configuration configuration)
         {
-            Analyzer.CheckState(state);
+            Analyzer.CheckState(state, configuration);
         }
     }
 
-    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
-    public class WeakPasswordValidatorPropertyAnalyzerVisualBasic : TaintAnalyzerExtensionVisualBasic
+    internal class WeakPasswordValidatorPropertyAnalyzerVisualBasic : TaintAnalyzerExtensionVisualBasic
     {
         private readonly WeakPasswordValidatorPropertyAnalyzer Analyzer = new WeakPasswordValidatorPropertyAnalyzer();
 
-        public WeakPasswordValidatorPropertyAnalyzerVisualBasic()
-        {
-            TaintAnalyzerVisualBasic.RegisterExtension(this);
-        }
-
-        public override void Initialize(AnalysisContext context)
-        {
-        }
-
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Analyzer.SupportedDiagnostics;
 
-        public override void VisitEnd(SyntaxNode node, ExecutionState state)
+        public override void VisitEnd(SyntaxNode node, ExecutionState state, Configuration configuration)
         {
-            Analyzer.CheckState(state);
+            Analyzer.CheckState(state, configuration);
         }
     }
 
@@ -61,28 +40,28 @@ namespace SecurityCodeScan.Analyzers
 
         private static readonly string[] BoolPropertyNames =  { "RequireDigit", "RequireLowercase", "RequireNonLetterOrDigit", "RequireUppercase" };
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RulePasswordLength,
+        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(RulePasswordLength,
                                                                                                   RulePasswordValidators,
                                                                                                   RuleRequiredPasswordValidators);
 
-        public void CheckState(ExecutionState state)
+        public void CheckState(ExecutionState state, Configuration configuration)
         {
             var visited = new HashSet<VariableState>();
             // For every variables registered in state
             foreach (var variableState in state.VariableStates.Values)
             {
-                CheckState(variableState, state, visited);
+                CheckState(variableState, state, visited, configuration);
             }
         }
 
-        private void CheckState(VariableState variableState, ExecutionState state, HashSet<VariableState> visited)
+        private void CheckState(VariableState variableState, ExecutionState state, HashSet<VariableState> visited, Configuration configuration)
         {
             if (!visited.Add(variableState))
                 return;
 
             foreach (var propertyStatesValue in variableState.PropertyStates.Values)
             {
-                CheckState(propertyStatesValue, state, visited);
+                CheckState(propertyStatesValue, state, visited, configuration);
             }
 
             var symbol = state.GetSymbol(variableState.Node);
@@ -92,9 +71,6 @@ namespace SecurityCodeScan.Analyzers
             // Only if it is the constructor of the PasswordValidator instance
             if (!symbol.IsConstructor() || !symbol.ContainingSymbol.ToString().Equals("Microsoft.AspNet.Identity.PasswordValidator"))
                 return;
-
-            var configuration = ConfigurationManager
-                                       .Instance.GetProjectConfiguration(state.AnalysisContext.Options.AdditionalFiles);
 
             var propertiesCount = 0;
             var requiredProperties = configuration.PasswordValidatorRequiredProperties;

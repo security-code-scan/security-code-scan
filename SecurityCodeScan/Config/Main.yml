@@ -55,6 +55,8 @@ TaintTypes:
   - LdapFilterEncoded
   - LdapDistinguishedNameEncoded
   - AbsolutePath
+  - UrlEncoded
+  - UrlPathEncoded
 
 Behavior:
 # The section describes various types of API behavior:
@@ -256,6 +258,44 @@ Behavior:
     Method:
       Returns:
         Taint: LdapFilterEncoded
+        TaintFromArguments: [0]
+
+  Encoder_UrlPathEncode:
+    Namespace: Microsoft.Security.Application
+    ClassName: Encoder
+    Name: UrlPathEncode
+    Method:
+      Returns:
+        Taint: UrlPathEncoded
+        TaintFromArguments: [0]
+
+  Encoder_UrlEncode:
+    Namespace: Microsoft.Security.Application
+    ClassName: Encoder
+    Name: UrlEncode
+    Method:
+      Returns:
+        Taint: UrlEncoded
+        TaintFromArguments: [0]
+
+  HttpServerUtility_UrlEncode1:
+    Namespace: System.Web
+    ClassName: HttpServerUtility
+    Name: UrlEncode
+    Method:
+      ArgTypes: (System.String)
+      Returns:
+        Taint: UrlEncoded
+        TaintFromArguments: [0]
+
+  HttpServerUtility_UrlEncode2:
+    Namespace: System.Web
+    ClassName: HttpServerUtility
+    Name: UrlEncode
+    Method:
+      ArgTypes: (System.String, System.IO.TextWriter)
+      1:
+        Taint: UrlEncoded
         TaintFromArguments: [0]
 
  ## ToString
@@ -758,13 +798,6 @@ Behavior:
 
  ## WebControls
 
-  System.Web.UI_Page_Title:
-    Namespace: System.Web.UI
-    ClassName: Page
-    Name: Title
-    Field:
-      Injectable: [SCS0029: HtmlEscaped]
-
   System.Web.UI.WebControls_CheckBox_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: CheckBox
@@ -786,19 +819,19 @@ Behavior:
     Field:
       Injectable: [SCS0029: HtmlEscaped]
 
-  System.Web.UI.WebControls_DropDownList_Text:
-    Namespace: System.Web.UI.WebControls
-    ClassName: DropDownList
-    Name: Text
-    Field:
-      Injectable: [SCS0029: HtmlEscaped]
-
   System.Web.UI.WebControls_HyperLink_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: HyperLink
     Name: Text
     Field:
       Injectable: [SCS0029: HtmlEscaped]
+
+  System.Web.UI.WebControls_HyperLink_NavigateUrl:
+    Namespace: System.Web.UI.WebControls
+    ClassName: HyperLink
+    Name: NavigateUrl
+    Field:
+      Injectable: [SCS0029: UrlPathEncoded]
 
   System.Web.UI.WebControls_Label_Text:
     Namespace: System.Web.UI.WebControls
@@ -810,20 +843,6 @@ Behavior:
   System.Web.UI.WebControls_LinkButton_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: LinkButton
-    Name: Text
-    Field:
-      Injectable: [SCS0029: HtmlEscaped]
-
-  System.Web.UI.WebControls_ListBox_Text:
-    Namespace: System.Web.UI.WebControls
-    ClassName: ListBox
-    Name: Text
-    Field:
-      Injectable: [SCS0029: HtmlEscaped]
-
-  System.Web.UI.WebControls_ListControl_Text:
-    Namespace: System.Web.UI.WebControls
-    ClassName: ListControl
     Name: Text
     Field:
       Injectable: [SCS0029: HtmlEscaped]
@@ -841,11 +860,11 @@ Behavior:
     Name: Text
     Field:
       Injectable: [SCS0029: HtmlEscaped]
-    
-  System.Web.UI.WebControls_RadioButtonList_Text:
+
+  System.Web.UI.WebControls_RadioButton_GroupName:
     Namespace: System.Web.UI.WebControls
-    ClassName: RadioButtonList
-    Name: Text
+    ClassName: RadioButton
+    Name: GroupName
     Field:
       Injectable: [SCS0029: HtmlEscaped]
 
@@ -855,7 +874,7 @@ Behavior:
     Name: Text
     Field:
       Injectable: [SCS0029: HtmlEscaped]
-    
+
   System.Web.UI.WebControls_RegularExpressionValidator_Text:
     Namespace: System.Web.UI.WebControls
     ClassName: RegularExpressionValidator
@@ -867,6 +886,76 @@ Behavior:
     Namespace: System.Web.UI.WebControls
     ClassName: RequiredFieldValidator
     Name: Text
+    Field:
+      Injectable: [SCS0029: HtmlEscaped]
+
+  System.Web.UI.WebControls_TableCell_Text:
+    Namespace: System.Web.UI.WebControls
+    ClassName: TableCell
+    Name: Text
+    Field:
+      Injectable: [SCS0029: HtmlEscaped]
+
+  System.Web.UI.WebControls_Calendar_Caption:
+    Namespace: System.Web.UI.WebControls
+    ClassName: Calendar
+    Name: Caption
+    Field:
+      Injectable: [SCS0029: HtmlEscaped]
+
+  System.Web.UI.WebControls_Table_Caption:
+    Namespace: System.Web.UI.WebControls
+    ClassName: Table
+    Name: Caption
+    Field:
+      Injectable: [SCS0029: HtmlEscaped]
+
+  System.Web.UI.WebControls_Panel_GroupingText:
+    Namespace: System.Web.UI.WebControls
+    ClassName: Panel
+    Name: GroupingText
+    Field:
+      Injectable: [SCS0029: HtmlEscaped]
+
+  System.Web.UI.HtmlControls_HtmlContainerControl_InnerHtml:
+    Namespace: System.Web.UI.HtmlControls
+    ClassName: HtmlContainerControl
+    Name: InnerHtml
+    Field:
+      Injectable: [SCS0029: HtmlEscaped]
+
+  System.Web.UI_ClientScriptManager_RegisterStartupScript:
+    Namespace: System.Web.UI
+    ClassName: ClientScriptManager
+    Name: RegisterStartupScript
+    Method:
+      InjectableArguments: [SCS0029: [2: HtmlEscaped]]
+
+  System.Web.UI_ClientScriptManager_RegisterClientScriptBlock:
+    Namespace: System.Web.UI
+    ClassName: ClientScriptManager
+    Name: RegisterClientScriptBlock
+    Method:
+      InjectableArguments: [SCS0029: [2: HtmlEscaped]]
+
+  System.Web.UI_Page_RegisterStartupScript:
+    Namespace: System.Web.UI
+    ClassName: Page
+    Name: RegisterStartupScript
+    Method:
+      InjectableArguments: [SCS0029: [1: HtmlEscaped]]
+
+  System.Web.UI_Page_RegisterClientScriptBlock:
+    Namespace: System.Web.UI
+    ClassName: Page
+    Name: RegisterClientScriptBlock
+    Method:
+      InjectableArguments: [SCS0029: [1: HtmlEscaped]]
+
+  System.Web.UI_Control_ID:
+    Namespace: System.Web.UI
+    ClassName: Control
+    Name: ID
     Field:
       Injectable: [SCS0029: HtmlEscaped]
 
@@ -3436,6 +3525,8 @@ Behavior:
     Method:
       Returns:
         Taint: Tainted
+    Field:
+      Injectable: [SCS0029: HtmlEscaped]
 
   System.Web.UI.HtmlControls_HtmlInputText_Value:
     Namespace: System.Web.UI.HtmlControls

@@ -10,35 +10,54 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class UnknownPasswordApiAnalyzerCSharp : UnknownPasswordApiAnalyzer
+    [SecurityAnalyzer(LanguageNames.CSharp)]
+    internal class UnknownPasswordApiAnalyzerCSharp : UnknownPasswordApiAnalyzer
     {
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(ISecurityAnalysisContext context)
         {
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
+        }
+
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        {
+            OnCompilationStartAction(config);
             context.RegisterSyntaxNodeAction(ctx => VisitAssignment(ctx, CSharpSyntaxNodeHelper.Default), CSharp.SyntaxKind.VariableDeclarator);
             context.RegisterSyntaxNodeAction(ctx => VisitAssignment(ctx, CSharpSyntaxNodeHelper.Default), CSharp.SyntaxKind.SimpleAssignmentExpression);
         }
     }
 
-    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
-    public class UnknownPasswordApiAnalyzerVisualBasic : UnknownPasswordApiAnalyzer
+    [SecurityAnalyzer(LanguageNames.VisualBasic)]
+    internal class UnknownPasswordApiAnalyzerVisualBasic : UnknownPasswordApiAnalyzer
     {
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(ISecurityAnalysisContext context)
         {
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
+        }
+
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        {
+            OnCompilationStartAction(config);
             context.RegisterSyntaxNodeAction(ctx => VisitAssignment(ctx, VBSyntaxNodeHelper.Default), VB.SyntaxKind.VariableDeclarator);
             context.RegisterSyntaxNodeAction(ctx => VisitAssignment(ctx, VBSyntaxNodeHelper.Default), VB.SyntaxKind.SimpleAssignmentStatement);
             context.RegisterSyntaxNodeAction(ctx => VisitAssignment(ctx, VBSyntaxNodeHelper.Default), VB.SyntaxKind.NamedFieldInitializer);
         }
     }
 
-    public abstract class UnknownPasswordApiAnalyzer : DiagnosticAnalyzer
+    internal abstract class UnknownPasswordApiAnalyzer : SecurityAnalyzer
     {
         public static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0015", "title_assignment");
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
+
+        private Configuration Config;
+
+        protected void OnCompilationStartAction(Configuration config)
+        {
+            Config = config;
+        }
 
         private bool IsPasswordField(string name, ImmutableArray<AdditionalText> additionalTexts)
         {
-            var passwordFields = ConfigurationManager.Instance.GetProjectConfiguration(additionalTexts).PasswordFields;
+            var passwordFields = Config.PasswordFields;
             foreach (var passwordField in passwordFields)
             {
                 if (CultureInfo.InvariantCulture.CompareInfo.IndexOf(name, passwordField, CompareOptions.IgnoreCase) >= 0)

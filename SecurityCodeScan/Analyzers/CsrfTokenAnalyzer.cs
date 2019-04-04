@@ -9,14 +9,16 @@ using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Analyzers
 {
-    public abstract class MvcCsrfTokenAnalyzer : CsrfTokenDiagnosticAnalyzer
+    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class MvcCsrfTokenAnalyzer : CsrfTokenDiagnosticAnalyzer
     {
-        protected MvcCsrfTokenAnalyzer() : base("System.Web.Mvc", "System.Web.Mvc") { }
+        public MvcCsrfTokenAnalyzer() : base("System.Web.Mvc", "System.Web.Mvc") { }
     }
 
-    public abstract class CoreCsrfTokenAnalyzer : CsrfTokenDiagnosticAnalyzer
+    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class CoreCsrfTokenAnalyzer : CsrfTokenDiagnosticAnalyzer
     {
-        protected CoreCsrfTokenAnalyzer() : base("Microsoft.AspNetCore.Mvc", "Microsoft.AspNetCore.Authorization")
+        public CoreCsrfTokenAnalyzer() : base("Microsoft.AspNetCore.Mvc", "Microsoft.AspNetCore.Authorization")
         {
             IgnoreAntiforgeryToken = $"{Namespace}.IgnoreAntiforgeryTokenAttribute";
             FromBody               = $"{Namespace}.FromBodyAttribute";
@@ -51,7 +53,7 @@ namespace SecurityCodeScan.Analyzers
         }
     }
 
-    public abstract class CsrfTokenDiagnosticAnalyzer : DiagnosticAnalyzer
+    internal abstract class CsrfTokenDiagnosticAnalyzer : SecurityAnalyzer
     {
         public const           string               DiagnosticId = "SCS0016";
         public static readonly DiagnosticDescriptor Rule         = LocaleUtil.GetDescriptor(DiagnosticId);
@@ -62,7 +64,7 @@ namespace SecurityCodeScan.Analyzers
                                                                                                  titleId: "title_frombody_audit",
                                                                                                  descriptionId: "description_frombody_audit");
 
-        public override         ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override         ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
         protected CsrfTokenDiagnosticAnalyzer(string nameSpace,
                                               string allowAnonymousNamespace)
@@ -77,19 +79,20 @@ namespace SecurityCodeScan.Analyzers
         protected          Func<IMethodSymbol, bool> IsMethodIgnored;
         protected          Func<IMethodSymbol, bool> IsArgumentIgnored;
 
-        public override void Initialize(AnalysisContext analysisContext)
+        public override void Initialize(ISecurityAnalysisContext context)
         {
-            analysisContext.RegisterCompilationStartAction(
-                context =>
-                {
-                    var analyzer = new CsrfTokenAnalyzer(ConfigurationManager.Instance.GetProjectConfiguration(context.Options.AdditionalFiles),
-                                                         Namespace,
-                                                         AllowAnonymousNamespace,
-                                                         IsClassIgnored,
-                                                         IsMethodIgnored,
-                                                         IsArgumentIgnored);
-                    context.RegisterSymbolAction(analyzer.VisitClass, SymbolKind.NamedType);
-                });
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
+        }
+
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        {
+            var analyzer = new CsrfTokenAnalyzer(config,
+                                                 Namespace,
+                                                 AllowAnonymousNamespace,
+                                                 IsClassIgnored,
+                                                 IsMethodIgnored,
+                                                 IsArgumentIgnored);
+            context.RegisterSymbolAction(analyzer.VisitClass, SymbolKind.NamedType);
         }
 
         private class CsrfTokenAnalyzer
@@ -156,9 +159,7 @@ namespace SecurityCodeScan.Analyzers
                 if (classSymbol.HasDerivedClassAttribute(HasAnonymousAttribute))
                     return;
 
-                var antiForgeryAttributes = ConfigurationManager.Instance
-                                                                .GetProjectConfiguration(ctx.Options.AdditionalFiles)
-                                                                .AntiCsrfAttributes[Namespace];
+                var antiForgeryAttributes = Configuration.AntiCsrfAttributes[Namespace];
                 bool hasDerivedClassAttribute = classSymbol.HasDerivedClassAttribute(attributeData =>
                 {
                     foreach (var antiForgeryAttribute in antiForgeryAttributes)

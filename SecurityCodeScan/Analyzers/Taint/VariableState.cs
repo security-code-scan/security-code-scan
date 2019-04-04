@@ -9,7 +9,7 @@ namespace SecurityCodeScan.Analyzers.Taint
     /// <summary>
     /// Define the state of variable regarding can it be trust, where does it come from.
     /// </summary>
-    public class VariableState
+    internal class VariableState
     {
         public VariableTaint Taint { get; private set; }
 

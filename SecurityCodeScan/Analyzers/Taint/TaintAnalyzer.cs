@@ -11,22 +11,22 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace SecurityCodeScan.Analyzers.Taint
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class TaintAnalyzerCSharp : DiagnosticAnalyzer
+    internal abstract class TaintAnalyzer<T> : SecurityAnalyzer where T : TaintAnalyzerExtension
     {
-        public override void Initialize(AnalysisContext analysisContext)
+        protected readonly IEnumerable<T> Extensions;
+
+        protected TaintAnalyzer(IEnumerable<T> extensions)
         {
-            analysisContext.RegisterCompilationStartAction(
-                context =>
-                {
-                    var taintAnalyzer = new CSharpCodeEvaluation(CSharpSyntaxNodeHelper.Default,
-                                                                 ConfigurationManager.Instance
-                                                                                     .GetUpdatedProjectConfiguration(context.Options.AdditionalFiles));
-                    context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, CSharp.SyntaxKind.MethodDeclaration);
-                    context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, CSharp.SyntaxKind.ConstructorDeclaration);
-                    context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, CSharp.SyntaxKind.DestructorDeclaration);
-                    context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, CSharp.SyntaxKind.PropertyDeclaration);
-                });
+            Extensions = extensions;
+        }
+
+        protected TaintAnalyzer(T extension)
+        {
+            Extensions = new [] { extension };
+        }
+
+        protected TaintAnalyzer()
+        {
         }
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -36,10 +36,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                 //Feed the diagnostic descriptor from the configured sinks
                 var all = new HashSet<DiagnosticDescriptor>(LocaleUtil.GetAllAvailableDescriptors());
 
-                //Add the diagnostic that can be reported by taint analysis extension
-                lock (CSharpCodeEvaluation.Extensions)
+                if (Extensions != null)
                 {
-                    foreach (var extension in CSharpCodeEvaluation.Extensions)
+                    foreach (var extension in Extensions)
                     {
                         foreach (DiagnosticDescriptor desc in extension.SupportedDiagnostics)
                         {
@@ -49,75 +48,67 @@ namespace SecurityCodeScan.Analyzers.Taint
                 }
 
                 return ImmutableArray.Create(all.ToArray());
-            }
-        }
-
-        public static void RegisterExtension(TaintAnalyzerExtensionCSharp extension)
-        {
-            // Must be executed in a synchronous way for testing purposes
-            lock (CSharpCodeEvaluation.Extensions)
-            {
-                // Makes sure an extension of the same time isn't already registered before adding it to the list
-                if (CSharpCodeEvaluation.Extensions.Any(x => x.GetType().FullName.Equals(extension.GetType().FullName)))
-                    return;
-
-                CSharpCodeEvaluation.Extensions.Add(extension);
             }
         }
     }
 
-    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
-    public class TaintAnalyzerVisualBasic : DiagnosticAnalyzer
+    [SecurityAnalyzer(LanguageNames.CSharp)]
+    internal class TaintAnalyzerCSharp : TaintAnalyzer<TaintAnalyzerExtensionCSharp>
     {
-        public override void Initialize(AnalysisContext analysisContext)
+        public TaintAnalyzerCSharp(TaintAnalyzerExtensionCSharp extension) : base(extension)
         {
-            analysisContext.RegisterCompilationStartAction(
-                context =>
-                {
-                    var taintAnalyzer = new VbCodeEvaluation(VBSyntaxNodeHelper.Default,
-                                                             ConfigurationManager.Instance
-                                                                                 .GetUpdatedProjectConfiguration(context.Options.AdditionalFiles));
-                    context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, VB.SyntaxKind.SubBlock);
-                    context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, VB.SyntaxKind.FunctionBlock);
-                    context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, VB.SyntaxKind.ConstructorBlock);
-                    context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, VB.SyntaxKind.PropertyBlock);
-                });
         }
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public TaintAnalyzerCSharp(params TaintAnalyzerExtensionCSharp[] extensions) : base(extensions)
         {
-            get
-            {
-                //Feed the diagnostic descriptor from the configured sinks
-                var all = new HashSet<DiagnosticDescriptor>(LocaleUtil.GetAllAvailableDescriptors());
-
-                //Add the diagnostic that can be reported by taint analysis extension
-                lock (VbCodeEvaluation.Extensions)
-                {
-                    foreach (var extension in VbCodeEvaluation.Extensions)
-                    {
-                        foreach (DiagnosticDescriptor desc in extension.SupportedDiagnostics)
-                        {
-                            all.Add(desc);
-                        }
-                    }
-                }
-
-                return ImmutableArray.Create(all.ToArray());
-            }
         }
 
-        public static void RegisterExtension(TaintAnalyzerExtensionVisualBasic extension)
+        public TaintAnalyzerCSharp()
         {
-            // Must be executed in a synchronous way for testing purposes
-            lock (VbCodeEvaluation.Extensions)
-            {
-                // Makes sure an extension of the same time isn't already registered before adding it to the list
-                if (VbCodeEvaluation.Extensions.Any(x => x.GetType().FullName.Equals(extension.GetType().FullName)))
-                    return;
+        }
 
-                VbCodeEvaluation.Extensions.Add(extension);
-            }
+        public override void Initialize(ISecurityAnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
+        }
+
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        {
+            var taintAnalyzer = new CSharpCodeEvaluation(CSharpSyntaxNodeHelper.Default, config, Extensions);
+            context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, CSharp.SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, CSharp.SyntaxKind.ConstructorDeclaration);
+            context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, CSharp.SyntaxKind.DestructorDeclaration);
+            context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, CSharp.SyntaxKind.PropertyDeclaration);
+        }
+    }
+
+    [SecurityAnalyzer(LanguageNames.VisualBasic)]
+    internal class TaintAnalyzerVisualBasic : TaintAnalyzer<TaintAnalyzerExtensionVisualBasic>
+    {
+        public TaintAnalyzerVisualBasic(TaintAnalyzerExtensionVisualBasic extension) : base(extension)
+        {
+        }
+
+        public TaintAnalyzerVisualBasic(params TaintAnalyzerExtensionVisualBasic[] extensions) : base(extensions)
+        {
+        }
+
+        public TaintAnalyzerVisualBasic()
+        {
+        }
+
+        public override void Initialize(ISecurityAnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
+        }
+
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        {
+            var taintAnalyzer = new VbCodeEvaluation(VBSyntaxNodeHelper.Default, config, Extensions);
+            context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, VB.SyntaxKind.SubBlock);
+            context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, VB.SyntaxKind.FunctionBlock);
+            context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, VB.SyntaxKind.ConstructorBlock);
+            context.RegisterSyntaxNodeAction(taintAnalyzer.VisitMethods, VB.SyntaxKind.PropertyBlock);
         }
     }
 }

@@ -18,9 +18,10 @@ namespace SecurityCodeScan.Analyzers.Locale
         public YamlResourceManager() : base("SecurityCodeScan.Empty",
                                             typeof(YamlResourceManager).GetTypeInfo().Assembly)
         {
+            Load();
         }
 
-        public void Load()
+        private void Load()
         {
             var assembly = typeof(YamlResourceManager).GetTypeInfo().Assembly;
 

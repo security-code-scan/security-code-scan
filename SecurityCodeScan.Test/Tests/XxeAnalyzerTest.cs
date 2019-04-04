@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,7 +14,10 @@ namespace SecurityCodeScan.Test.XXE
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new DiagnosticAnalyzer[] { new XxeDiagnosticAnalyzerCSharp(), new XxeDiagnosticAnalyzerVisualBasic() };
+            if (language == LanguageNames.CSharp)
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new XxeDiagnosticAnalyzerCSharp()) };
+            else
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new XxeDiagnosticAnalyzerVisualBasic()) };
         }
 
         private static readonly PortableExecutableReference[] References =
@@ -24,7 +26,7 @@ namespace SecurityCodeScan.Test.XXE
         };
 
         /// <summary> XML parsing vulnerable to XXE </summary>
-        private DiagnosticResult[] Expected = new[]
+        private readonly DiagnosticResult[] Expected =
         {
             new DiagnosticResult { Id = "SCS0007", Severity = DiagnosticSeverity.Warning }
         };

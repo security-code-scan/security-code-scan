@@ -379,10 +379,8 @@
     <Compile Include="Tests\WeakPasswordValidatorPropertyAnalyzerTest.cs" />
     <Compile Include="Tests\XssPreventionAnalyzerTest.cs" />
     <Compile Include="Tests\CsrfTokenAnalyzerTest.cs" />
-    <Compile Include="Tests\CsrfTokenCodeFixProviderTest.cs" />
     <Compile Include="Tests\Password\HardcodedPasswordTest.cs" />
     <Compile Include="Tests\InsecureCookieAnalyzerTest.cs" />
-    <Compile Include="Tests\InsecureCookieCodeFixProviderTest.cs" />
     <Compile Include="Tests\OutputCacheAnnotationAnalyzerTest.cs" />
     <Compile Include="Tests\RequestValidationAnalyzerTest.cs" />
     <Compile Include="Tests\Taint\LinqSqlInjectionAnalyzerTest.cs" />
@@ -399,9 +397,7 @@
     <Compile Include="Tests\XxeAnalyzerTaintTest.cs" />
     <Compile Include="Tests\XxeAnalyzerTest.cs" />
     <Compile Include="Tests\XxeAnalyzerTestBase.cs" />
-    <Compile Include="Verifiers\CodeFixVerifier.cs" />
     <Compile Include="Verifiers\DiagnosticVerifier.cs" />
-    <Compile Include="Helpers\CodeFixVerifier.Helper.cs" />
     <Compile Include="Helpers\DiagnosticResult.cs" />
     <Compile Include="Helpers\DiagnosticVerifier.Helper.cs" />
     <Compile Include="Tests\Taint\CommandInjectionAnalyzerTest.cs" />

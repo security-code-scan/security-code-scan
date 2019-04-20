@@ -22,7 +22,7 @@ namespace SecurityCodeScan.Analyzers
 
         public CSharpAnalyzers()
         {
-            InitWorkers<TaintAnalyzerExtensionCSharp>(LanguageNames.CSharp);
+            Workers = new Lazy<List<SecurityAnalyzer>>(() => InitWorkers<TaintAnalyzerExtensionCSharp>(LanguageNames.CSharp));
         }
     }
 
@@ -39,13 +39,13 @@ namespace SecurityCodeScan.Analyzers
 
         public VBasicAnalyzers()
         {
-            InitWorkers<TaintAnalyzerExtensionVisualBasic>(LanguageNames.VisualBasic);
+            Workers = new Lazy<List<SecurityAnalyzer>>(() => InitWorkers<TaintAnalyzerExtensionVisualBasic>(LanguageNames.VisualBasic));
         }
     }
 
     public abstract class Analyzers : DiagnosticAnalyzer
     {
-        private List<SecurityAnalyzer> Workers;
+        internal Lazy<List<SecurityAnalyzer>> Workers;
 
         internal Analyzers(IEnumerable<SecurityAnalyzer> analyzers)
         {
@@ -54,8 +54,8 @@ namespace SecurityCodeScan.Analyzers
                 if (!analyzer.GetType().GetCustomAttributes(typeof(SecurityAnalyzerAttribute), false).Any())
                     throw new Exception("Analyzer is derived from SecurityAnalyzer, but doesn't have 'SecurityAnalyzer' attribute.");
             }
-            Workers = new List<SecurityAnalyzer>(analyzers);
-            InitDiagnostics();
+            Workers = new Lazy<List<SecurityAnalyzer>>(() => new List<SecurityAnalyzer>(analyzers));
+            Diagnostics = new Lazy<ImmutableArray<DiagnosticDescriptor>>(InitDiagnostics);
         }
 
         internal Analyzers(SecurityAnalyzer analyzer)
@@ -63,15 +63,15 @@ namespace SecurityCodeScan.Analyzers
             if (!analyzer.GetType().GetCustomAttributes(typeof(SecurityAnalyzerAttribute), false).Any())
                 throw new Exception("Analyzer is derived from SecurityAnalyzer, but doesn't have 'SecurityAnalyzer' attribute.");
 
-            Workers = new List<SecurityAnalyzer> { analyzer };
-            InitDiagnostics();
+            Workers = new Lazy<List<SecurityAnalyzer>>(() => new List<SecurityAnalyzer> { analyzer });
+            Diagnostics = new Lazy<ImmutableArray<DiagnosticDescriptor>>(InitDiagnostics);
         }
 
-        internal void InitWorkers<T>(string language) where T : TaintAnalyzerExtension
+        internal List<SecurityAnalyzer> InitWorkers<T>(string language) where T : TaintAnalyzerExtension
         {
-            Workers = new List<SecurityAnalyzer>();
+            var workers = new List<SecurityAnalyzer>();
             var taintExtensions = new List<T>();
-            var types           = GetType().Assembly.GetTypes();
+            var types           = GetType().Assembly.DefinedTypes;
             foreach (var type in types)
             {
                 if (!type.IsAbstract && typeof(T).IsAssignableFrom(type))
@@ -93,29 +93,30 @@ namespace SecurityCodeScan.Analyzers
                     {
                         if (typeof(TaintAnalyzer<T>).IsAssignableFrom(type))
                         {
-                            Workers.Add((SecurityAnalyzer)Activator.CreateInstance(type, taintExtensions.ToArray()));
+                            workers.Add((SecurityAnalyzer)Activator.CreateInstance(type, taintExtensions.ToArray()));
                         }
                         else
                         {
-                            Workers.Add((SecurityAnalyzer)Activator.CreateInstance(type));
+                            workers.Add((SecurityAnalyzer)Activator.CreateInstance(type));
                         }
                         break;
                     }
                 }
             }
 
-            InitDiagnostics();
+            return workers;
         }
 
         protected Analyzers()
         {
+            Diagnostics = new Lazy<ImmutableArray<DiagnosticDescriptor>>(InitDiagnostics);
         }
 
-        private void InitDiagnostics()
+        private ImmutableArray<DiagnosticDescriptor> InitDiagnostics()
         {
             var diagnostics = new HashSet<DiagnosticDescriptor>();
 
-            foreach (var worker in Workers)
+            foreach (var worker in Workers.Value)
             {
                 foreach (var desc in worker.SupportedDiagnostics)
                 {
@@ -123,7 +124,7 @@ namespace SecurityCodeScan.Analyzers
                 }
             }
 
-            Diagnostics = ImmutableArray.Create(diagnostics.ToArray());
+            return ImmutableArray.Create(diagnostics.ToArray());
         }
 
         public override void Initialize(AnalysisContext analysisContext)
@@ -135,11 +136,11 @@ namespace SecurityCodeScan.Analyzers
                 analysisContext.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
             var ctx = new SecurityAnalysisContext();
-            ctx.Initialize(analysisContext, Workers);
+            ctx.Initialize(analysisContext, Workers.Value);
         }
 
-        private ImmutableArray<DiagnosticDescriptor> Diagnostics;
+        private readonly Lazy<ImmutableArray<DiagnosticDescriptor>> Diagnostics;
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Diagnostics;
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Diagnostics.Value;
     }
 }

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="EA274E2A-E5EB-433B-9847-4CD27BE874EF" Version="3.1.0" Language="en-US" Publisher="JaroslavLobacevski"/>
+        <Identity Id="EA274E2A-E5EB-433B-9847-4CD27BE874EF" Version="3.2.0" Language="en-US" Publisher="JaroslavLobacevski"/>
         <DisplayName>Security Code Scan</DisplayName>
         <Description xml:space="preserve">Security static code analyzer for .NET</Description>
         <MoreInfo>https://security-code-scan.github.io</MoreInfo>

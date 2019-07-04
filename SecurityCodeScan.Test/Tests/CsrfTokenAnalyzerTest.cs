@@ -729,6 +729,43 @@ End Namespace
         private const string ExpectedMessage = "Controller method is vulnerable to CSRF";
 
         [TestMethod]
+        public async Task CsrfValidateAntiForgeryTokenApiController()
+        {
+            var cSharpTest = $@"
+using {Namespace};
+
+namespace VulnerableApp
+{{
+    [ApiController]
+    public class TestController : Controller
+    {{
+        [HttpPost]
+        public virtual void ControllerMethod(string input) {{
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports {Namespace}
+
+Namespace VulnerableApp
+    <ApiController> _
+    Public Class TestController
+        Inherits Controller
+
+        <HttpPost> _
+        Public Overridable Sub ControllerMethod(input As String)
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
         public async Task CsrfValidateAntiForgeryTokenFromBody()
         {
             var cSharpTest = $@"

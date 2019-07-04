@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.CodeAnalysis;
@@ -25,7 +26,9 @@ namespace SecurityCodeScan.Test.InsecureCookie
         private static readonly PortableExecutableReference[] References =
         {
             MetadataReference.CreateFromFile(typeof(HttpCookie).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Http.CookieOptions).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Http.CookieOptions).Assembly.Location),
+            MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
+                                                     .Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;

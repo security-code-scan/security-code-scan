@@ -399,6 +399,91 @@ End Namespace
         }
 
         [TestCategory("Detect")]
+        [TestMethod]
+        public async Task This()
+        {
+            var cSharpTest = @"
+using System.Text;
+
+class Test
+{
+    string GetUntrusted()
+    {
+        return null;
+    }
+
+    void Sink(string value)
+    {
+    }
+
+    public Test()
+    {
+        string id = GetUntrusted();
+        var st = new StringBuilder();
+        st.Append(""Select *from families where id = ""+id);
+        Sink(st.ToString());
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Text
+
+Class Test
+    Private Function GetUntrusted() As String
+        Return Nothing
+    End Function
+
+    Private Sub Sink(ByVal value As String)
+    End Sub
+
+    Public Sub New()
+        Dim id As String = GetUntrusted()
+        Dim st = New StringBuilder()
+        st.Append(""Select *from families where id = "" & id)
+        Sink(st.ToString())
+    End Sub
+End Class
+";
+
+            var testConfig = @"
+Behavior:
+  Untrusted:
+    ClassName: Test
+    Name: GetUntrusted
+    Method:
+      Returns:
+        Taint: Tainted
+
+  Sink:
+    ClassName: Test
+    Name: Sink
+    Method:
+      InjectableArguments: [SCS0026: 0]
+
+  StringBuilder_ToString:
+    Namespace: System.Text
+    ClassName: StringBuilder
+    Name: ToString
+    Method:
+      Returns:
+        TaintFromArguments: [This]
+
+  StringBuilder_Apped:
+    Namespace: System.Text
+    ClassName: StringBuilder
+    Name: Append
+    Method:
+      This:
+        TaintFromArguments: [0]
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(20), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("sql",       new[] { "SCS0026" }, new[] { "SCS0026" })]
         [DataRow("xyz",       new[] { "CS0103" },  new[] { "BC30451" })]

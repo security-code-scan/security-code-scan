@@ -64,7 +64,7 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (!behaviors.TryGetValue(key, out var behavior))
                 return false;
 
-            if (behavior.PostConditions.TryGetValue(-1, out PostCondition postCondition))
+            if (behavior.PostConditions.TryGetValue((int)ArgumentIndex.Returns, out PostCondition postCondition))
                 return postCondition.Taint == (uint)VariableTaint.Tainted;
 
             return false;

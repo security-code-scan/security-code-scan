@@ -97,7 +97,7 @@ End Class
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(9, -1)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expected.WithLocation(9)).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(7)).ConfigureAwait(false);
         }
     }

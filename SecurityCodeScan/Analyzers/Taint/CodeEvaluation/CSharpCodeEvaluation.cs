@@ -743,6 +743,49 @@ namespace SecurityCodeScan.Analyzers.Taint
         }
 
         /// <summary>
+        /// The map is used to store variable states while evaluating function arguments in a loop.
+        /// Then stored values are used to apply post conditions like "apply taint from 3rd argument to 1st argument"
+        /// </summary>
+        private Dictionary<int, VariableState> CreateArgStatesMapIfNeeded(ArgumentListSyntax                      argList,
+                                                                          IMethodSymbol                           methodSymbol,
+                                                                          IReadOnlyDictionary<int, PostCondition> postConditions)
+        {
+            if (argList == null)
+                return null;
+
+            if (argList.Arguments.Count < 1)
+                return null;
+
+            if (methodSymbol != null && methodSymbol.Parameters.Any(x => x.RefKind != RefKind.None))
+                return new Dictionary<int, VariableState>(argList.Arguments.Count);
+
+            if (postConditions == null)
+                return null;
+
+            if (postConditions.Any(c => c.Key != (int)ArgumentIndex.Returns &&
+                                        c.Key != (int)ArgumentIndex.This &&
+                                        (c.Value.Taint != 0ul || c.Value.TaintFromArguments.Any())))
+            {
+                return new Dictionary<int, VariableState>(argList.Arguments.Count);
+            }
+
+            return null;
+        }
+
+        private VariableState CreateInitialReturnState(VariableTaint?       initialTaint,
+                                                       ISymbol              symbol,
+                                                       ExpressionSyntax     node,
+                                                       ArgumentListSyntax   argList,
+                                                       MethodBehavior       behavior)
+        {
+            if (initialTaint != null && !symbol.IsStatic)
+                return new VariableState(node, initialTaint.Value);
+
+            VariableTaint taint = argList?.Arguments.Count > 0 && behavior != null ? VariableTaint.Unset : VariableTaint.Unknown;
+            return new VariableState(node, taint);
+        }
+
+        /// <summary>
         /// Logic for each method invocation (including constructor)
         /// The argument list is required because <code>InvocationExpressionSyntax</code> and 
         /// <code>ObjectCreationExpressionSyntax</code> do not share a common interface.
@@ -771,21 +814,14 @@ namespace SecurityCodeScan.Analyzers.Taint
                 postConditions = GetPostConditions(behavior, isExtensionMethod, argList, state);
 
             PostCondition returnPostCondition = null;
-            postConditions?.TryGetValue(-1, out returnPostCondition);
+            postConditions?.TryGetValue((int)ArgumentIndex.Returns, out returnPostCondition);
 
-            VariableState returnState = initialTaint != null && !symbol.IsStatic
-                                            ? new VariableState(node, initialTaint.Value)
-                                            : new VariableState(node, argList?.Arguments.Count > 0 && behavior != null
-                                                                          ? VariableTaint.Unset
-                                                                          : VariableTaint.Unknown);
+            PostCondition thisPostCondition = null;
+            postConditions?.TryGetValue((int)ArgumentIndex.This, out thisPostCondition);
 
-            var argCount       = argList?.Arguments.Count;
-            var argumentStates = argCount.HasValue &&
-                                 argCount.Value > 0 &&
-                                 (postConditions?.Any(c => c.Key != -1 && (c.Value.Taint != 0ul || c.Value.TaintFromArguments.Any())) == true ||
-                                  methodSymbol != null && methodSymbol.Parameters.Any(x => x.RefKind != RefKind.None))
-                                     ? new Dictionary<int, VariableState>(argCount.Value)
-                                     : null;
+            VariableState                  returnState    = CreateInitialReturnState(initialTaint, symbol, node, argList, behavior);
+            Dictionary<int, VariableState> argumentStates = CreateArgStatesMapIfNeeded(argList, methodSymbol, postConditions);
+            VariableState thisState                       = memberVariableState != null ? memberVariableState : new VariableState(node, VariableTaint.Unknown);
 
             var behaviorApplies = behavior != null && BehaviorApplies(behavior.AppliesUnderCondition, methodSymbol, argList?.Arguments, state);
 
@@ -845,6 +881,11 @@ namespace SecurityCodeScan.Analyzers.Taint
                     returnState.MergeTaint(argumentState.Taint);
                 }
 
+                if (thisPostCondition?.TaintFromArguments.Contains(argumentToSearch) == true)
+                {
+                    thisState.MergeTaint(argumentState.Taint);
+                }
+
                 //TODO: taint all objects passed as arguments
                 //if (argument.Expression is IdentifierNameSyntax identifierNameSyntax)
                 //{
@@ -860,7 +901,14 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             if (returnPostCondition != null)
             {
-                returnState.ApplyTaint(returnPostCondition.Taint);
+                if (returnPostCondition.TaintFromArguments.Contains((int)ArgumentIndex.This))
+                {
+                    returnState.MergeTaint(thisState.Taint);
+                }
+                else
+                {
+                    returnState.ApplyTaint(returnPostCondition.Taint);
+                }
             }
 
             if (argumentStates != null)
@@ -1111,7 +1159,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             var symbol   = state.GetSymbol(expression);
             var behavior = symbol?.GetMethodBehavior(ProjectConfiguration.Behavior);
-            if (behavior != null && behavior.PostConditions.TryGetValue(-1, out var taint))
+            if (behavior != null && behavior.PostConditions.TryGetValue((int)ArgumentIndex.Returns, out var taint))
             {
                 return new VariableState(expression, (VariableTaint)taint.Taint);
             }

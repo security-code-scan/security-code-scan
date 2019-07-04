@@ -373,8 +373,24 @@ namespace SecurityCodeScan.Config
                 switch (argument)
                 {
                     case string s:
-                        outArguments.Add(int.Parse(s), (ulong)VariableTaint.Safe);
+                    {
+                        int i;
+                        switch (s)
+                        {
+                            case "This":
+                                i = (int)ArgumentIndex.This;
+                                break;
+                            default:
+                                i = int.Parse(s);
+                                if (i < 0)
+                                    throw new Exception("Invalid argument index or name");
+
+                                break;
+                        }
+
+                        outArguments.Add(i, (ulong)VariableTaint.Safe);
                         break;
+                    }
                     case Dictionary<object, object> d when d.Count == 1:
                     {
                         var indexToTaintType = d.First();
@@ -495,7 +511,23 @@ namespace SecurityCodeScan.Config
                 if (!(argument.Value is Dictionary<object, object> d))
                     throw new Exception("Invalid postcondition format");
 
-                var                   idx                = argKey == "Returns" ? -1 : int.Parse(argKey);
+                int idx;
+                switch (argKey)
+                {
+                    case "Returns":
+                        idx = (int)ArgumentIndex.Returns;
+                        break;
+                    case "This":
+                        idx = (int)ArgumentIndex.This;
+                        break;
+                    default:
+                        idx = int.Parse(argKey);
+                        if (idx < 0)
+                            throw new Exception("Invalid argument index or name");
+
+                        break;
+                }
+
                 ulong                 taintBit           = 0ul;
                 ImmutableHashSet<int> taintFromArguments = null;
 

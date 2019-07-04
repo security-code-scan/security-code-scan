@@ -1,4 +1,9 @@
 # Release Notes
+## 3.2.0
+Bugfix release.
+* Fixes using SCS as nuget. [#117](https://github.com/security-code-scan/security-code-scan/issues/117)
+* One click code fixes were removed until a separate assembly is created. [#71](https://github.com/security-code-scan/security-code-scan/issues/71)
+
 ## 3.1.0
 The release adds support for VS2019 and bug fixes. Also:
 * Adds multiple XSS sinks for WebForms (thanks [Andrei!](https://github.com/zaichenko))

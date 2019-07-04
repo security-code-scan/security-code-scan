@@ -22,6 +22,8 @@ namespace SecurityCodeScan.Analyzers
         {
             IgnoreAntiforgeryToken = $"{Namespace}.IgnoreAntiforgeryTokenAttribute";
             FromBody               = $"{Namespace}.FromBodyAttribute";
+            FromForm               = $"{Namespace}.FromFormAttribute";
+            ApiController          = $"{Namespace}.ApiControllerAttribute";
 
             base.IsClassIgnored    = IsClassIgnored;
             base.IsMethodIgnored   = IsMethodIgnored;
@@ -30,6 +32,8 @@ namespace SecurityCodeScan.Analyzers
 
         private readonly string IgnoreAntiforgeryToken;
         private readonly string FromBody;
+        private readonly string FromForm;
+        private readonly string ApiController;
 
         private new bool IsClassIgnored(ITypeSymbol classSymbol)
         {
@@ -41,15 +45,24 @@ namespace SecurityCodeScan.Analyzers
             return methodSymbol.HasDerivedMethodAttribute(attributeData => attributeData.AttributeClass.ToString() == IgnoreAntiforgeryToken);
         }
 
-        private new bool IsArgumentIgnored(IMethodSymbol methodSymbol)
+        private bool HasApiControllerAttribute(AttributeData attributeData)
+        {
+            return attributeData.AttributeClass.ToString() == ApiController;
+        }
+
+        private new bool IsArgumentIgnored(IMethodSymbol methodSymbol, ITypeSymbol classSymbol)
         {
             foreach (var parameter in methodSymbol.Parameters)
             {
                 if (parameter.HasAttribute(attr => attr.AttributeClass.ToString().Equals(FromBody)))
                     return true;
+
+                if (parameter.HasAttribute(attr => attr.AttributeClass.ToString().Equals(FromForm)))
+                    return false;
             }
 
-            return false;
+            var isApiController = classSymbol.HasDerivedClassAttribute(HasApiControllerAttribute);
+            return isApiController;
         }
     }
 
@@ -77,7 +90,7 @@ namespace SecurityCodeScan.Analyzers
         private readonly   string                    AllowAnonymousNamespace;
         protected          Func<ITypeSymbol, bool>   IsClassIgnored;
         protected          Func<IMethodSymbol, bool> IsMethodIgnored;
-        protected          Func<IMethodSymbol, bool> IsArgumentIgnored;
+        protected          Func<IMethodSymbol, ITypeSymbol, bool> IsArgumentIgnored;
 
         public override void Initialize(ISecurityAnalysisContext context)
         {
@@ -102,7 +115,7 @@ namespace SecurityCodeScan.Analyzers
                                      string                    allowAnonymousNamespace,
                                      Func<ITypeSymbol, bool>   isClassIgnored,
                                      Func<IMethodSymbol, bool> isMethodIgnored,
-                                     Func<IMethodSymbol, bool> isArgumentIgnored)
+                                     Func<IMethodSymbol, ITypeSymbol, bool> isArgumentIgnored)
             {
                 Configuration     = configuration;
                 IsMethodIgnored   = isMethodIgnored;
@@ -133,7 +146,7 @@ namespace SecurityCodeScan.Analyzers
             private readonly Configuration             Configuration;
             private readonly Func<ITypeSymbol, bool>   IsClassIgnored;
             private readonly Func<IMethodSymbol, bool> IsMethodIgnored;
-            private readonly Func<IMethodSymbol, bool> IsArgumentIgnored;
+            private readonly Func<IMethodSymbol, ITypeSymbol, bool> IsArgumentIgnored;
 
             private bool HasAntiForgeryToken(AttributeData attributeData, string antiForgeryAttribute)
             {
@@ -185,7 +198,7 @@ namespace SecurityCodeScan.Analyzers
 
                     var isArgumentIgnored = false;
                     if (!isClassIgnored && !isMethodIgnored)
-                        isArgumentIgnored = IsArgumentIgnored != null && IsArgumentIgnored(methodSymbol);
+                        isArgumentIgnored = IsArgumentIgnored != null && IsArgumentIgnored(methodSymbol, classSymbol);
 
                     if (!Configuration.AuditMode && isArgumentIgnored)
                         return;

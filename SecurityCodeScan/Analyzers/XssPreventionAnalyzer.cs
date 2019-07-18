@@ -50,16 +50,31 @@ namespace SecurityCodeScan.Analyzers
 
             foreach (CSharpSyntax.MethodDeclarationSyntax method in methodsWithParameters)
             {
-                SyntaxList<CSharpSyntax.StatementSyntax> methodStatements = method.Body.Statements;
-                var methodInvocations = method.DescendantNodes()
-                                              .OfType<CSharpSyntax.InvocationExpressionSyntax>()
-                                              .ToArray();
+                DataFlowAnalysis flow;
+                
+                if (method.Body?.Statements != null)
+                {
+                    var methodStatements = method.Body.Statements;
+                    if (!methodStatements.Any())
+                        continue;
 
-                if (!methodStatements.Any())
+                    flow = ctx.SemanticModel.AnalyzeDataFlow(methodStatements.First(), methodStatements.Last());
+                }
+                else if (method.ExpressionBody != null)
+                {
+                    var expression = method.ExpressionBody.Expression;
+                    flow = ctx.SemanticModel.AnalyzeDataFlow(expression);
+                }
+                else
+                {
                     continue;
+                }
 
-                DataFlowAnalysis flow = ctx.SemanticModel.AnalyzeDataFlow(methodStatements.First(),
-                                                                          methodStatements.Last());
+                var methodInvocations =
+                    method
+                        .DescendantNodes()
+                        .OfType<CSharpSyntax.InvocationExpressionSyntax>()
+                        .ToArray();
 
                 // Returns from the Data Flow Analysis of input data 
                 // Dangerous data is: Data passed as a parameter that is also returned as is by the method

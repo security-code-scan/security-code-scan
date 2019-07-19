@@ -922,12 +922,20 @@ namespace SecurityCodeScan.Analyzers.Taint
                     if (prop.IsVirtual || prop.IsOverride || prop.IsAbstract)
                         return new VariableState(expression, VariableTaint.Unknown);
 
-                    // TODO: Use public API
-                    var syntaxNodeProperty = prop.GetMethod.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("BodySyntax");
-                    if (syntaxNodeProperty == null)
+                    var getMtd = prop.GetMethod;
+                    if(getMtd == null)
+                    {
                         return new VariableState(expression, VariableTaint.Unknown);
+                    }
 
-                    var syntaxNode = (CSharpSyntaxNode)syntaxNodeProperty.GetValue(prop.GetMethod);
+                    var decls = getMtd.DeclaringSyntaxReferences;
+                    if(decls.Length != 1)
+                    {
+                        // partial methods can't return anything, so something weird is going on
+                        return new VariableState(expression, VariableTaint.Unknown);
+                    }
+
+                    var syntaxNode = (CSharpSyntaxNode)decls[0].GetSyntax();
                     if (syntaxNode == null)
                         return new VariableState(expression, VariableTaint.Unknown);
 
@@ -946,6 +954,26 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                     null,
                                                     possiblyOtherSemanticModel,
                                                     visited);
+                    }
+
+                    if(syntaxNode is AccessorDeclarationSyntax accessorDecl)
+                    {
+                        if (accessorDecl.ExpressionBody != null)
+                        {
+                            if (possiblyOtherSemanticModel.GetConstantValue(accessorDecl.ExpressionBody).HasValue)
+                                return new VariableState(expression, VariableTaint.Constant);
+                        }
+
+                        if (accessorDecl.Body != null)
+                        {
+                            var accessFlow = possiblyOtherSemanticModel.AnalyzeControlFlow(accessorDecl.Body);
+                            if (accessFlow.Succeeded && AllReturnConstant(accessFlow.ExitPoints, possiblyOtherSemanticModel, visited))
+                                return new VariableState(expression, VariableTaint.Constant);
+
+                            return new VariableState(expression, VariableTaint.Unknown);
+                        }
+
+                        return new VariableState(expression, VariableTaint.Unknown);
                     }
 
                     if (!(syntaxNode is StatementSyntax statementSyntax))

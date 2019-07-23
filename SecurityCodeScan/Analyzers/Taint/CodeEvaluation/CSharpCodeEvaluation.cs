@@ -977,8 +977,6 @@ namespace SecurityCodeScan.Analyzers.Taint
                             var accessFlow = possiblyOtherSemanticModel.AnalyzeControlFlow(accessorDecl.Body);
                             if (accessFlow.Succeeded && AllReturnConstant(accessFlow.ExitPoints, possiblyOtherSemanticModel, visited))
                                 return new VariableState(expression, VariableTaint.Constant);
-
-                            return new VariableState(expression, VariableTaint.Unknown);
                         }
 
                         return new VariableState(expression, VariableTaint.Unknown);

@@ -960,6 +960,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                     if (syntaxNode == null)
                         return new VariableState(expression, VariableTaint.Unknown);
 
+                    if (!semanticModel.Compilation.ContainsSyntaxTree(syntaxNode.SyntaxTree))
+                        return new VariableState(expression, VariableTaint.Unknown);
+
                     var possiblyOtherSemanticModel = semanticModel.Compilation.GetSemanticModel(syntaxNode.SyntaxTree);
                     if (syntaxNode is ArrowExpressionClauseSyntax arrowExpressionClauseSyntax)
                         return ResolveVariableState(arrowExpressionClauseSyntax, expression, possiblyOtherSemanticModel, ref visited);

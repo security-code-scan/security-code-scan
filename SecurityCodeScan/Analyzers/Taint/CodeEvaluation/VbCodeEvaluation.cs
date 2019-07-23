@@ -488,6 +488,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitExpression(cTypeExpressionSyntax.Expression, state);
                 case UnaryExpressionSyntax unaryExpressionSyntax:
                     return VisitExpression(unaryExpressionSyntax.Operand, state);
+                case AwaitExpressionSyntax awaitSyntax:
+                    return VisitExpression(awaitSyntax.Expression, state);
             }
 
 #if DEBUG
@@ -913,16 +915,34 @@ namespace SecurityCodeScan.Analyzers.Taint
                     if (prop.IsVirtual || prop.IsOverride || prop.IsAbstract)
                         return new VariableState(expression, VariableTaint.Unknown);
 
-                    // TODO: Use public API
-                    var syntaxNodeProperty = prop.GetMethod.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("Syntax");
-                    var syntaxNode         = (VisualBasicSyntaxNode)syntaxNodeProperty?.GetValue(prop.GetMethod);
+                    var getMtd = prop.GetMethod;
+                    if(getMtd == null)
+                    {
+                        return new VariableState(expression, VariableTaint.Unknown);
+                    }
+
+                    var decls = getMtd.DeclaringSyntaxReferences;
+                    if(decls.Length != 1)
+                    {
+                        // partial methods can't return anything, so something weird is going on
+                        return new VariableState(expression, VariableTaint.Unknown);
+                    }
+
+                    var syntaxNode = (VisualBasicSyntaxNode)decls[0].GetSyntax();
                     if (syntaxNode == null)
+                        return new VariableState(expression, VariableTaint.Unknown);
+
+                    if (!semanticModel.Compilation.ContainsSyntaxTree(syntaxNode.SyntaxTree))
                         return new VariableState(expression, VariableTaint.Unknown);
 
                     var possiblyOtherSemanticModel = semanticModel.Compilation.GetSemanticModel(syntaxNode.SyntaxTree);
 
-                    if (!(syntaxNode is AccessorBlockSyntax accessorBlockSyntax) || accessorBlockSyntax.Statements.Count  <= 0)
+                    if (!(syntaxNode is AccessorStatementSyntax accessorStatementSyntax) ||
+                        !(accessorStatementSyntax.Parent is AccessorBlockSyntax accessorBlockSyntax)  ||
+                        accessorBlockSyntax.Statements.Count <= 0)
+                    {
                         return new VariableState(expression, VariableTaint.Unknown);
+                    }
 
                     var flow = possiblyOtherSemanticModel.AnalyzeControlFlow(accessorBlockSyntax.Statements.First(),
                                                                              accessorBlockSyntax.Statements.Last());

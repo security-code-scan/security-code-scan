@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
+using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
 
 namespace SecurityCodeScan.Test.AntiCsrf
@@ -689,9 +690,9 @@ End Namespace
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new MvcCsrfTokenAnalyzer()) };
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
             else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new MvcCsrfTokenAnalyzer()) };
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
         }
     }
 
@@ -717,9 +718,9 @@ End Namespace
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CoreCsrfTokenAnalyzer()) };
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
             else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CoreCsrfTokenAnalyzer()) };
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
         }
     }
 
@@ -1032,9 +1033,9 @@ End Namespace
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CoreCsrfTokenAnalyzer()) };
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
             else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CoreCsrfTokenAnalyzer()) };
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
         }
     }
 
@@ -1130,9 +1131,9 @@ End Namespace
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CoreCsrfTokenAnalyzer(), new MvcCsrfTokenAnalyzer()) };
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
             else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CoreCsrfTokenAnalyzer(), new MvcCsrfTokenAnalyzer()) };
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
         }
 
         private static readonly PortableExecutableReference[] References =
@@ -1146,5 +1147,200 @@ End Namespace
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
+    }
+
+    [TestClass]
+    public class CustomConditionalCsrfAttributeTests: DiagnosticVerifier
+    {
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task ConditionalFailure()
+        {
+            var cSharpTest = @"
+using System;
+
+namespace VulnerableApp
+{
+    // this is lifted from the Stack Overflow source, descendent of https://kevinmontrose.com/2011/07/25/why-i-love-attribute-based-routing/
+    public enum CustomRoutePriority
+    {
+        Lowest = 0,
+        Low = 1,
+        Default = 2,
+        High = 3
+    }
+
+    public enum HttpVerbs
+    {
+	    Get = 1,
+	    Post = 2,
+	    Put = 4,
+	    Delete = 8,
+	    Head = 16,
+	    Patch = 32,
+	    Options = 64
+    }
+
+    public abstract class CustomController
+    {
+
+    }
+
+    public class ActionResult
+    {
+
+    }
+
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+    public class CustomRouteAttribute : Attribute
+    {
+        public CustomRouteAttribute(string url) : this(url, """", null, CustomRoutePriority.Default) { }
+
+        public CustomRouteAttribute(string url, HttpVerbs verbs) : this(url, """", verbs, CustomRoutePriority.Default) { }
+
+        public CustomRouteAttribute(string url, HttpVerbs verbs, CustomRoutePriority priority) : this(url, """", verbs, priority) { }
+
+        private CustomRouteAttribute(string url, string name, HttpVerbs? verbs, CustomRoutePriority priority)
+        {
+            Url = url;
+            Name = name;
+            AcceptVerbs = verbs;
+            Priority = priority;
+        }
+
+        private const HttpVerbs FkeyOptionalVerbs = HttpVerbs.Get | HttpVerbs.Head;
+
+        private bool? _ensureCsrfSafe;
+        public bool EnsureCSRFSafe
+        {
+            get { return _ensureCsrfSafe ?? AcceptVerbs.HasValue && (AcceptVerbs.Value & FkeyOptionalVerbs) == 0; }
+            set { _ensureCsrfSafe = value; }
+        }
+
+        public string Url { get; private set; }
+	    public string Name { get; private set; }
+	    public HttpVerbs? AcceptVerbs { get; private set; }
+	    public CustomRoutePriority Priority { get; private set; }
+    }
+
+    public class TestController : CustomController
+    {
+        [CustomRoute(""vulnerable/post"", HttpVerbs.Post, EnsureCSRFSafe = false)]
+        public ActionResult VulnerablePost(string input)
+        {
+            return null;
+        }
+
+        [CustomRoute(""vulnerable/put"", HttpVerbs.Put, EnsureCSRFSafe = false)]
+        public ActionResult VulnerablePut(string input)
+        {
+            return null;
+        }
+
+        [CustomRoute(""vulnerable/delete"", HttpVerbs.Delete, EnsureCSRFSafe = false)]
+        public ActionResult VulnerableDelete(string input)
+        {
+            return null;
+        }
+
+        [CustomRoute(""vulnerable/patch"", HttpVerbs.Patch, EnsureCSRFSafe = false)]
+        public ActionResult VulnerablePatch(string input)
+        {
+            return null;
+        }
+
+        [CustomRoute(""safe/post/implicit"", HttpVerbs.Post)]
+        public ActionResult SafePostImplicit(string input)
+        {
+            return null;
+        }
+
+        [CustomRoute(""safe/post/explicit"", HttpVerbs.Post, EnsureCSRFSafe = true)]
+        public ActionResult SafePostExplicit(string input)
+        {
+            return null;
+        }
+
+        [CustomRoute(""safe/get/implicit"")]
+        public ActionResult SafeGetImplicit(string input)
+        {
+            return null;
+        }
+
+        [CustomRoute(""safe/get/explicit"", HttpVerbs.Get)]
+        public ActionResult SafeGetExplicit(string input)
+        {
+            return null;
+        }
+
+        [CustomRoute(""safe/get/explicit/disabled"", HttpVerbs.Get, EnsureCSRFSafe = false)]
+        public ActionResult SafeGetExplicitDisabled(string input)
+        {
+            return null;
+        }
+
+        [CustomRoute(""safe/head"", HttpVerbs.Head)]
+        public ActionResult SafeHead(string input)
+        {
+            return null;
+        }
+    }
+}
+";
+
+            var testConfig = @"
+CsrfProtection:
+  - Name: Stack Overflow Example Config
+    NameSpace: VulnerableApp
+    ControllerName: CustomController
+    VulnerableAttributes:
+      - AttributeName: CustomRouteAttribute
+        Condition: { 1: { Value:  2 }, EnsureCSRFSafe: { Value: false } }  # Post
+      - AttributeName: CustomRouteAttribute
+        Condition: { 1: { Value:  4 }, EnsureCSRFSafe: { Value: false } }  # Put
+      - AttributeName: CustomRouteAttribute
+        Condition: { 1: { Value:  8 }, EnsureCSRFSafe: { Value: false } }  # Delete
+      - AttributeName: CustomRouteAttribute
+        Condition: { 1: { Value: 32 }, EnsureCSRFSafe: { Value: false } }  # Patch
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            var expected =
+                new[]
+                {
+                    new DiagnosticResult
+                    {
+                        Id = CsrfTokenDiagnosticAnalyzer.DiagnosticId,
+                        Severity = DiagnosticSeverity.Warning
+                    }.WithLocation(71, 29),
+                    new DiagnosticResult
+                    {
+                        Id = CsrfTokenDiagnosticAnalyzer.DiagnosticId,
+                        Severity = DiagnosticSeverity.Warning
+                    }.WithLocation(77, 29),
+                    new DiagnosticResult
+                    {
+                        Id = CsrfTokenDiagnosticAnalyzer.DiagnosticId,
+                        Severity = DiagnosticSeverity.Warning
+                    }.WithLocation(83, 29),
+                    new DiagnosticResult
+                    {
+                        Id = CsrfTokenDiagnosticAnalyzer.DiagnosticId,
+                        Severity = DiagnosticSeverity.Warning
+                    }.WithLocation(89, 29)
+                };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            // todo: Visual Basic equivalent
+        }
+
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        {
+            if (language == LanguageNames.CSharp)
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
+            else
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
+        }
     }
 }

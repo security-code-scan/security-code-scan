@@ -15,9 +15,9 @@ namespace SecurityCodeScan.Test.Config
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CoreCsrfTokenAnalyzer(), new MvcCsrfTokenAnalyzer()) };
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
             else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CoreCsrfTokenAnalyzer(), new MvcCsrfTokenAnalyzer()) };
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
         }
 
         private static readonly PortableExecutableReference[] References =
@@ -90,9 +90,11 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(16, 25)).ConfigureAwait(false);
 
             var testConfig = @"
-CsrfProtectionAttributes:
-  -  HttpMethodsNameSpace: System.Web.Mvc
-     AntiCsrfAttribute: VulnerableApp.TestAttribute
+CsrfProtection:
+  - Name: ASP.NET MVC
+    NameSpace: VulnerableApp
+    AntiCsrfAttributes:
+      - AttributeName: TestAttribute
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -160,9 +162,93 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(16, 25)).ConfigureAwait(false);
 
             var testConfig = @"
-CsrfProtectionAttributes:
-  -  HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
-     AntiCsrfAttribute: VulnerableApp.TestAttribute
+CsrfProtection:
+  - Name: ASP.NET Core MVC
+    NameSpace: VulnerableApp
+    AntiCsrfAttributes:
+      - AttributeName: TestAttribute
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestCategory("Safe")]
+        [TestMethod]
+        public async Task AddCustomCsrfAttributeWithCondition()
+        {
+            var cSharpTest = @"
+using System;
+using System.Web.Mvc;
+
+namespace VulnerableApp
+{
+    [System.AttributeUsage(System.AttributeTargets.Method)]
+    public class TestAttribute : Attribute
+    {
+        public HttpVerbs AppliesFor { get; private set; }
+        public bool PreventsCsrf { get; private set; }
+
+        public TestAttribute(HttpVerbs appliesFor, bool preventsCsrf)
+        {
+            AppliesFor = appliesFor;
+            PreventsCsrf = preventsCsrf;
+        }
+    }
+
+    public class TestController : Controller
+    {
+        [TestAttribute(HttpVerbs.Post, true)]
+        public ActionResult ControllerMethod(string input)
+        {
+            return null;
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System
+Imports System.Web.Mvc
+
+Namespace VulnerableApp
+    <AttributeUsage(System.AttributeTargets.Method)>
+    Public Class TestAttribute
+        Inherits Attribute
+
+    Public AppliesFor As HttpVerbs
+    Public PreventsCsrf As Boolean
+
+    Sub New(appliesFor As HttpVerbs, preventsCsrf As Boolean)
+        AppliesFor = appliesFor
+        PreventsCsrf = preventsCsrf
+    End Sub
+
+    End Class
+
+    Public Class TestController
+        Inherits Controller
+
+        <TestAttribute(HttpVerbs.Post, True)>
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
+            var testConfig = @"
+CsrfProtection:
+  - Name: ASP.NET MVC
+    NameSpace: VulnerableApp
+    VulnerableAttributes:
+      - AttributeName: TestAttribute
+        Condition: {0: {Value: 2}}
+    AntiCsrfAttributes:
+      - AttributeName: TestAttribute
+        Condition: {1: {Value: true}}
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

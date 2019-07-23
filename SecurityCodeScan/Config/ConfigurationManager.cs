@@ -174,7 +174,7 @@ namespace SecurityCodeScan.Config
         public List<string>                            PasswordValidatorRequiredProperties { get; set; }
         public Dictionary<string, object>              Behavior                            { get; set; }
         public Dictionary<string, TaintEntryPointData> TaintEntryPoints                    { get; set; }
-        public List<CsrfProtectionData>                CsrfProtectionAttributes            { get; set; }
+        public List<CsrfProtectionData>                CsrfProtection                      { get; set; }
         public List<string>                            PasswordFields                      { get; set; }
         public List<string>                            ConstantFields                      { get; set; }
         public List<string>                            TaintTypes                          { get; set; }
@@ -217,7 +217,19 @@ namespace SecurityCodeScan.Config
 
     internal class CsrfProtectionData
     {
-        public string HttpMethodsNameSpace { get; set; }
-        public string AntiCsrfAttribute    { get; set; }
+        public string Name                                      { get; set; }
+        public string NameSpace                                 { get; set; }
+        public string ControllerName                            { get; set; }
+        public List<CsrfAttributeData> NonActionAttributes      { get; set; }
+        public List<CsrfAttributeData> AllowAnonymousAttributes { get; set; }
+        public List<CsrfAttributeData> VulnerableAttributes     { get; set; }
+        public List<CsrfAttributeData> AntiCsrfAttributes       { get; set; }
+        public List<CsrfAttributeData> IgnoreAttributes         { get; set; }
+    }
+
+    internal class CsrfAttributeData
+    {
+        public string AttributeName        { get; set; }
+        public Dictionary<object, object> Condition { get; set; }
     }
 }

@@ -3,19 +3,97 @@
 # Set to 'true' to see more warnings
 AuditMode: false
 
-# Allows to define custom anti CSRF attribute
-# HttpMethodsNameSpace must be System.Web.Mvc or Microsoft.AspNetCore.Mvc.
-# AntiCsrfAttribute should be applicable to Class and Method and be inheritable. Multiple instances should not be allowed. For example:
-# [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-# public class MyCustomAntiCsrfAttribute : Attribute {}
-# Otherwise CsrfTokenAnalyzer may not work properly.
-CsrfProtectionAttributes:
-  - HttpMethodsNameSpace: System.Web.Mvc
-    AntiCsrfAttribute: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
-  - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
-    AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
-  - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
-    AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+# Allows to define custom anti CSRF attributes and conditions
+# The format is:
+# <<<
+# CsrfProtection:
+#   - Name: ASP.NET MVC
+#     NameSpace: System.Web.Mvc
+#     (Optional) ControllerName: Controller
+#     (Optional) NonActionAttributes:
+#       - AttributeName: NonActionAttribute
+#         (Optional) Condition: { 0: { Value: 0}, ...}
+#     (Optional) AllowAnonymousAttributes:
+#       - AttributeName: AllowAnonymousAttribute
+#     (Optional) VulnerableAttributes:
+#       - AttributeName: HttpPostAttribute
+#       - AttributeName: HttpPutAttribute
+#       - AttributeName: HttpDeleteAttribute
+#       - AttributeName: HttpPatchAttribute
+#     (Optional) AntiCsrfAttributes:
+#       - AttributeName: ValidateAntiForgeryTokenAttribute
+#     (Optional) IgnoreAttributes:
+#       - AttributeName: IgnoreAntiforgeryTokenAttribute
+# <<<
+#
+# Multiple entries are supported.
+#
+# The same Name can be given to different entries, the analysis is applied on a per-NAME basis
+#   so you can incorporate types from multiple namespaces under the same set of rules.
+#
+# The given NameSpace is applied to all type names in the entry.
+#
+# ControllerName is a base class which has descendents which expose actions as public methods.
+#
+# NonActionAttributes are attributes which denote methods that are not actions on a controller.
+#
+# AllowAnonymousAttributes are attributes which indicate a method or class allows non-CSRF protected requests.
+#
+# VulnerableAttributes are attributes which indicate a method needs CSRF protection, by (for example) taking
+#   a POST request.
+#
+# AntiCsrfAttributes are attributes which indicate that CSRF checking is automated on a method.
+#
+# IgnoreAttributes are attributes applied to classes, methods, or arguments that indicate that CSRF checking isn't needed.
+#
+# All *Attributes entries have an optional Condition, which is a dictionary of constructor parameters (indicated by indexes) and
+#  Property names to Values.  Attributes with conditions will only be considered when the condition is true, attributes
+#  without conditions will always be considered.
+#
+# Conditions can have integer, string, or boolean values.  
+#  For example
+#    - AttributeName: MyAttribute
+#      Condition: { 1: {Value: 32 }, FirstProperty: {Value: foo }, SecondProperty: { Value: true } }
+#  will match 
+#   [My(null, 32, FirstProperty = "foo", SecondProperty = true)]
+
+CsrfProtection:
+  - Name: ASP.NET MVC
+    NameSpace: System.Web.Mvc
+    ControllerName: Controller
+    NonActionAttributes:
+      - AttributeName: NonActionAttribute
+    VulnerableAttributes:
+      - AttributeName: HttpPostAttribute
+      - AttributeName: HttpPutAttribute
+      - AttributeName: HttpDeleteAttribute
+      - AttributeName: HttpPatchAttribute
+    AntiCsrfAttributes:
+      - AttributeName: ValidateAntiForgeryTokenAttribute
+    AllowAnonymousAttributes:
+      - AttributeName: AllowAnonymousAttribute
+  - Name: ASP.NET Core MVC
+    NameSpace: Microsoft.AspNetCore.Mvc
+    ControllerName: Controller
+    NonActionAttributes:
+      - AttributeName: NonActionAttribute
+    VulnerableAttributes:
+      - AttributeName: HttpPostAttribute
+      - AttributeName: HttpPutAttribute
+      - AttributeName: HttpDeleteAttribute
+      - AttributeName: HttpPatchAttribute
+    AntiCsrfAttributes:
+      - AttributeName: ValidateAntiForgeryTokenAttribute
+      - AttributeName: AutoValidateAntiforgeryTokenAttribute
+    IgnoreAttributes:
+      - AttributeName: IgnoreAntiforgeryTokenAttribute
+      - AttributeName: ApiControllerAttribute
+      - AttributeName: FromBodyAttribute
+      - AttributeName: FromFormAttribute
+  - Name: ASP.NET Core MVC
+    NameSpace: Microsoft.AspNetCore.Authorization
+    AllowAnonymousAttributes:
+      - AttributeName: AllowAnonymousAttribute
 
 # Password validator analysis preferences:
 PasswordValidatorRequiredLength: 8

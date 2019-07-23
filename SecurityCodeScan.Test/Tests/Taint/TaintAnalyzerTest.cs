@@ -1226,7 +1226,6 @@ namespace sample
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
-        [Ignore("add C# 7.0 support")]
         public async Task VariableConcatenationPropertyExpressionBodyGetCSharp(string initializer, string accessor)
         {
             var cSharpTest = $@"
@@ -1255,6 +1254,8 @@ namespace sample
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
             await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+
+            // AFAIK expression body are not supported in VB
         }
 
         [TestCategory("Safe")]

@@ -896,6 +896,25 @@ namespace SecurityCodeScan.Analyzers.Taint
             return null;
         }
 
+        private VariableState ResolveVariableState(ArrowExpressionClauseSyntax arrowExpressionClauseSyntax,
+                                                   ExpressionSyntax expression,
+                                                   SemanticModel possiblyOtherSemanticModel,
+                                                   ref HashSet<ExpressionSyntax> visited)
+        {
+            if (possiblyOtherSemanticModel.GetConstantValue(arrowExpressionClauseSyntax.Expression).HasValue)
+                return new VariableState(expression, VariableTaint.Constant);
+
+            if (visited == null)
+                visited = new HashSet<ExpressionSyntax>();
+            else if (!visited.Add(arrowExpressionClauseSyntax.Expression))
+                return new VariableState(expression, VariableTaint.Unknown);
+
+            return ResolveVariableState(arrowExpressionClauseSyntax.Expression,
+                                        null,
+                                        possiblyOtherSemanticModel,
+                                        visited);
+        }
+
         private VariableState ResolveVariableState(ExpressionSyntax expression,
                                                    ExecutionState state,
                                                    SemanticModel semanticModel = null,
@@ -943,28 +962,12 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                     var possiblyOtherSemanticModel = semanticModel.Compilation.GetSemanticModel(syntaxNode.SyntaxTree);
                     if (syntaxNode is ArrowExpressionClauseSyntax arrowExpressionClauseSyntax)
-                    {
-                        if (possiblyOtherSemanticModel.GetConstantValue(arrowExpressionClauseSyntax.Expression).HasValue)
-                            return new VariableState(expression, VariableTaint.Constant);
-
-                        if (visited == null)
-                            visited = new HashSet<ExpressionSyntax>();
-                        else if (!visited.Add(arrowExpressionClauseSyntax.Expression))
-                            return new VariableState(expression, VariableTaint.Unknown);
-
-                        return ResolveVariableState(arrowExpressionClauseSyntax.Expression,
-                                                    null,
-                                                    possiblyOtherSemanticModel,
-                                                    visited);
-                    }
+                        return ResolveVariableState(arrowExpressionClauseSyntax, expression, possiblyOtherSemanticModel, ref visited);
 
                     if(syntaxNode is AccessorDeclarationSyntax accessorDecl)
                     {
                         if (accessorDecl.ExpressionBody != null)
-                        {
-                            if (possiblyOtherSemanticModel.GetConstantValue(accessorDecl.ExpressionBody).HasValue)
-                                return new VariableState(expression, VariableTaint.Constant);
-                        }
+                            return ResolveVariableState(accessorDecl.ExpressionBody, expression, possiblyOtherSemanticModel, ref visited);
 
                         if (accessorDecl.Body != null)
                         {

@@ -385,7 +385,7 @@ namespace sample
     {{
         public async Task Run(string input, params object[] parameters)
         {{
-            await ({sink});
+            await {sink};
         }}
     }}
 }}
@@ -411,8 +411,8 @@ Namespace sample
     Class MyFoo
         Inherits Controller
 
-        Public Sub Run(input As System.String, ParamArray parameters() As Object)
-            Dim temp = {sink}
+        Public Async Sub Run(input As System.String, ParamArray parameters() As Object)
+            Dim temp = Await {sink}
         End Sub
     End Class
 End Namespace

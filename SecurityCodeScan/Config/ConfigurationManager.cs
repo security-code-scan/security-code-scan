@@ -225,6 +225,7 @@ namespace SecurityCodeScan.Config
         public List<CsrfAttributeData> VulnerableAttributes     { get; set; }
         public List<CsrfAttributeData> AntiCsrfAttributes       { get; set; }
         public List<CsrfAttributeData> IgnoreAttributes         { get; set; }
+        public List<CsrfAttributeData> ActionAttributes         { get; set; }
     }
 
     internal class CsrfAttributeData

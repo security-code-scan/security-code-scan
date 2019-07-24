@@ -1335,6 +1335,79 @@ CsrfProtection:
             // todo: Visual Basic equivalent
         }
 
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task ActionAttributesOnly()
+        {
+            var cSharpTest = @"
+using System;
+
+namespace VulnerableApp
+{
+    public class ActionResult
+    {
+
+    }
+
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    public class CustomRouteAttribute : Attribute
+    {
+    }
+
+    public class TestController
+    {
+        [CustomRoute]
+        public ActionResult VulnerablePublic(string input)
+        {
+            return null;
+        }
+
+        
+        [CustomRoute]
+        private ActionResult VulnerablePrivate(string input)
+        {
+            return null;
+        }
+
+        public ActionResult NotAnAction(string input)
+        {
+            return null;
+        }
+    }
+}
+";
+
+            var testConfig = @"
+CsrfProtection:
+  - Name: Test
+    NameSpace: VulnerableApp
+    VulnerableAttributes:
+      - AttributeName: CustomRouteAttribute
+    ActionAttributes:
+      - AttributeName: CustomRouteAttribute
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            var expected =
+                new[]
+                {
+                    new DiagnosticResult
+                    {
+                        Id = CsrfTokenDiagnosticAnalyzer.DiagnosticId,
+                        Severity = DiagnosticSeverity.Warning
+                    }.WithLocation(19, 29),
+                    new DiagnosticResult
+                    {
+                        Id = CsrfTokenDiagnosticAnalyzer.DiagnosticId,
+                        Severity = DiagnosticSeverity.Warning
+                    }.WithLocation(26, 30)
+                };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            // todo: Visual Basic equivalent
+        }
+
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)

@@ -15,15 +15,25 @@ AuditMode: false
 #         (Optional) Condition: { 0: { Value: 0}, ...}
 #     (Optional) AllowAnonymousAttributes:
 #       - AttributeName: AllowAnonymousAttribute
+#         (Optional) Condition: { 0: { Value: 0}, ...}
 #     (Optional) VulnerableAttributes:
 #       - AttributeName: HttpPostAttribute
+#         (Optional) Condition: { 0: { Value: 0}, ...}
 #       - AttributeName: HttpPutAttribute
+#         (Optional) Condition: { 0: { Value: 0}, ...}
 #       - AttributeName: HttpDeleteAttribute
+#         (Optional) Condition: { 0: { Value: 0}, ...}
 #       - AttributeName: HttpPatchAttribute
+#         (Optional) Condition: { 0: { Value: 0}, ...}
 #     (Optional) AntiCsrfAttributes:
 #       - AttributeName: ValidateAntiForgeryTokenAttribute
+#         (Optional) Condition: { 0: { Value: 0}, ...}
 #     (Optional) IgnoreAttributes:
 #       - AttributeName: IgnoreAntiforgeryTokenAttribute
+#         (Optional) Condition: { 0: { Value: 0}, ...}
+#     (Optional) ActionAttributes:
+#       - AttributeName: MySpecialActionAttribute
+#         (Optional) Condition: { 0: { Value: 0}, ...}
 # <<<
 #
 # Multiple entries are supported.
@@ -45,6 +55,9 @@ AuditMode: false
 # AntiCsrfAttributes are attributes which indicate that CSRF checking is automated on a method.
 #
 # IgnoreAttributes are attributes applied to classes, methods, or arguments that indicate that CSRF checking isn't needed.
+#
+# ActionAttributes are attributes applied to methods that indicate that a method is an Action.  ASP.NET MVC and ASP.NET Core MVC 
+#  make public method actions by default, so this is only needed if your code uses attributes to explicit mark method as actions.
 #
 # All *Attributes entries have an optional Condition, which is a dictionary of constructor parameters (indicated by indexes) and
 #  Property names to Values.  Attributes with conditions will only be considered when the condition is true, attributes

@@ -10,63 +10,6 @@ using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Analyzers
 {
-    //[SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    //internal class MvcCsrfTokenAnalyzer : CsrfTokenDiagnosticAnalyzer
-    //{
-    //    public MvcCsrfTokenAnalyzer() : base("System.Web.Mvc", "System.Web.Mvc") { }
-    //}
-
-    //[SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    //internal class CoreCsrfTokenAnalyzer : CsrfTokenDiagnosticAnalyzer
-    //{
-    //    public CoreCsrfTokenAnalyzer() : base("Microsoft.AspNetCore.Mvc", "Microsoft.AspNetCore.Authorization")
-    //    {
-    //        IgnoreAntiforgeryToken = $"{Namespace}.IgnoreAntiforgeryTokenAttribute";
-    //        FromBody               = $"{Namespace}.FromBodyAttribute";
-    //        FromForm               = $"{Namespace}.FromFormAttribute";
-    //        ApiController          = $"{Namespace}.ApiControllerAttribute";
-
-    //        base.IsClassIgnored    = IsClassIgnored;
-    //        base.IsMethodIgnored   = IsMethodIgnored;
-    //        base.IsArgumentIgnored = IsArgumentIgnored;
-    //    }
-
-    //    private readonly string IgnoreAntiforgeryToken;
-    //    private readonly string FromBody;
-    //    private readonly string FromForm;
-    //    private readonly string ApiController;
-
-    //    private new bool IsClassIgnored(ITypeSymbol classSymbol)
-    //    {
-    //        return classSymbol.HasDerivedClassAttribute(attributeData => attributeData.AttributeClass.ToString() == IgnoreAntiforgeryToken);
-    //    }
-
-    //    private new bool IsMethodIgnored(IMethodSymbol methodSymbol)
-    //    {
-    //        return methodSymbol.HasDerivedMethodAttribute(attributeData => attributeData.AttributeClass.ToString() == IgnoreAntiforgeryToken);
-    //    }
-
-    //    private bool HasApiControllerAttribute(AttributeData attributeData)
-    //    {
-    //        return attributeData.AttributeClass.ToString() == ApiController;
-    //    }
-
-    //    private new bool IsArgumentIgnored(IMethodSymbol methodSymbol, ITypeSymbol classSymbol)
-    //    {
-    //        foreach (var parameter in methodSymbol.Parameters)
-    //        {
-    //            if (parameter.HasAttribute(attr => attr.AttributeClass.ToString().Equals(FromBody)))
-    //                return true;
-
-    //            if (parameter.HasAttribute(attr => attr.AttributeClass.ToString().Equals(FromForm)))
-    //                return false;
-    //        }
-
-    //        var isApiController = classSymbol.HasDerivedClassAttribute(HasApiControllerAttribute);
-    //        return isApiController;
-    //    }
-    //}
-
     [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal class CsrfTokenDiagnosticAnalyzer : SecurityAnalyzer
     {
@@ -118,6 +61,7 @@ namespace SecurityCodeScan.Analyzers
                 public readonly List<(string AttributeName, AttributeCondition Condition)> HttpMethodAttributes;
                 public readonly List<(string AttributeName, AttributeCondition Condition)> IgnoreAttributes;
                 public readonly List<(string AttributeName, AttributeCondition Condition)> AntiCsrfAttributes;
+                public readonly List<(string AttributeName, AttributeCondition Condition)> ActionAttributes;
 
                 public NamedGroup(string name)
                 {
@@ -129,6 +73,7 @@ namespace SecurityCodeScan.Analyzers
                     HttpMethodAttributes = new List<(string AttributeName, AttributeCondition Condition)>();
                     IgnoreAttributes = new List<(string AttributeName, AttributeCondition Condition)>();
                     AntiCsrfAttributes = new List<(string AttributeName, AttributeCondition Condition)>();
+                    ActionAttributes = new List<(string AttributeName, AttributeCondition Condition)>();
                 }
             }
 
@@ -208,17 +153,22 @@ namespace SecurityCodeScan.Analyzers
                                 curGroup.AntiCsrfAttributes.Add((attrName, condition));
                             }
                         }
+
+                        if(set.ActionAttributes != null)
+                        {
+                            foreach (var attr in set.ActionAttributes)
+                            {
+                                var attrName = $"{set.NameSpace}.{attr.AttributeName}";
+                                var condition = CreateAttributeCondition(attr.Condition);
+                                curGroup.ActionAttributes.Add((attrName, condition));
+                            }
+                        }
                     }
                 }
 
                 Groups = groups;
             }
-
-            private static void TryAdd(string groupName, string attributeCollectionName, Dictionary<string, AttributeCondition> collection, string name, AttributeCondition condition)
-            {
-                collection.Add(name, condition);
-            }
-
+            
             private static AttributeCondition CreateAttributeCondition(Dictionary<object, object> conditions)
             {
                 if (conditions == null)
@@ -353,6 +303,9 @@ namespace SecurityCodeScan.Analyzers
             private bool IsIgnoreAttribute(AttributeData attributeData, NamedGroup group)
             => HasApplicableAttribute(attributeData, group.IgnoreAttributes);
 
+            private bool IsActionAttribute(AttributeData attributeData, NamedGroup group)
+            => HasApplicableAttribute(attributeData, group.ActionAttributes);
+
             private bool IsDerivedFromController(ITypeSymbol classSymbol, NamedGroup group)
             {
                 foreach(var c in group.Controllers)
@@ -375,8 +328,11 @@ namespace SecurityCodeScan.Analyzers
 
             private void VisitClass(SymbolAnalysisContext ctx, ITypeSymbol classSymbol, NamedGroup group)
             {
-                var isControllerDerived = IsDerivedFromController(classSymbol, group);
-                if (!isControllerDerived)
+                var isClassControllerDerived = IsDerivedFromController(classSymbol, group);
+
+                // if we're not in a controller, and this group _ONLY_ publishes actions through controllers
+                //   quit early
+                if (!isClassControllerDerived && !group.ActionAttributes.Any())
                     return;
 
                 bool isClassIgnored = IsClassIgnored(classSymbol, group);
@@ -388,21 +344,19 @@ namespace SecurityCodeScan.Analyzers
                     return;
 
                 var antiForgeryAttributes = Configuration.AntiCsrfAttributes;
-                bool hasDerivedClassAttribute = classSymbol.HasDerivedClassAttribute(attributeData =>
-                {
-                    foreach (var antiForgeryAttribute in antiForgeryAttributes)
-                    {
-                        if (IsAntiForgeryToken(attributeData, group))
-                            return true;
-                    }
-
-                    return false;
-                });
-
+                bool classHasAntiForgeryAttribute = classSymbol.HasDerivedClassAttribute(c => IsAntiForgeryToken(c, group));
+                
                 foreach (var member in classSymbol.GetMembers())
                 {
                     if (!(member is IMethodSymbol methodSymbol))
                         continue;
+
+                    var shouldConsiderMethod =
+                        isClassControllerDerived || IsMethodAction(methodSymbol, group);
+                            
+
+                    if (!shouldConsiderMethod)
+                        return;
 
                     var isMethodIgnored = false;
                     if (!isClassIgnored)
@@ -427,7 +381,7 @@ namespace SecurityCodeScan.Analyzers
                     if (methodSymbol.HasDerivedMethodAttribute(c => IsAnonymousAttribute(c, group)))
                         continue;
 
-                    if (!hasDerivedClassAttribute && !AntiforgeryAttributeExists(methodSymbol, group))
+                    if (!classHasAntiForgeryAttribute && !AntiforgeryAttributeExists(methodSymbol, group))
                     {
                         if (isClassIgnored || isMethodIgnored)
                             ctx.ReportDiagnostic(Diagnostic.Create(CsrfTokenDiagnosticAnalyzer.AuditRule, methodSymbol.Locations[0]));
@@ -447,6 +401,9 @@ namespace SecurityCodeScan.Analyzers
 
             private bool IsMethodIgnored(IMethodSymbol methodSymbol, NamedGroup group)
             => methodSymbol.HasDerivedMethodAttribute(c => IsIgnoreAttribute(c, group));
+
+            private bool IsMethodAction(IMethodSymbol methodSymbol, NamedGroup group)
+            => methodSymbol.HasDerivedMethodAttribute(c => IsActionAttribute(c, group));
 
             private bool IsArgumentIgnored(IMethodSymbol methodSymbol, ITypeSymbol classSymbol, NamedGroup group)
             {

@@ -92,6 +92,46 @@ namespace SecurityCodeScan.Test.Taint
                         Dim local = """"
                         b.x = local
                     End If", true)]
+        [DataRow(@"string var1 = null;
+                   switch (abc) {
+                       case ABC.A:
+                            var1 = input;
+                       break;}",
+                  @"Dim var1 As String = Nothing
+                    Select Case abc
+                    Case ABC.A
+                        var1 = input
+                    End Select", true)]
+        [DataRow(@"string var1 = null;
+                   switch (abc) {
+                       case ABC.A:
+                            var1 = input;
+                       break;
+                       default:
+                            var1 = ""const1"";
+                       break; }",
+                  @"Dim var1 As String = Nothing
+                    Select Case abc
+                    Case ABC.A
+                        var1 = input
+                    Case Else
+                        var1 = ""const1""
+                    End Select", true)]
+        [DataRow(@"string var1 = null;
+                   switch (abc) {
+                       case ABC.A:
+                            var1 = ""const1"";
+                       break;
+                       default:
+                            var1 = input;
+                       break; }",
+                  @"Dim var1 As String = Nothing
+                    Select Case abc
+                    Case ABC.A
+                        var1 = ""const1""
+                    Case Else
+                        var1 = input
+                    End Select", true)]
         [DataRow(@"string var1 = input;
                    switch (abc) {
                        case ABC.A:
@@ -435,10 +475,8 @@ namespace sample
     {
         public void Foo(object o)
         {
-#pragma warning disable 219
         if (o is String)
             new SqlCommand((string)null);
-#pragma warning restore 219
         }
     }
 }
@@ -452,7 +490,7 @@ namespace sample
         public async Task Cast()
         {
             var cSharpTest = @"
-//using System;
+using System;
 using System.Data.SqlClient;
 using System.Web.Mvc;
 
@@ -460,21 +498,19 @@ namespace sample
 {
     class Test : Controller
     {
-        public void Foo(/*object o*/)
+        public void Foo()
         {
-#pragma warning disable 219
-        new SqlCommand((string)null);
-        new SqlCommand(null as string);
-        new SqlCommand(default(string));
+            new SqlCommand((string)null);
+            new SqlCommand(null as string);
+            new SqlCommand(default(string));
 
-        // todo: add C# 7.0 support
-        //switch(o)
-        //{
-        //case String s:
-        //    new SqlCommand(s);
-        //    break;
-        //}
-#pragma warning restore 219
+            object o = null;
+            switch(o)
+            {
+            case String s:
+                new SqlCommand(s);
+                break;
+            }
         }
     }
 }

@@ -171,8 +171,6 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitNode(elseClauseSyntax.Statement, state);
                 case SwitchStatementSyntax switchStatementSyntax:
                     return VisitSwitch(switchStatementSyntax, state);
-                case SwitchSectionSyntax switchSectionSyntax:
-                    return VisitStatements(switchSectionSyntax.Statements, state, new VariableState(node, VariableTaint.Unset));
             }
 
             foreach (var n in node.ChildNodes())
@@ -225,6 +223,29 @@ namespace SecurityCodeScan.Analyzers.Taint
             return fromClauseState;
         }
 
+        private VariableState VisitSwitchSection(SwitchSectionSyntax switchSectionSyntax, ExecutionState state, VariableState switchStatementVarState)
+        {
+            if (switchSectionSyntax.Labels.Any(x => x is CasePatternSwitchLabelSyntax))
+            {
+                var caseState = new ExecutionState(state);
+                foreach (var switchLabelSyntax in switchSectionSyntax.Labels)
+                {
+                    if (switchLabelSyntax is CasePatternSwitchLabelSyntax casePatternSwitchLabel &&
+                        casePatternSwitchLabel.Pattern is DeclarationPatternSyntax declarationPattern &&
+                        declarationPattern.Designation is SingleVariableDesignationSyntax singleVariableDesignation)
+                    {
+                        caseState.AddNewValue(ResolveIdentifier(singleVariableDesignation.Identifier), switchStatementVarState);
+                    }
+                }
+
+                var caseStateVariable = VisitStatements(switchSectionSyntax.Statements, caseState, new VariableState(switchSectionSyntax, VariableTaint.Unset));
+                state.Replace(caseState);
+                return caseStateVariable;
+            }
+
+            return VisitStatements(switchSectionSyntax.Statements, state, new VariableState(switchSectionSyntax, VariableTaint.Unset));
+        }
+
         private VariableState VisitSwitch(SwitchStatementSyntax switchStatementSyntax, ExecutionState state)
         {
             var exprVarState = VisitExpression(switchStatementSyntax.Expression, state);
@@ -232,14 +253,14 @@ namespace SecurityCodeScan.Analyzers.Taint
                 return exprVarState;
 
             var firstCaseState  = new ExecutionState(state);
-            var sectionVarState = VisitNode(switchStatementSyntax.Sections[0], firstCaseState);
+            var sectionVarState = VisitSwitchSection(switchStatementSyntax.Sections[0], firstCaseState, exprVarState);
             exprVarState.MergeTaint(sectionVarState.Taint);
 
             for (var i = 1; i < switchStatementSyntax.Sections.Count; i++)
             {
                 var section   = switchStatementSyntax.Sections[i];
                 var caseState = new ExecutionState(state);
-                sectionVarState = VisitNode(section, caseState);
+                sectionVarState = VisitSwitchSection(section, caseState, exprVarState);
                 exprVarState.MergeTaint(sectionVarState.Taint);
                 firstCaseState.Merge(caseState);
             }

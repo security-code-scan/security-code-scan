@@ -485,6 +485,66 @@ namespace sample
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task PatternMatchingSwitch()
+        {
+            var cSharpTest = @"
+using System;
+using System.Data.SqlClient;
+using System.Web.Mvc;
+
+namespace sample
+{
+    class Test : Controller
+    {
+        public void Foo(object o)
+        {
+            switch(o)
+            {
+            case String s:
+                new SqlCommand(s);
+                break;
+            }
+        }
+    }
+}
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task PatternMatchingSwitch2()
+        {
+            var cSharpTest = @"
+using System;
+using System.Data.SqlClient;
+using System.Web.Mvc;
+
+namespace sample
+{
+    class Test : Controller
+    {
+        public void Foo(object o)
+        {
+            string x = null;
+            switch(o)
+            {
+            case String s:
+                x = s;
+                break;
+            }
+            new SqlCommand(x);
+        }
+    }
+}
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+        }
+
         [TestCategory("Safe")]
         [TestMethod]
         public async Task Cast()

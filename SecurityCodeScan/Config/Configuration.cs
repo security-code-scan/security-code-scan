@@ -12,11 +12,6 @@ namespace SecurityCodeScan.Config
     /// </summary>
     internal class Configuration
     {
-        static Configuration()
-        {
-            System.Diagnostics.Debugger.Launch();
-        }
-
         public Configuration()
         {
             _PasswordValidatorRequiredProperties = new HashSet<string>();

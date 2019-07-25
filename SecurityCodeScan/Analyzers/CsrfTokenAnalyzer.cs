@@ -353,24 +353,23 @@ namespace SecurityCodeScan.Analyzers
 
                     var shouldConsiderMethod =
                         isClassControllerDerived || IsMethodAction(methodSymbol, group);
-                            
-
+                    
                     if (!shouldConsiderMethod)
-                        return;
+                        continue;
 
                     var isMethodIgnored = false;
                     if (!isClassIgnored)
                         isMethodIgnored = IsMethodIgnored(methodSymbol, group);
 
                     if (!Configuration.AuditMode && isMethodIgnored)
-                        return;
+                        continue;
 
                     var isArgumentIgnored = false;
                     if (!isClassIgnored && !isMethodIgnored)
                         isArgumentIgnored = IsArgumentIgnored(methodSymbol, classSymbol, group);
 
                     if (!Configuration.AuditMode && isArgumentIgnored)
-                        return;
+                        continue;
 
                     if (!methodSymbol.HasDerivedMethodAttribute(c => IsHttpMethodAttribute(c, group)))
                         continue;

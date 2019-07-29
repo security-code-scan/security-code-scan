@@ -63,6 +63,50 @@ End Namespace
         }
 
         [TestMethod]
+        public async Task CsrfValidateAntiForgeryTokenFromBodyApiController()
+        {
+            var cSharpTest = $@"
+using {Namespace};
+
+namespace VulnerableApp
+{{
+    [ApiController]
+    public class TestController : Controller
+    {{
+        [HttpPost]
+        public virtual void ControllerMethod([FromBody]string input) {{
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports {Namespace}
+
+Namespace VulnerableApp
+    <ApiController>
+    Public Class TestController
+        Inherits Controller
+
+        <HttpPost> _
+        Public Overridable Sub ControllerMethod(<FromBody> input As String)
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10, 29)
+                                                             .WithMessage(ExpectedFromBodyMessage),
+                                         Options)
+                .ConfigureAwait(false);
+
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(10, 32)
+                                                                       .WithMessage(ExpectedFromBodyMessage),
+                                              Options)
+                .ConfigureAwait(false);
+        }
+
+        [TestMethod]
         public async Task CsrfValidateAntiForgeryTokenIgnoreOnBaseClass()
         {
             var cSharpTest = $@"

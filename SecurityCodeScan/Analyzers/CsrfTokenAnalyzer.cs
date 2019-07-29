@@ -177,7 +177,7 @@ namespace SecurityCodeScan.Analyzers
                 foreach (var argument in conditions)
                 {
                     if (!(argument.Value is Dictionary<object, object> d))
-                        throw new Exception("Invalid condition format, expection dictionary");
+                        throw new Exception("Invalid condition format, expected dictionary");
 
                     if (d.Count != 1)
                         throw new Exception("Only one condition per argument is supported");

@@ -24,8 +24,6 @@ namespace SecurityCodeScan.Analyzers
 
         public override         ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-        public CsrfTokenDiagnosticAnalyzer() { }
-
         public override void Initialize(ISecurityAnalysisContext context)
         {
             context.RegisterCompilationStartAction(OnCompilationStartAction);

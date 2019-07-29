@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace SecurityCodeScan.Analyzers
 {
@@ -20,24 +21,24 @@ namespace SecurityCodeScan.Analyzers
 
         public readonly HashSet<string> Controllers;
 
-        public readonly List<(string AttributeName, CsrfAttributeCondition Condition)> NonActionAttributes;
-        public readonly List<(string AttributeName, CsrfAttributeCondition Condition)> AnonymousAttributes;
-        public readonly List<(string AttributeName, CsrfAttributeCondition Condition)> HttpMethodAttributes;
-        public readonly List<(string AttributeName, CsrfAttributeCondition Condition)> IgnoreAttributes;
-        public readonly List<(string AttributeName, CsrfAttributeCondition Condition)> AntiCsrfAttributes;
-        public readonly List<(string AttributeName, CsrfAttributeCondition Condition)> ActionAttributes;
+        public readonly Dictionary<string, List<CsrfAttributeCondition>> NonActionAttributes;
+        public readonly Dictionary<string, List<CsrfAttributeCondition>> AnonymousAttributes;
+        public readonly Dictionary<string, List<CsrfAttributeCondition>> HttpMethodAttributes;
+        public readonly Dictionary<string, List<CsrfAttributeCondition>> IgnoreAttributes;
+        public readonly Dictionary<string, List<CsrfAttributeCondition>> AntiCsrfAttributes;
+        public readonly Dictionary<string, List<CsrfAttributeCondition>> ActionAttributes;
 
         public CsrfNamedGroup(string name)
         {
             Name = name;
 
             Controllers = new HashSet<string>();
-            NonActionAttributes = new List<(string AttributeName, CsrfAttributeCondition Condition)>();
-            AnonymousAttributes = new List<(string AttributeName, CsrfAttributeCondition Condition)>();
-            HttpMethodAttributes = new List<(string AttributeName, CsrfAttributeCondition Condition)>();
-            IgnoreAttributes = new List<(string AttributeName, CsrfAttributeCondition Condition)>();
-            AntiCsrfAttributes = new List<(string AttributeName, CsrfAttributeCondition Condition)>();
-            ActionAttributes = new List<(string AttributeName, CsrfAttributeCondition Condition)>();
+            NonActionAttributes = new Dictionary<string, List<CsrfAttributeCondition>>();
+            AnonymousAttributes = new Dictionary<string, List<CsrfAttributeCondition>>();
+            HttpMethodAttributes = new Dictionary<string, List<CsrfAttributeCondition>>();
+            IgnoreAttributes = new Dictionary<string, List<CsrfAttributeCondition>>();
+            AntiCsrfAttributes = new Dictionary<string, List<CsrfAttributeCondition>>();
+            ActionAttributes = new Dictionary<string, List<CsrfAttributeCondition>>();
         }
     }
 }

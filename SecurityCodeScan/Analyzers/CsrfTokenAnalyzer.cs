@@ -44,7 +44,7 @@ namespace SecurityCodeScan.Analyzers
                 Configuration = configuration;
             }
             
-            private static bool HasApplicableAttribute(AttributeData attributeData, List<(string AttributeName, CsrfAttributeCondition Condition)> attributes)
+            private static bool HasApplicableAttribute(AttributeData attributeData, Dictionary<string, List<CsrfAttributeCondition>> attributes)
             {
                 if (!attributes.Any())
                     return false;
@@ -54,14 +54,11 @@ namespace SecurityCodeScan.Analyzers
                 var args = attributeData.ConstructorArguments;
                 var namedArgs = attributeData.NamedArguments;
 
-                // todo: don't love iterating like this, switch to a Lookup maybe?
-                foreach (var attr in attributes)
+                if (!attributes.TryGetValue(name, out var conditions))
+                    return false;
+
+                foreach (var condition in conditions)
                 {
-                    if (!attr.AttributeName.Equals(name))
-                        continue;
-
-                    var condition = attr.Condition;
-
                     var applies =
                         condition.MustMatch.All(
                             c =>

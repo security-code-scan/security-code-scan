@@ -683,16 +683,22 @@ namespace SecurityCodeScan.Config
             AddCsrfAttributes(csrfData.NameSpace, curGroup.ActionAttributes, csrfData.ActionAttributes);
         }
 
-        private static void AddCsrfAttributes(string nameSpace, List<(string AttributeName, CsrfAttributeCondition Condition)> destination, IEnumerable<CsrfAttributeData> source)
+        private static void AddCsrfAttributes(string nameSpace, Dictionary<string, List<CsrfAttributeCondition>> destination, IEnumerable<CsrfAttributeData> source)
         {
             if (source == null)
                 return;
 
-            foreach(var attr in source)
+            foreach (var attr in source)
             {
                 var attrName = $"{nameSpace}.{attr.AttributeName}";
                 var condition = CreateCsrfAttributeCondition(attr.Condition);
-                destination.Add((attrName, condition));
+
+                if (!destination.TryGetValue(attrName, out var conditions))
+                {
+                    destination[attrName] = conditions = new List<CsrfAttributeCondition>();
+                }
+
+                conditions.Add(condition);
             }
         }
 

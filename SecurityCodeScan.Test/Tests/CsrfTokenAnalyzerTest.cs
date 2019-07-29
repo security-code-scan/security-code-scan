@@ -1303,13 +1303,13 @@ namespace VulnerableApp
 
     public enum HttpVerbs
     {
-	    Get = 1,
-	    Post = 2,
-	    Put = 4,
-	    Delete = 8,
-	    Head = 16,
-	    Patch = 32,
-	    Options = 64
+        Get = 1,
+        Post = 2,
+        Put = 4,
+        Delete = 8,
+        Head = 16,
+        Patch = 32,
+        Options = 64
     }
 
     public abstract class CustomController
@@ -1349,9 +1349,9 @@ namespace VulnerableApp
         }
 
         public string Url { get; private set; }
-	    public string Name { get; private set; }
-	    public HttpVerbs? AcceptVerbs { get; private set; }
-	    public CustomRoutePriority Priority { get; private set; }
+        public string Name { get; private set; }
+        public HttpVerbs? AcceptVerbs { get; private set; }
+        public CustomRoutePriority Priority { get; private set; }
     }
 
     public class TestController : CustomController

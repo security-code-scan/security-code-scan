@@ -113,13 +113,10 @@ namespace SecurityCodeScan.Analyzers.Taint
                 }
             }
 
-            if(node.ExpressionBody != null)
-                return VisitExpression(node.ExpressionBody.Expression, state);
+            if (node.Body == null)
+                return new VariableState(node, VariableTaint.Unknown);
 
-            if (node.Body != null)
-                return VisitBlock(node.Body, state);
-
-            return new VariableState(node, VariableTaint.Unknown);
+            return VisitBlock(node.Body, state);
         }
 
         private VariableState VisitForEach(ForEachStatementSyntax node, ExecutionState state)

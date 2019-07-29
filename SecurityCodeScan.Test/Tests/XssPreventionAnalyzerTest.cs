@@ -53,6 +53,25 @@ namespace SecurityCodeScan.Test
 
         #region Tests that are producing diagnostics
 
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task XssFromCSharpExpressionBody()
+        {
+            const string cSharpTest = @"
+using System.Web;
+
+class Vulnerable
+{
+    public static HttpResponse Response = null;
+    public static HttpRequest  Request  = null;
+
+    public static void Run()
+    => Response.Write(Request.Params[0]);
+}
+";
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10, 23)).ConfigureAwait(false);
+        }
+
         [DataRow("Sink((from x in new SampleContext().TestProp where x == \"aaa\" select x).SingleOrDefault())", true)]
         [DataRow("Sink((from x in new SampleContext().TestField where x == \"aaa\" select x).SingleOrDefault())", true)]
         [DataTestMethod]
@@ -430,7 +449,6 @@ End Class
                 await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
             }
         }
-
 
         #endregion
 

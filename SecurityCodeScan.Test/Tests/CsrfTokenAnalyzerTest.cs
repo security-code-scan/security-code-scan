@@ -35,6 +35,8 @@ namespace VulnerableApp
 {{
     public class TestController : Controller
     {{
+        public int NotUsed;
+
         [HttpPost]
         public ActionResult ControllerMethod(string input)
         {{
@@ -51,6 +53,8 @@ Namespace VulnerableApp
     Public Class TestController
         Inherits Controller
 
+        Public NotUsed As Integer
+
         <HttpPost> _
         Public Function ControllerMethod(input As String) As ActionResult
             Return Nothing
@@ -58,8 +62,8 @@ Namespace VulnerableApp
     End Class
 End Namespace
 ";
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(9, 29)).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(9, 25)).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(11, 29)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(11, 25)).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]

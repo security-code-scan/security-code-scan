@@ -340,7 +340,6 @@ namespace SecurityCodeScan.Analyzers
                 if (IsClassAnonymous(classSymbol, group))
                     return;
 
-                var antiForgeryAttributes = Configuration.AntiCsrfAttributes;
                 bool classHasAntiForgeryAttribute = classSymbol.HasDerivedClassAttribute(c => IsAntiForgeryToken(c, group));
                 
                 foreach (var member in classSymbol.GetMembers())

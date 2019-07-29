@@ -734,7 +734,7 @@ End Namespace
         private const string ExpectedMessage = "Controller method is vulnerable to CSRF";
 
         [TestMethod]
-        public async Task CsrfValidateAntiForgeryTokenApiController()
+        public async Task CsrfValidateAntiForgeryTokenApiControllerDefault()
         {
             var cSharpTest = $@"
 using {Namespace};
@@ -755,7 +755,7 @@ namespace VulnerableApp
 Imports {Namespace}
 
 Namespace VulnerableApp
-    <ApiController> _
+    <ApiController>
     Public Class TestController
         Inherits Controller
 
@@ -778,6 +778,7 @@ using {Namespace};
 
 namespace VulnerableApp
 {{
+    [ApiController]
     public class TestController : Controller
     {{
         [HttpPost]
@@ -791,6 +792,7 @@ namespace VulnerableApp
 Imports {Namespace}
 
 Namespace VulnerableApp
+    <ApiController>
     Public Class TestController
         Inherits Controller
 
@@ -803,6 +805,43 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task CsrfValidateAntiForgeryTokenFromForm()
+        {
+            var cSharpTest = $@"
+using {Namespace};
+
+namespace VulnerableApp
+{{
+    [ApiController]
+    public class TestController : Controller
+    {{
+        [HttpPost]
+        public virtual void ControllerMethod([FromForm]string input) {{
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports {Namespace}
+
+Namespace VulnerableApp
+    <ApiController>
+    Public Class TestController
+        Inherits Controller
+
+        <HttpPost> _
+        Public Overridable Sub ControllerMethod(<FromForm> input As String)
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10, 29).WithMessage(ExpectedMessage)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(10, 32).WithMessage(ExpectedMessage)).ConfigureAwait(false);
         }
 
         [TestMethod]

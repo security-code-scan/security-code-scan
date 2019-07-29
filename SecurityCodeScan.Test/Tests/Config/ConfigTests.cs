@@ -45,7 +45,7 @@ namespace SecurityCodeScan.Test.Config
             Assert.AreEqual(StartupConfiguration.PasswordValidatorRequiredProperties.Count, newConfig.PasswordValidatorRequiredProperties.Count);
             Assert.AreEqual(StartupConfiguration.PasswordFields.Count,                      newConfig.PasswordFields.Count);
             Assert.AreEqual(StartupConfiguration.ConstantFields.Count,                      newConfig.ConstantFields.Count);
-            Assert.AreEqual(StartupConfiguration.AntiCsrfAttributes.Count,                  newConfig.AntiCsrfAttributes.Count);
+            Assert.AreEqual(StartupConfiguration.CsrfGoups.Count,                           newConfig.CsrfGoups.Count);
         }
 
         [TestMethod]
@@ -65,7 +65,7 @@ namespace SecurityCodeScan.Test.Config
             Assert.AreEqual(StartupConfiguration.PasswordValidatorRequiredProperties.Count, newConfig.PasswordValidatorRequiredProperties.Count);
             Assert.AreEqual(StartupConfiguration.PasswordFields.Count,                      newConfig.PasswordFields.Count);
             Assert.AreEqual(StartupConfiguration.ConstantFields.Count,                      newConfig.ConstantFields.Count);
-            Assert.AreEqual(StartupConfiguration.AntiCsrfAttributes.Count,                  newConfig.AntiCsrfAttributes.Count);
+            Assert.AreEqual(StartupConfiguration.CsrfGoups.Count,                           newConfig.CsrfGoups.Count);
         }
 
         [TestMethod]

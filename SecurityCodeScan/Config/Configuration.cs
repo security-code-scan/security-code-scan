@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Analyzers.Utils;
 
@@ -23,7 +24,7 @@ namespace SecurityCodeScan.Config
             _TaintEntryPoints = new HashSet<string>();
             TaintEntryPoints  = new ReadOnlyHashSet<string>(_TaintEntryPoints);
 
-            _AntiCsrfAttributes = new List<CsrfProtectionData>();
+            _CsrfGroups = new List<CsrfNamedGroup>();
 
             _PasswordFields = new HashSet<string>();
             PasswordFields  = new ReadOnlyHashSet<string>(_PasswordFields);
@@ -49,7 +50,7 @@ namespace SecurityCodeScan.Config
             _TaintEntryPoints = new HashSet<string>(config.TaintEntryPoints);
             TaintEntryPoints  = new ReadOnlyHashSet<string>(_TaintEntryPoints);
 
-            _AntiCsrfAttributes = config.AntiCsrfAttributes.ToList();
+            _CsrfGroups = new List<CsrfNamedGroup>(config.CsrfGoups);
 
             _PasswordFields = new HashSet<string>(config.PasswordFields);
             PasswordFields  = new ReadOnlyHashSet<string>(_PasswordFields);
@@ -122,9 +123,6 @@ namespace SecurityCodeScan.Config
         private readonly HashSet<string>         _TaintEntryPoints;
         public           ReadOnlyHashSet<string> TaintEntryPoints { get; }
 
-        private readonly List<CsrfProtectionData>          _AntiCsrfAttributes;
-        public           IReadOnlyList<CsrfProtectionData> AntiCsrfAttributes => _AntiCsrfAttributes;
-
         private readonly HashSet<string>         _PasswordFields;
         public           ReadOnlyHashSet<string> PasswordFields { get; }
 
@@ -137,6 +135,10 @@ namespace SecurityCodeScan.Config
         private readonly Dictionary<string, KeyValuePair<string, MethodBehavior>> ConfigurationBehavior;
         // once merged the configuration Id is not used: the key is method signature parts
         public IReadOnlyDictionary<string, MethodBehavior> Behavior { get; private set; }
+
+
+        private readonly List<CsrfNamedGroup>   _CsrfGroups;
+        public IReadOnlyList<CsrfNamedGroup> CsrfGoups => _CsrfGroups;
 
         public void MergeWith(ConfigData config)
         {
@@ -660,7 +662,92 @@ namespace SecurityCodeScan.Config
             if (string.IsNullOrWhiteSpace(csrfData.NameSpace))
                 throw new Exception($"{nameof(CsrfProtectionData.NameSpace)} is required in CsrfProtection");
 
-            _AntiCsrfAttributes.Add(csrfData);
+            var name = csrfData.Name;
+            var curGroup = _CsrfGroups.SingleOrDefault(g => g.Name == name);
+            if (curGroup == null)
+            {
+                curGroup = new CsrfNamedGroup(name);
+                _CsrfGroups.Add(curGroup);
+            }
+
+            if (csrfData.ControllerName != null)
+            {
+                curGroup.Controllers.Add($"{csrfData.NameSpace}.{csrfData.ControllerName}");
+            }
+
+            AddCsrfAttributes(csrfData.NameSpace, curGroup.NonActionAttributes, csrfData.NonActionAttributes);
+            AddCsrfAttributes(csrfData.NameSpace, curGroup.AnonymousAttributes, csrfData.AllowAnonymousAttributes);
+            AddCsrfAttributes(csrfData.NameSpace, curGroup.HttpMethodAttributes, csrfData.VulnerableAttributes);
+            AddCsrfAttributes(csrfData.NameSpace, curGroup.IgnoreAttributes, csrfData.IgnoreAttributes);
+            AddCsrfAttributes(csrfData.NameSpace, curGroup.AntiCsrfAttributes, csrfData.AntiCsrfAttributes);
+            AddCsrfAttributes(csrfData.NameSpace, curGroup.ActionAttributes, csrfData.ActionAttributes);
+        }
+
+        private static void AddCsrfAttributes(string nameSpace, List<(string AttributeName, CsrfAttributeCondition Condition)> destination, IEnumerable<CsrfAttributeData> source)
+        {
+            if (source == null)
+                return;
+
+            foreach(var attr in source)
+            {
+                var attrName = $"{nameSpace}.{attr.AttributeName}";
+                var condition = CreateCsrfAttributeCondition(attr.Condition);
+                destination.Add((attrName, condition));
+            }
+        }
+
+        private static CsrfAttributeCondition CreateCsrfAttributeCondition(Dictionary<object, object> conditions)
+        {
+            if (conditions == null)
+                return CsrfAttributeCondition.TRUE;
+
+            var ret = new CsrfAttributeCondition();
+
+            foreach (var argument in conditions)
+            {
+                if (!(argument.Value is Dictionary<object, object> d))
+                    throw new Exception("Invalid condition format, expected dictionary");
+
+                if (d.Count != 1)
+                    throw new Exception("Only one condition per argument is supported");
+
+                if (!(argument.Key is string arg))
+                    throw new Exception("Invalid condition format, expected string");
+
+                int? idx;
+
+                if (int.TryParse(arg, out var parsedArg))
+                {
+                    if (parsedArg < 0)
+                    {
+                        throw new Exception("Ordinal condition keys must be non-negative integers");
+                    }
+
+                    idx = parsedArg;
+                }
+                else
+                {
+                    idx = null;
+                }
+
+                var condition = d.Single();
+                if (!(condition.Key is string valueKey) || valueKey != "Value")
+                    throw new Exception("Only 'Value' conditions are supported");
+
+                if (!(condition.Value is string conditionValue))
+                    throw new Exception("Invalid condition format, expected a string");
+
+                object key = idx != null ? (object)idx.Value : arg;
+
+                if (int.TryParse(conditionValue, out var intVal))
+                    ret.MustMatch.Add((key, intVal));
+                else if (bool.TryParse(conditionValue, out var boolVal))
+                    ret.MustMatch.Add((key, boolVal));
+                else
+                    ret.MustMatch.Add((key, conditionValue));
+            }
+
+            return ret;
         }
     }
 }

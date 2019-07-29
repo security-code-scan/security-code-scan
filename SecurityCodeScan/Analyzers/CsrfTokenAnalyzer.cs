@@ -37,191 +37,14 @@ namespace SecurityCodeScan.Analyzers
 
         private class CsrfTokenAnalyzer
         {
-            private class AttributeCondition
-            {
-                public static readonly AttributeCondition TRUE = new AttributeCondition();
-
-                public readonly List<(object ParameterIndexOrPropertyName, object ExpectedValue)> MustMatch;
-
-                public AttributeCondition()
-                {
-                    MustMatch = new List<(object ParameterIndexOrPropertyName, object ExpectedValue)>();
-                }
-            }
-
-            private class NamedGroup
-            {
-                public readonly string Name;
-
-                public readonly HashSet<string> Controllers;
-
-                public readonly List<(string AttributeName, AttributeCondition Condition)> NonActionAttributes;
-                public readonly List<(string AttributeName, AttributeCondition Condition)> AnonymousAttributes;
-                public readonly List<(string AttributeName, AttributeCondition Condition)> HttpMethodAttributes;
-                public readonly List<(string AttributeName, AttributeCondition Condition)> IgnoreAttributes;
-                public readonly List<(string AttributeName, AttributeCondition Condition)> AntiCsrfAttributes;
-                public readonly List<(string AttributeName, AttributeCondition Condition)> ActionAttributes;
-
-                public NamedGroup(string name)
-                {
-                    Name = name;
-
-                    Controllers = new HashSet<string>();
-                    NonActionAttributes = new List<(string AttributeName, AttributeCondition Condition)>();
-                    AnonymousAttributes = new List<(string AttributeName, AttributeCondition Condition)>();
-                    HttpMethodAttributes = new List<(string AttributeName, AttributeCondition Condition)>();
-                    IgnoreAttributes = new List<(string AttributeName, AttributeCondition Condition)>();
-                    AntiCsrfAttributes = new List<(string AttributeName, AttributeCondition Condition)>();
-                    ActionAttributes = new List<(string AttributeName, AttributeCondition Condition)>();
-                }
-            }
-
-            private readonly List<NamedGroup>   Groups;
             private readonly Configuration      Configuration;
 
             public CsrfTokenAnalyzer(Configuration configuration)
             {
                 Configuration = configuration;
-
-                var groups = new List<NamedGroup>();
-                
-                if (configuration.AntiCsrfAttributes != null)
-                {
-                    foreach (var set in configuration.AntiCsrfAttributes)
-                    {
-                        var name = set.Name;
-                        var curGroup = groups.SingleOrDefault(g => g.Name == name);
-                        if(curGroup == null)
-                        {
-                            curGroup = new NamedGroup(name);
-                            groups.Add(curGroup);
-                        }
-
-                        if (set.ControllerName != null)
-                        {
-                            curGroup.Controllers.Add($"{set.NameSpace}.{set.ControllerName}");
-                        }
-
-                        if (set.NonActionAttributes != null)
-                        {
-                            foreach (var attr in set.NonActionAttributes)
-                            {
-                                var attrName = $"{set.NameSpace}.{attr.AttributeName}";
-                                var condition = CreateAttributeCondition(attr.Condition);
-                                curGroup.NonActionAttributes.Add((attrName, condition));
-                            }
-                        }
-
-                        if (set.AllowAnonymousAttributes != null)
-                        {
-                            foreach (var attr in set.AllowAnonymousAttributes)
-                            {
-                                var attrName = $"{set.NameSpace}.{attr.AttributeName}";
-                                var condition = CreateAttributeCondition(attr.Condition);
-                                curGroup.AnonymousAttributes.Add((attrName, condition));
-                            }
-                        }
-
-                        if (set.VulnerableAttributes != null)
-                        {
-                            foreach (var attr in set.VulnerableAttributes)
-                            {
-                                var attrName = $"{set.NameSpace}.{attr.AttributeName}";
-                                var condition = CreateAttributeCondition(attr.Condition);
-                                curGroup.HttpMethodAttributes.Add((attrName, condition));
-                            }
-                        }
-
-                        if (set.IgnoreAttributes != null)
-                        {
-                            foreach (var attr in set.IgnoreAttributes)
-                            {
-                                var attrName = $"{set.NameSpace}.{attr.AttributeName}";
-                                var condition = CreateAttributeCondition(attr.Condition);
-                                curGroup.IgnoreAttributes.Add((attrName, condition));
-                            }
-                        }
-
-                        if (set.AntiCsrfAttributes != null)
-                        {
-                            foreach (var attr in set.AntiCsrfAttributes)
-                            {
-                                var attrName = $"{set.NameSpace}.{attr.AttributeName}";
-                                var condition = CreateAttributeCondition(attr.Condition);
-                                curGroup.AntiCsrfAttributes.Add((attrName, condition));
-                            }
-                        }
-
-                        if(set.ActionAttributes != null)
-                        {
-                            foreach (var attr in set.ActionAttributes)
-                            {
-                                var attrName = $"{set.NameSpace}.{attr.AttributeName}";
-                                var condition = CreateAttributeCondition(attr.Condition);
-                                curGroup.ActionAttributes.Add((attrName, condition));
-                            }
-                        }
-                    }
-                }
-
-                Groups = groups;
             }
             
-            private static AttributeCondition CreateAttributeCondition(Dictionary<object, object> conditions)
-            {
-                if (conditions == null)
-                    return AttributeCondition.TRUE;
-
-                var ret = new AttributeCondition();
-
-                foreach (var argument in conditions)
-                {
-                    if (!(argument.Value is Dictionary<object, object> d))
-                        throw new Exception("Invalid condition format, expected dictionary");
-
-                    if (d.Count != 1)
-                        throw new Exception("Only one condition per argument is supported");
-
-                    if(!(argument.Key is string arg))
-                        throw new Exception("Invalid condition format, expected string");
-
-                    int? idx;
-
-                    if(int.TryParse(arg, out var parsedArg))
-                    {
-                        if(parsedArg < 0)
-                        {
-                            throw new Exception("Ordinal condition keys must be non-negative integers");
-                        }
-
-                        idx = parsedArg;
-                    }
-                    else
-                    {
-                        idx = null;
-                    }
-                    
-                    var condition = d.Single();
-                    if(!(condition.Key is string valueKey) || valueKey != "Value")
-                        throw new Exception("Only 'Value' conditions are supported");
-
-                    if(!(condition.Value is string conditionValue))
-                        throw new Exception("Invalid condition format, expected a string");
-
-                    object key = idx != null ? (object)idx.Value : arg;
-
-                    if (int.TryParse(conditionValue, out var intVal))
-                        ret.MustMatch.Add((key, intVal));
-                    else if (bool.TryParse(conditionValue, out var boolVal))
-                        ret.MustMatch.Add((key, boolVal));
-                    else
-                        ret.MustMatch.Add((key, conditionValue));
-                }
-
-                return ret;
-            }
-
-            private static bool HasApplicableAttribute(AttributeData attributeData, List<(string AttributeName, AttributeCondition Condition)> attributes)
+            private static bool HasApplicableAttribute(AttributeData attributeData, List<(string AttributeName, CsrfAttributeCondition Condition)> attributes)
             {
                 if (!attributes.Any())
                     return false;
@@ -288,25 +111,25 @@ namespace SecurityCodeScan.Analyzers
                 return false;
             }
 
-            private static bool IsAntiForgeryToken(AttributeData attributeData, NamedGroup group)
+            private static bool IsAntiForgeryToken(AttributeData attributeData, CsrfNamedGroup group)
             => HasApplicableAttribute(attributeData, group.AntiCsrfAttributes);
 
-            private static bool IsAnonymousAttribute(AttributeData attributeData, NamedGroup group)
+            private static bool IsAnonymousAttribute(AttributeData attributeData, CsrfNamedGroup group)
             => HasApplicableAttribute(attributeData, group.AnonymousAttributes);
 
-            private static bool IsHttpMethodAttribute(AttributeData attributeData, NamedGroup group)
+            private static bool IsHttpMethodAttribute(AttributeData attributeData, CsrfNamedGroup group)
             => HasApplicableAttribute(attributeData, group.HttpMethodAttributes);
 
-            private static bool IsNonActionAttribute(AttributeData attributeData, NamedGroup group)
+            private static bool IsNonActionAttribute(AttributeData attributeData, CsrfNamedGroup group)
             => HasApplicableAttribute(attributeData, group.NonActionAttributes);
 
-            private static bool IsIgnoreAttribute(AttributeData attributeData, NamedGroup group)
+            private static bool IsIgnoreAttribute(AttributeData attributeData, CsrfNamedGroup group)
             => HasApplicableAttribute(attributeData, group.IgnoreAttributes);
 
-            private static bool IsActionAttribute(AttributeData attributeData, NamedGroup group)
+            private static bool IsActionAttribute(AttributeData attributeData, CsrfNamedGroup group)
             => HasApplicableAttribute(attributeData, group.ActionAttributes);
 
-            private static bool IsDerivedFromController(ITypeSymbol classSymbol, NamedGroup group)
+            private static bool IsDerivedFromController(ITypeSymbol classSymbol, CsrfNamedGroup group)
             {
                 if (!group.Controllers.Any())
                     return false;
@@ -323,13 +146,13 @@ namespace SecurityCodeScan.Analyzers
             public void VisitClass(SymbolAnalysisContext ctx)
             {
                 var classSymbol = (ITypeSymbol)ctx.Symbol;
-                foreach (var group in Groups)
+                foreach (var group in Configuration.CsrfGoups)
                 {
                     VisitClass(ctx, classSymbol, group);
                 }
             }
 
-            private void VisitClass(SymbolAnalysisContext ctx, ITypeSymbol classSymbol, NamedGroup group)
+            private void VisitClass(SymbolAnalysisContext ctx, ITypeSymbol classSymbol, CsrfNamedGroup group)
             {
                 var isClassControllerDerived = IsDerivedFromController(classSymbol, group);
 
@@ -394,7 +217,7 @@ namespace SecurityCodeScan.Analyzers
                 }
             }
 
-            private static bool IsClassIgnored(ITypeSymbol classSymbol, NamedGroup group)
+            private static bool IsClassIgnored(ITypeSymbol classSymbol, CsrfNamedGroup group)
             {
                 if (!group.IgnoreAttributes.Any())
                     return false;
@@ -402,7 +225,7 @@ namespace SecurityCodeScan.Analyzers
                 return classSymbol.HasDerivedClassAttribute(c => IsIgnoreAttribute(c, group));
             }
 
-            private static bool IsClassAnonymous(ITypeSymbol classSymbol, NamedGroup group)
+            private static bool IsClassAnonymous(ITypeSymbol classSymbol, CsrfNamedGroup group)
             {
                 if (!group.AnonymousAttributes.Any())
                     return false;
@@ -410,7 +233,7 @@ namespace SecurityCodeScan.Analyzers
                 return classSymbol.HasDerivedClassAttribute(c => IsAnonymousAttribute(c, group));
             }
 
-            private static bool IsMethodIgnored(IMethodSymbol methodSymbol, NamedGroup group)
+            private static bool IsMethodIgnored(IMethodSymbol methodSymbol, CsrfNamedGroup group)
             {
                 if (!group.IgnoreAttributes.Any())
                     return false;
@@ -418,7 +241,7 @@ namespace SecurityCodeScan.Analyzers
                 return methodSymbol.HasDerivedMethodAttribute(c => IsIgnoreAttribute(c, group));
             }
 
-            private static bool IsMethodAction(IMethodSymbol methodSymbol, NamedGroup group)
+            private static bool IsMethodAction(IMethodSymbol methodSymbol, CsrfNamedGroup group)
             {
                 if (!group.ActionAttributes.Any())
                     return false;
@@ -426,7 +249,7 @@ namespace SecurityCodeScan.Analyzers
                 return methodSymbol.HasDerivedMethodAttribute(c => IsActionAttribute(c, group));
             }
 
-            private static bool IsArgumentIgnored(IMethodSymbol methodSymbol, ITypeSymbol classSymbol, NamedGroup group)
+            private static bool IsArgumentIgnored(IMethodSymbol methodSymbol, ITypeSymbol classSymbol, CsrfNamedGroup group)
             {
                 if (!group.IgnoreAttributes.Any())
                     return false;
@@ -441,7 +264,7 @@ namespace SecurityCodeScan.Analyzers
                 return isApiController;
             }
 
-            private static bool AntiforgeryAttributeExists(IMethodSymbol methodSymbol, NamedGroup group)
+            private static bool AntiforgeryAttributeExists(IMethodSymbol methodSymbol, CsrfNamedGroup group)
             {
                 if (!group.AntiCsrfAttributes.Any())
                     return false;

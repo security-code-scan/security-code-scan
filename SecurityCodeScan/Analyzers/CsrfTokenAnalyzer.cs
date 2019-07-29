@@ -387,19 +387,19 @@ namespace SecurityCodeScan.Analyzers
                 }
             }
 
-            private bool IsClassIgnored(ITypeSymbol classSymbol, NamedGroup group)
+            private static bool IsClassIgnored(ITypeSymbol classSymbol, NamedGroup group)
             => classSymbol.HasDerivedClassAttribute(c => IsIgnoreAttribute(c, group));
 
-            private bool IsClassAnonymous(ITypeSymbol classSymbol, NamedGroup group)
+            private static bool IsClassAnonymous(ITypeSymbol classSymbol, NamedGroup group)
             => classSymbol.HasDerivedClassAttribute(c => IsAnonymousAttribute(c, group));
 
-            private bool IsMethodIgnored(IMethodSymbol methodSymbol, NamedGroup group)
+            private static bool IsMethodIgnored(IMethodSymbol methodSymbol, NamedGroup group)
             => methodSymbol.HasDerivedMethodAttribute(c => IsIgnoreAttribute(c, group));
 
-            private bool IsMethodAction(IMethodSymbol methodSymbol, NamedGroup group)
+            private static bool IsMethodAction(IMethodSymbol methodSymbol, NamedGroup group)
             => methodSymbol.HasDerivedMethodAttribute(c => IsActionAttribute(c, group));
 
-            private bool IsArgumentIgnored(IMethodSymbol methodSymbol, ITypeSymbol classSymbol, NamedGroup group)
+            private static bool IsArgumentIgnored(IMethodSymbol methodSymbol, ITypeSymbol classSymbol, NamedGroup group)
             {
                 foreach (var parameter in methodSymbol.Parameters)
                 {
@@ -414,7 +414,7 @@ namespace SecurityCodeScan.Analyzers
                 return isApiController;
             }
 
-            private bool AntiforgeryAttributeExists(IMethodSymbol methodSymbol, NamedGroup group)
+            private static bool AntiforgeryAttributeExists(IMethodSymbol methodSymbol, NamedGroup group)
             => methodSymbol.HasDerivedMethodAttribute(c => IsAntiForgeryToken(c, group));
         }
     }

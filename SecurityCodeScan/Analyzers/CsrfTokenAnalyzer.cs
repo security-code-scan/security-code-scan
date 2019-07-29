@@ -174,7 +174,6 @@ namespace SecurityCodeScan.Analyzers
 
                 var ret = new AttributeCondition();
 
-                var parsedConditions = new Dictionary<int, object>(conditions.Count);
                 foreach (var argument in conditions)
                 {
                     if (!(argument.Value is Dictionary<object, object> d))
@@ -257,7 +256,7 @@ namespace SecurityCodeScan.Analyzers
                                     actualVal = null;
                                     foreach (var named in namedArgs)
                                     {
-                                        if (named.Key.Equals(arg))
+                                        if (named.Key.Equals(propName))
                                         {
                                             actualVal = named.Value;
                                             break;

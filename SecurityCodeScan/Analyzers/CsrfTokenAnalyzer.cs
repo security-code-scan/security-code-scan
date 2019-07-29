@@ -284,25 +284,25 @@ namespace SecurityCodeScan.Analyzers
                 return false;
             }
 
-            private bool IsAntiForgeryToken(AttributeData attributeData, NamedGroup group)
+            private static bool IsAntiForgeryToken(AttributeData attributeData, NamedGroup group)
             => HasApplicableAttribute(attributeData, group.AntiCsrfAttributes);
 
-            private bool IsAnonymousAttribute(AttributeData attributeData, NamedGroup group)
+            private static bool IsAnonymousAttribute(AttributeData attributeData, NamedGroup group)
             => HasApplicableAttribute(attributeData, group.AnonymousAttributes);
 
-            private bool IsHttpMethodAttribute(AttributeData attributeData, NamedGroup group)
+            private static bool IsHttpMethodAttribute(AttributeData attributeData, NamedGroup group)
             => HasApplicableAttribute(attributeData, group.HttpMethodAttributes);
 
-            private bool IsNonActionAttribute(AttributeData attributeData, NamedGroup group)
+            private static bool IsNonActionAttribute(AttributeData attributeData, NamedGroup group)
             => HasApplicableAttribute(attributeData, group.NonActionAttributes);
 
-            private bool IsIgnoreAttribute(AttributeData attributeData, NamedGroup group)
+            private static bool IsIgnoreAttribute(AttributeData attributeData, NamedGroup group)
             => HasApplicableAttribute(attributeData, group.IgnoreAttributes);
 
-            private bool IsActionAttribute(AttributeData attributeData, NamedGroup group)
+            private static bool IsActionAttribute(AttributeData attributeData, NamedGroup group)
             => HasApplicableAttribute(attributeData, group.ActionAttributes);
 
-            private bool IsDerivedFromController(ITypeSymbol classSymbol, NamedGroup group)
+            private static bool IsDerivedFromController(ITypeSymbol classSymbol, NamedGroup group)
             {
                 foreach(var c in group.Controllers)
                 {

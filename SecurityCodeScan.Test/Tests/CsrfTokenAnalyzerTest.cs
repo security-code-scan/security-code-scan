@@ -1419,6 +1419,130 @@ namespace VulnerableApp
 }
 ";
 
+            var vBTest = @"
+Imports System
+
+Namespace VulnerableApp
+    Public Enum CustomRoutePriority
+        Lowest = 0
+        Low = 1
+        [Default] = 2
+        High = 3
+    End Enum
+
+    Public Enum HttpVerbs
+        [Get] = 1
+        Post = 2
+        Put = 4
+        Delete = 8
+        Head = 16
+        Patch = 32
+        Options = 64
+    End Enum
+
+    Public MustInherit Class CustomController
+    End Class
+
+    Public Class ActionResult
+    End Class
+
+    <AttributeUsage(AttributeTargets.Method, AllowMultiple:=True)>
+    Public Class CustomRouteAttribute
+        Inherits Attribute
+
+        Public Sub New(ByVal url As String)
+            Me.New(url, """", Nothing, CustomRoutePriority.[Default])
+        End Sub
+
+        Public Sub New(ByVal url As String, ByVal verbs As HttpVerbs)
+            Me.New(url, """", verbs, CustomRoutePriority.[Default])
+        End Sub
+
+        Public Sub New(ByVal url As String, ByVal verbs As HttpVerbs, ByVal priority As CustomRoutePriority)
+            Me.New(url, """", verbs, priority)
+        End Sub
+
+        Private Sub New(ByVal url As String, ByVal name As String, ByVal verbs As HttpVerbs?, ByVal priority As CustomRoutePriority)
+            Url = url
+            Name = name
+            AcceptVerbs = verbs
+            Priority = priority
+        End Sub
+
+        Private Const FkeyOptionalVerbs As HttpVerbs = HttpVerbs.[Get] Or HttpVerbs.Head
+        Private _ensureCsrfSafe As Boolean?
+
+        Public Property EnsureCSRFSafe As Boolean
+            Get
+                Return If(_ensureCsrfSafe, AcceptVerbs.HasValue AndAlso (AcceptVerbs.Value And FkeyOptionalVerbs) = 0)
+            End Get
+            Set(ByVal value As Boolean)
+                _ensureCsrfSafe = value
+            End Set
+        End Property
+
+        Public Property Url As String
+        Public Property Name As String
+        Public Property AcceptVerbs As HttpVerbs?
+        Public Property Priority As CustomRoutePriority
+    End Class
+
+    Public Class TestController
+        Inherits CustomController
+
+        <CustomRoute(""vulnerable/post"", HttpVerbs.Post, EnsureCSRFSafe:=False)>
+        Public Function VulnerablePost(ByVal input As String) As ActionResult
+            Return Nothing
+        End Function
+
+        <CustomRoute(""vulnerable/put"", HttpVerbs.Put, EnsureCSRFSafe:=False)>
+        Public Function VulnerablePut(ByVal input As String) As ActionResult
+            Return Nothing
+        End Function
+
+        <CustomRoute(""vulnerable/delete"", HttpVerbs.Delete, EnsureCSRFSafe:=False)>
+        Public Function VulnerableDelete(ByVal input As String) As ActionResult
+            Return Nothing
+        End Function
+
+        <CustomRoute(""vulnerable/patch"", HttpVerbs.Patch, EnsureCSRFSafe:=False)>
+        Public Function VulnerablePatch(ByVal input As String) As ActionResult
+            Return Nothing
+        End Function
+
+        <CustomRoute(""safe/post/implicit"", HttpVerbs.Post)>
+        Public Function SafePostImplicit(ByVal input As String) As ActionResult
+            Return Nothing
+        End Function
+
+        <CustomRoute(""safe/post/explicit"", HttpVerbs.Post, EnsureCSRFSafe:=True)>
+        Public Function SafePostExplicit(ByVal input As String) As ActionResult
+            Return Nothing
+        End Function
+
+        <CustomRoute(""safe/get/implicit"")>
+        Public Function SafeGetImplicit(ByVal input As String) As ActionResult
+            Return Nothing
+        End Function
+
+        <CustomRoute(""safe/get/explicit"", HttpVerbs.[Get])>
+        Public Function SafeGetExplicit(ByVal input As String) As ActionResult
+            Return Nothing
+        End Function
+
+        <CustomRoute(""safe/get/explicit/disabled"", HttpVerbs.[Get], EnsureCSRFSafe:=False)>
+        Public Function SafeGetExplicitDisabled(ByVal input As String) As ActionResult
+            Return Nothing
+        End Function
+
+        <CustomRoute(""safe/head"", HttpVerbs.Head)>
+        Public Function SafeHead(ByVal input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
             var testConfig = @"
 CsrfProtection:
   - Name: Stack Overflow Example Config
@@ -1436,7 +1560,7 @@ CsrfProtection:
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
-            var expected =
+            var expectedCs =
                 new[]
                 {
                     new DiagnosticResult
@@ -1461,8 +1585,33 @@ CsrfProtection:
                     }.WithLocation(89, 29)
                 };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
-            // todo: Visual Basic equivalent
+            var expectedVb =
+                new[]
+                {
+                    new DiagnosticResult
+                    {
+                        Id = CsrfTokenDiagnosticAnalyzer.DiagnosticId,
+                        Severity = DiagnosticSeverity.Warning
+                    }.WithLocation(73, 25),
+                    new DiagnosticResult
+                    {
+                        Id = CsrfTokenDiagnosticAnalyzer.DiagnosticId,
+                        Severity = DiagnosticSeverity.Warning
+                    }.WithLocation(78, 25),
+                    new DiagnosticResult
+                    {
+                        Id = CsrfTokenDiagnosticAnalyzer.DiagnosticId,
+                        Severity = DiagnosticSeverity.Warning
+                    }.WithLocation(83, 25),
+                    new DiagnosticResult
+                    {
+                        Id = CsrfTokenDiagnosticAnalyzer.DiagnosticId,
+                        Severity = DiagnosticSeverity.Warning
+                    }.WithLocation(88, 25)
+                };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expectedCs, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vBTest, expectedVb, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -1507,6 +1656,36 @@ namespace VulnerableApp
 }
 ";
 
+            var vbTest = @"
+Imports System
+
+Namespace VulnerableApp
+    Public Class ActionResult
+    End Class
+
+    <AttributeUsage(AttributeTargets.Method, AllowMultiple:=False)>
+    Public Class CustomRouteAttribute
+        Inherits Attribute
+    End Class
+
+    Public Class TestController
+        <CustomRoute>
+        Public Function VulnerablePublic(ByVal input As String) As ActionResult
+            Return Nothing
+        End Function
+
+        <CustomRoute>
+        Private Function VulnerablePrivate(ByVal input As String) As ActionResult
+            Return Nothing
+        End Function
+
+        Public Function NotAnAction(ByVal input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+
             var testConfig = @"
 CsrfProtection:
   - Name: Test
@@ -1518,7 +1697,7 @@ CsrfProtection:
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
-            var expected =
+            var expectedCsharp =
                 new[]
                 {
                     new DiagnosticResult
@@ -1533,8 +1712,23 @@ CsrfProtection:
                     }.WithLocation(26, 30)
                 };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
-            // todo: Visual Basic equivalent
+            var expectedVb =
+                new[]
+                {
+                    new DiagnosticResult
+                    {
+                        Id = CsrfTokenDiagnosticAnalyzer.DiagnosticId,
+                        Severity = DiagnosticSeverity.Warning
+                    }.WithLocation(15, 25),
+                    new DiagnosticResult
+                    {
+                        Id = CsrfTokenDiagnosticAnalyzer.DiagnosticId,
+                        Severity = DiagnosticSeverity.Warning
+                    }.WithLocation(20, 26)
+                };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expectedCsharp, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest, expectedVb, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)

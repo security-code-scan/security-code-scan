@@ -105,7 +105,6 @@ namespace SecurityCodeScan.Analyzers
                         {
                             foreach (var attr in set.NonActionAttributes)
                             {
-
                                 var attrName = $"{set.NameSpace}.{attr.AttributeName}";
                                 var condition = CreateAttributeCondition(attr.Condition);
                                 curGroup.NonActionAttributes.Add((attrName, condition));

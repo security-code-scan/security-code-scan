@@ -46,7 +46,7 @@ namespace SecurityCodeScan.Config
                                  return Path.Combine(path, UserConfigName);
                              });
 
-        private static readonly Version ConfigVersion = new Version(2,0);
+        private static readonly Version ConfigVersion = new Version(2,1);
 
         private T DeserializeAndValidate<T>(StreamReader reader) where T : ConfigData
         {

@@ -131,13 +131,7 @@ namespace SecurityCodeScan.Analyzers
                 if (!group.Controllers.Any())
                     return false;
 
-                foreach(var c in group.Controllers)
-                {
-                    if (classSymbol.IsDerivedFrom(c))
-                        return true;
-                }
-
-                return false;
+                return classSymbol.IsDerivedFrom(group.Controllers);
             }
 
             public void VisitClass(SymbolAnalysisContext ctx)

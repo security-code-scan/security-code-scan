@@ -218,7 +218,6 @@ namespace SecurityCodeScan.Config
     internal class CsrfProtectionData
     {
         public string Name                                      { get; set; }
-        public string NameSpace                                 { get; set; }
         public string ControllerName                            { get; set; }
         public List<CsrfAttributeData> NonActionAttributes      { get; set; }
         public List<CsrfAttributeData> AllowAnonymousAttributes { get; set; }

@@ -92,9 +92,8 @@ End Namespace
             var testConfig = @"
 CsrfProtection:
   - Name: ASP.NET MVC
-    NameSpace: VulnerableApp
     AntiCsrfAttributes:
-      - AttributeName: TestAttribute
+      - AttributeName: VulnerableApp.TestAttribute
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -164,9 +163,8 @@ End Namespace
             var testConfig = @"
 CsrfProtection:
   - Name: ASP.NET Core MVC
-    NameSpace: VulnerableApp
     AntiCsrfAttributes:
-      - AttributeName: TestAttribute
+      - AttributeName: VulnerableApp.TestAttribute
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -242,12 +240,11 @@ End Namespace
             var testConfig = @"
 CsrfProtection:
   - Name: ASP.NET MVC
-    NameSpace: VulnerableApp
     VulnerableAttributes:
-      - AttributeName: TestAttribute
+      - AttributeName: VulnerableApp.TestAttribute
         Condition: {0: {Value: 2}}
     AntiCsrfAttributes:
-      - AttributeName: TestAttribute
+      - AttributeName: VulnerableApp.TestAttribute
         Condition: {1: {Value: true}}
 ";
 

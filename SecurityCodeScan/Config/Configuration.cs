@@ -659,9 +659,6 @@ namespace SecurityCodeScan.Config
             if (string.IsNullOrWhiteSpace(csrfData.Name))
                 throw new Exception($"{nameof(CsrfProtectionData.Name)} is required in CsrfProtection");
 
-            if (string.IsNullOrWhiteSpace(csrfData.NameSpace))
-                throw new Exception($"{nameof(CsrfProtectionData.NameSpace)} is required in CsrfProtection");
-
             var name = csrfData.Name;
             var curGroup = _CsrfGroups.SingleOrDefault(g => g.Name == name);
             if (curGroup == null)
@@ -672,30 +669,29 @@ namespace SecurityCodeScan.Config
 
             if (csrfData.ControllerName != null)
             {
-                curGroup.Controllers.Add($"{csrfData.NameSpace}.{csrfData.ControllerName}");
+                curGroup.Controllers.Add(csrfData.ControllerName);
             }
 
-            AddCsrfAttributes(csrfData.NameSpace, curGroup.NonActionAttributes, csrfData.NonActionAttributes);
-            AddCsrfAttributes(csrfData.NameSpace, curGroup.AnonymousAttributes, csrfData.AllowAnonymousAttributes);
-            AddCsrfAttributes(csrfData.NameSpace, curGroup.HttpMethodAttributes, csrfData.VulnerableAttributes);
-            AddCsrfAttributes(csrfData.NameSpace, curGroup.IgnoreAttributes, csrfData.IgnoreAttributes);
-            AddCsrfAttributes(csrfData.NameSpace, curGroup.AntiCsrfAttributes, csrfData.AntiCsrfAttributes);
-            AddCsrfAttributes(csrfData.NameSpace, curGroup.ActionAttributes, csrfData.ActionAttributes);
+            AddCsrfAttributes(curGroup.NonActionAttributes, csrfData.NonActionAttributes);
+            AddCsrfAttributes(curGroup.AnonymousAttributes, csrfData.AllowAnonymousAttributes);
+            AddCsrfAttributes(curGroup.HttpMethodAttributes, csrfData.VulnerableAttributes);
+            AddCsrfAttributes(curGroup.IgnoreAttributes, csrfData.IgnoreAttributes);
+            AddCsrfAttributes(curGroup.AntiCsrfAttributes, csrfData.AntiCsrfAttributes);
+            AddCsrfAttributes(curGroup.ActionAttributes, csrfData.ActionAttributes);
         }
 
-        private static void AddCsrfAttributes(string nameSpace, Dictionary<string, List<CsrfAttributeCondition>> destination, IEnumerable<CsrfAttributeData> source)
+        private static void AddCsrfAttributes(Dictionary<string, List<CsrfAttributeCondition>> destination, IEnumerable<CsrfAttributeData> source)
         {
             if (source == null)
                 return;
 
             foreach (var attr in source)
             {
-                var attrName = $"{nameSpace}.{attr.AttributeName}";
                 var condition = CreateCsrfAttributeCondition(attr.Condition);
 
-                if (!destination.TryGetValue(attrName, out var conditions))
+                if (!destination.TryGetValue(attr.AttributeName, out var conditions))
                 {
-                    destination[attrName] = conditions = new List<CsrfAttributeCondition>();
+                    destination[attr.AttributeName] = conditions = new List<CsrfAttributeCondition>();
                 }
 
                 conditions.Add(condition);

@@ -1422,16 +1422,15 @@ namespace VulnerableApp
             var testConfig = @"
 CsrfProtection:
   - Name: Stack Overflow Example Config
-    NameSpace: VulnerableApp
-    ControllerName: CustomController
+    ControllerName: VulnerableApp.CustomController
     VulnerableAttributes:
-      - AttributeName: CustomRouteAttribute
+      - AttributeName: VulnerableApp.CustomRouteAttribute
         Condition: { 1: { Value:  2 }, EnsureCSRFSafe: { Value: false } }  # Post
-      - AttributeName: CustomRouteAttribute
+      - AttributeName: VulnerableApp.CustomRouteAttribute
         Condition: { 1: { Value:  4 }, EnsureCSRFSafe: { Value: false } }  # Put
-      - AttributeName: CustomRouteAttribute
+      - AttributeName: VulnerableApp.CustomRouteAttribute
         Condition: { 1: { Value:  8 }, EnsureCSRFSafe: { Value: false } }  # Delete
-      - AttributeName: CustomRouteAttribute
+      - AttributeName: VulnerableApp.CustomRouteAttribute
         Condition: { 1: { Value: 32 }, EnsureCSRFSafe: { Value: false } }  # Patch
 ";
 
@@ -1511,11 +1510,10 @@ namespace VulnerableApp
             var testConfig = @"
 CsrfProtection:
   - Name: Test
-    NameSpace: VulnerableApp
     VulnerableAttributes:
-      - AttributeName: CustomRouteAttribute
+      - AttributeName: VulnerableApp.CustomRouteAttribute
     ActionAttributes:
-      - AttributeName: CustomRouteAttribute
+      - AttributeName: VulnerableApp.CustomRouteAttribute
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

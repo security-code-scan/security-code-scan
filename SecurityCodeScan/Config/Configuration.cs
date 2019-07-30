@@ -674,7 +674,7 @@ namespace SecurityCodeScan.Config
 
             AddCsrfAttributes(curGroup.NonActionAttributes, csrfData.NonActionAttributes);
             AddCsrfAttributes(curGroup.AnonymousAttributes, csrfData.AllowAnonymousAttributes);
-            AddCsrfAttributes(curGroup.HttpMethodAttributes, csrfData.VulnerableAttributes);
+            AddCsrfAttributes(curGroup.VulnerableAttributes, csrfData.VulnerableAttributes);
             AddCsrfAttributes(curGroup.IgnoreAttributes, csrfData.IgnoreAttributes);
             AddCsrfAttributes(curGroup.AntiCsrfAttributes, csrfData.AntiCsrfAttributes);
             AddCsrfAttributes(curGroup.ActionAttributes, csrfData.ActionAttributes);

@@ -47,7 +47,8 @@ AuditMode: false
 # AllowAnonymousAttributes are attributes which indicate a method or class allows non-CSRF protected requests.
 #
 # VulnerableAttributes are attributes which indicate a method needs CSRF protection, by (for example) taking
-#   a POST request.
+#   a POST request.  VulnerableAttributes that are applied to parameters also indicate the taking method needs 
+#   CSRF protection.
 #
 # AntiCsrfAttributes are attributes which indicate that CSRF checking is automated on a method.
 #
@@ -90,16 +91,16 @@ CsrfProtection:
       - AttributeName: Microsoft.AspNetCore.Mvc.HttpPutAttribute
       - AttributeName: Microsoft.AspNetCore.Mvc.HttpDeleteAttribute
       - AttributeName: Microsoft.AspNetCore.Mvc.HttpPatchAttribute
+      - AttributeName: Microsoft.AspNetCore.Mvc.FromFormAttribute
     AntiCsrfAttributes:
       - AttributeName: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
       - AttributeName: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
     IgnoreAttributes:
       - AttributeName: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
-      - AttributeName: Microsoft.AspNetCore.Mvc.ApiControllerAttribute
       - AttributeName: Microsoft.AspNetCore.Mvc.FromBodyAttribute
-      - AttributeName: Microsoft.AspNetCore.Mvc.FromFormAttribute
     AllowAnonymousAttributes:
       - AttributeName: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+      - AttributeName: Microsoft.AspNetCore.Mvc.ApiControllerAttribute
 
 # Password validator analysis preferences:
 PasswordValidatorRequiredLength: 8

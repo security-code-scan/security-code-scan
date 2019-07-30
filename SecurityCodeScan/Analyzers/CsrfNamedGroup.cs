@@ -23,7 +23,7 @@ namespace SecurityCodeScan.Analyzers
 
         public readonly Dictionary<string, List<CsrfAttributeCondition>> NonActionAttributes;
         public readonly Dictionary<string, List<CsrfAttributeCondition>> AnonymousAttributes;
-        public readonly Dictionary<string, List<CsrfAttributeCondition>> HttpMethodAttributes;
+        public readonly Dictionary<string, List<CsrfAttributeCondition>> VulnerableAttributes;
         public readonly Dictionary<string, List<CsrfAttributeCondition>> IgnoreAttributes;
         public readonly Dictionary<string, List<CsrfAttributeCondition>> AntiCsrfAttributes;
         public readonly Dictionary<string, List<CsrfAttributeCondition>> ActionAttributes;
@@ -35,7 +35,7 @@ namespace SecurityCodeScan.Analyzers
             Controllers = new HashSet<string>();
             NonActionAttributes = new Dictionary<string, List<CsrfAttributeCondition>>();
             AnonymousAttributes = new Dictionary<string, List<CsrfAttributeCondition>>();
-            HttpMethodAttributes = new Dictionary<string, List<CsrfAttributeCondition>>();
+            VulnerableAttributes = new Dictionary<string, List<CsrfAttributeCondition>>();
             IgnoreAttributes = new Dictionary<string, List<CsrfAttributeCondition>>();
             AntiCsrfAttributes = new Dictionary<string, List<CsrfAttributeCondition>>();
             ActionAttributes = new Dictionary<string, List<CsrfAttributeCondition>>();

@@ -114,8 +114,8 @@ namespace SecurityCodeScan.Analyzers
             private static bool IsAnonymousAttribute(AttributeData attributeData, CsrfNamedGroup group)
             => HasApplicableAttribute(attributeData, group.AnonymousAttributes);
 
-            private static bool IsHttpMethodAttribute(AttributeData attributeData, CsrfNamedGroup group)
-            => HasApplicableAttribute(attributeData, group.HttpMethodAttributes);
+            private static bool IsVulnerableAttribute(AttributeData attributeData, CsrfNamedGroup group)
+            => HasApplicableAttribute(attributeData, group.VulnerableAttributes);
 
             private static bool IsNonActionAttribute(AttributeData attributeData, CsrfNamedGroup group)
             => HasApplicableAttribute(attributeData, group.NonActionAttributes);
@@ -145,67 +145,185 @@ namespace SecurityCodeScan.Analyzers
 
             private void VisitClass(SymbolAnalysisContext ctx, ITypeSymbol classSymbol, CsrfNamedGroup group)
             {
-                var isClassControllerDerived = IsDerivedFromController(classSymbol, group);
+                /**
+                 * Logic for checking
+                 *   - Actions (that we need to check) are
+                 *     * Public method derived from a registered controller
+                 *     * Having a vulnerable attribute attached to it
+                 *   - We ignore the action if
+                 *     * The controller has an ignore attribute on it
+                 *       + Unless the (potential) action is explicitly annotated as an action
+                 *     * The controller has an allows anonymous attribute on it
+                 *       + Unless the (potential) action is explicitly annotated as an action
+                 *     * The action has an ignore attribute on it
+                 *     * The action has an allows anonymous attribute on it
+                 *   - An action is vulnerable if
+                 *     * It doesn't have a suppressing attribute on itself, or on the controller
+                 *     * It has an explicitly dangerous attribute on one of it's arguments
+                 *     * UNLESS there's an attribute on a parameter that ignores CSRF checking
+                 */
 
-                // if we're not in a controller, and this group _ONLY_ publishes actions through controllers
-                //   quit early
-                if (!isClassControllerDerived && !group.ActionAttributes.Any())
+                var descendsFromController = IsDerivedFromController(classSymbol, group);
+                var couldHaveActionAttribute = group.ActionAttributes.Any();
+
+                var isPotentiallyController = descendsFromController || couldHaveActionAttribute;
+
+                if (!isPotentiallyController)
                     return;
 
-                bool isClassIgnored = IsClassIgnored(classSymbol, group);
+                var controllerExplicitlyIgnored = IsClassIgnored(classSymbol, group);
+                var controllerExplicitlyAnonymous = IsClassAnonymous(classSymbol, group);
+                var controllerExplicitlySafe = classSymbol.HasDerivedClassAttribute(c => IsAntiForgeryToken(c, group));
 
-                if (!Configuration.AuditMode && isClassIgnored)
+                if (controllerExplicitlySafe)
                     return;
 
-                if (IsClassAnonymous(classSymbol, group))
-                    return;
-
-                bool classHasAntiForgeryAttribute = classSymbol.HasDerivedClassAttribute(c => IsAntiForgeryToken(c, group));
-                
                 foreach (var member in classSymbol.GetMembers())
                 {
                     if (!(member is IMethodSymbol methodSymbol))
                         continue;
 
-                    var shouldConsiderMethod =
-                        isClassControllerDerived || IsMethodAction(methodSymbol, group);
-                    
-                    if (!shouldConsiderMethod)
+                    var methodExplicitlyAction = IsMethodAction(methodSymbol, group);
+                    var methodExplicitlyNotAction = IsMethodNonAction(methodSymbol, group);
+
+                    var isAction =
+                        !methodExplicitlyNotAction &&
+                        (descendsFromController || methodExplicitlyAction);
+
+                    if (!isAction)
                         continue;
 
-                    var isMethodIgnored = false;
-                    if (!isClassIgnored)
-                        isMethodIgnored = IsMethodIgnored(methodSymbol, group);
+                    var actionExplicitlyIgnored = IsMethodIgnored(methodSymbol, group);
 
-                    if (!Configuration.AuditMode && isMethodIgnored)
+                    var ignoreAction =
+                        (!Configuration.AuditMode && actionExplicitlyIgnored) ||
+                        (controllerExplicitlyIgnored && !methodExplicitlyAction);
+
+                    if (ignoreAction)
                         continue;
 
-                    var isArgumentIgnored = false;
-                    if (!isClassIgnored && !isMethodIgnored)
-                        isArgumentIgnored = IsArgumentIgnored(methodSymbol, classSymbol, group);
-
-                    if (!Configuration.AuditMode && isArgumentIgnored)
+                    var actionExplicitlySafe = AntiforgeryAttributeExists(methodSymbol, group);
+                    if (actionExplicitlySafe)
                         continue;
 
-                    if (!methodSymbol.HasDerivedMethodAttribute(c => IsHttpMethodAttribute(c, group)))
+                    var actionExplicitlyAllowsAnonymous = IsMethodAnonymous(methodSymbol, group);
+
+                    if (actionExplicitlyAllowsAnonymous)
                         continue;
 
-                    if (methodSymbol.HasDerivedMethodAttribute(c => IsNonActionAttribute(c, group)))
+                    var actionExplicitlyVulnerable = IsMethodVulnerable(methodSymbol, group);
+
+                    var (argsExplicitlyIgnored, argsExplicitlyVulnerable) = GetArgumentState(methodSymbol, group);
+
+                    var actionImplicitAllowsAnonymous =
+                        (!Configuration.AuditMode && controllerExplicitlyAnonymous) &&
+                        !argsExplicitlyVulnerable;
+
+                    if (actionImplicitAllowsAnonymous)
                         continue;
 
-                    if (methodSymbol.HasDerivedMethodAttribute(c => IsAnonymousAttribute(c, group)))
-                        continue;
+                    var actionVulnerable = actionExplicitlyVulnerable || argsExplicitlyVulnerable;
 
-                    if (!classHasAntiForgeryAttribute && !AntiforgeryAttributeExists(methodSymbol, group))
+                    if (!Configuration.AuditMode)
                     {
-                        if (isClassIgnored || isMethodIgnored)
-                            ctx.ReportDiagnostic(Diagnostic.Create(CsrfTokenDiagnosticAnalyzer.AuditRule, methodSymbol.Locations[0]));
-                        else if (isArgumentIgnored)
-                            ctx.ReportDiagnostic(Diagnostic.Create(CsrfTokenDiagnosticAnalyzer.FromBodyAuditRule, methodSymbol.Locations[0]));
-                        else
-                            ctx.ReportDiagnostic(Diagnostic.Create(CsrfTokenDiagnosticAnalyzer.Rule, methodSymbol.Locations[0]));
+                        actionVulnerable &= !argsExplicitlyIgnored;
+                    }
+
+                    if (!actionVulnerable)
+                        continue;
+
+                    if (controllerExplicitlyIgnored || actionExplicitlyIgnored)
+                        ctx.ReportDiagnostic(Diagnostic.Create(AuditRule, methodSymbol.Locations[0]));
+                    else if (argsExplicitlyIgnored)
+                        ctx.ReportDiagnostic(Diagnostic.Create(FromBodyAuditRule, methodSymbol.Locations[0]));
+                    else
+                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, methodSymbol.Locations[0]));
+                }
+
+                // old!
+
+                //var isClassControllerDerived = IsDerivedFromController(classSymbol, group);
+
+                //// if we're not in a controller, and this group _ONLY_ publishes actions through controllers
+                ////   quit early
+                //if (!isClassControllerDerived && !group.ActionAttributes.Any())
+                //    return;
+
+                //bool isClassIgnored = IsClassIgnored(classSymbol, group);
+
+                //if (!Configuration.AuditMode && isClassIgnored)
+                //    return;
+
+                //if (IsClassAnonymous(classSymbol, group))
+                //    return;
+
+                //bool classHasAntiForgeryAttribute = classSymbol.HasDerivedClassAttribute(c => IsAntiForgeryToken(c, group));
+
+                //foreach (var member in classSymbol.GetMembers())
+                //{
+                //    if (!(member is IMethodSymbol methodSymbol))
+                //        continue;
+
+                //    var shouldConsiderMethod =
+                //        isClassControllerDerived || IsMethodAction(methodSymbol, group);
+
+                //    if (!shouldConsiderMethod)
+                //        continue;
+
+                //    var isMethodIgnored = false;
+                //    if (!isClassIgnored)
+                //        isMethodIgnored = IsMethodIgnored(methodSymbol, group);
+
+                //    if (!Configuration.AuditMode && isMethodIgnored)
+                //        continue;
+
+                //    var isArgumentIgnored = false;
+                //    if (!isClassIgnored && !isMethodIgnored)
+                //        isArgumentIgnored = IsArgumentIgnored(methodSymbol, classSymbol, group);
+
+                //    if (!Configuration.AuditMode && isArgumentIgnored)
+                //        continue;
+
+                //    if (!methodSymbol.HasDerivedMethodAttribute(c => IsVulnerableAttribute(c, group)))
+                //        continue;
+
+                //    if (methodSymbol.HasDerivedMethodAttribute(c => IsNonActionAttribute(c, group)))
+                //        continue;
+
+                //    if (methodSymbol.HasDerivedMethodAttribute(c => IsAnonymousAttribute(c, group)))
+                //        continue;
+
+                //    if (!classHasAntiForgeryAttribute && !AntiforgeryAttributeExists(methodSymbol, group))
+                //    {
+                //        if (isClassIgnored || isMethodIgnored)
+                //            ctx.ReportDiagnostic(Diagnostic.Create(AuditRule, methodSymbol.Locations[0]));
+                //        else if (isArgumentIgnored)
+                //            ctx.ReportDiagnostic(Diagnostic.Create(FromBodyAuditRule, methodSymbol.Locations[0]));
+                //        else
+                //            ctx.ReportDiagnostic(Diagnostic.Create(Rule, methodSymbol.Locations[0]));
+                //    }
+                //}
+            }
+
+            private static (bool ArgumentsIgnored, bool ArgumentsVulnerable) GetArgumentState(IMethodSymbol methodSymbol, CsrfNamedGroup group)
+            {
+                var argsExplicitlyIgnored = false;
+                var argsExplicitlyVulnerable = false;
+
+                foreach (var arg in methodSymbol.Parameters)
+                {
+                    if (arg.HasAttribute(c => IsIgnoreAttribute(c, group)))
+                    {
+                        argsExplicitlyIgnored = true;
+                    }
+
+                    if (arg.HasAttribute(c => IsVulnerableAttribute(c, group)))
+                    {
+                        argsExplicitlyVulnerable = true;
                     }
                 }
+
+                return (argsExplicitlyIgnored, argsExplicitlyVulnerable);
             }
 
             private static bool IsClassIgnored(ITypeSymbol classSymbol, CsrfNamedGroup group)
@@ -224,6 +342,14 @@ namespace SecurityCodeScan.Analyzers
                 return classSymbol.HasDerivedClassAttribute(c => IsAnonymousAttribute(c, group));
             }
 
+            private static bool IsMethodAnonymous(IMethodSymbol methodSymbol, CsrfNamedGroup group)
+            {
+                if (!group.AnonymousAttributes.Any())
+                    return false;
+
+                return methodSymbol.HasDerivedMethodAttribute(c => IsAnonymousAttribute(c, group));
+            }
+
             private static bool IsMethodIgnored(IMethodSymbol methodSymbol, CsrfNamedGroup group)
             {
                 if (!group.IgnoreAttributes.Any())
@@ -240,19 +366,20 @@ namespace SecurityCodeScan.Analyzers
                 return methodSymbol.HasDerivedMethodAttribute(c => IsActionAttribute(c, group));
             }
 
-            private static bool IsArgumentIgnored(IMethodSymbol methodSymbol, ITypeSymbol classSymbol, CsrfNamedGroup group)
+            private static bool IsMethodVulnerable(IMethodSymbol methodSymbol, CsrfNamedGroup group)
             {
-                if (!group.IgnoreAttributes.Any())
+                if (!group.VulnerableAttributes.Any())
                     return false;
 
-                foreach (var parameter in methodSymbol.Parameters)
-                {
-                    if (parameter.HasAttribute(c => IsIgnoreAttribute(c, group)))
-                        return true;
-                }
+                return methodSymbol.HasDerivedMethodAttribute(c => IsVulnerableAttribute(c, group));
+            }
 
-                var isApiController = classSymbol.HasDerivedClassAttribute(c => IsIgnoreAttribute(c, group));
-                return isApiController;
+            private static bool IsMethodNonAction(IMethodSymbol methodSymbol, CsrfNamedGroup group)
+            {
+                if (!group.NonActionAttributes.Any())
+                    return false;
+
+                return methodSymbol.HasDerivedMethodAttribute(c => IsNonActionAttribute(c, group));
             }
 
             private static bool AntiforgeryAttributeExists(IMethodSymbol methodSymbol, CsrfNamedGroup group)

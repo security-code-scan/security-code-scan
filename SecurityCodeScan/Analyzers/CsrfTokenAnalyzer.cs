@@ -178,7 +178,7 @@ namespace SecurityCodeScan.Analyzers
 
                 var (controllerExplicitlyIgnored, controllerEffectivelyIgnored) = IsClassIgnored(Configuration.AuditMode, classSymbol, group);
                 var controllerExplicitlyAnonymous = IsClassAnonymous(Configuration.AuditMode, classSymbol, group);
-                var controllerExplicitlySafe = classSymbol.HasDerivedClassAttribute(c => IsAntiForgeryToken(c, group));
+                var controllerExplicitlySafe = AntiforgeryAttributeExists(classSymbol, group);
 
                 if (controllerExplicitlySafe)
                     return;
@@ -218,7 +218,8 @@ namespace SecurityCodeScan.Analyzers
 
                     var actionExplicitlyVulnerable = IsMethodVulnerable(methodSymbol, group);
 
-                    var (argsExplicitlyIgnored, argsEffectivelyIgnored, argsExplicitlyVulnerable) = GetArgumentState(Configuration.AuditMode, methodSymbol, group);
+                    var (argsExplicitlyIgnored, argsEffectivelyIgnored, argsExplicitlyVulnerable) =
+                        GetArgumentState(Configuration.AuditMode, methodSymbol, group);
 
                     var actionImplicitAllowsAnonymous =
                         controllerExplicitlyAnonymous && !argsExplicitlyVulnerable;
@@ -331,6 +332,14 @@ namespace SecurityCodeScan.Analyzers
                     return false;
 
                 return methodSymbol.HasDerivedMethodAttribute(c => IsNonActionAttribute(c, group));
+            }
+
+            private static bool AntiforgeryAttributeExists(ITypeSymbol classSymbol, CsrfNamedGroup group)
+            {
+                if (!group.AntiCsrfAttributes.Any())
+                    return false;
+
+                return classSymbol.HasDerivedClassAttribute(c => IsAntiForgeryToken(c, group)); ;
             }
 
             private static bool AntiforgeryAttributeExists(IMethodSymbol methodSymbol, CsrfNamedGroup group)

@@ -161,6 +161,11 @@ namespace SecurityCodeScan.Analyzers
                  *     * It doesn't have a suppressing attribute on itself, or on the controller
                  *     * It has an explicitly dangerous attribute on one of it's arguments
                  *     * UNLESS there's an attribute on a parameter that ignores CSRF checking
+                 *
+                 *  Enabling AuditMode makes it so that explicitly ignored classes, methods, or
+                 *    arguments are still checked.  The code uses "effective vs explicit" to denote
+                 *    whether audit mode has impacted a variable (explicitly only looks at attributes,
+                 *    effective considers audit mode).
                  */
 
                 var descendsFromController = IsDerivedFromController(classSymbol, group);
@@ -171,8 +176,8 @@ namespace SecurityCodeScan.Analyzers
                 if (!isPotentiallyController)
                     return;
 
-                var controllerExplicitlyIgnored = IsClassIgnored(classSymbol, group);
-                var controllerExplicitlyAnonymous = IsClassAnonymous(classSymbol, group);
+                var (controllerExplicitlyIgnored, controllerEffectivelyIgnored) = IsClassIgnored(Configuration.AuditMode, classSymbol, group);
+                var controllerExplicitlyAnonymous = IsClassAnonymous(Configuration.AuditMode, classSymbol, group);
                 var controllerExplicitlySafe = classSymbol.HasDerivedClassAttribute(c => IsAntiForgeryToken(c, group));
 
                 if (controllerExplicitlySafe)
@@ -193,11 +198,11 @@ namespace SecurityCodeScan.Analyzers
                     if (!isAction)
                         continue;
 
-                    var actionExplicitlyIgnored = IsMethodIgnored(methodSymbol, group);
+                    var (actionExplicitlyIgnored, actionEffectivelyIgnored) = IsMethodIgnored(Configuration.AuditMode, methodSymbol, group);
 
                     var ignoreAction =
-                        (!Configuration.AuditMode && actionExplicitlyIgnored) ||
-                        (controllerExplicitlyIgnored && !methodExplicitlyAction);
+                        actionEffectivelyIgnored ||
+                        (controllerEffectivelyIgnored && !methodExplicitlyAction);
 
                     if (ignoreAction)
                         continue;
@@ -213,99 +218,34 @@ namespace SecurityCodeScan.Analyzers
 
                     var actionExplicitlyVulnerable = IsMethodVulnerable(methodSymbol, group);
 
-                    var (argsExplicitlyIgnored, argsExplicitlyVulnerable) = GetArgumentState(methodSymbol, group);
+                    var (argsExplicitlyIgnored, argsEffectivelyIgnored, argsExplicitlyVulnerable) = GetArgumentState(Configuration.AuditMode, methodSymbol, group);
 
                     var actionImplicitAllowsAnonymous =
-                        (!Configuration.AuditMode && controllerExplicitlyAnonymous) &&
-                        !argsExplicitlyVulnerable;
+                        controllerExplicitlyAnonymous && !argsExplicitlyVulnerable;
 
                     if (actionImplicitAllowsAnonymous)
                         continue;
 
-                    var actionVulnerable = actionExplicitlyVulnerable || argsExplicitlyVulnerable;
-
-                    if (!Configuration.AuditMode)
-                    {
-                        actionVulnerable &= !argsExplicitlyIgnored;
-                    }
+                    var actionVulnerable =
+                        !argsEffectivelyIgnored &&
+                        (actionExplicitlyVulnerable || argsExplicitlyVulnerable);
 
                     if (!actionVulnerable)
                         continue;
 
-                    if (controllerExplicitlyIgnored || actionExplicitlyIgnored)
+                    var auditRuleIgnoredControllerOrAction =
+                        controllerExplicitlyIgnored || actionExplicitlyIgnored;
+
+                    if (auditRuleIgnoredControllerOrAction)
                         ctx.ReportDiagnostic(Diagnostic.Create(AuditRule, methodSymbol.Locations[0]));
                     else if (argsExplicitlyIgnored)
                         ctx.ReportDiagnostic(Diagnostic.Create(FromBodyAuditRule, methodSymbol.Locations[0]));
                     else
                         ctx.ReportDiagnostic(Diagnostic.Create(Rule, methodSymbol.Locations[0]));
                 }
-
-                // old!
-
-                //var isClassControllerDerived = IsDerivedFromController(classSymbol, group);
-
-                //// if we're not in a controller, and this group _ONLY_ publishes actions through controllers
-                ////   quit early
-                //if (!isClassControllerDerived && !group.ActionAttributes.Any())
-                //    return;
-
-                //bool isClassIgnored = IsClassIgnored(classSymbol, group);
-
-                //if (!Configuration.AuditMode && isClassIgnored)
-                //    return;
-
-                //if (IsClassAnonymous(classSymbol, group))
-                //    return;
-
-                //bool classHasAntiForgeryAttribute = classSymbol.HasDerivedClassAttribute(c => IsAntiForgeryToken(c, group));
-
-                //foreach (var member in classSymbol.GetMembers())
-                //{
-                //    if (!(member is IMethodSymbol methodSymbol))
-                //        continue;
-
-                //    var shouldConsiderMethod =
-                //        isClassControllerDerived || IsMethodAction(methodSymbol, group);
-
-                //    if (!shouldConsiderMethod)
-                //        continue;
-
-                //    var isMethodIgnored = false;
-                //    if (!isClassIgnored)
-                //        isMethodIgnored = IsMethodIgnored(methodSymbol, group);
-
-                //    if (!Configuration.AuditMode && isMethodIgnored)
-                //        continue;
-
-                //    var isArgumentIgnored = false;
-                //    if (!isClassIgnored && !isMethodIgnored)
-                //        isArgumentIgnored = IsArgumentIgnored(methodSymbol, classSymbol, group);
-
-                //    if (!Configuration.AuditMode && isArgumentIgnored)
-                //        continue;
-
-                //    if (!methodSymbol.HasDerivedMethodAttribute(c => IsVulnerableAttribute(c, group)))
-                //        continue;
-
-                //    if (methodSymbol.HasDerivedMethodAttribute(c => IsNonActionAttribute(c, group)))
-                //        continue;
-
-                //    if (methodSymbol.HasDerivedMethodAttribute(c => IsAnonymousAttribute(c, group)))
-                //        continue;
-
-                //    if (!classHasAntiForgeryAttribute && !AntiforgeryAttributeExists(methodSymbol, group))
-                //    {
-                //        if (isClassIgnored || isMethodIgnored)
-                //            ctx.ReportDiagnostic(Diagnostic.Create(AuditRule, methodSymbol.Locations[0]));
-                //        else if (isArgumentIgnored)
-                //            ctx.ReportDiagnostic(Diagnostic.Create(FromBodyAuditRule, methodSymbol.Locations[0]));
-                //        else
-                //            ctx.ReportDiagnostic(Diagnostic.Create(Rule, methodSymbol.Locations[0]));
-                //    }
-                //}
             }
 
-            private static (bool ArgumentsIgnored, bool ArgumentsVulnerable) GetArgumentState(IMethodSymbol methodSymbol, CsrfNamedGroup group)
+            private static (bool ArgumentsIgnored, bool ArgumentsEffectivelyIgnored, bool ArgumentsVulnerable) GetArgumentState(bool auditMode, IMethodSymbol methodSymbol, CsrfNamedGroup group)
             {
                 var argsExplicitlyIgnored = false;
                 var argsExplicitlyVulnerable = false;
@@ -323,19 +263,27 @@ namespace SecurityCodeScan.Analyzers
                     }
                 }
 
-                return (argsExplicitlyIgnored, argsExplicitlyVulnerable);
+                var effective = !auditMode && argsExplicitlyIgnored;
+
+                return (argsExplicitlyIgnored, effective, argsExplicitlyVulnerable);
             }
 
-            private static bool IsClassIgnored(ITypeSymbol classSymbol, CsrfNamedGroup group)
+            private static (bool ExplicitlyIgnored, bool EffectivelyIgnored) IsClassIgnored(bool auditMode, ITypeSymbol classSymbol, CsrfNamedGroup group)
             {
                 if (!group.IgnoreAttributes.Any())
-                    return false;
+                    return (false, false);
 
-                return classSymbol.HasDerivedClassAttribute(c => IsIgnoreAttribute(c, group));
+                var explicitlyIgnored = classSymbol.HasDerivedClassAttribute(c => IsIgnoreAttribute(c, group));
+                var effectivelyIgnored = !auditMode && explicitlyIgnored;
+
+                return (explicitlyIgnored, effectivelyIgnored);
             }
 
-            private static bool IsClassAnonymous(ITypeSymbol classSymbol, CsrfNamedGroup group)
+            private static bool IsClassAnonymous(bool auditMode, ITypeSymbol classSymbol, CsrfNamedGroup group)
             {
+                if (auditMode)
+                    return false;
+
                 if (!group.AnonymousAttributes.Any())
                     return false;
 
@@ -350,12 +298,15 @@ namespace SecurityCodeScan.Analyzers
                 return methodSymbol.HasDerivedMethodAttribute(c => IsAnonymousAttribute(c, group));
             }
 
-            private static bool IsMethodIgnored(IMethodSymbol methodSymbol, CsrfNamedGroup group)
+            private static (bool ExplicitlyIgnored, bool EffectivelyIgnored) IsMethodIgnored(bool auditMode, IMethodSymbol methodSymbol, CsrfNamedGroup group)
             {
                 if (!group.IgnoreAttributes.Any())
-                    return false;
+                    return (false, false);
 
-                return methodSymbol.HasDerivedMethodAttribute(c => IsIgnoreAttribute(c, group));
+                var explicitlyIgnored = methodSymbol.HasDerivedMethodAttribute(c => IsIgnoreAttribute(c, group));
+                var effectivelyIgnored = !auditMode && explicitlyIgnored;
+
+                return (explicitlyIgnored, effectivelyIgnored);
             }
 
             private static bool IsMethodAction(IMethodSymbol methodSymbol, CsrfNamedGroup group)

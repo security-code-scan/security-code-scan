@@ -249,6 +249,26 @@ End Namespace
 
         [TestCategory("Detect")]
         [TestMethod]
+        public async Task UnencodedInputDataExpression()
+        {
+            const string cSharpTest = @"
+using Microsoft.AspNetCore.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestController : Controller
+    {
+        [HttpGet(""{inputData}"")]
+        public string Get(int inputData) => ""value "" + inputData;
+    }
+}
+            ";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [TestMethod]
         public async Task UnencodedInputData()
         {
             const string cSharpTest = @"

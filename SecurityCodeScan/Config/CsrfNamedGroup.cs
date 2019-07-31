@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
-namespace SecurityCodeScan.Analyzers
+namespace SecurityCodeScan.Config
 {
     internal class CsrfAttributeCondition
     {

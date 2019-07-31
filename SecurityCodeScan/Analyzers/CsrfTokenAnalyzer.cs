@@ -176,12 +176,13 @@ namespace SecurityCodeScan.Analyzers
                 if (!isPotentiallyController)
                     return;
 
-                var (controllerExplicitlyIgnored, controllerEffectivelyIgnored) = IsClassIgnored(Configuration.AuditMode, classSymbol, group);
-                var controllerExplicitlyAnonymous = IsClassAnonymous(Configuration.AuditMode, classSymbol, group);
                 var controllerExplicitlySafe = AntiforgeryAttributeExists(classSymbol, group);
 
                 if (controllerExplicitlySafe)
                     return;
+
+                var (controllerExplicitlyIgnored, controllerEffectivelyIgnored) = IsClassIgnored(Configuration.AuditMode, classSymbol, group);
+                var controllerExplicitlyAnonymous = IsClassAnonymous(Configuration.AuditMode, classSymbol, group);
 
                 foreach (var member in classSymbol.GetMembers())
                 {
@@ -216,8 +217,6 @@ namespace SecurityCodeScan.Analyzers
                     if (actionExplicitlyAllowsAnonymous)
                         continue;
 
-                    var actionExplicitlyVulnerable = IsMethodVulnerable(methodSymbol, group);
-
                     var (argsExplicitlyIgnored, argsEffectivelyIgnored, argsExplicitlyVulnerable) =
                         GetArgumentState(Configuration.AuditMode, methodSymbol, group);
 
@@ -226,6 +225,8 @@ namespace SecurityCodeScan.Analyzers
 
                     if (actionImplicitAllowsAnonymous)
                         continue;
+
+                    var actionExplicitlyVulnerable = IsMethodVulnerable(methodSymbol, group);
 
                     var actionVulnerable =
                         !argsEffectivelyIgnored &&

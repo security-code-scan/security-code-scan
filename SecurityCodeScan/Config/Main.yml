@@ -2705,7 +2705,7 @@ Behavior:
     ClassName: NetworkCredential
     Name: .ctor
     Method:
-      InjectableArguments: [SCS0015: [0: ~Constant]]
+      InjectableArguments: [SCS0015: [1: ~Constant]]
 
 # Taint sources
 

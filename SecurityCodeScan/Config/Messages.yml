@@ -171,7 +171,7 @@ SCS0029:
 SCS0015:
   title: "Hardcoded password in {1} argument passed to '{0}'"
   title_assignment: Hardcoded password
-  description: The password configuration to this API appears to be hardcoded. It is suggest to externalized configuration such as password to avoid leakage of secret information.
+  description: The password configuration to this API appears to be hardcoded. Consider moving the password to externalized configuration to avoid leakage of secret information.
 
 SCS0032:
   title: "The RequiredLength property of PasswordValidator should be set to at least {0}"

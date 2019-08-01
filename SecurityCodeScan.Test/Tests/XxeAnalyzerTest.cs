@@ -33,6 +33,37 @@ namespace SecurityCodeScan.Test.XXE
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        [TestMethod]
+        public async Task XPathDocument_XmlReader()
+        {
+            string cSharpTest = @"
+using System.Xml;
+using System.Xml.XPath;
+
+class Xxe
+{
+    public static void parseUpload(XmlReader path)
+    {
+        var document = new XPathDocument(path);
+        var nav = document.CreateNavigator();
+    }
+}";
+
+            string visualBasicTest = @"
+Imports System.Xml
+Imports System.Xml.XPath
+
+Class Xxe
+    Public Shared Sub parseUpload(path As XmlReader)
+        Dim document As New XPathDocument(path)
+        Dim nav = document.CreateNavigator()
+    End Sub
+End Class
+";
+
+            await VerifyNoWarnings(cSharpTest, visualBasicTest).ConfigureAwait(false);
+        }
+
         [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("System.Xml.XPath",                     "XPathDocument")]

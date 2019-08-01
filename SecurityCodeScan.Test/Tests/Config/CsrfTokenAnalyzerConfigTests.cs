@@ -93,7 +93,7 @@ End Namespace
 CsrfProtection:
   - Name: ASP.NET MVC
     AntiCsrfAttributes:
-      - AttributeName: VulnerableApp.TestAttribute
+      - Name: VulnerableApp.TestAttribute
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -164,7 +164,7 @@ End Namespace
 CsrfProtection:
   - Name: ASP.NET Core MVC
     AntiCsrfAttributes:
-      - AttributeName: VulnerableApp.TestAttribute
+      - Name: VulnerableApp.TestAttribute
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -241,10 +241,10 @@ End Namespace
 CsrfProtection:
   - Name: ASP.NET MVC
     VulnerableAttributes:
-      - AttributeName: VulnerableApp.TestAttribute
+      - Name: VulnerableApp.TestAttribute
         Condition: {0: {Value: 2}}
     AntiCsrfAttributes:
-      - AttributeName: VulnerableApp.TestAttribute
+      - Name: VulnerableApp.TestAttribute
         Condition: {1: {Value: true}}
 ";
 

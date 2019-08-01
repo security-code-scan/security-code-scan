@@ -1548,13 +1548,13 @@ CsrfProtection:
   - Name: Stack Overflow Example Config
     ControllerName: VulnerableApp.CustomController
     VulnerableAttributes:
-      - AttributeName: VulnerableApp.CustomRouteAttribute
+      - Name: VulnerableApp.CustomRouteAttribute
         Condition: { 1: { Value:  2 }, EnsureCSRFSafe: { Value: false } }  # Post
-      - AttributeName: VulnerableApp.CustomRouteAttribute
+      - Name: VulnerableApp.CustomRouteAttribute
         Condition: { 1: { Value:  4 }, EnsureCSRFSafe: { Value: false } }  # Put
-      - AttributeName: VulnerableApp.CustomRouteAttribute
+      - Name: VulnerableApp.CustomRouteAttribute
         Condition: { 1: { Value:  8 }, EnsureCSRFSafe: { Value: false } }  # Delete
-      - AttributeName: VulnerableApp.CustomRouteAttribute
+      - Name: VulnerableApp.CustomRouteAttribute
         Condition: { 1: { Value: 32 }, EnsureCSRFSafe: { Value: false } }  # Patch
 ";
 
@@ -1690,9 +1690,9 @@ End Namespace
 CsrfProtection:
   - Name: Test
     VulnerableAttributes:
-      - AttributeName: VulnerableApp.CustomRouteAttribute
+      - Name: VulnerableApp.CustomRouteAttribute
     ActionAttributes:
-      - AttributeName: VulnerableApp.CustomRouteAttribute
+      - Name: VulnerableApp.CustomRouteAttribute
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

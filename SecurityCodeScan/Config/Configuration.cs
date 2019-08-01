@@ -688,9 +688,9 @@ namespace SecurityCodeScan.Config
             {
                 var condition = CreateCsrfAttributeCondition(attr.Condition);
 
-                if (!destination.TryGetValue(attr.AttributeName, out var conditions))
+                if (!destination.TryGetValue(attr.Name, out var conditions))
                 {
-                    destination[attr.AttributeName] = conditions = new List<CsrfAttributeCondition>();
+                    destination[attr.Name] = conditions = new List<CsrfAttributeCondition>();
                 }
 
                 conditions.Add(condition);

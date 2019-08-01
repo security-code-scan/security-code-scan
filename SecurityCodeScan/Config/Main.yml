@@ -11,28 +11,28 @@ AuditMode: false
 #     NameSpace: System.Web.Mvc
 #     (Optional) ControllerName: System.Web.Mvc.Controller
 #     (Optional) NonActionAttributes:
-#       - AttributeName: System.Web.Mvc.NonActionAttribute
+#       - Name: System.Web.Mvc.NonActionAttribute
 #         (Optional) Condition: { 0: { Value: 0}, ...}
 #     (Optional) AllowAnonymousAttributes:
-#       - AttributeName: System.Web.Mvc.AllowAnonymousAttribute
+#       - Name: System.Web.Mvc.AllowAnonymousAttribute
 #         (Optional) Condition: { 0: { Value: 0}, ...}
 #     (Optional) VulnerableAttributes:
-#       - AttributeName: System.Web.Mvc.HttpPostAttribute
+#       - Name: System.Web.Mvc.HttpPostAttribute
 #         (Optional) Condition: { 0: { Value: 0}, ...}
-#       - AttributeName: System.Web.Mvc.HttpPutAttribute
+#       - Name: System.Web.Mvc.HttpPutAttribute
 #         (Optional) Condition: { 0: { Value: 0}, ...}
-#       - AttributeName: System.Web.Mvc.HttpDeleteAttribute
+#       - Name: System.Web.Mvc.HttpDeleteAttribute
 #         (Optional) Condition: { 0: { Value: 0}, ...}
-#       - AttributeName: System.Web.Mvc.HttpPatchAttribute
+#       - Name: System.Web.Mvc.HttpPatchAttribute
 #         (Optional) Condition: { 0: { Value: 0}, ...}
 #     (Optional) AntiCsrfAttributes:
-#       - AttributeName: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
+#       - Name: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
 #         (Optional) Condition: { 0: { Value: 0}, ...}
 #     (Optional) IgnoreAttributes:
-#       - AttributeName: System.Web.Mvc.IgnoreAntiforgeryTokenAttribute
+#       - Name: System.Web.Mvc.IgnoreAntiforgeryTokenAttribute
 #         (Optional) Condition: { 0: { Value: 0}, ...}
 #     (Optional) ActionAttributes:
-#       - AttributeName: System.Web.Mvc.MySpecialActionAttribute
+#       - Name: System.Web.Mvc.MySpecialActionAttribute
 #         (Optional) Condition: { 0: { Value: 0}, ...}
 # <<<
 #
@@ -63,7 +63,7 @@ AuditMode: false
 #
 # Conditions can have integer, string, or boolean values.  
 #  For example
-#    - AttributeName: MyAttribute
+#    - Name: MyAttribute
 #      Condition: { 1: {Value: 32 }, FirstProperty: {Value: foo }, SecondProperty: { Value: true } }
 #  will match 
 #   [My(null, 32, FirstProperty = "foo", SecondProperty = true)]
@@ -72,35 +72,35 @@ CsrfProtection:
   - Name: ASP.NET MVC
     ControllerName: System.Web.Mvc.Controller
     NonActionAttributes:
-      - AttributeName: System.Web.Mvc.NonActionAttribute
+      - Name: System.Web.Mvc.NonActionAttribute
     VulnerableAttributes:
-      - AttributeName: System.Web.Mvc.HttpPostAttribute
-      - AttributeName: System.Web.Mvc.HttpPutAttribute
-      - AttributeName: System.Web.Mvc.HttpDeleteAttribute
-      - AttributeName: System.Web.Mvc.HttpPatchAttribute
+      - Name: System.Web.Mvc.HttpPostAttribute
+      - Name: System.Web.Mvc.HttpPutAttribute
+      - Name: System.Web.Mvc.HttpDeleteAttribute
+      - Name: System.Web.Mvc.HttpPatchAttribute
     AntiCsrfAttributes:
-      - AttributeName: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
+      - Name: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
     AllowAnonymousAttributes:
-      - AttributeName: System.Web.Mvc.AllowAnonymousAttribute
+      - Name: System.Web.Mvc.AllowAnonymousAttribute
   - Name: ASP.NET Core MVC
     ControllerName: Microsoft.AspNetCore.Mvc.Controller
     NonActionAttributes:
-      - AttributeName: Microsoft.AspNetCore.Mvc.NonActionAttribute
+      - Name: Microsoft.AspNetCore.Mvc.NonActionAttribute
     VulnerableAttributes:
-      - AttributeName: Microsoft.AspNetCore.Mvc.HttpPostAttribute
-      - AttributeName: Microsoft.AspNetCore.Mvc.HttpPutAttribute
-      - AttributeName: Microsoft.AspNetCore.Mvc.HttpDeleteAttribute
-      - AttributeName: Microsoft.AspNetCore.Mvc.HttpPatchAttribute
-      - AttributeName: Microsoft.AspNetCore.Mvc.FromFormAttribute
+      - Name: Microsoft.AspNetCore.Mvc.HttpPostAttribute
+      - Name: Microsoft.AspNetCore.Mvc.HttpPutAttribute
+      - Name: Microsoft.AspNetCore.Mvc.HttpDeleteAttribute
+      - Name: Microsoft.AspNetCore.Mvc.HttpPatchAttribute
+      - Name: Microsoft.AspNetCore.Mvc.FromFormAttribute
     AntiCsrfAttributes:
-      - AttributeName: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
-      - AttributeName: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+      - Name: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
+      - Name: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
     IgnoreAttributes:
-      - AttributeName: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
-      - AttributeName: Microsoft.AspNetCore.Mvc.FromBodyAttribute
+      - Name: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
+      - Name: Microsoft.AspNetCore.Mvc.FromBodyAttribute
     AllowAnonymousAttributes:
-      - AttributeName: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
-      - AttributeName: Microsoft.AspNetCore.Mvc.ApiControllerAttribute
+      - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+      - Name: Microsoft.AspNetCore.Mvc.ApiControllerAttribute
 
 # Password validator analysis preferences:
 PasswordValidatorRequiredLength: 8

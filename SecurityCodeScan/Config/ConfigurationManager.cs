@@ -229,7 +229,7 @@ namespace SecurityCodeScan.Config
 
     internal class CsrfAttributeData
     {
-        public string AttributeName        { get; set; }
+        public string Name        { get; set; }
         public Dictionary<object, object> Condition { get; set; }
     }
 }

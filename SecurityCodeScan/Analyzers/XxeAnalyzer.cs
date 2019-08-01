@@ -484,6 +484,13 @@ namespace SecurityCodeScan.Analyzers
                 if (AreDefaultsSecure)
                     return;
 
+                if (SecurityDiagnosticHelpers.GetSpecifiedParameterIndex(symbol,
+                                                                         XmlTypes,
+                                                                         SecurityDiagnosticHelpers.IsXmlReaderType) == 0)
+                {
+                    return;
+                }
+
                 var diag = Diagnostic.Create(XxeDiagnosticAnalyzer.Rule, objectCreationNode.GetLocation());
                 reportDiagnostic(diag);
             }

@@ -218,18 +218,44 @@ namespace SecurityCodeScan.Config
     internal class CsrfProtectionData
     {
         public string Name                                      { get; set; }
-        public string ControllerName                            { get; set; }
-        public List<CsrfAttributeData> NonActionAttributes      { get; set; }
-        public List<CsrfAttributeData> AllowAnonymousAttributes { get; set; }
-        public List<CsrfAttributeData> VulnerableAttributes     { get; set; }
+        public CsrfMessage Message                              { get; set; }
         public List<CsrfAttributeData> AntiCsrfAttributes       { get; set; }
-        public List<CsrfAttributeData> IgnoreAttributes         { get; set; }
-        public List<CsrfAttributeData> ActionAttributes         { get; set; }
+        public CsrfClass Class                                  { get; set; }
+        public CsrfMethod Method                                { get; set; }
+        public CsrfParameter Parameter                          { get; set; }
+    }
+
+    internal class CsrfClass
+    {
+        public List<string> Name             { get; set; }
+        public CsrfIncludeExclude Attributes { get; set; }
+    }
+
+    internal class CsrfMethod
+    {
+        public CsrfIncludeExclude Attributes { get; set; }
+    }
+
+    internal class CsrfParameter
+    {
+        public CsrfIncludeExclude Attributes { get; set; }
+    }
+
+    internal class CsrfIncludeExclude
+    {
+        public List<CsrfAttributeData> Include { get; set; }
+        public List<CsrfAttributeData> Exclude { get; set; }
     }
 
     internal class CsrfAttributeData
     {
-        public string Name        { get; set; }
+        public string Name                          { get; set; }
         public Dictionary<object, object> Condition { get; set; }
+    }
+
+    internal class CsrfMessage
+    {
+        public string Title       { get; set; }
+        public string Description { get; set; }
     }
 }

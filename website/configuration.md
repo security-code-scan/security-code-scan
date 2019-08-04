@@ -65,7 +65,7 @@ An example of user's (per OS user) config-2.1.yml with custom Anti CSRF token:
 CsrfProtection:
   - Name: ASP.NET Core MVC
     AntiCsrfAttributes:
-      - AttributeName: MyNamespace.MyAntiCsrfAttribute
+      - Name: MyNamespace.MyAntiCsrfAttribute
 ```
 
 An example of SecurityCodeScan.config.yml (per project) with custom sink function (method that shouldn't be called with untrusted data without first being sanitized):

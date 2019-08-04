@@ -2,7 +2,6 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Test.AntiCsrf;
-using SecurityCodeScan.Test.Config;
 
 namespace SecurityCodeScan.Test.Audit
 {
@@ -11,14 +10,19 @@ namespace SecurityCodeScan.Test.Audit
     {
         public CoreCsrfTokenAnalyzerAuditTest()
         {
-            Options = ConfigurationTest.CreateAnalyzersOptionsWithConfig("AuditMode: true");
             Expected.Message = "Controller method is vulnerable to CSRF";
+        }
+
+        [ClassInitialize]
+        public static async Task InitOptions(TestContext testContext)
+        {
+            Options = await AuditTest.GetAuditModeConfigOptions();
         }
 
         private const string AuditMessage = "CSRF token validation is explicitly disabled, review if the controller method is vulnerable to CSRF";
         private const string ExpectedFromBodyMessage = "Review if the JSON endpoint doesn't accept text/plain";
 
-        private readonly AnalyzerOptions Options;
+        private static AnalyzerOptions Options;
 
         [TestMethod]
         public async Task CsrfValidateAntiForgeryTokenFromBody()

@@ -1,5 +1,206 @@
 ﻿AuditMode: true
 
+CsrfProtection:
+  - Name: ASP.NET MVC Audit AllowAnonymous
+    Message:
+      Title: Anonymous action without CSRF protection
+      Description: Verify if the action doesn't use authorization token
+    AntiCsrfAttributes:
+      - Name: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
+    Class:
+      Name:
+        - System.Web.Mvc.Controller
+    Method:
+      Attributes:
+        Include:
+          - Name: System.Web.Mvc.HttpPostAttribute
+          - Name: System.Web.Mvc.HttpPutAttribute
+          - Name: System.Web.Mvc.HttpDeleteAttribute
+          - Name: System.Web.Mvc.HttpPatchAttribute
+        Exclude:
+          - Name: System.Web.Mvc.NonActionAttribute
+
+  - Name: ASP.NET Core MVC Audit AllowAnonymous
+    Message:
+      Title: Anonymous action without CSRF protection
+      Description: Verify if the action doesn't use authorization token
+    AntiCsrfAttributes:
+      - Name: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
+      - Name: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+    Class:
+      Name:
+        - Microsoft.AspNetCore.Mvc.Controller
+      Attributes:
+        Exclude:
+          - Name: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
+          - Name: Microsoft.AspNetCore.Mvc.ApiControllerAttribute
+    Method:
+      Attributes:
+        Include:
+          - Name: Microsoft.AspNetCore.Mvc.HttpPostAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpPutAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpDeleteAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpPatchAttribute
+        Exclude:
+          - Name: Microsoft.AspNetCore.Mvc.NonActionAttribute
+          - Name: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
+    Parameter:
+      Attributes:
+        Exclude:
+          - Name: Microsoft.AspNetCore.Mvc.FromBodyAttribute
+
+  - Name: ASP.NET Core MVC ApiController Audit AllowAnonymous
+    Message:
+      Title: Anonymous action without CSRF protection
+      Description: Verify if the action doesn't use authorization token
+    AntiCsrfAttributes:
+      - Name: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
+      - Name: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+    Class:
+      Name:
+        - Microsoft.AspNetCore.Mvc.Controller
+      Attributes:
+        Include:
+          - Name: Microsoft.AspNetCore.Mvc.ApiControllerAttribute
+        Exclude:
+          - Name: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
+    Method:
+      Attributes:
+        Include:
+          - Name: Microsoft.AspNetCore.Mvc.HttpPostAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpPutAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpDeleteAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpPatchAttribute
+        Exclude:
+          - Name: Microsoft.AspNetCore.Mvc.NonActionAttribute
+          - Name: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
+    Parameter:
+      Attributes:
+        Include:
+          - Name: Microsoft.AspNetCore.Mvc.FromFormAttribute
+
+  - Name: ASP.NET Core MVC Audit IgnoreAntiforgeryToken
+    Message:
+      Title: CSRF token validation is explicitly disabled, review if the controller method is vulnerable to CSRF
+      Description: The validation is explicitly disabled with [IgnoreAntiforgeryToken] directly or either in base class or method.
+    AntiCsrfAttributes:
+      - Name: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
+      - Name: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+    Class:
+      Name:
+        - Microsoft.AspNetCore.Mvc.Controller
+      Attributes:
+        Exclude:
+          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+          - Name: Microsoft.AspNetCore.Mvc.ApiControllerAttribute
+    Method:
+      Attributes:
+        Include:
+          - Name: Microsoft.AspNetCore.Mvc.HttpPostAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpPutAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpDeleteAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpPatchAttribute
+        Exclude:
+          - Name: Microsoft.AspNetCore.Mvc.NonActionAttribute
+          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+    Parameter:
+      Attributes:
+        Exclude:
+          - Name: Microsoft.AspNetCore.Mvc.FromBodyAttribute
+
+  - Name: ASP.NET Core MVC ApiController Audit IgnoreAntiforgeryToken
+    Message:
+      Title: CSRF token validation is explicitly disabled, review if the controller method is vulnerable to CSRF
+      Description: The validation is explicitly disabled with [IgnoreAntiforgeryToken] directly or either in base class or method.
+    AntiCsrfAttributes:
+      - Name: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
+      - Name: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+    Class:
+      Name:
+        - Microsoft.AspNetCore.Mvc.Controller
+      Attributes:
+        Include:
+          - Name: Microsoft.AspNetCore.Mvc.ApiControllerAttribute
+        Exclude:
+          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+    Method:
+      Attributes:
+        Include:
+          - Name: Microsoft.AspNetCore.Mvc.HttpPostAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpPutAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpDeleteAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpPatchAttribute
+        Exclude:
+          - Name: Microsoft.AspNetCore.Mvc.NonActionAttribute
+          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+    Parameter:
+      Attributes:
+        Include:
+          - Name: Microsoft.AspNetCore.Mvc.FromFormAttribute
+
+  - Name: ASP.NET Core MVC Audit FromBody
+    Message:
+      Title: Review if the JSON endpoint doesn't accept text/plain
+      Description: If there is code to accept text/plain the endpoint might be vulnerable to CSRF.
+    AntiCsrfAttributes:
+      - Name: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
+      - Name: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+    Class:
+      Name:
+        - Microsoft.AspNetCore.Mvc.Controller
+      Attributes:
+        Exclude:
+          - Name: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
+          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+          - Name: Microsoft.AspNetCore.Mvc.ApiControllerAttribute
+    Method:
+      Attributes:
+        Include:
+          - Name: Microsoft.AspNetCore.Mvc.HttpPostAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpPutAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpDeleteAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpPatchAttribute
+        Exclude:
+          - Name: Microsoft.AspNetCore.Mvc.NonActionAttribute
+          - Name: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
+          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+    Parameter:
+      Attributes:
+        Include:
+          - Name: Microsoft.AspNetCore.Mvc.FromBodyAttribute
+
+  - Name: ASP.NET Core MVC ApiController Audit FromBody
+    Message:
+      Title: Review if the JSON endpoint doesn't accept text/plain
+      Description: If there is code to accept text/plain the endpoint might be vulnerable to CSRF.
+    AntiCsrfAttributes:
+      - Name: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
+      - Name: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+    Class:
+      Name:
+        - Microsoft.AspNetCore.Mvc.Controller
+      Attributes:
+        Include:
+          - Name: Microsoft.AspNetCore.Mvc.ApiControllerAttribute
+        Exclude:
+          - Name: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
+          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+    Method:
+      Attributes:
+        Include:
+          - Name: Microsoft.AspNetCore.Mvc.HttpPostAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpPutAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpDeleteAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpPatchAttribute
+        Exclude:
+          - Name: Microsoft.AspNetCore.Mvc.NonActionAttribute
+          - Name: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
+          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+    Parameter:
+      Attributes:
+        Exclude:
+          - Name: Microsoft.AspNetCore.Mvc.FromFormAttribute
+
 # These field names are case insensitive
 PasswordFields:
   - PASSWORD

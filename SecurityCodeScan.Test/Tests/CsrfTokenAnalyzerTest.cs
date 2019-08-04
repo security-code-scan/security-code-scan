@@ -1546,16 +1546,20 @@ End Namespace
             var testConfig = @"
 CsrfProtection:
   - Name: Stack Overflow Example Config
-    ControllerName: VulnerableApp.CustomController
-    VulnerableAttributes:
-      - Name: VulnerableApp.CustomRouteAttribute
-        Condition: { 1: { Value:  2 }, EnsureCSRFSafe: { Value: false } }  # Post
-      - Name: VulnerableApp.CustomRouteAttribute
-        Condition: { 1: { Value:  4 }, EnsureCSRFSafe: { Value: false } }  # Put
-      - Name: VulnerableApp.CustomRouteAttribute
-        Condition: { 1: { Value:  8 }, EnsureCSRFSafe: { Value: false } }  # Delete
-      - Name: VulnerableApp.CustomRouteAttribute
-        Condition: { 1: { Value: 32 }, EnsureCSRFSafe: { Value: false } }  # Patch
+    Class:
+      Name:
+        - VulnerableApp.CustomController
+    Method:
+      Attributes:
+        Include:
+          - Name: VulnerableApp.CustomRouteAttribute
+            Condition: { 1: { Value:  2 }, EnsureCSRFSafe: { Value: false } }  # Post
+          - Name: VulnerableApp.CustomRouteAttribute
+            Condition: { 1: { Value:  4 }, EnsureCSRFSafe: { Value: false } }  # Put
+          - Name: VulnerableApp.CustomRouteAttribute
+            Condition: { 1: { Value:  8 }, EnsureCSRFSafe: { Value: false } }  # Delete
+          - Name: VulnerableApp.CustomRouteAttribute
+            Condition: { 1: { Value: 32 }, EnsureCSRFSafe: { Value: false } }  # Patch
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -1689,10 +1693,10 @@ End Namespace
             var testConfig = @"
 CsrfProtection:
   - Name: Test
-    VulnerableAttributes:
-      - Name: VulnerableApp.CustomRouteAttribute
-    ActionAttributes:
-      - Name: VulnerableApp.CustomRouteAttribute
+    Method:
+      Attributes:
+        Include:
+          - Name: VulnerableApp.CustomRouteAttribute
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

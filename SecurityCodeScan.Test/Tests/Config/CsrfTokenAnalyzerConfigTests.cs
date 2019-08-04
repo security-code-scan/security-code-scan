@@ -240,9 +240,11 @@ End Namespace
             var testConfig = @"
 CsrfProtection:
   - Name: ASP.NET MVC
-    VulnerableAttributes:
-      - Name: VulnerableApp.TestAttribute
-        Condition: {0: {Value: 2}}
+    Method:
+      Attributes:
+        Include:
+          - Name: VulnerableApp.TestAttribute
+            Condition: {0: {Value: 2}}
     AntiCsrfAttributes:
       - Name: VulnerableApp.TestAttribute
         Condition: {1: {Value: true}}

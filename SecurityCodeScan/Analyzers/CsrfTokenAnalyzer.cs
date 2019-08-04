@@ -15,12 +15,6 @@ namespace SecurityCodeScan.Analyzers
     {
         public const           string               DiagnosticId = "SCS0016";
         public static readonly DiagnosticDescriptor Rule         = LocaleUtil.GetDescriptor(DiagnosticId);
-        public static readonly DiagnosticDescriptor AuditRule    = LocaleUtil.GetDescriptor(DiagnosticId,
-                                                                                            titleId: "title_audit",
-                                                                                            descriptionId: "description_audit");
-        public static readonly DiagnosticDescriptor FromBodyAuditRule = LocaleUtil.GetDescriptor(DiagnosticId,
-                                                                                                 titleId: "title_frombody_audit",
-                                                                                                 descriptionId: "description_frombody_audit");
 
         public override         ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
@@ -111,228 +105,106 @@ namespace SecurityCodeScan.Analyzers
             private static bool IsAntiForgeryToken(AttributeData attributeData, CsrfNamedGroup group)
             => HasApplicableAttribute(attributeData, group.AntiCsrfAttributes);
 
-            private static bool IsAnonymousAttribute(AttributeData attributeData, CsrfNamedGroup group)
-            => HasApplicableAttribute(attributeData, group.AnonymousAttributes);
-
-            private static bool IsVulnerableAttribute(AttributeData attributeData, CsrfNamedGroup group)
-            => HasApplicableAttribute(attributeData, group.VulnerableAttributes);
-
-            private static bool IsNonActionAttribute(AttributeData attributeData, CsrfNamedGroup group)
-            => HasApplicableAttribute(attributeData, group.NonActionAttributes);
-
-            private static bool IsIgnoreAttribute(AttributeData attributeData, CsrfNamedGroup group)
-            => HasApplicableAttribute(attributeData, group.IgnoreAttributes);
-
-            private static bool IsActionAttribute(AttributeData attributeData, CsrfNamedGroup group)
-            => HasApplicableAttribute(attributeData, group.ActionAttributes);
-
-            private static bool IsDerivedFromController(ITypeSymbol classSymbol, CsrfNamedGroup group)
-            {
-                if (!group.Controllers.Any())
-                    return false;
-
-                return classSymbol.IsDerivedFrom(group.Controllers);
-            }
-
             public void VisitClass(SymbolAnalysisContext ctx)
             {
                 var classSymbol = (ITypeSymbol)ctx.Symbol;
+                var diagnostics = new Dictionary<Location, Diagnostic>();
+
                 foreach (var group in Configuration.CsrfGoups)
                 {
-                    VisitClass(ctx, classSymbol, group);
+                    VisitClass(classSymbol, group, diagnostics);
+                }
+
+                foreach (var diagnostic in diagnostics.Values)
+                {
+                    ctx.ReportDiagnostic(diagnostic);
                 }
             }
 
-            private void VisitClass(SymbolAnalysisContext ctx, ITypeSymbol classSymbol, CsrfNamedGroup group)
+            private void VisitClass(ITypeSymbol classSymbol, CsrfNamedGroup group, Dictionary<Location, Diagnostic> diagnostics)
             {
-                /**
-                 * Logic for checking
-                 *   - Actions (that we need to check) are
-                 *     * Public method derived from a registered controller
-                 *     * Having a vulnerable attribute attached to it
-                 *   - We ignore the action if
-                 *     * The controller has an ignore attribute on it
-                 *       + Unless the (potential) action is explicitly annotated as an action
-                 *     * The controller has an allows anonymous attribute on it
-                 *       + Unless the (potential) action is explicitly annotated as an action
-                 *     * The action has an ignore attribute on it
-                 *     * The action has an allows anonymous attribute on it
-                 *   - An action is vulnerable if
-                 *     * It doesn't have a suppressing attribute on itself, or on the controller
-                 *     * It has an explicitly dangerous attribute on one of it's arguments
-                 *     * UNLESS there's an attribute on a parameter that ignores CSRF checking
-                 *
-                 *  Enabling AuditMode makes it so that explicitly ignored classes, methods, or
-                 *    arguments are still checked.  The code uses "effective vs explicit" to denote
-                 *    whether audit mode has impacted a variable (explicitly only looks at attributes,
-                 *    effective considers audit mode).
-                 */
+                if (group?.Class?.Names.Any() == true)
+                {
+                    var descendsFromController = classSymbol.IsDerivedFrom(group.Class.Names);
+                    if (!descendsFromController)
+                        return;
+                }
 
-                var descendsFromController = IsDerivedFromController(classSymbol, group);
-                var couldHaveActionAttribute = group.ActionAttributes.Any();
-
-                var isPotentiallyController = descendsFromController || couldHaveActionAttribute;
-
-                if (!isPotentiallyController)
+                if (AntiforgeryAttributeExists(classSymbol, group))
                     return;
 
-                var controllerExplicitlySafe = AntiforgeryAttributeExists(classSymbol, group);
-
-                if (controllerExplicitlySafe)
+                if (IsClassIgnored(classSymbol, group))
                     return;
-
-                var (controllerExplicitlyIgnored, controllerEffectivelyIgnored) = IsClassIgnored(Configuration.AuditMode, classSymbol, group);
-                var controllerExplicitlyAnonymous = IsClassAnonymous(Configuration.AuditMode, classSymbol, group);
 
                 foreach (var member in classSymbol.GetMembers())
                 {
                     if (!(member is IMethodSymbol methodSymbol))
                         continue;
 
-                    var methodExplicitlyAction = IsMethodAction(methodSymbol, group);
-                    var methodExplicitlyNotAction = IsMethodNonAction(methodSymbol, group);
-
-                    var isAction =
-                        !methodExplicitlyNotAction &&
-                        (descendsFromController || methodExplicitlyAction);
-
-                    if (!isAction)
+                    var location = methodSymbol.Locations[0];
+                    if (diagnostics.ContainsKey(location)) // first CsrfNamedGroup in a sequence wins
                         continue;
 
-                    var (actionExplicitlyIgnored, actionEffectivelyIgnored) = IsMethodIgnored(Configuration.AuditMode, methodSymbol, group);
-
-                    var ignoreAction =
-                        actionEffectivelyIgnored ||
-                        (controllerEffectivelyIgnored && !methodExplicitlyAction);
-
-                    if (ignoreAction)
+                    if (IsMethodIgnored(methodSymbol, group))
                         continue;
 
-                    var actionExplicitlySafe = AntiforgeryAttributeExists(methodSymbol, group);
-                    if (actionExplicitlySafe)
+                    if (AntiforgeryAttributeExists(methodSymbol, group))
                         continue;
 
-                    var actionExplicitlyAllowsAnonymous = IsMethodAnonymous(methodSymbol, group);
-
-                    if (actionExplicitlyAllowsAnonymous)
+                    if (AreParametersSafe(methodSymbol, group))
                         continue;
 
-                    var (argsExplicitlyIgnored, argsEffectivelyIgnored, argsExplicitlyVulnerable) =
-                        GetArgumentState(Configuration.AuditMode, methodSymbol, group);
-
-                    var actionImplicitAllowsAnonymous =
-                        controllerExplicitlyAnonymous && !argsExplicitlyVulnerable;
-
-                    if (actionImplicitAllowsAnonymous)
-                        continue;
-
-                    var actionExplicitlyVulnerable = IsMethodVulnerable(methodSymbol, group);
-
-                    var actionVulnerable =
-                        !argsEffectivelyIgnored &&
-                        (actionExplicitlyVulnerable || argsExplicitlyVulnerable);
-
-                    if (!actionVulnerable)
-                        continue;
-
-                    var auditRuleIgnoredControllerOrAction =
-                        controllerExplicitlyIgnored || actionExplicitlyIgnored;
-
-                    if (auditRuleIgnoredControllerOrAction)
-                        ctx.ReportDiagnostic(Diagnostic.Create(AuditRule, methodSymbol.Locations[0]));
-                    else if (argsExplicitlyIgnored)
-                        ctx.ReportDiagnostic(Diagnostic.Create(FromBodyAuditRule, methodSymbol.Locations[0]));
-                    else
-                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, methodSymbol.Locations[0]));
+                    diagnostics.Add(location, Diagnostic.Create(group.Message != null ? group.Message : Rule, location));
                 }
             }
 
-            private static (bool ArgumentsIgnored, bool ArgumentsEffectivelyIgnored, bool ArgumentsVulnerable) GetArgumentState(bool auditMode, IMethodSymbol methodSymbol, CsrfNamedGroup group)
+            private static bool AreParametersSafe(IMethodSymbol methodSymbol, CsrfNamedGroup group)
             {
-                var argsExplicitlyIgnored = false;
-                var argsExplicitlyVulnerable = false;
-
                 foreach (var arg in methodSymbol.Parameters)
                 {
-                    if (arg.HasAttribute(c => IsIgnoreAttribute(c, group)))
+                    if (arg.HasAttribute(attributeData => HasApplicableAttribute(attributeData, group.Parameter.Exclude)))
                     {
-                        argsExplicitlyIgnored = true;
+                        return true;
                     }
 
-                    if (arg.HasAttribute(c => IsVulnerableAttribute(c, group)))
+                    if (arg.HasAttribute(attributeData => HasApplicableAttribute(attributeData, group.Parameter.Include)))
                     {
-                        argsExplicitlyVulnerable = true;
+                        return false;
                     }
                 }
 
-                var effective = !auditMode && argsExplicitlyIgnored;
-
-                return (argsExplicitlyIgnored, effective, argsExplicitlyVulnerable);
+                return group.Parameter.Include.Any();
             }
 
-            private static (bool ExplicitlyIgnored, bool EffectivelyIgnored) IsClassIgnored(bool auditMode, ITypeSymbol classSymbol, CsrfNamedGroup group)
+            private static bool IsClassIgnored(ITypeSymbol classSymbol, CsrfNamedGroup group)
             {
-                if (!group.IgnoreAttributes.Any())
-                    return (false, false);
-
-                var explicitlyIgnored = classSymbol.HasDerivedClassAttribute(c => IsIgnoreAttribute(c, group));
-                var effectivelyIgnored = !auditMode && explicitlyIgnored;
-
-                return (explicitlyIgnored, effectivelyIgnored);
-            }
-
-            private static bool IsClassAnonymous(bool auditMode, ITypeSymbol classSymbol, CsrfNamedGroup group)
-            {
-                if (auditMode)
+                if (group.Class == null)
                     return false;
 
-                if (!group.AnonymousAttributes.Any())
+                if (!group.Class.Include.Any() && !group.Class.Exclude.Any())
                     return false;
 
-                return classSymbol.HasDerivedClassAttribute(c => IsAnonymousAttribute(c, group));
+                if (classSymbol.HasDerivedClassAttribute(attributeData => HasApplicableAttribute(attributeData, group.Class.Exclude)))
+                    return true;
+
+                if (group.Class.Include.Any())
+                    return !classSymbol.HasDerivedClassAttribute(attributeData => HasApplicableAttribute(attributeData, group.Class.Include));
+
+                return false;
             }
 
-            private static bool IsMethodAnonymous(IMethodSymbol methodSymbol, CsrfNamedGroup group)
+            private static bool IsMethodIgnored(IMethodSymbol methodSymbol, CsrfNamedGroup group)
             {
-                if (!group.AnonymousAttributes.Any())
+                if (!group.Method.Include.Any() && !group.Method.Exclude.Any())
                     return false;
 
-                return methodSymbol.HasDerivedMethodAttribute(c => IsAnonymousAttribute(c, group));
-            }
+                if (methodSymbol.HasDerivedMethodAttribute(attributeData => HasApplicableAttribute(attributeData, group.Method.Exclude)))
+                    return true;
 
-            private static (bool ExplicitlyIgnored, bool EffectivelyIgnored) IsMethodIgnored(bool auditMode, IMethodSymbol methodSymbol, CsrfNamedGroup group)
-            {
-                if (!group.IgnoreAttributes.Any())
-                    return (false, false);
+                if (group.Method.Include.Any())
+                    return !methodSymbol.HasDerivedMethodAttribute(attributeData => HasApplicableAttribute(attributeData, group.Method.Include));
 
-                var explicitlyIgnored = methodSymbol.HasDerivedMethodAttribute(c => IsIgnoreAttribute(c, group));
-                var effectivelyIgnored = !auditMode && explicitlyIgnored;
-
-                return (explicitlyIgnored, effectivelyIgnored);
-            }
-
-            private static bool IsMethodAction(IMethodSymbol methodSymbol, CsrfNamedGroup group)
-            {
-                if (!group.ActionAttributes.Any())
-                    return false;
-
-                return methodSymbol.HasDerivedMethodAttribute(c => IsActionAttribute(c, group));
-            }
-
-            private static bool IsMethodVulnerable(IMethodSymbol methodSymbol, CsrfNamedGroup group)
-            {
-                if (!group.VulnerableAttributes.Any())
-                    return false;
-
-                return methodSymbol.HasDerivedMethodAttribute(c => IsVulnerableAttribute(c, group));
-            }
-
-            private static bool IsMethodNonAction(IMethodSymbol methodSymbol, CsrfNamedGroup group)
-            {
-                if (!group.NonActionAttributes.Any())
-                    return false;
-
-                return methodSymbol.HasDerivedMethodAttribute(c => IsNonActionAttribute(c, group));
+                return false;
             }
 
             private static bool AntiforgeryAttributeExists(ITypeSymbol classSymbol, CsrfNamedGroup group)
@@ -340,7 +212,7 @@ namespace SecurityCodeScan.Analyzers
                 if (!group.AntiCsrfAttributes.Any())
                     return false;
 
-                return classSymbol.HasDerivedClassAttribute(c => IsAntiForgeryToken(c, group)); ;
+                return classSymbol.HasDerivedClassAttribute(c => IsAntiForgeryToken(c, group));
             }
 
             private static bool AntiforgeryAttributeExists(IMethodSymbol methodSymbol, CsrfNamedGroup group)

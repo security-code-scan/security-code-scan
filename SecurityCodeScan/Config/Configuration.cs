@@ -23,7 +23,8 @@ namespace SecurityCodeScan.Config
             _TaintEntryPoints = new HashSet<string>();
             TaintEntryPoints  = new ReadOnlyHashSet<string>(_TaintEntryPoints);
 
-            _AntiCsrfAttributes = new Dictionary<string, List<string>>();
+            _CsrfGroupsList = new LinkedList<CsrfNamedGroup>();
+            _CsrfGroups = new Dictionary<string, LinkedListNode<CsrfNamedGroup>>();
 
             _PasswordFields = new HashSet<string>();
             PasswordFields  = new ReadOnlyHashSet<string>(_PasswordFields);
@@ -49,7 +50,14 @@ namespace SecurityCodeScan.Config
             _TaintEntryPoints = new HashSet<string>(config.TaintEntryPoints);
             TaintEntryPoints  = new ReadOnlyHashSet<string>(_TaintEntryPoints);
 
-            _AntiCsrfAttributes = config.AntiCsrfAttributes.ToDictionary();
+            _CsrfGroupsList = new LinkedList<CsrfNamedGroup>(config.CsrfGoups);
+            _CsrfGroups = new Dictionary<string, LinkedListNode<CsrfNamedGroup>>(config.CsrfGoups.Count);
+            var node = _CsrfGroupsList.First;
+            while (node != null)
+            {
+                _CsrfGroups.Add(node.Value.Name, node);
+                node = node.Next;
+            }
 
             _PasswordFields = new HashSet<string>(config.PasswordFields);
             PasswordFields  = new ReadOnlyHashSet<string>(_PasswordFields);
@@ -93,9 +101,9 @@ namespace SecurityCodeScan.Config
                                                                                 source.Value?.Method?.ArgTypes));
             }
 
-            foreach (var data in configData.CsrfProtectionAttributes)
+            foreach (var data in configData.CsrfProtection)
             {
-                AddAntiCsrfTAttributeToConfiguration(data);
+                AddCsrfProtectionToConfiguration(data);
             }
 
             if (configData.PasswordFields != null)
@@ -122,9 +130,6 @@ namespace SecurityCodeScan.Config
         private readonly HashSet<string>         _TaintEntryPoints;
         public           ReadOnlyHashSet<string> TaintEntryPoints { get; }
 
-        private readonly Dictionary<string, List<string>>          _AntiCsrfAttributes;
-        public           IReadOnlyDictionary<string, List<string>> AntiCsrfAttributes => _AntiCsrfAttributes;
-
         private readonly HashSet<string>         _PasswordFields;
         public           ReadOnlyHashSet<string> PasswordFields { get; }
 
@@ -137,6 +142,10 @@ namespace SecurityCodeScan.Config
         private readonly Dictionary<string, KeyValuePair<string, MethodBehavior>> ConfigurationBehavior;
         // once merged the configuration Id is not used: the key is method signature parts
         public IReadOnlyDictionary<string, MethodBehavior> Behavior { get; private set; }
+
+        private readonly LinkedList<CsrfNamedGroup>                         _CsrfGroupsList; // ensure groups are exposed in the same order they were added
+        private readonly Dictionary<string, LinkedListNode<CsrfNamedGroup>> _CsrfGroups;
+        public IReadOnlyCollection<CsrfNamedGroup> CsrfGoups => _CsrfGroupsList;
 
         public void MergeWith(ConfigData config)
         {
@@ -192,11 +201,20 @@ namespace SecurityCodeScan.Config
                 }
             }
 
-            if (config.CsrfProtectionAttributes != null)
+            if (config.CsrfProtection != null)
             {
-                foreach (var data in config.CsrfProtectionAttributes)
+                foreach (var data in config.CsrfProtection)
                 {
-                    AddAntiCsrfTAttributeToConfiguration(data);
+                    if (data.Class == null && data.AntiCsrfAttributes == null && data.Method == null && data.Parameter == null)
+                    {
+                        if (_CsrfGroups.TryGetValue(data.Name, out var node))
+                        {
+                            _CsrfGroupsList.Remove(node);
+                            _CsrfGroups.Remove(data.Name);
+                        }
+                    }
+                    else
+                        AddCsrfProtectionToConfiguration(data);
                 }
             }
 
@@ -652,16 +670,21 @@ namespace SecurityCodeScan.Config
                                                                                     GetField(injectable)));
         }
 
-        public void AddAntiCsrfTAttributeToConfiguration(CsrfProtectionData csrfData)
+        public void AddCsrfProtectionToConfiguration(CsrfProtectionData csrfData)
         {
-            AntiCsrfAttributes.TryGetValue(csrfData.HttpMethodsNameSpace, out var list);
-            if (list == null)
-            {
-                list                                               = new List<string>();
-                _AntiCsrfAttributes[csrfData.HttpMethodsNameSpace] = list;
-            }
+            if (string.IsNullOrWhiteSpace(csrfData.Name))
+                throw new Exception($"{nameof(CsrfProtectionData.Name)} is required in CsrfProtection");
 
-            list.Add(csrfData.AntiCsrfAttribute);
+            if (!_CsrfGroups.TryGetValue(csrfData.Name, out var curGroupNode))
+            {
+                var curGroup = new CsrfNamedGroup(csrfData);
+                var node = _CsrfGroupsList.AddLast(curGroup);
+                _CsrfGroups.Add(csrfData.Name, node);
+            }
+            else
+            {
+                curGroupNode.Value.AddFrom(csrfData);
+            }
         }
     }
 }

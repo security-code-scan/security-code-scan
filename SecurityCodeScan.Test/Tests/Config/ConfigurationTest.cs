@@ -9,10 +9,10 @@ using Moq;
 
 namespace SecurityCodeScan.Test.Config
 {
-    public class ConfigurationTest
+    public sealed class ConfigurationTest
     {
         private const string ConfigName = "SecurityCodeScan.config.yml";
-        private static readonly Version ConfigVersion = new Version(2,0);
+        private static readonly Version ConfigVersion = new Version(2,1);
         private const string ConfigText = "Version: {0}\r\n{1}";
 
         public static AnalyzerOptions CreateAnalyzersOptionsWithConfig(string  configSource, Version version = null)

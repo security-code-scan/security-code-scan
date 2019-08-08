@@ -23,8 +23,21 @@ namespace SecurityCodeScan.Analyzers.Locale
                                             helpLinkUri: "https://security-code-scan.github.io/#" + id,
                                             description: args == null ?
                                                              localDesc :
-                                                             string.Format(localDesc.ToString(), args)
-            );
+                                                             string.Format(localDesc.ToString(), args));
+        }
+
+        public static DiagnosticDescriptor GetDescriptorByText(string id, string localTitle, string localDesc, string[] args = null)
+        {
+            return new DiagnosticDescriptor(id,
+                                            localTitle,
+                                            localTitle,
+                                            "Security",
+                                            DiagnosticSeverity.Warning,
+                                            isEnabledByDefault: true,
+                                            helpLinkUri: "https://security-code-scan.github.io/#" + id,
+                                            description: args == null ?
+                                                             localDesc :
+                                                             string.Format(localDesc.ToString(), args));
         }
 
         public static IEnumerable<DiagnosticDescriptor> GetAllAvailableDescriptors()

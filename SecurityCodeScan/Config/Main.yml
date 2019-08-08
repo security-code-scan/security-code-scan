@@ -3,19 +3,158 @@
 # Set to 'true' to see more warnings
 AuditMode: false
 
-# Allows to define custom anti CSRF attribute
-# HttpMethodsNameSpace must be System.Web.Mvc or Microsoft.AspNetCore.Mvc.
-# AntiCsrfAttribute should be applicable to Class and Method and be inheritable. Multiple instances should not be allowed. For example:
-# [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-# public class MyCustomAntiCsrfAttribute : Attribute {}
-# Otherwise CsrfTokenAnalyzer may not work properly.
-CsrfProtectionAttributes:
-  - HttpMethodsNameSpace: System.Web.Mvc
-    AntiCsrfAttribute: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
-  - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
-    AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
-  - HttpMethodsNameSpace: Microsoft.AspNetCore.Mvc
-    AntiCsrfAttribute: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+# Allows to define custom anti CSRF attributes and conditions
+# The format is:
+# <<<
+# CsrfProtection:
+#   - Name: "Unique group name. If a group only with the name is provided, it deletes already existing group with the same name. Use it to override existing settings."
+#     Message: # Optional.
+#       Title: "Warning title to display if matched"
+#       Description: "Detailed warning message"
+#     AntiCsrfAttributes: # Optional. A list of attributes which indicate that CSRF checking is automated on the class or method.
+#       - Name: "Fully qualified name of the attribute"
+#         Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+#       - Name: "Fully qualified name of the attribute"
+#         Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+#     Class: # Optional. Either 'Name:' or 'Attributes:' below must be specified. Settings checked against the class being analyzed.
+#       Name: # Optional. Apply the rule to classes derived from the list.
+#         - "Fully qualified name of the class"
+#         - "Fully qualified name of the class"
+#       Attributes: # Optional. Class attributes to filter by.
+#         Include: # Optional. Apply the rule to classes with any of the attributes below.
+#           - Name: "Fully qualified name of the attribute"
+#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+#           - Name: "Fully qualified name of the attribute"
+#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+#         Exclude: # Optional. Do not apply the rule to classes with any of the attributes below.
+#           - Name: "Fully qualified name of the attribute"
+#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+#           - Name: "Fully qualified name of the attribute"
+#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+#     Method: # Optional. Settings checked against the method being analyzed.
+#       Attributes: # Method attributes to filter by.
+#         Include: # Optional. Apply the rule to methods with any of the attributes below.
+#           - Name: "Fully qualified name of the attribute"
+#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+#           - Name: "Fully qualified name of the attribute"
+#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+#         Exclude: # Optional. Do not apply the rule to methods with any of the attributes below.
+#           - Name: "Fully qualified name of the attribute"
+#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+#           - Name: "Fully qualified name of the attribute"
+#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+#     Parameter: # Optional. Settings checked against the parameter of a method being analyzed.
+#       Attributes: # Parameter attributes to filter by.
+#         Include: # Optional. Apply the rule to parameters with any of the attributes below.
+#           - Name: "Fully qualified name of the attribute"
+#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+#           - Name: "Fully qualified name of the attribute"
+#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+#         Exclude: # Optional. Do not apply the rule to parameters with any of the attributes below.
+#           - Name: "Fully qualified name of the attribute"
+#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+#           - Name: "Fully qualified name of the attribute"
+#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+# <<<
+#
+# Multiple entries with unique Name are supported.
+# To add additional anti CSRF tokens to an existing rule do in user or project config:
+# CsrfProtection:
+#   - Name: ASP.NET MVC
+#     AntiCsrfAttributes:
+#       - Name: "Fully qualified name of the custom anti CSRF attribute"
+#
+# The analysis starts from a class down to method parameters. If all rules apply (like a presence and absence of a specific attributes)
+#  the method needs CSRF protection.
+#
+# All *Attributes entries have an optional Condition, which is a dictionary of constructor parameters (indicated by indexes) and
+#  Property names to Values.  Attributes with conditions will only be considered when the condition is true, attributes
+#  without conditions will always be considered.
+#
+# Conditions can have integer, string, or boolean values.  
+#  For example
+#    - Name: MyAttribute
+#      Condition: { 1: {Value: 32 }, FirstProperty: {Value: foo }, SecondProperty: { Value: true } }
+#  will match 
+#   [My(null, 32, FirstProperty = "foo", SecondProperty = true)]
+
+CsrfProtection:
+  - Name: ASP.NET MVC
+    AntiCsrfAttributes:
+      - Name: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
+    Class:
+      Name:
+        - System.Web.Mvc.Controller
+      Attributes:
+        Exclude:
+          - Name: System.Web.Mvc.AllowAnonymousAttribute
+    Method:
+      Attributes:
+        Include:
+          - Name: System.Web.Mvc.HttpPostAttribute
+          - Name: System.Web.Mvc.HttpPutAttribute
+          - Name: System.Web.Mvc.HttpDeleteAttribute
+          - Name: System.Web.Mvc.HttpPatchAttribute
+        Exclude:
+          - Name: System.Web.Mvc.NonActionAttribute
+          - Name: System.Web.Mvc.AllowAnonymousAttribute
+
+  - Name: ASP.NET Core MVC
+    AntiCsrfAttributes:
+      - Name: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
+      - Name: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+    Class:
+      Name:
+        - Microsoft.AspNetCore.Mvc.Controller
+      Attributes:
+        Exclude:
+          - Name: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
+          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+          - Name: Microsoft.AspNetCore.Mvc.ApiControllerAttribute
+    Method:
+      Attributes:
+        Include:
+          - Name: Microsoft.AspNetCore.Mvc.HttpPostAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpPutAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpDeleteAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpPatchAttribute
+        Exclude:
+          - Name: Microsoft.AspNetCore.Mvc.NonActionAttribute
+          - Name: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
+          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+    Parameter:
+      Attributes:
+        Exclude:
+          - Name: Microsoft.AspNetCore.Mvc.FromBodyAttribute
+
+  - Name: ASP.NET Core MVC ApiController
+    AntiCsrfAttributes:
+      - Name: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
+      - Name: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+    Class:
+      Name:
+        - Microsoft.AspNetCore.Mvc.Controller
+      Attributes:
+        Include:
+          - Name: Microsoft.AspNetCore.Mvc.ApiControllerAttribute
+        Exclude:
+          - Name: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
+          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+    Method:
+      Attributes:
+        Include:
+          - Name: Microsoft.AspNetCore.Mvc.HttpPostAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpPutAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpDeleteAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpPatchAttribute
+        Exclude:
+          - Name: Microsoft.AspNetCore.Mvc.NonActionAttribute
+          - Name: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
+          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+    Parameter:
+      Attributes:
+        Include:
+          - Name: Microsoft.AspNetCore.Mvc.FromFormAttribute
 
 # Password validator analysis preferences:
 PasswordValidatorRequiredLength: 8

@@ -630,6 +630,10 @@ namespace SecurityCodeScan.Config
             if (behaviorDict.TryGetValue("Name", out value))
                 name = (string)value;
 
+            Dictionary<object, object> condition = null;
+            if (behaviorDict.TryGetValue("Condition", out value))
+                condition = (Dictionary<object, object>)value;
+
             string                     argTypes            = null;
             Dictionary<object, object> ifCondition         = null;
             IReadOnlyList<object>      injectableArguments = null;
@@ -664,7 +668,8 @@ namespace SecurityCodeScan.Config
             var key = MethodBehaviorHelper.GetMethodBehaviorKey(nameSpace, className, name, argTypes);
 
             var mainPostConditions = GetPostConditions(method);
-            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetPreConditions(ifCondition, mainPostConditions),
+            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(condition,
+                                                                                    GetPreConditions(ifCondition, mainPostConditions),
                                                                                     mainPostConditions,
                                                                                     GetInjectableArguments(injectableArguments),
                                                                                     GetField(injectable)));

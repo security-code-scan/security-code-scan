@@ -657,7 +657,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 Logger.Log(symbol.ContainingType + "." + symbol.Name + " -> " + argumentState);
 #endif
 
-                if (behavior != null)
+                if (behavior != null && BehaviorApplies(behavior.AppliesUnderCondition, argList.Arguments, state))
                 {
                     if ((argumentState.Taint & (ProjectConfiguration.AuditMode
                                                     ? VariableTaint.Tainted | VariableTaint.Unknown
@@ -754,6 +754,12 @@ namespace SecurityCodeScan.Analyzers.Taint
             }
 
             return returnState;
+        }
+
+        private bool BehaviorApplies(IReadOnlyDictionary<object, object> condition, SeparatedSyntaxList<ArgumentSyntax> args, ExecutionState state)
+        {
+            // todo: implement
+            return true;
         }
 
         private VariableState VisitNamedFieldInitializer(NamedFieldInitializerSyntax node, ExecutionState state, VariableState currentScope)

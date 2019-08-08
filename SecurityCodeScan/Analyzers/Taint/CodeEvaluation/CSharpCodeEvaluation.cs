@@ -670,8 +670,8 @@ namespace SecurityCodeScan.Analyzers.Taint
 #if DEBUG
                 Logger.Log(symbol.ContainingType + "." + symbol.Name + " -> " + argumentState);
 #endif
-
-                if (behavior != null)
+                
+                if (behavior != null && BehaviorApplies(behavior.AppliesUnderCondition, argList.Arguments, state))
                 {
                     if ((argumentState.Taint & (ProjectConfiguration.AuditMode
                                                     ? VariableTaint.Tainted | VariableTaint.Unknown
@@ -778,6 +778,25 @@ namespace SecurityCodeScan.Analyzers.Taint
             }
 
             return returnState;
+        }
+
+        private bool BehaviorApplies(IReadOnlyDictionary<object, object> condition, SeparatedSyntaxList<ArgumentSyntax> args, ExecutionState state)
+        {
+            if (condition == null)
+                return true;
+
+            foreach (var kv in condition)
+            {
+                var ix = (int)kv.Key;
+                var expectedVal = kv.Value;
+
+                if (ix >= args.Count)
+                    return false;
+
+                var codeVal = state.GetSymbol(args[ix]);
+            }
+
+            return true;
         }
 
         private VariableState VisitAssignment(AssignmentExpressionSyntax node, ExecutionState state)

@@ -327,5 +327,103 @@ End Class
             await VerifyCSharpDiagnostic(cSharpTest2).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
+
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task ConditionalOpenRedirect()
+        {
+            var cSharpTest1 = $@"
+using Microsoft.AspNetCore.Mvc;
+
+class OpenRedirect : Controller
+{{
+    public ActionResult Vulnerable(string scary)
+    {{
+        return ConditionalRedirect(scary, false);
+    }}
+
+    public ActionResult Safe(string notScary)
+    {{
+        return ConditionalRedirect(notScary, true);
+    }}
+
+    private ActionResult ConditionalRedirect(string url, bool internalOnly)
+    {{
+        // pretend this does something
+        return null;
+    }}
+}}
+";
+            var cSharpTest2 = $@"
+using Microsoft.AspNetCore.Mvc;
+
+class OpenRedirect : Controller
+{{
+    public ActionResult Vulnerable(string scary)
+    {{
+        return ConditionalRedirect(scary, false);
+    }}
+
+    public ActionResult VulnerableNamed(string scary)
+    {{
+        return ConditionalRedirect(internalOnly: false, input: scary);
+    }}
+
+    public ActionResult Safe(string notScary)
+    {{
+        return ConditionalRedirect(notScary);
+    }}
+
+    public ActionResult SafeNamed1(string notScary)
+    {{
+        return ConditionalRedirect(input: notScary);
+    }}
+
+    public ActionResult SafeNamed2(string notScary)
+    {{
+        return ConditionalRedirect(internalOnly: true, input: notScary);
+    }}
+
+    private ActionResult ConditionalRedirect(string url, bool internalOnly = true)
+    {{
+        // pretend this does something
+        return null;
+    }}
+}}
+";
+
+
+            var testConfig = @"
+Behavior:
+
+  Conditional:
+    ClassName: OpenRedirect
+    Name: ConditionalRedirect
+    Method:
+      Condition: {1: { Value: false } }
+      ArgTypes: (System.String, System.Boolean)
+      InjectableArguments: [SCS0027: 0]
+";
+
+            var expectedCSharp1 =
+                new[]
+                {
+                    Expected.WithLocation(8, 36)
+                };
+
+            var expectedCSharp2 =
+                new[]
+                {
+                    Expected.WithLocation(0,0),
+                    Expected.WithLocation(0,0)
+
+                };
+
+            var config = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest1, expectedCSharp1, options: config).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest2, expectedCSharp2, options: config).ConfigureAwait(false);
+
+            // todo: VB
+        }
     }
 }

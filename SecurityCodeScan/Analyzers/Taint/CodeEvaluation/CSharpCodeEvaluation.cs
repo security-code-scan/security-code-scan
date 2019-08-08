@@ -670,8 +670,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 #if DEBUG
                 Logger.Log(symbol.ContainingType + "." + symbol.Name + " -> " + argumentState);
 #endif
-                
-                if (behavior != null && BehaviorApplies(behavior.AppliesUnderCondition, argList.Arguments, state))
+                if (behavior != null && BehaviorApplies(behavior.AppliesUnderCondition, methodSymbol, argList.Arguments, state))
                 {
                     if ((argumentState.Taint & (ProjectConfiguration.AuditMode
                                                     ? VariableTaint.Tainted | VariableTaint.Unknown
@@ -780,20 +779,97 @@ namespace SecurityCodeScan.Analyzers.Taint
             return returnState;
         }
 
-        private bool BehaviorApplies(IReadOnlyDictionary<object, object> condition, SeparatedSyntaxList<ArgumentSyntax> args, ExecutionState state)
+        private bool BehaviorApplies(IReadOnlyDictionary<object, object> condition, IMethodSymbol methodSymbol, SeparatedSyntaxList<ArgumentSyntax> args, ExecutionState state)
         {
-            if (condition == null)
+            if (condition == null || condition.Count == 0)
                 return true;
 
+            if (methodSymbol == null)
+                return false;
+
+            var ps = methodSymbol.GetParameters();
+
+            var vals = new object[ps.Length];
+            for(var i = 0; i < ps.Length; i++)
+            {
+                var p = ps[i];
+                if(p.HasExplicitDefaultValue)
+                {
+                    vals[i] = p.ExplicitDefaultValue;
+                }
+                else
+                {
+                    vals[i] = null;
+                }
+            }
+
+            var argIx = 0;
+            foreach (var arg in args)
+            {
+                // todo: named arguments?
+                var val = state.AnalysisContext.SemanticModel.GetConstantValue(arg.Expression);
+                if(val.HasValue)
+                {
+                    vals[argIx] = val.Value;
+                }
+
+                argIx++;
+            }
+            
             foreach (var kv in condition)
             {
-                var ix = (int)kv.Key;
-                var expectedVal = kv.Value;
+                var ix = int.Parse((string)kv.Key);
 
-                if (ix >= args.Count)
+                if (ix >= vals.Length)
                     return false;
 
-                var codeVal = state.GetSymbol(args[ix]);
+                var expectedVal = ((IReadOnlyDictionary<object, object>)kv.Value)["Value"];
+                var codeVal = vals[ix];
+
+                if(codeVal == null)
+                {
+                    return false;
+                }
+
+                if(codeVal is string codeValStr)
+                {
+                    if (!codeValStr.Equals(expectedVal.ToString()))
+                        return false;
+                }
+
+                if(codeVal is int codeValInt)
+                {
+                    int expectedInt;
+                    if(expectedVal is int)
+                    {
+                        expectedInt = (int)expectedVal;
+                    }
+                    else
+                    {
+                        if (!int.TryParse(expectedVal.ToString(), out expectedInt))
+                            return false;
+                    }
+
+                    if (codeValInt != expectedInt)
+                        return false;
+                }
+
+                if(codeVal is bool codeValBool)
+                {
+                    bool expectedBool;
+                    if(expectedVal is bool)
+                    {
+                        expectedBool = (bool)expectedVal;
+                    }
+                    else
+                    {
+                        if (!bool.TryParse(expectedVal.ToString(), out expectedBool))
+                            return false;
+                    }
+
+                    if (codeValBool != expectedBool)
+                        return false;
+                }
             }
 
             return true;

@@ -58,13 +58,11 @@ class Test
         if (output == null)
             return;
     }
-
     public void Injectable(string input)
     {
         // pretend it does something
     }
 }
-
 class TestInput
 {
     public void Input(string userProvided)
@@ -82,11 +80,9 @@ Class Test
     Public Sub Encode(ByVal input As String, ByVal Optional x As Integer = 0, ByVal Optional output As System.Text.StringBuilder = Nothing)
         If output Is Nothing Then Return
     End Sub
-
     Public Sub Injectable(ByVal input As String)
     End Sub
 End Class
-
 Class TestInput
     Public Sub Input(ByVal userProvided As String)
         Dim t = New Test()
@@ -110,7 +106,6 @@ Behavior:
     Method:
       2:
         TaintFromArguments: [0]
-
 TaintEntryPoints:
   Test:
     ClassName: TestInput
@@ -118,40 +113,40 @@ TaintEntryPoints:
 
             var testConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(config);
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(23), testConfig).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(16), testConfig).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(21), testConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(14), testConfig).ConfigureAwait(false);
         }
 
         [DataTestMethod]
-        [DataRow("Injectable", "userProvided, userProvided",          true)]
-        [DataRow("Injectable", "\"\", userProvided",                  false)]
-        [DataRow("Injectable", "userProvided, \"\"",                  true)]
-        [DataRow("Injectable", "\"\", \"\"",                          false)]
-        [DataRow("Injectable", "dangerous: userProvided, safe: \"\"", true)]
-        [DataRow("Injectable", "dangerous: \"\", safe: userProvided", false)]
-        [DataRow("Injectable", "safe: userProvided, dangerous: \"\"", false)]
-        [DataRow("Injectable", "safe: \"\", dangerous: userProvided", true)]
+        [DataRow("Injectable", "userProvided, userProvided",            true)]
+        [DataRow("Injectable", "\"\", userProvided",                    false)]
+        [DataRow("Injectable", "userProvided, \"\"",                    true)]
+        [DataRow("Injectable", "\"\", \"\"",                            false)]
+        [DataRow("Injectable", "dangerous: userProvided, safe: \"\"",   true)]
+        [DataRow("Injectable", "dangerous: \"\", safe: userProvided",   false)]
+        [DataRow("Injectable", "safe: userProvided, dangerous: \"\"",   false)]
+        [DataRow("Injectable", "safe: \"\", dangerous: userProvided",   true)]
 
-        [DataRow("Injectable2", "userProvided, userProvided",          true)]
-        [DataRow("Injectable2", "\"\", userProvided",                  false)]
-        [DataRow("Injectable2", "userProvided, \"\"",                  true)]
-        [DataRow("Injectable2", "\"\", \"\"",                          false)]
-        [DataRow("Injectable2", "dangerous: userProvided, safe: \"\"", true)]
-        [DataRow("Injectable2", "dangerous: \"\", safe: userProvided", false)]
-        [DataRow("Injectable2", "safe: userProvided, dangerous: \"\"", false)]
-        [DataRow("Injectable2", "safe: \"\", dangerous: userProvided", true)]
+        [DataRow("Injectable2", "userProvided, userProvided",           true)]
+        [DataRow("Injectable2", "\"\", userProvided",                   false)]
+        [DataRow("Injectable2", "userProvided, \"\"",                   true)]
+        [DataRow("Injectable2", "\"\", \"\"",                           false)]
+        [DataRow("Injectable2", "dangerous: userProvided, safe: \"\"",  true)]
+        [DataRow("Injectable2", "dangerous: \"\", safe: userProvided",  false)]
+        [DataRow("Injectable2", "safe: userProvided, dangerous: \"\"",  false)]
+        [DataRow("Injectable2", "safe: \"\", dangerous: userProvided",  true)]
 
-        [DataRow("InjectableOpt", "",                           false)]
-        [DataRow("InjectableOpt", "userProvided, userProvided", true)]
-        [DataRow("InjectableOpt", "safe: userProvided",         false)]
-        [DataRow("InjectableOpt", "dangerous: userProvided",    true)]
-        [DataRow("InjectableOpt", "dangerous: \"\"",            false)]
+        [DataRow("InjectableOpt", "",                                   false)]
+        [DataRow("InjectableOpt", "userProvided, userProvided",         true)]
+        [DataRow("InjectableOpt", "safe: userProvided",                 false)]
+        [DataRow("InjectableOpt", "dangerous: userProvided",            true)]
+        [DataRow("InjectableOpt", "dangerous: \"\"",                    false)]
 
-        [DataRow("InjectableOpt2", "",                           false)]
-        [DataRow("InjectableOpt2", "userProvided, userProvided", true)]
-        [DataRow("InjectableOpt2", "safe: userProvided",         false)]
-        [DataRow("InjectableOpt2", "dangerous: userProvided",    true)]
-        [DataRow("InjectableOpt2", "dangerous: \"\"",            false)]
+        [DataRow("InjectableOpt2", "",                                  false)]
+        [DataRow("InjectableOpt2", "userProvided, userProvided",        true)]
+        [DataRow("InjectableOpt2", "safe: userProvided",                false)]
+        [DataRow("InjectableOpt2", "dangerous: userProvided",           true)]
+        [DataRow("InjectableOpt2", "dangerous: \"\"",                   false)]
         public async Task NamedArguments(string function, string payload, bool warn)
         {
             var cSharpTest = $@"
@@ -161,26 +156,22 @@ class Test
     {{
         // pretend it does something
     }}
-
     public void InjectableOpt(string dangerous=""foo"", string safe=""bar"")
     {{
         // pretend it does something
     }}
 }}
-
 static class TestExtensions
 {{
     public static void Injectable2(this Test self, string dangerous, string safe)
     {{
         // pretend it does something
     }}
-
     public static void InjectableOpt2(this Test self, string dangerous=""foo"", string safe=""bar"")
     {{
         // pretend it does something
     }}
 }}
-
 class TestInput
 {{
     public void Input(string userProvided)
@@ -195,25 +186,20 @@ class TestInput
 
             var vbTest = $@"
 Imports System.Runtime.CompilerServices
-
 Class Test
     Public Sub Injectable(ByVal dangerous As String, ByVal safe As String)
     End Sub
-
     Public Sub InjectableOpt(ByVal Optional dangerous As String = ""foo"", ByVal Optional safe As String = ""bar"")
     End Sub
 End Class
-
 Module TestExtensions
     <Extension()>
     Public Sub Injectable2(ByVal self As Test, ByVal dangerous As String, ByVal safe As String)
     End Sub
-
     <Extension()>
     Public Sub InjectableOpt2(ByVal self As Test, ByVal Optional dangerous As String = ""foo"", ByVal Optional safe As String = ""bar"")
     End Sub
 End Module
-
 Class TestInput
     Public Sub Input(ByVal userProvided As String)
         Dim a As New Test()
@@ -244,7 +230,6 @@ Behavior:
     Name: InjectableOpt2
     Method:
       InjectableArguments: [SCS0026: 1]
-
 TaintEntryPoints:
   Test:
     ClassName: TestInput
@@ -254,8 +239,8 @@ TaintEntryPoints:
 
             if (warn)
             {
-                await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(32), testConfig).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(25), testConfig).ConfigureAwait(false);
+                await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(28), testConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(20), testConfig).ConfigureAwait(false);
             }
             else
             {

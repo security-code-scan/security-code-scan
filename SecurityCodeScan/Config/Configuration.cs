@@ -482,7 +482,7 @@ namespace SecurityCodeScan.Config
             foreach (var argument in arguments)
             {
                 var argKey = (string)argument.Key;
-                if (argKey == "ArgTypes" || argKey == "If" || argKey == "InjectableArguments")
+                if (argKey == "ArgTypes" || argKey == "If" || argKey == "InjectableArguments" || argKey == "Condition")
                     continue;
 
                 if (!(argument.Value is Dictionary<object, object> d))
@@ -614,6 +614,37 @@ namespace SecurityCodeScan.Config
             }
         }
 
+        private void ValidateCondition(IDictionary<object, object> condition)
+        {
+            foreach(var key in condition.Keys.ToList())
+            {
+                if (!(key is int conditionIndex) && !(key is string str && int.TryParse(str, out conditionIndex)))
+                    throw new Exception("Condition key must be an argument index");
+
+                var val = condition[key];
+
+                // force condition to have a integer typed keys
+                condition.Remove(key);
+                condition[conditionIndex] = val;
+
+                if(conditionIndex < 0)
+                    throw new Exception("Condition key must be an argument index >= 0");
+
+                if(!(val is IReadOnlyDictionary<object, object> valDict))
+                    throw new Exception("Condition value must be a dictionary");
+
+                if(valDict.Count != 1)
+                    throw new Exception("Condition dictionary must have a single value");
+
+                if(!valDict.TryGetValue("Value", out var conditionValue))
+                    throw new Exception("Condition dictionary must contain 'Value'");
+
+                var validConditionValue = conditionValue is string || val is int || val is bool;
+                if (!validConditionValue)
+                    throw new Exception("Condition value must be a string, integer, or boolean");
+            }
+        }
+
         private KeyValuePair<string, MethodBehavior> CreateBehavior(object behavior)
         {
             var behaviorDict = (Dictionary<object, object>)behavior;
@@ -633,6 +664,7 @@ namespace SecurityCodeScan.Config
             string                     argTypes            = null;
             Dictionary<object, object> ifCondition         = null;
             IReadOnlyList<object>      injectableArguments = null;
+            Dictionary<object, object> condition = null;
 
             Dictionary<object, object> method = null;
             if (behaviorDict.TryGetValue("Method", out value))
@@ -649,6 +681,12 @@ namespace SecurityCodeScan.Config
 
                 if (method.TryGetValue("InjectableArguments", out value))
                     injectableArguments = (IReadOnlyList<object>)value;
+
+                if (method.TryGetValue("Condition", out value))
+                {
+                    condition = (Dictionary<object, object>)value;
+                    ValidateCondition(condition);
+                }
             }
 
             object injectable = null;
@@ -664,7 +702,8 @@ namespace SecurityCodeScan.Config
             var key = MethodBehaviorHelper.GetMethodBehaviorKey(nameSpace, className, name, argTypes);
 
             var mainPostConditions = GetPostConditions(method);
-            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(GetPreConditions(ifCondition, mainPostConditions),
+            return new KeyValuePair<string, MethodBehavior>(key, new MethodBehavior(condition,
+                                                                                    GetPreConditions(ifCondition, mainPostConditions),
                                                                                     mainPostConditions,
                                                                                     GetInjectableArguments(injectableArguments),
                                                                                     GetField(injectable)));

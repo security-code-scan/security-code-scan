@@ -637,6 +637,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                                      ? new Dictionary<int, VariableState>(argCount.Value)
                                      : null;
 
+            var behaviorApplies = behavior != null && BehaviorApplies(behavior.AppliesUnderCondition, methodSymbol, argList?.Arguments, state);
+
             for (var i = 0; i < argList?.Arguments.Count; i++)
             {
                 var argument      = argList.Arguments[i];
@@ -653,7 +655,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 Logger.Log(symbol.ContainingType + "." + symbol.Name + " -> " + argumentState);
 #endif
 
-                if (behavior != null)
+                if (behaviorApplies)
                 {
                     if ((argumentState.Taint & (ProjectConfiguration.AuditMode
                                                     ? VariableTaint.Tainted | VariableTaint.Unknown
@@ -757,6 +759,91 @@ namespace SecurityCodeScan.Analyzers.Taint
             }
 
             return returnState;
+        }
+
+        private bool BehaviorApplies(IReadOnlyDictionary<object, object> condition, IMethodSymbol methodSymbol, SeparatedSyntaxList<ArgumentSyntax>? args, ExecutionState state)
+        {
+            if (condition == null || condition.Count == 0)
+                return true;
+
+            if (methodSymbol == null)
+                return false;
+
+            if (args == null)
+                return false;
+
+            var ps = methodSymbol.GetParameters();
+
+            var vals = new string[ps.Length];
+            for (var i = 0; i < ps.Length; i++)
+            {
+                var p = ps[i];
+                if (p.HasExplicitDefaultValue)
+                {
+                    vals[i] = p.ExplicitDefaultValue?.ToString();
+                }
+                else
+                {
+                    vals[i] = null;
+                }
+            }
+
+            var lexicalIx = 0;
+            foreach (var arg in args)
+            {
+                var destIx = methodSymbol?.FindArgumentIndex(lexicalIx, arg) ?? lexicalIx;
+
+                Optional<object> val;
+                if(arg is SimpleArgumentSyntax simple)
+                {
+                    val = state.AnalysisContext.SemanticModel.GetConstantValue(simple.Expression);
+                }
+                else
+                {
+                    val = new Optional<object>();
+                }
+
+                if (val.HasValue)
+                {
+                    vals[destIx] = val.Value?.ToString();
+                }
+
+                lexicalIx++;
+            }
+
+            foreach (int ix in condition.Keys)
+            {
+                var val = (IReadOnlyDictionary<object, object>)condition[ix];
+                var expectedVal = val["Value"];
+                var codeVal = vals[ix];
+
+                if (codeVal == null)
+                    return false;
+
+                switch (expectedVal)
+                {
+                    case string expectValStr:
+                    if (!codeVal.Equals(expectedVal))
+                        return false;
+
+                    break;
+                    case int expectedValInt:
+                    if (!int.TryParse(codeVal, out var codeValInt) || codeValInt != expectedValInt)
+                        return false;
+
+                    break;
+                    case bool expectedValBool:
+                    if (!bool.TryParse(codeVal, out var codeValBool) || codeValBool != expectedValBool)
+                        return false;
+
+                    break;
+                    default:
+                    // types are validated as part of parsing configuration, so this case should never be hit
+                    throw new InvalidOperationException("Condition value was not one of string, int, or bool; shouldn't be possible");
+                }
+            }
+
+            return true;
         }
 
         private VariableState VisitNamedFieldInitializer(NamedFieldInitializerSyntax node, ExecutionState state, VariableState currentScope)

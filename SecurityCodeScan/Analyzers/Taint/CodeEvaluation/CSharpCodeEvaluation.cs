@@ -806,16 +806,53 @@ namespace SecurityCodeScan.Analyzers.Taint
             var argIx = 0;
             foreach (var arg in args)
             {
-                // todo: named arguments?
-                var val = state.AnalysisContext.SemanticModel.GetConstantValue(arg.Expression);
-                if(val.HasValue)
+                int destIx;
+
+                if(arg.NameColon != null)
                 {
-                    vals[argIx] = val.Value;
+                    argIx = -1;
+
+                    var name = arg.NameColon.Name.Identifier.ValueText;
+                    var pIx = -1;
+                    for(var i = 0; i < ps.Length; i++)
+                    {
+                        var p = ps[i];
+                        if(p.Name.Equals(name))
+                        {
+                            pIx = i;
+                            break;
+                        }
+                    }
+
+                    if (pIx == -1)
+                    {
+                        // whelp, this isn't valid... so just bail
+                        return false;
+                    }
+
+                    destIx = pIx;
+                }
+                else
+                {
+                    if(argIx == -1)
+                    {
+                        // something really screwy has happened, and we can't infer argument position anymore; bail
+                        return false;
+                    }
+
+                    destIx = argIx;
+
+                    argIx++;
                 }
 
-                argIx++;
+
+                var val = state.AnalysisContext.SemanticModel.GetConstantValue(arg.Expression);
+                if (val.HasValue)
+                {
+                    vals[destIx] = val.Value;
+                }
             }
-            
+
             foreach (var kv in condition)
             {
                 var ix = int.Parse((string)kv.Key);

@@ -2,7 +2,6 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Test.AntiCsrf;
-using SecurityCodeScan.Test.Config;
 
 namespace SecurityCodeScan.Test.Audit
 {
@@ -11,17 +10,64 @@ namespace SecurityCodeScan.Test.Audit
     {
         public CoreCsrfTokenAnalyzerAuditTest()
         {
-            Options = ConfigurationTest.CreateAnalyzersOptionsWithConfig("AuditMode: true");
             Expected.Message = "Controller method is vulnerable to CSRF";
+        }
+
+        [ClassInitialize]
+        public static async Task InitOptions(TestContext testContext)
+        {
+            Options = await AuditTest.GetAuditModeConfigOptions();
         }
 
         private const string AuditMessage = "CSRF token validation is explicitly disabled, review if the controller method is vulnerable to CSRF";
         private const string ExpectedFromBodyMessage = "Review if the JSON endpoint doesn't accept text/plain";
 
-        private readonly AnalyzerOptions Options;
+        private static AnalyzerOptions Options;
 
         [TestMethod]
         public async Task CsrfValidateAntiForgeryTokenFromBody()
+        {
+            var cSharpTest = $@"
+using {Namespace};
+
+namespace VulnerableApp
+{{
+    public class TestController : Controller
+    {{
+        [HttpPost]
+        public virtual void ControllerMethod([FromBody]string input) {{
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports {Namespace}
+
+Namespace VulnerableApp
+    Public Class TestController
+        Inherits Controller
+
+        <HttpPost> _
+        Public Overridable Sub ControllerMethod(<FromBody> input As String)
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(9, 29)
+                                                             .WithMessage(ExpectedFromBodyMessage),
+                                         Options)
+                .ConfigureAwait(false);
+
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(9, 32)
+                                                                       .WithMessage(ExpectedFromBodyMessage),
+                                              Options)
+                .ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task CsrfValidateAntiForgeryTokenFromBodyApiController()
         {
             var cSharpTest = $@"
 using {Namespace};

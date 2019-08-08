@@ -6,7 +6,7 @@ using SecurityCodeScan.Test.Config;
 
 namespace SecurityCodeScan.Test.Audit
 {
-    public class AuditTest : ConfigurationTest
+    public sealed class AuditTest
     {
         private const string ConfigPath = @"Config\AuditMode.yml";
 
@@ -16,7 +16,7 @@ namespace SecurityCodeScan.Test.Audit
                                                                                     using (var file = File.OpenText(ConfigPath))
                                                                                     {
                                                                                         var testConfig = await file.ReadToEndAsync().ConfigureAwait(false);
-                                                                                        return CreateAnalyzersOptionsWithConfig(testConfig);
+                                                                                        return ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
                                                                                     }
                                                                                 });
 

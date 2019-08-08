@@ -23,7 +23,7 @@ namespace SecurityCodeScan.Config
         private static readonly Lazy<string> UserConfigFileCached =
             new Lazy<string>(() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), UserConfigName));
 
-        private static readonly Version ConfigVersion = new Version(2,0);
+        private static readonly Version ConfigVersion = new Version(2,1);
 
         private T DeserializeAndValidate<T>(StreamReader reader) where T : ConfigData
         {
@@ -151,7 +151,7 @@ namespace SecurityCodeScan.Config
         public List<string>                            PasswordValidatorRequiredProperties { get; set; }
         public Dictionary<string, object>              Behavior                            { get; set; }
         public Dictionary<string, TaintEntryPointData> TaintEntryPoints                    { get; set; }
-        public List<CsrfProtectionData>                CsrfProtectionAttributes            { get; set; }
+        public List<CsrfProtectionData>                CsrfProtection                      { get; set; }
         public List<string>                            PasswordFields                      { get; set; }
         public List<string>                            ConstantFields                      { get; set; }
         public List<string>                            TaintTypes                          { get; set; }
@@ -194,7 +194,45 @@ namespace SecurityCodeScan.Config
 
     internal class CsrfProtectionData
     {
-        public string HttpMethodsNameSpace { get; set; }
-        public string AntiCsrfAttribute    { get; set; }
+        public string Name                                      { get; set; }
+        public CsrfMessage Message                              { get; set; }
+        public List<CsrfAttributeData> AntiCsrfAttributes       { get; set; }
+        public CsrfClass Class                                  { get; set; }
+        public CsrfMethod Method                                { get; set; }
+        public CsrfParameter Parameter                          { get; set; }
+    }
+
+    internal class CsrfClass
+    {
+        public List<string> Name             { get; set; }
+        public CsrfIncludeExclude Attributes { get; set; }
+    }
+
+    internal class CsrfMethod
+    {
+        public CsrfIncludeExclude Attributes { get; set; }
+    }
+
+    internal class CsrfParameter
+    {
+        public CsrfIncludeExclude Attributes { get; set; }
+    }
+
+    internal class CsrfIncludeExclude
+    {
+        public List<CsrfAttributeData> Include { get; set; }
+        public List<CsrfAttributeData> Exclude { get; set; }
+    }
+
+    internal class CsrfAttributeData
+    {
+        public string Name                          { get; set; }
+        public Dictionary<object, object> Condition { get; set; }
+    }
+
+    internal class CsrfMessage
+    {
+        public string Title       { get; set; }
+        public string Description { get; set; }
     }
 }

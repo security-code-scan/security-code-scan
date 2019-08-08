@@ -80,6 +80,7 @@
     <Compile Include="Analyzers\XxeAnalyzerVBasic.cs" />
     <Compile Include="Config\ConfigurationManager.cs" />
     <Compile Include="Config\Configuration.cs" />
+    <Compile Include="Config\CsrfNamedGroup.cs" />
     <Compile Include="Empty.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

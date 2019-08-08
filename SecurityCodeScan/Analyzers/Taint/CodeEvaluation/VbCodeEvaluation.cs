@@ -636,12 +636,15 @@ namespace SecurityCodeScan.Analyzers.Taint
                                  argCount.Value > 0 &&
                                  (postConditions?.Any(c => c.Key != -1 && (c.Value.Taint != 0ul || c.Value.TaintFromArguments.Any())) == true ||
                                   methodSymbol != null && methodSymbol.Parameters.Any(x => x.RefKind != RefKind.None))
-                                     ? new VariableState[argCount.Value]
+                                     ? new VariableState[methodSymbol.Parameters.Length]
                                      : null;
 
             for (var i = 0; i < argList?.Arguments.Count; i++)
             {
                 var argument      = argList.Arguments[i];
+
+                var adjustedArgumentIdx = methodSymbol?.FindArgumentIndex(i, argument) ?? i;
+
                 var argumentState = VisitExpression(argument.GetExpression(), state);
                 if (argumentStates != null)
                     argumentStates[i] = argumentState;
@@ -649,8 +652,6 @@ namespace SecurityCodeScan.Analyzers.Taint
 #if DEBUG
                 Logger.Log(symbol.ContainingType + "." + symbol.Name + " -> " + argumentState);
 #endif
-
-                var adjustedArgumentIdx = isExtensionMethod ? i + 1 : i;
 
                 if (behavior != null)
                 {
@@ -703,30 +704,32 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             if (argumentStates != null)
             {
-                for (var i = 0; i < argList.Arguments.Count; i++)
+                for (var trueArgIx = 0; trueArgIx < argumentStates.Length; trueArgIx++)
                 {
-                    var adjustedPostConditionIdx = isExtensionMethod ? i + 1 : i;
+                    // wasn't initialized
+                    if (argumentStates[trueArgIx] == null)
+                        continue;
 
-                    if (postConditions != null && postConditions.TryGetValue(adjustedPostConditionIdx, out var postCondition))
+                    if (postConditions != null && postConditions.TryGetValue(trueArgIx, out var postCondition))
                     {
                         foreach (var argIdx in postCondition.TaintFromArguments)
                         {
                             var adjustedArgumentIdx = isExtensionMethod ? argIdx + 1 : argIdx;
-                            argumentStates[adjustedPostConditionIdx].MergeTaint(argumentStates[adjustedArgumentIdx].Taint);
+                            argumentStates[trueArgIx].MergeTaint(argumentStates[adjustedArgumentIdx].Taint);
                         }
 
-                        argumentStates[adjustedPostConditionIdx].ApplyTaint(postCondition.Taint);
+                        argumentStates[trueArgIx].ApplyTaint(postCondition.Taint);
                     }
                     else if (methodSymbol != null)
                     {
-                        if (i >= methodSymbol.Parameters.Length)
+                        if (trueArgIx >= methodSymbol.Parameters.Length)
                         {
                             if (!methodSymbol.Parameters[methodSymbol.Parameters.Length - 1].IsParams)
                                 throw new IndexOutOfRangeException();
                         }
-                        else if (methodSymbol.Parameters[i].RefKind != RefKind.None)
+                        else if (methodSymbol.Parameters[trueArgIx].RefKind != RefKind.None)
                         {
-                            argumentStates[i].MergeTaint(returnState.Taint);
+                            argumentStates[trueArgIx].MergeTaint(returnState.Taint);
                         }
                     }
                 }

@@ -49,6 +49,98 @@ namespace SecurityCodeScan.Test.Taint
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        [TestMethod]
+        public async Task NamedArguments()
+        {
+            var cSharpTest = @"
+class Test
+{
+    public void Input(string userProvided)
+    {
+        // dangerous!
+        Injectable(userProvided, userProvided);
+
+        // safe
+        Injectable("""", userProvided);
+
+        // dangerous!
+        Injectable(userProvided, """");
+
+        // dagnerous!
+        Injectable(dangerous: userProvided, safe: """");
+
+        // safe
+        Injectable(dangerous: """", safe: userProvided);
+
+        // safe
+        Injectable(safe: userProvided, dangerous: """");
+
+        // dangerous!
+        Injectable(safe: """", dangerous: userProvided);
+    }
+
+    private void Injectable(string dangerous, string safe)
+    {
+        // pretend it does something
+    }
+}
+";
+
+            var vbTest = @"
+Class Test
+    Public Sub Input(ByVal userProvided As String)
+        Injectable(userProvided, userProvided)
+        Injectable("", "", userProvided)
+        Injectable(userProvided, "", "")
+        Injectable(dangerous:=userProvided, safe:="", "")
+        Injectable(dangerous:="", "", safe:=userProvided)
+        Injectable(safe:=userProvided, dangerous:="", "")
+        Injectable(safe:="", "", dangerous:=userProvided)
+    End Sub
+
+    Private Sub Injectable(ByVal dangerous As String, ByVal safe As String)
+    End Sub
+End Class
+";
+
+            var config = @"
+Behavior:
+  Injectable:
+    ClassName: Test
+    Name: Injectable
+    Method:
+      ArgTypes: (System.String, System.String)
+      InjectableArguments: [SCS0026: 0]
+
+TaintEntryPoints:
+  Test:
+    ClassName: Test
+";
+
+            var testConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(config);
+
+            var expectedCSharp =
+                new[]
+                {
+                    Expected.WithLocation(7, 20),
+                    Expected.WithLocation(13, 20),
+                    Expected.WithLocation(16, 31),
+                    Expected.WithLocation(25, 41),
+                };
+
+            var expectedVB =
+                new[]
+                {
+                    Expected.WithLocation(4, 20),
+                    Expected.WithLocation(6, 20),
+                    Expected.WithLocation(7, 31),
+                    Expected.WithLocation(10, 43),
+                };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expectedCSharp, testConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest, expectedVB, testConfig).ConfigureAwait(false);
+        }
+
         [TestCategory("Safe")]
         [TestMethod]
         public async Task MethodMemberAccessWithVb()

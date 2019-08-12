@@ -631,12 +631,14 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                                           ? VariableTaint.Unset
                                                                           : VariableTaint.Unknown);
 
+            var reducedMethodSymbol = (methodSymbol.ReducedFrom ?? methodSymbol);
+            var methodParameterCount = methodSymbol != null ? reducedMethodSymbol.Parameters.Length : 0;
             var argCount = argList?.Arguments.Count;
             var argumentStates = argCount.HasValue &&
                                  argCount.Value > 0 &&
                                  (postConditions?.Any(c => c.Key != -1 && (c.Value.Taint != 0ul || c.Value.TaintFromArguments.Any())) == true ||
-                                  methodSymbol != null && methodSymbol.Parameters.Any(x => x.RefKind != RefKind.None))
-                                     ? new VariableState[(methodSymbol.ReducedFrom ?? methodSymbol).Parameters.Length]
+                                  methodSymbol != null && reducedMethodSymbol.Parameters.Any(x => x.RefKind != RefKind.None))
+                                     ? new VariableState[methodParameterCount]
                                      : null;
 
             for (var i = 0; i < argList?.Arguments.Count; i++)
@@ -682,10 +684,10 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                 var argumentToSearch = adjustedArgumentIdx;
                 if (methodSymbol != null                           &&
-                    i            >= methodSymbol.Parameters.Length &&
-                    methodSymbol.Parameters[methodSymbol.Parameters.Length - 1].IsParams)
+                    i            >= methodParameterCount &&
+                    reducedMethodSymbol.Parameters[methodParameterCount - 1].IsParams)
                 {
-                    argumentToSearch = isExtensionMethod ? methodSymbol.Parameters.Length : methodSymbol.Parameters.Length - 1;
+                    argumentToSearch = methodParameterCount - 1;
                 }
 
                 if (returnPostCondition == null ||
@@ -722,12 +724,12 @@ namespace SecurityCodeScan.Analyzers.Taint
                     }
                     else if (methodSymbol != null)
                     {
-                        if (trueArgIx >= methodSymbol.Parameters.Length)
+                        if (trueArgIx >= methodParameterCount)
                         {
-                            if (!methodSymbol.Parameters[methodSymbol.Parameters.Length - 1].IsParams)
+                            if (!reducedMethodSymbol.Parameters[methodParameterCount - 1].IsParams)
                                 throw new IndexOutOfRangeException();
                         }
-                        else if (methodSymbol.Parameters[trueArgIx].RefKind != RefKind.None)
+                        else if (reducedMethodSymbol.Parameters[trueArgIx].RefKind != RefKind.None)
                         {
                             argumentStates[trueArgIx].MergeTaint(returnState.Taint);
                         }
@@ -739,7 +741,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 methodSymbol        != null &&
                 methodSymbol.ReturnsVoid    &&
                 !methodSymbol.IsStatic      &&
-                methodSymbol.Parameters.All(x => x.RefKind == RefKind.None))
+                reducedMethodSymbol.Parameters.All(x => x.RefKind == RefKind.None))
             {
                 memberVariableState.MergeTaint(returnState.Taint);
             }

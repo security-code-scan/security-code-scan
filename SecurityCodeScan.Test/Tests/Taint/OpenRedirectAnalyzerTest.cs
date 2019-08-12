@@ -414,13 +414,12 @@ Behavior:
             var expectedCSharp2 =
                 new[]
                 {
-                    Expected.WithLocation(0,0),
-                    Expected.WithLocation(0,0)
-
+                    Expected.WithLocation(8, 36),
+                    Expected.WithLocation(13, 62)
                 };
 
             var config = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
-            //await VerifyCSharpDiagnostic(cSharpTest1, expectedCSharp1, options: config).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest1, expectedCSharp1, options: config).ConfigureAwait(false);
             await VerifyCSharpDiagnostic(cSharpTest2, expectedCSharp2, options: config).ConfigureAwait(false);
 
             // todo: VB

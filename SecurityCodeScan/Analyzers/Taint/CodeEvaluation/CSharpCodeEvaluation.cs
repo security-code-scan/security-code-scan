@@ -817,6 +817,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                 var val = state.AnalysisContext.SemanticModel.GetConstantValue(arg.Expression);
                 if (val.HasValue)
                 {
+                    if (destIx >= vals.Length)
+                        return false;
+
                     vals[destIx] = val.Value;
                 }
 

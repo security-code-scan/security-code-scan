@@ -636,7 +636,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                  argCount.Value > 0 &&
                                  (postConditions?.Any(c => c.Key != -1 && (c.Value.Taint != 0ul || c.Value.TaintFromArguments.Any())) == true ||
                                   methodSymbol != null && methodSymbol.Parameters.Any(x => x.RefKind != RefKind.None))
-                                     ? new VariableState[methodSymbol.Parameters.Length]
+                                     ? new VariableState[(methodSymbol.ReducedFrom ?? methodSymbol).Parameters.Length]
                                      : null;
 
             for (var i = 0; i < argList?.Arguments.Count; i++)
@@ -646,7 +646,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 var adjustedArgumentIdx = methodSymbol?.FindArgumentIndex(i, argument) ?? i;
 
                 var argumentState = VisitExpression(argument.GetExpression(), state);
-                if (argumentStates != null)
+                if (argumentStates != null && adjustedArgumentIdx < argumentStates.Length)
                     argumentStates[i] = argumentState;
 
 #if DEBUG

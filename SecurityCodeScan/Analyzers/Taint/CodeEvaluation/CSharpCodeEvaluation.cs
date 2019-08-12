@@ -655,6 +655,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                                      ? new Dictionary<int, VariableState>(argCount.Value)
                                      : null;
 
+            var behaviorApplies = behavior != null && BehaviorApplies(behavior.AppliesUnderCondition, methodSymbol, argList?.Arguments, state);
+
+
             for (var i = 0; i < argList?.Arguments.Count; i++)
             {
                 var argument      = argList.Arguments[i];
@@ -670,7 +673,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 #if DEBUG
                 Logger.Log(symbol.ContainingType + "." + symbol.Name + " -> " + argumentState);
 #endif
-                if (behavior != null && BehaviorApplies(behavior.AppliesUnderCondition, methodSymbol, argList.Arguments, state))
+                if (behaviorApplies)
                 {
                     if ((argumentState.Taint & (ProjectConfiguration.AuditMode
                                                     ? VariableTaint.Tainted | VariableTaint.Unknown
@@ -779,12 +782,15 @@ namespace SecurityCodeScan.Analyzers.Taint
             return returnState;
         }
 
-        private bool BehaviorApplies(IReadOnlyDictionary<object, object> condition, IMethodSymbol methodSymbol, SeparatedSyntaxList<ArgumentSyntax> args, ExecutionState state)
+        private bool BehaviorApplies(IReadOnlyDictionary<object, object> condition, IMethodSymbol methodSymbol, SeparatedSyntaxList<ArgumentSyntax>? args, ExecutionState state)
         {
             if (condition == null || condition.Count == 0)
                 return true;
 
             if (methodSymbol == null)
+                return false;
+
+            if (args == null)
                 return false;
 
             var ps = methodSymbol.GetParameters();

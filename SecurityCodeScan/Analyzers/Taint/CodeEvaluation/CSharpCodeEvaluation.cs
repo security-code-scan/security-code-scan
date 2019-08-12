@@ -803,54 +803,18 @@ namespace SecurityCodeScan.Analyzers.Taint
                 }
             }
 
-            var argIx = 0;
+            var lexicalIx = 0;
             foreach (var arg in args)
             {
-                int destIx;
-
-                if(arg.NameColon != null)
-                {
-                    argIx = -1;
-
-                    var name = arg.NameColon.Name.Identifier.ValueText;
-                    var pIx = -1;
-                    for(var i = 0; i < ps.Length; i++)
-                    {
-                        var p = ps[i];
-                        if(p.Name.Equals(name))
-                        {
-                            pIx = i;
-                            break;
-                        }
-                    }
-
-                    if (pIx == -1)
-                    {
-                        // whelp, this isn't valid... so just bail
-                        return false;
-                    }
-
-                    destIx = pIx;
-                }
-                else
-                {
-                    if(argIx == -1)
-                    {
-                        // something really screwy has happened, and we can't infer argument position anymore; bail
-                        return false;
-                    }
-
-                    destIx = argIx;
-
-                    argIx++;
-                }
-
+                var destIx = methodSymbol?.FindArgumentIndex(lexicalIx, arg) ?? lexicalIx;
 
                 var val = state.AnalysisContext.SemanticModel.GetConstantValue(arg.Expression);
                 if (val.HasValue)
                 {
                     vals[destIx] = val.Value;
                 }
+
+                lexicalIx++;
             }
 
             foreach (var kv in condition)

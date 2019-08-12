@@ -795,13 +795,13 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             var ps = methodSymbol.GetParameters();
 
-            var vals = new object[ps.Length];
+            var vals = new string[ps.Length];
             for(var i = 0; i < ps.Length; i++)
             {
                 var p = ps[i];
                 if(p.HasExplicitDefaultValue)
                 {
-                    vals[i] = p.ExplicitDefaultValue;
+                    vals[i] = p.ExplicitDefaultValue?.ToString();
                 }
                 else
                 {
@@ -820,7 +820,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     if (destIx >= vals.Length)
                         return false;
 
-                    vals[destIx] = val.Value;
+                    vals[destIx] = val.Value?.ToString();
                 }
 
                 lexicalIx++;
@@ -836,50 +836,11 @@ namespace SecurityCodeScan.Analyzers.Taint
                 var expectedVal = ((IReadOnlyDictionary<object, object>)kv.Value)["Value"];
                 var codeVal = vals[ix];
 
-                if(codeVal == null)
-                {
+                if (codeVal == null)
                     return false;
-                }
 
-                if(codeVal is string codeValStr)
-                {
-                    if (!codeValStr.Equals(expectedVal.ToString()))
-                        return false;
-                }
-
-                if(codeVal is int codeValInt)
-                {
-                    int expectedInt;
-                    if(expectedVal is int)
-                    {
-                        expectedInt = (int)expectedVal;
-                    }
-                    else
-                    {
-                        if (!int.TryParse(expectedVal.ToString(), out expectedInt))
-                            return false;
-                    }
-
-                    if (codeValInt != expectedInt)
-                        return false;
-                }
-
-                if(codeVal is bool codeValBool)
-                {
-                    bool expectedBool;
-                    if(expectedVal is bool)
-                    {
-                        expectedBool = (bool)expectedVal;
-                    }
-                    else
-                    {
-                        if (!bool.TryParse(expectedVal.ToString(), out expectedBool))
-                            return false;
-                    }
-
-                    if (codeValBool != expectedBool)
-                        return false;
-                }
+                if (!codeVal.Equals(expectedVal.ToString()))
+                    return false;
             }
 
             return true;

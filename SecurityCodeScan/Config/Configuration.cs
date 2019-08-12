@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Analyzers.Utils;
@@ -12,6 +13,11 @@ namespace SecurityCodeScan.Config
     /// </summary>
     internal class Configuration
     {
+        static Configuration()
+        {
+            //Debugger.Launch();
+        }
+
         public Configuration()
         {
             _PasswordValidatorRequiredProperties = new HashSet<string>();

@@ -400,7 +400,7 @@ Behavior:
     ClassName: OpenRedirect
     Name: ConditionalRedirect
     Method:
-      Condition: {1: { Value: false } }
+      Condition: {1: { Value: False } }
       ArgTypes: (System.String, System.Boolean)
       InjectableArguments: [SCS0027: 0]
 ";

@@ -79,28 +79,141 @@ class Test
         Injectable(safe: """", dangerous: userProvided);
     }
 
+    public void InputExt(string userProvided)
+    {
+        // dangerous!
+        this.Injectable(userProvided, userProvided);
+
+        // safe
+        this.Injectable("""", userProvided);
+
+        // dangerous!
+        this.Injectable(userProvided, """");
+
+        // dagnerous!
+        this.Injectable(dangerous: userProvided, safe: """");
+
+        // safe
+        this.Injectable(dangerous: """", safe: userProvided);
+
+        // safe
+        this.Injectable(safe: userProvided, dangerous: """");
+
+        // dangerous!
+        this.Injectable(safe: """", dangerous: userProvided);
+    }
+
+    public void InputOpt(string userProvided)
+    {
+        // safe
+        InjectableOpt();
+
+        // dangerous!
+        InjectableOpt(userProvided, userProvided);
+
+        // safe
+        InjectableOpt(safe: userProvided);
+
+        // dangerous!
+        InjectableOpt(dangerous: userProvided);
+    }
+
+    public void InputOptExt(string userProvided)
+    {
+        // safe
+        this.InjectableOpt();
+
+        // dangerous!
+        this.InjectableOpt(userProvided, userProvided);
+
+        // safe
+        this.InjectableOpt(safe: userProvided);
+
+        // dangerous!
+        this.InjectableOpt(dangerous: userProvided);
+    }
+
     private void Injectable(string dangerous, string safe)
+    {
+        // pretend it does something
+    }
+
+    private void InjectableOpt(string dangerous=""foo"", string safe=""bar"")
+    {
+        // pretend it does something
+    }
+}
+
+static class TestExtensions
+{
+    public static void Injectable(this Test self, string dangerous, string safe)
+    {
+        // pretend it does something
+    }
+
+    public static void InjectableOpt(string dangerous=""foo"", string safe=""bar"")
     {
         // pretend it does something
     }
 }
 ";
 
+
+
             var vbTest = @"
+Imports System.Runtime.CompilerServices
+
 Class Test
     Public Sub Input(ByVal userProvided As String)
         Injectable(userProvided, userProvided)
-        Injectable("", "", userProvided)
-        Injectable(userProvided, "", "")
-        Injectable(dangerous:=userProvided, safe:="", "")
-        Injectable(dangerous:="", "", safe:=userProvided)
-        Injectable(safe:=userProvided, dangerous:="", "")
-        Injectable(safe:="", "", dangerous:=userProvided)
+        Injectable("""", userProvided)
+        Injectable(userProvided, """")
+        Injectable(dangerous:=userProvided, safe:="""")
+        Injectable(dangerous:="""", safe:=userProvided)
+        Injectable(safe:=userProvided, dangerous:="""")
+        Injectable(safe:="""", dangerous:=userProvided)
+    End Sub
+
+    Public Sub InputExt(ByVal userProvided As String)
+        Me.Injectable(userProvided, userProvided)
+        Me.Injectable("""", userProvided)
+        Me.Injectable(userProvided, """")
+        Me.Injectable(dangerous:=userProvided, safe:="""")
+        Me.Injectable(dangerous:="""", safe:=userProvided)
+        Me.Injectable(safe:=userProvided, dangerous:="""")
+        Me.Injectable(safe:="""", dangerous:=userProvided)
+    End Sub
+
+    Public Sub InputOpt(ByVal userProvided As String)
+        InjectableOpt()
+        InjectableOpt(userProvided, userProvided)
+        InjectableOpt(safe:=userProvided)
+        InjectableOpt(dangerous:=userProvided)
+    End Sub
+
+    Public Sub InputOptExt(ByVal userProvided As String)
+        Me.InjectableOpt()
+        Me.InjectableOpt(userProvided, userProvided)
+        Me.InjectableOpt(safe:=userProvided)
+        Me.InjectableOpt(dangerous:=userProvided)
     End Sub
 
     Private Sub Injectable(ByVal dangerous As String, ByVal safe As String)
     End Sub
+
+    Private Sub InjectableOpt(ByVal Optional dangerous As String = ""foo"", ByVal Optional safe As String = ""bar"")
+    End Sub
 End Class
+
+Module TestExtensions
+    <Extension()>
+    Sub Injectable(ByVal self As Test, ByVal dangerous As String, ByVal safe As String)
+    End Sub
+
+    Sub InjectableOpt(ByVal Optional dangerous As String = ""foo"", ByVal Optional safe As String = ""bar"")
+    End Sub
+End Module
+
 ";
 
             var config = @"
@@ -109,8 +222,22 @@ Behavior:
     ClassName: Test
     Name: Injectable
     Method:
-      ArgTypes: (System.String, System.String)
       InjectableArguments: [SCS0026: 0]
+  InjectableOpt:
+    ClassName: Test
+    Name: InjectableOpt
+    Method:
+      InjectableArguments: [SCS0026: 0]
+  InjectableExtension:
+    ClassName: TestExtensions
+    Name: Injectable
+    Method:
+      InjectableArguments: [SCS0026: 1]
+  InjectableExtensionOpt:
+    ClassName: TestExtensions
+    Name: InjectableOpt
+    Method:
+      InjectableArguments: [SCS0026: 1]
 
 TaintEntryPoints:
   Test:
@@ -126,15 +253,31 @@ TaintEntryPoints:
                     Expected.WithLocation(13, 20),
                     Expected.WithLocation(16, 31),
                     Expected.WithLocation(25, 41),
+                    Expected.WithLocation(31, 25),
+                    Expected.WithLocation(37, 25),
+                    Expected.WithLocation(40, 36),
+                    Expected.WithLocation(49, 46),
+                    Expected.WithLocation(58, 23),
+                    Expected.WithLocation(64, 34),
+                    Expected.WithLocation(73, 28),
+                    Expected.WithLocation(79, 39)
                 };
 
             var expectedVB =
                 new[]
                 {
-                    Expected.WithLocation(4, 20),
                     Expected.WithLocation(6, 20),
-                    Expected.WithLocation(7, 31),
-                    Expected.WithLocation(10, 43),
+                    Expected.WithLocation(8, 20),
+                    Expected.WithLocation(9, 31),
+                    Expected.WithLocation(12, 41),
+                    Expected.WithLocation(16, 23),
+                    Expected.WithLocation(18, 23),
+                    Expected.WithLocation(19, 34),
+                    Expected.WithLocation(22, 44),
+                    Expected.WithLocation(27, 23),
+                    Expected.WithLocation(29, 34),
+                    Expected.WithLocation(34, 26),
+                    Expected.WithLocation(36, 37)
                 };
 
             await VerifyCSharpDiagnostic(cSharpTest, expectedCSharp, testConfig).ConfigureAwait(false);

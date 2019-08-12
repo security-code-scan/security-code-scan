@@ -631,7 +631,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                                           ? VariableTaint.Unset
                                                                           : VariableTaint.Unknown);
 
-            var reducedMethodSymbol = (methodSymbol.ReducedFrom ?? methodSymbol);
+            var reducedMethodSymbol = (methodSymbol?.ReducedFrom ?? methodSymbol);
             var methodParameterCount = methodSymbol != null ? reducedMethodSymbol.Parameters.Length : 0;
             var argCount = argList?.Arguments.Count;
             var argumentStates = argCount.HasValue &&

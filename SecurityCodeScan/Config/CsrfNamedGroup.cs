@@ -146,10 +146,10 @@ namespace SecurityCodeScan.Config
             if (configData.Class != null)
                 _Class = new CsrfController(configData.Class);
 
-            CsrfAttributeCondition.AddCsrfAttributes(Method.Include, configData.Method?.Attributes.Include);
-            CsrfAttributeCondition.AddCsrfAttributes(Method.Exclude, configData.Method?.Attributes.Exclude);
-            CsrfAttributeCondition.AddCsrfAttributes(Parameter.Include, configData.Parameter?.Attributes.Include);
-            CsrfAttributeCondition.AddCsrfAttributes(Parameter.Exclude, configData.Parameter?.Attributes.Exclude);
+            CsrfAttributeCondition.AddCsrfAttributes(Method.Include, configData.Method?.Attributes?.Include);
+            CsrfAttributeCondition.AddCsrfAttributes(Method.Exclude, configData.Method?.Attributes?.Exclude);
+            CsrfAttributeCondition.AddCsrfAttributes(Parameter.Include, configData.Parameter?.Attributes?.Include);
+            CsrfAttributeCondition.AddCsrfAttributes(Parameter.Exclude, configData.Parameter?.Attributes?.Exclude);
         }
 
         public void AddFrom(CsrfProtectionData configData)

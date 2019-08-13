@@ -49,6 +49,81 @@ namespace SecurityCodeScan.Test.Taint
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        [TestMethod]
+        public async Task NamedArgumentsPostCondition()
+        {
+            var cSharpTest = @"
+class Test
+{
+    public void Encode(string input, int x = 0, System.Text.StringBuilder output = null)
+    {
+        if (output == null)
+            return;
+    }
+
+    public void Injectable(string input)
+    {
+        // pretend it does something
+    }
+}
+
+class TestInput
+{
+    public void Input(string userProvided)
+    {
+        var t = new Test();
+        var encoded = new System.Text.StringBuilder();
+        t.Encode(userProvided, output: encoded);
+        t.Injectable(encoded.ToString());
+    }
+}
+";
+
+            var vbTest = $@"
+Class Test
+    Public Sub Encode(ByVal input As String, ByVal Optional x As Integer = 0, ByVal Optional output As System.Text.StringBuilder = Nothing)
+        If output Is Nothing Then Return
+    End Sub
+
+    Public Sub Injectable(ByVal input As String)
+    End Sub
+End Class
+
+Class TestInput
+    Public Sub Input(ByVal userProvided As String)
+        Dim t = New Test()
+        Dim encoded = New System.Text.StringBuilder()
+        t.Encode(userProvided, output:=encoded)
+        t.Injectable(encoded.ToString())
+    End Sub
+End Class
+";
+
+            var config = @"
+Behavior:
+  Injectable:
+    ClassName: Test
+    Name: Injectable
+    Method:
+      InjectableArguments: [SCS0026: 0]
+  Encode:
+    ClassName: Test
+    Name: Encode
+    Method:
+      2:
+        TaintFromArguments: [0]
+
+TaintEntryPoints:
+  Test:
+    ClassName: TestInput
+";
+
+            var testConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(config);
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(23), testConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(16), testConfig).ConfigureAwait(false);
+        }
+
         [DataTestMethod]
         [DataRow("Injectable", "userProvided, userProvided",          true)]
         [DataRow("Injectable", "\"\", userProvided",                  false)]

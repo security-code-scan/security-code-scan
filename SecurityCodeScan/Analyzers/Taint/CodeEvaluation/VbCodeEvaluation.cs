@@ -636,7 +636,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                  argCount.Value > 0 &&
                                  (postConditions?.Any(c => c.Key != -1 && (c.Value.Taint != 0ul || c.Value.TaintFromArguments.Any())) == true ||
                                   methodSymbol != null && methodSymbol.Parameters.Any(x => x.RefKind != RefKind.None))
-                                     ? new VariableState[argCount.Value]
+                                     ? new Dictionary<int, VariableState>(argCount.Value)
                                      : null;
 
             for (var i = 0; i < argList?.Arguments.Count; i++)
@@ -649,7 +649,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     ++adjustedArgumentIdx;
 
                 if (argumentStates != null)
-                    argumentStates[i] = argumentState;
+                    argumentStates[adjustedArgumentIdx] = argumentState;
 
 #if DEBUG
                 Logger.Log(symbol.ContainingType + "." + symbol.Name + " -> " + argumentState);
@@ -706,30 +706,31 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             if (argumentStates != null)
             {
-                for (var i = 0; i < argList.Arguments.Count; i++)
+                foreach (var arg in argumentStates)
                 {
-                    var adjustedPostConditionIdx = isExtensionMethod ? i + 1 : i;
-
-                    if (postConditions != null && postConditions.TryGetValue(adjustedPostConditionIdx, out var postCondition))
+                    if (postConditions != null && postConditions.TryGetValue(arg.Key, out var postCondition))
                     {
                         foreach (var argIdx in postCondition.TaintFromArguments)
                         {
                             var adjustedArgumentIdx = isExtensionMethod ? argIdx + 1 : argIdx;
-                            argumentStates[adjustedPostConditionIdx].MergeTaint(argumentStates[adjustedArgumentIdx].Taint);
+                            if (!argumentStates.TryGetValue(adjustedArgumentIdx, out var postConditionStateSource))
+                                continue;
+
+                            arg.Value.MergeTaint(postConditionStateSource.Taint);
                         }
 
-                        argumentStates[adjustedPostConditionIdx].ApplyTaint(postCondition.Taint);
+                        arg.Value.ApplyTaint(postCondition.Taint);
                     }
                     else if (methodSymbol != null)
                     {
-                        if (i >= methodSymbol.Parameters.Length)
+                        if (arg.Key >= methodSymbol.Parameters.Length)
                         {
                             if (!methodSymbol.Parameters[methodSymbol.Parameters.Length - 1].IsParams)
                                 throw new IndexOutOfRangeException();
                         }
-                        else if (methodSymbol.Parameters[i].RefKind != RefKind.None)
+                        else if (methodSymbol.Parameters[arg.Key].RefKind != RefKind.None)
                         {
-                            argumentStates[i].MergeTaint(returnState.Taint);
+                            arg.Value.MergeTaint(returnState.Taint);
                         }
                     }
                 }

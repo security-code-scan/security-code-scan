@@ -136,6 +136,7 @@ Module TestExtensions
     Public Sub Injectable2(ByVal self As Test, ByVal dangerous As String, ByVal safe As String)
     End Sub
 
+    <Extension()>
     Public Sub InjectableOpt2(ByVal self As Test, ByVal Optional dangerous As String = ""foo"", ByVal Optional safe As String = ""bar"")
     End Sub
 End Module
@@ -181,7 +182,7 @@ TaintEntryPoints:
             if (warn)
             {
                 await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(32), testConfig).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(24), testConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(25), testConfig).ConfigureAwait(false);
             }
             else
             {

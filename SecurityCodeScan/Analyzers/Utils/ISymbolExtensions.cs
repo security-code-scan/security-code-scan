@@ -7,7 +7,8 @@ namespace SecurityCodeScan.Analyzers.Utils
     {
         public static int? FindArgumentIndex(this IMethodSymbol method, int sourceIndex, Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax arg)
         {
-            if (method == null) return null;
+            if (method == null)
+                return null;
 
             if(arg.NameColon != null)
             {
@@ -16,7 +17,7 @@ namespace SecurityCodeScan.Analyzers.Utils
                 return method.FindArgumentIndexByName(argName);
             }
 
-            return method.GetTrueArgumentIndex(sourceIndex);
+            return sourceIndex;
         }
 
         public static int? FindArgumentIndex(this IMethodSymbol method, int sourceIndex, Microsoft.CodeAnalysis.VisualBasic.Syntax.ArgumentSyntax arg)
@@ -26,23 +27,10 @@ namespace SecurityCodeScan.Analyzers.Utils
 
             if (arg.IsNamed)
             {
-                var argName = (arg as Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax).NameColonEquals.Name.Identifier.ValueText;
+                var argName = ((Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax)arg).NameColonEquals.Name.Identifier.ValueText;
 
                 return method.FindArgumentIndexByName(argName);
             }
-
-            return method.GetTrueArgumentIndex(sourceIndex);
-        }
-
-        public static int? GetTrueArgumentIndex(this IMethodSymbol method, int sourceIndex)
-        {
-            if (method == null)
-                return null;
-
-            bool isExtensionMethod = method.ReducedFrom != null;
-
-            if (isExtensionMethod)
-                return 1 + sourceIndex;
 
             return sourceIndex;
         }

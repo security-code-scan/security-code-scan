@@ -645,25 +645,25 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                                           ? VariableTaint.Unset
                                                                           : VariableTaint.Unknown);
 
-            var reducedMethodSymbol = (methodSymbol?.ReducedFrom ?? methodSymbol);
-            var methodParameterCount = methodSymbol != null ? reducedMethodSymbol.Parameters.Length : 0;
             var argCount       = argList?.Arguments.Count;
             var argumentStates = argCount.HasValue &&
                                  argCount.Value > 0 &&
                                  (postConditions?.Any(c => c.Key != -1 && (c.Value.Taint != 0ul || c.Value.TaintFromArguments.Any())) == true ||
-                                  methodSymbol != null && reducedMethodSymbol.Parameters.Any(x => x.RefKind != RefKind.None))
-                                     ? new VariableState[methodParameterCount]
+                                  methodSymbol != null && methodSymbol.Parameters.Any(x => x.RefKind != RefKind.None))
+                                     ? new VariableState[argCount.Value]
                                      : null;
 
             for (var i = 0; i < argList?.Arguments.Count; i++)
             {
-                var argument = argList.Arguments[i];
+                var argument      = argList.Arguments[i];
+                var argumentState = VisitExpression(argument.Expression, state);
 
                 var adjustedArgumentIdx = methodSymbol?.FindArgumentIndex(i, argument) ?? i;
+                if (isExtensionMethod)
+                    ++adjustedArgumentIdx;
 
-                var argumentState = VisitExpression(argument.Expression, state);
-                if (argumentStates != null && adjustedArgumentIdx < argumentStates.Length)
-                    argumentStates[adjustedArgumentIdx] = argumentState;
+                if (argumentStates != null)
+                    argumentStates[i] = argumentState;
 
 #if DEBUG
                 Logger.Log(symbol.ContainingType + "." + symbol.Name + " -> " + argumentState);
@@ -698,10 +698,10 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                 var argumentToSearch = adjustedArgumentIdx;
                 if (methodSymbol != null                           &&
-                    i            >= methodParameterCount &&
-                    reducedMethodSymbol.Parameters[methodParameterCount - 1].IsParams)
+                    i            >= methodSymbol.Parameters.Length &&
+                    methodSymbol.Parameters[methodSymbol.Parameters.Length - 1].IsParams)
                 {
-                    argumentToSearch = methodParameterCount - 1;
+                    argumentToSearch = isExtensionMethod ? methodSymbol.Parameters.Length : methodSymbol.Parameters.Length - 1;
                 }
 
                 if (returnPostCondition == null ||
@@ -730,32 +730,30 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             if (argumentStates != null)
             {
-                for (var trueArgIx = 0; trueArgIx < argumentStates.Length; trueArgIx++)
+                for (var i = 0; i < argList.Arguments.Count; i++)
                 {
-                    // wasn't initialized
-                    if (argumentStates[trueArgIx] == null)
-                        continue;
+                    var adjustedPostConditionIdx = isExtensionMethod ? i + 1 : i;
 
-                    if (postConditions != null && postConditions.TryGetValue(trueArgIx, out var postCondition) )
+                    if (postConditions != null && postConditions.TryGetValue(adjustedPostConditionIdx, out var postCondition) )
                     {
                         foreach (var argIdx in postCondition.TaintFromArguments)
                         {
                             var adjustedArgumentIdx = isExtensionMethod ? argIdx + 1 : argIdx;
-                            argumentStates[trueArgIx].MergeTaint(argumentStates[adjustedArgumentIdx].Taint);
+                            argumentStates[adjustedPostConditionIdx].MergeTaint(argumentStates[adjustedArgumentIdx].Taint);
                         }
 
-                        argumentStates[trueArgIx].ApplyTaint(postCondition.Taint);
+                        argumentStates[adjustedPostConditionIdx].ApplyTaint(postCondition.Taint);
                     }
                     else if (methodSymbol != null)
                     {
-                        if (trueArgIx >= methodParameterCount)
+                        if (i >= methodSymbol.Parameters.Length)
                         {
-                            if (!reducedMethodSymbol.Parameters[methodParameterCount - 1].IsParams)
+                            if (!methodSymbol.Parameters[methodSymbol.Parameters.Length - 1].IsParams)
                                 throw new IndexOutOfRangeException();
                         }
-                        else if (reducedMethodSymbol.Parameters[trueArgIx].RefKind != RefKind.None)
+                        else if (methodSymbol.Parameters[i].RefKind != RefKind.None)
                         {
-                            argumentStates[trueArgIx].MergeTaint(returnState.Taint);
+                            argumentStates[i].MergeTaint(returnState.Taint);
                         }
                     }
                 }
@@ -765,7 +763,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 methodSymbol != null &&
                 methodSymbol.ReturnsVoid &&
                 !methodSymbol.IsStatic &&
-                reducedMethodSymbol.Parameters.All(x => x.RefKind == RefKind.None))
+                methodSymbol.Parameters.All(x => x.RefKind == RefKind.None))
             {
                 memberVariableState.MergeTaint(returnState.Taint);
             }

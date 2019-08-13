@@ -49,171 +49,103 @@ namespace SecurityCodeScan.Test.Taint
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-        [TestMethod]
-        public async Task NamedArguments()
+        [DataTestMethod]
+        [DataRow("Injectable", "userProvided, userProvided",          true)]
+        [DataRow("Injectable", "\"\", userProvided",                  false)]
+        [DataRow("Injectable", "userProvided, \"\"",                  true)]
+        [DataRow("Injectable", "\"\", \"\"",                          false)]
+        [DataRow("Injectable", "dangerous: userProvided, safe: \"\"", true)]
+        [DataRow("Injectable", "dangerous: \"\", safe: userProvided", false)]
+        [DataRow("Injectable", "safe: userProvided, dangerous: \"\"", false)]
+        [DataRow("Injectable", "safe: \"\", dangerous: userProvided", true)]
+
+        [DataRow("Injectable2", "userProvided, userProvided",          true)]
+        [DataRow("Injectable2", "\"\", userProvided",                  false)]
+        [DataRow("Injectable2", "userProvided, \"\"",                  true)]
+        [DataRow("Injectable2", "\"\", \"\"",                          false)]
+        [DataRow("Injectable2", "dangerous: userProvided, safe: \"\"", true)]
+        [DataRow("Injectable2", "dangerous: \"\", safe: userProvided", false)]
+        [DataRow("Injectable2", "safe: userProvided, dangerous: \"\"", false)]
+        [DataRow("Injectable2", "safe: \"\", dangerous: userProvided", true)]
+
+        [DataRow("InjectableOpt", "",                           false)]
+        [DataRow("InjectableOpt", "userProvided, userProvided", true)]
+        [DataRow("InjectableOpt", "safe: userProvided",         false)]
+        [DataRow("InjectableOpt", "dangerous: userProvided",    true)]
+        [DataRow("InjectableOpt", "dangerous: \"\"",            false)]
+
+        [DataRow("InjectableOpt2", "",                           false)]
+        [DataRow("InjectableOpt2", "userProvided, userProvided", true)]
+        [DataRow("InjectableOpt2", "safe: userProvided",         false)]
+        [DataRow("InjectableOpt2", "dangerous: userProvided",    true)]
+        [DataRow("InjectableOpt2", "dangerous: \"\"",            false)]
+        public async Task NamedArguments(string function, string payload, bool warn)
         {
-            var cSharpTest = @"
+            var cSharpTest = $@"
 class Test
-{
-    public void Input(string userProvided)
-    {
-        // dangerous!
-        Injectable(userProvided, userProvided);
-
-        // safe
-        Injectable("""", userProvided);
-
-        // dangerous!
-        Injectable(userProvided, """");
-
-        // dagnerous!
-        Injectable(dangerous: userProvided, safe: """");
-
-        // safe
-        Injectable(dangerous: """", safe: userProvided);
-
-        // safe
-        Injectable(safe: userProvided, dangerous: """");
-
-        // dangerous!
-        Injectable(safe: """", dangerous: userProvided);
-    }
-
-    public void InputExt(string userProvided)
-    {
-        // dangerous!
-        this.Injectable(userProvided, userProvided);
-
-        // safe
-        this.Injectable("""", userProvided);
-
-        // dangerous!
-        this.Injectable(userProvided, """");
-
-        // dagnerous!
-        this.Injectable(dangerous: userProvided, safe: """");
-
-        // safe
-        this.Injectable(dangerous: """", safe: userProvided);
-
-        // safe
-        this.Injectable(safe: userProvided, dangerous: """");
-
-        // dangerous!
-        this.Injectable(safe: """", dangerous: userProvided);
-    }
-
-    public void InputOpt(string userProvided)
-    {
-        // safe
-        InjectableOpt();
-
-        // dangerous!
-        InjectableOpt(userProvided, userProvided);
-
-        // safe
-        InjectableOpt(safe: userProvided);
-
-        // dangerous!
-        InjectableOpt(dangerous: userProvided);
-    }
-
-    public void InputOptExt(string userProvided)
-    {
-        // safe
-        this.InjectableOpt();
-
-        // dangerous!
-        this.InjectableOpt(userProvided, userProvided);
-
-        // safe
-        this.InjectableOpt(safe: userProvided);
-
-        // dangerous!
-        this.InjectableOpt(dangerous: userProvided);
-    }
-
-    private void Injectable(string dangerous, string safe)
-    {
+{{
+    public void Injectable(string dangerous, string safe)
+    {{
         // pretend it does something
-    }
+    }}
 
-    private void InjectableOpt(string dangerous=""foo"", string safe=""bar"")
-    {
+    public void InjectableOpt(string dangerous=""foo"", string safe=""bar"")
+    {{
         // pretend it does something
-    }
-}
+    }}
+}}
 
 static class TestExtensions
-{
-    public static void Injectable(this Test self, string dangerous, string safe)
-    {
+{{
+    public static void Injectable2(this Test self, string dangerous, string safe)
+    {{
         // pretend it does something
-    }
+    }}
 
-    public static void InjectableOpt(string dangerous=""foo"", string safe=""bar"")
-    {
+    public static void InjectableOpt2(this Test self, string dangerous=""foo"", string safe=""bar"")
+    {{
         // pretend it does something
-    }
-}
+    }}
+}}
+
+class TestInput
+{{
+    public void Input(string userProvided)
+    {{
+        new Test().{function}({payload});
+    }}
+}}
 ";
 
+            function = function.Replace("this", "Me");
+            payload = payload.Replace(":", ":=");
 
-
-            var vbTest = @"
+            var vbTest = $@"
 Imports System.Runtime.CompilerServices
 
 Class Test
-    Public Sub Input(ByVal userProvided As String)
-        Injectable(userProvided, userProvided)
-        Injectable("""", userProvided)
-        Injectable(userProvided, """")
-        Injectable(dangerous:=userProvided, safe:="""")
-        Injectable(dangerous:="""", safe:=userProvided)
-        Injectable(safe:=userProvided, dangerous:="""")
-        Injectable(safe:="""", dangerous:=userProvided)
+    Public Sub Injectable(ByVal dangerous As String, ByVal safe As String)
     End Sub
 
-    Public Sub InputExt(ByVal userProvided As String)
-        Me.Injectable(userProvided, userProvided)
-        Me.Injectable("""", userProvided)
-        Me.Injectable(userProvided, """")
-        Me.Injectable(dangerous:=userProvided, safe:="""")
-        Me.Injectable(dangerous:="""", safe:=userProvided)
-        Me.Injectable(safe:=userProvided, dangerous:="""")
-        Me.Injectable(safe:="""", dangerous:=userProvided)
-    End Sub
-
-    Public Sub InputOpt(ByVal userProvided As String)
-        InjectableOpt()
-        InjectableOpt(userProvided, userProvided)
-        InjectableOpt(safe:=userProvided)
-        InjectableOpt(dangerous:=userProvided)
-    End Sub
-
-    Public Sub InputOptExt(ByVal userProvided As String)
-        Me.InjectableOpt()
-        Me.InjectableOpt(userProvided, userProvided)
-        Me.InjectableOpt(safe:=userProvided)
-        Me.InjectableOpt(dangerous:=userProvided)
-    End Sub
-
-    Private Sub Injectable(ByVal dangerous As String, ByVal safe As String)
-    End Sub
-
-    Private Sub InjectableOpt(ByVal Optional dangerous As String = ""foo"", ByVal Optional safe As String = ""bar"")
+    Public Sub InjectableOpt(ByVal Optional dangerous As String = ""foo"", ByVal Optional safe As String = ""bar"")
     End Sub
 End Class
 
 Module TestExtensions
     <Extension()>
-    Sub Injectable(ByVal self As Test, ByVal dangerous As String, ByVal safe As String)
+    Public Sub Injectable2(ByVal self As Test, ByVal dangerous As String, ByVal safe As String)
     End Sub
 
-    Sub InjectableOpt(ByVal Optional dangerous As String = ""foo"", ByVal Optional safe As String = ""bar"")
+    Public Sub InjectableOpt2(ByVal self As Test, ByVal Optional dangerous As String = ""foo"", ByVal Optional safe As String = ""bar"")
     End Sub
 End Module
 
+Class TestInput
+    Public Sub Input(ByVal userProvided As String)
+        Dim a As New Test()
+        a.{function}({payload})
+    End Sub
+End Class
 ";
 
             var config = @"
@@ -230,58 +162,32 @@ Behavior:
       InjectableArguments: [SCS0026: 0]
   InjectableExtension:
     ClassName: TestExtensions
-    Name: Injectable
+    Name: Injectable2
     Method:
       InjectableArguments: [SCS0026: 1]
   InjectableExtensionOpt:
     ClassName: TestExtensions
-    Name: InjectableOpt
+    Name: InjectableOpt2
     Method:
       InjectableArguments: [SCS0026: 1]
 
 TaintEntryPoints:
   Test:
-    ClassName: Test
+    ClassName: TestInput
 ";
 
             var testConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(config);
 
-            var expectedCSharp =
-                new[]
-                {
-                    Expected.WithLocation(7, 20),
-                    Expected.WithLocation(13, 20),
-                    Expected.WithLocation(16, 31),
-                    Expected.WithLocation(25, 41),
-                    Expected.WithLocation(31, 25),
-                    Expected.WithLocation(37, 25),
-                    Expected.WithLocation(40, 36),
-                    Expected.WithLocation(49, 46),
-                    Expected.WithLocation(58, 23),
-                    Expected.WithLocation(64, 34),
-                    Expected.WithLocation(73, 28),
-                    Expected.WithLocation(79, 39)
-                };
-
-            var expectedVB =
-                new[]
-                {
-                    Expected.WithLocation(6, 20),
-                    Expected.WithLocation(8, 20),
-                    Expected.WithLocation(9, 31),
-                    Expected.WithLocation(12, 41),
-                    Expected.WithLocation(16, 23),
-                    Expected.WithLocation(18, 23),
-                    Expected.WithLocation(19, 34),
-                    Expected.WithLocation(22, 44),
-                    Expected.WithLocation(27, 23),
-                    Expected.WithLocation(29, 34),
-                    Expected.WithLocation(34, 26),
-                    Expected.WithLocation(36, 37)
-                };
-
-            await VerifyCSharpDiagnostic(cSharpTest, expectedCSharp, testConfig).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(vbTest, expectedVB, testConfig).ConfigureAwait(false);
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(32), testConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(24), testConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, testConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(vbTest, null, testConfig).ConfigureAwait(false);
+            }
         }
 
         [TestCategory("Safe")]

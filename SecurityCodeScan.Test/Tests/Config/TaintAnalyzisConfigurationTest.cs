@@ -454,5 +454,54 @@ ConstantFields: [sample.Test.Safe]
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
         }
+
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task DynamicArgument()
+        {
+            var cSharpTest = @"
+class Test
+{
+    public void Action(string foo)
+    {
+        Method(foo);
+    }
+
+    private void Method(dynamic d)
+    {
+
+    }
+}
+";
+
+
+            var testConfig = @"
+TaintEntryPoints:
+  Test:
+    ClassName: Test
+
+Behavior:
+  DynamicMethod:
+    ClassName: Test
+    Name: Method
+    Method:
+      ArgTypes: ""(dynamic)""
+      InjectableArguments: [SCS0001: 0]";
+
+            var options = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            var cSharpExpected =
+                new[]
+                {
+                    new DiagnosticResult
+                    {
+                        Id       = "SCS0001",
+                        Severity = DiagnosticSeverity.Warning,
+                    }.WithLocation(6, 16)
+                };
+
+            await VerifyCSharpDiagnostic(cSharpTest, cSharpExpected, options).ConfigureAwait(false);
+            // there's not really an equivalent to dynamic in VB.NET, so no test for it
+        }
     }
 }

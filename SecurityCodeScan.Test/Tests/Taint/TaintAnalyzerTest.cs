@@ -47,6 +47,223 @@ namespace SecurityCodeScan.Test.Taint
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        [TestMethod]
+        public async Task NamedArgumentsPostCondition()
+        {
+            var cSharpTest = @"
+class Test
+{
+    public void Encode(string input, int x = 0, System.Text.StringBuilder output = null)
+    {
+        if (output == null)
+            return;
+    }
+
+    public void Injectable(string input)
+    {
+        // pretend it does something
+    }
+}
+
+class TestInput
+{
+    public void Input(string userProvided)
+    {
+        var t = new Test();
+        var encoded = new System.Text.StringBuilder();
+        t.Encode(userProvided, output: encoded);
+        t.Injectable(encoded.ToString());
+    }
+}
+";
+
+            var vbTest = $@"
+Class Test
+    Public Sub Encode(ByVal input As String, ByVal Optional x As Integer = 0, ByVal Optional output As System.Text.StringBuilder = Nothing)
+        If output Is Nothing Then Return
+    End Sub
+
+    Public Sub Injectable(ByVal input As String)
+    End Sub
+End Class
+
+Class TestInput
+    Public Sub Input(ByVal userProvided As String)
+        Dim t = New Test()
+        Dim encoded = New System.Text.StringBuilder()
+        t.Encode(userProvided, output:=encoded)
+        t.Injectable(encoded.ToString())
+    End Sub
+End Class
+";
+
+            var config = @"
+Behavior:
+  Injectable:
+    ClassName: Test
+    Name: Injectable
+    Method:
+      InjectableArguments: [SCS0026: 0]
+  Encode:
+    ClassName: Test
+    Name: Encode
+    Method:
+      2:
+        TaintFromArguments: [0]
+
+TaintEntryPoints:
+  Test:
+    ClassName: TestInput
+";
+
+            var testConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(config);
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(23), testConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(16), testConfig).ConfigureAwait(false);
+        }
+
+        [DataTestMethod]
+        [DataRow("Injectable", "userProvided, userProvided",          true)]
+        [DataRow("Injectable", "\"\", userProvided",                  false)]
+        [DataRow("Injectable", "userProvided, \"\"",                  true)]
+        [DataRow("Injectable", "\"\", \"\"",                          false)]
+        [DataRow("Injectable", "dangerous: userProvided, safe: \"\"", true)]
+        [DataRow("Injectable", "dangerous: \"\", safe: userProvided", false)]
+        [DataRow("Injectable", "safe: userProvided, dangerous: \"\"", false)]
+        [DataRow("Injectable", "safe: \"\", dangerous: userProvided", true)]
+
+        [DataRow("Injectable2", "userProvided, userProvided",          true)]
+        [DataRow("Injectable2", "\"\", userProvided",                  false)]
+        [DataRow("Injectable2", "userProvided, \"\"",                  true)]
+        [DataRow("Injectable2", "\"\", \"\"",                          false)]
+        [DataRow("Injectable2", "dangerous: userProvided, safe: \"\"", true)]
+        [DataRow("Injectable2", "dangerous: \"\", safe: userProvided", false)]
+        [DataRow("Injectable2", "safe: userProvided, dangerous: \"\"", false)]
+        [DataRow("Injectable2", "safe: \"\", dangerous: userProvided", true)]
+
+        [DataRow("InjectableOpt", "",                           false)]
+        [DataRow("InjectableOpt", "userProvided, userProvided", true)]
+        [DataRow("InjectableOpt", "safe: userProvided",         false)]
+        [DataRow("InjectableOpt", "dangerous: userProvided",    true)]
+        [DataRow("InjectableOpt", "dangerous: \"\"",            false)]
+
+        [DataRow("InjectableOpt2", "",                           false)]
+        [DataRow("InjectableOpt2", "userProvided, userProvided", true)]
+        [DataRow("InjectableOpt2", "safe: userProvided",         false)]
+        [DataRow("InjectableOpt2", "dangerous: userProvided",    true)]
+        [DataRow("InjectableOpt2", "dangerous: \"\"",            false)]
+        public async Task NamedArguments(string function, string payload, bool warn)
+        {
+            var cSharpTest = $@"
+class Test
+{{
+    public void Injectable(string dangerous, string safe)
+    {{
+        // pretend it does something
+    }}
+
+    public void InjectableOpt(string dangerous=""foo"", string safe=""bar"")
+    {{
+        // pretend it does something
+    }}
+}}
+
+static class TestExtensions
+{{
+    public static void Injectable2(this Test self, string dangerous, string safe)
+    {{
+        // pretend it does something
+    }}
+
+    public static void InjectableOpt2(this Test self, string dangerous=""foo"", string safe=""bar"")
+    {{
+        // pretend it does something
+    }}
+}}
+
+class TestInput
+{{
+    public void Input(string userProvided)
+    {{
+        new Test().{function}({payload});
+    }}
+}}
+";
+
+            function = function.Replace("this", "Me");
+            payload = payload.Replace(":", ":=");
+
+            var vbTest = $@"
+Imports System.Runtime.CompilerServices
+
+Class Test
+    Public Sub Injectable(ByVal dangerous As String, ByVal safe As String)
+    End Sub
+
+    Public Sub InjectableOpt(ByVal Optional dangerous As String = ""foo"", ByVal Optional safe As String = ""bar"")
+    End Sub
+End Class
+
+Module TestExtensions
+    <Extension()>
+    Public Sub Injectable2(ByVal self As Test, ByVal dangerous As String, ByVal safe As String)
+    End Sub
+
+    <Extension()>
+    Public Sub InjectableOpt2(ByVal self As Test, ByVal Optional dangerous As String = ""foo"", ByVal Optional safe As String = ""bar"")
+    End Sub
+End Module
+
+Class TestInput
+    Public Sub Input(ByVal userProvided As String)
+        Dim a As New Test()
+        a.{function}({payload})
+    End Sub
+End Class
+";
+
+            var config = @"
+Behavior:
+  Injectable:
+    ClassName: Test
+    Name: Injectable
+    Method:
+      InjectableArguments: [SCS0026: 0]
+  InjectableOpt:
+    ClassName: Test
+    Name: InjectableOpt
+    Method:
+      InjectableArguments: [SCS0026: 0]
+  InjectableExtension:
+    ClassName: TestExtensions
+    Name: Injectable2
+    Method:
+      InjectableArguments: [SCS0026: 1]
+  InjectableExtensionOpt:
+    ClassName: TestExtensions
+    Name: InjectableOpt2
+    Method:
+      InjectableArguments: [SCS0026: 1]
+
+TaintEntryPoints:
+  Test:
+    ClassName: TestInput
+";
+
+            var testConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(config);
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(32), testConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(25), testConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, testConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(vbTest, null, testConfig).ConfigureAwait(false);
+            }
+        }
+
         [TestCategory("Safe")]
         [TestMethod]
         public async Task MethodMemberAccessWithVb()

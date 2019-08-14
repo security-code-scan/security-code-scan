@@ -596,7 +596,7 @@ namespace SecurityCodeScan.Config
                         throw new Exception(
                             $"Leading or trailing white space in argument of {nameSpace}.{className}.{name}");
 
-                    if (!argType.Contains("."))
+                    if (!argType.Contains(".") && !argType.Equals("dynamic"))
                         throw new Exception($"Argument type lacks namespace in {nameSpace}.{className}.{name}");
 
                     if (argType.Contains("this "))

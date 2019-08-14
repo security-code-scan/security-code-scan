@@ -5,6 +5,54 @@ namespace SecurityCodeScan.Analyzers.Utils
 {
     internal static class ISymbolExtensions
     {
+        public static int? FindArgumentIndex(this IMethodSymbol method, int sourceIndex, Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax arg)
+        {
+            if (method == null)
+                return null;
+
+            if(arg.NameColon != null)
+            {
+                var argName = arg.NameColon.Name.Identifier.ValueText;
+
+                return method.FindArgumentIndexByName(argName);
+            }
+
+            return sourceIndex;
+        }
+
+        public static int? FindArgumentIndex(this IMethodSymbol method, int sourceIndex, Microsoft.CodeAnalysis.VisualBasic.Syntax.ArgumentSyntax arg)
+        {
+            if (method == null)
+                return null;
+
+            if (arg.IsNamed)
+            {
+                var argName = ((Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax)arg).NameColonEquals.Name.Identifier.ValueText;
+
+                return method.FindArgumentIndexByName(argName);
+            }
+
+            return sourceIndex;
+        }
+
+        public static int? FindArgumentIndexByName(this IMethodSymbol method, string argName)
+        {
+            if (method == null)
+                return null;
+
+            for (var i = 0; i < method.Parameters.Length; i++)
+            {
+                var p = method.Parameters[i];
+                if (p.Name.Equals(argName))
+                {
+                    return i;
+                }
+            }
+
+            // something is nuts, we're not going to find anything sensible
+            return null;
+        }
+
         public static bool IsType(this ISymbol symbol)
         {
             return symbol is ITypeSymbol typeSymbol && typeSymbol.IsType;

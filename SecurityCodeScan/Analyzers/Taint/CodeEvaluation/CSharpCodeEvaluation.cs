@@ -60,11 +60,6 @@ namespace SecurityCodeScan.Analyzers.Taint
                     Logger.Log($"{e.InnerException.Message}");
                 Logger.Log($"\n{e.StackTrace}", false);
 
-                if (!System.Diagnostics.Debugger.IsAttached)
-                {
-                    System.Diagnostics.Debugger.Launch();
-                }
-
                 throw;
             }
         }

@@ -721,12 +721,14 @@ namespace SecurityCodeScan.Analyzers.Taint
                     }
                     else if (methodSymbol != null)
                     {
-                        if (arg.Key >= methodSymbol.Parameters.Length)
+                        var adjustedArgIx = isExtensionMethod ? arg.Key - 1 : arg.Key;
+
+                        if (adjustedArgIx >= methodSymbol.Parameters.Length)
                         {
-                            if (!methodSymbol.Parameters[methodSymbol.Parameters.Length - 1].IsParams)
+                            if (!methodSymbol.Parameters[adjustedArgIx].IsParams)
                                 throw new IndexOutOfRangeException();
                         }
-                        else if (methodSymbol.Parameters[arg.Key].RefKind != RefKind.None)
+                        else if (methodSymbol.Parameters[adjustedArgIx].RefKind != RefKind.None)
                         {
                             arg.Value.MergeTaint(returnState.Taint);
                         }

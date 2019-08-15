@@ -2795,7 +2795,34 @@ static class Exts
 }
 ";
 
+            var vbTest = @"
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+
+Class Test
+    Public Sub Foo(ByVal bar As String)
+        Dim c As Integer = 1
+        bar.ExtensionMethodRef(c)
+        Dim d As Integer
+        bar.ExtensionMethodOut(d)
+    End Sub
+End Class
+
+Module Exts
+    <Extension()>
+    Sub ExtensionMethodRef(ByVal str As String, ByRef a As Integer)
+        a = str.Length
+    End Sub
+
+    <Extension()>
+    Sub ExtensionMethodOut(ByVal str As String, <Out> ByRef a As Integer)
+        a = str.Length
+    End Sub
+End Module
+";
+
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest).ConfigureAwait(false);
         }
     }
 }

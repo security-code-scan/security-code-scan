@@ -2764,5 +2764,38 @@ Behavior:
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
         }
+
+        [TestMethod]
+        [TestCategory("Safe")]
+        public async Task ExtensionMethodWithRef()
+        {
+            var cSharpTest = @"
+class Test
+{
+    public void Foo(string bar)
+    {
+        int c = 1;
+        bar.ExtensionMethodRef(ref c);
+        int d;
+        bar.ExtensionMethodOut(out d);
+    }
+}
+
+static class Exts
+{
+    public static void ExtensionMethodRef(this string str, ref int a)
+    {
+        a = str.Length;
+    }
+
+    public static void ExtensionMethodOut(this string str, out int a)
+    {
+        a = str.Length;
+    }
+}
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+        }
     }
 }

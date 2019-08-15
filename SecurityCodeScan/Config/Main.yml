@@ -216,6 +216,7 @@ Behavior:
 #   Name:      (Optional) [Class member name. If not specified applies to all members of the class]
 #   Method: (If it describes a function. Required if child properties are provided, otherwise optional)
 #     ArgTypes:  (Optional) [Function arguments signature. If not specified applies to all overloads]
+#     Condition: (Optional) (The condition that must be met for InjectableArguments to be applied like 'Condition: {1: { Value: False } }')
 #     InjectableArguments: (Optional) [Warning ID, argument index and taint type this possible format:
 #                                      [SCS0018: [0: AbsolutePath, 1: AbsolutePath]] or
 #                                      [SCS0018: [0: AbsolutePath]] or

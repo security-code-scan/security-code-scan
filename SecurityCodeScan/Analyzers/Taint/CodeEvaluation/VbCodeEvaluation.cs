@@ -641,6 +641,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                                      ? new Dictionary<int, VariableState>(argCount.Value)
                                      : null;
 
+            var behaviorApplies = behavior != null && BehaviorApplies(behavior.AppliesUnderCondition, methodSymbol, argList?.Arguments, state);
+
             for (var i = 0; i < argList?.Arguments.Count; i++)
             {
                 var argument      = argList.Arguments[i];
@@ -657,7 +659,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 Logger.Log(symbol.ContainingType + "." + symbol.Name + " -> " + argumentState);
 #endif
 
-                if (behavior != null && BehaviorApplies(behavior.AppliesUnderCondition, argList.Arguments, state))
+                if (behaviorApplies)
                 {
                     if ((argumentState.Taint & (ProjectConfiguration.AuditMode
                                                     ? VariableTaint.Tainted | VariableTaint.Unknown
@@ -756,9 +758,76 @@ namespace SecurityCodeScan.Analyzers.Taint
             return returnState;
         }
 
-        private bool BehaviorApplies(IReadOnlyDictionary<object, object> condition, SeparatedSyntaxList<ArgumentSyntax> args, ExecutionState state)
+        private bool BehaviorApplies(IReadOnlyDictionary<object, object> condition, IMethodSymbol methodSymbol, SeparatedSyntaxList<ArgumentSyntax>? args, ExecutionState state)
         {
-            // todo: implement
+            if (condition == null || condition.Count == 0)
+                return true;
+
+            if (methodSymbol == null)
+                return false;
+
+            if (args == null)
+                return false;
+
+            var ps = methodSymbol.GetParameters();
+
+            var vals = new string[ps.Length];
+            for (var i = 0; i < ps.Length; i++)
+            {
+                var p = ps[i];
+                if (p.HasExplicitDefaultValue)
+                {
+                    vals[i] = p.ExplicitDefaultValue?.ToString();
+                }
+                else
+                {
+                    vals[i] = null;
+                }
+            }
+
+            var lexicalIx = 0;
+            foreach (var arg in args)
+            {
+                var destIx = methodSymbol?.FindArgumentIndex(lexicalIx, arg) ?? lexicalIx;
+
+                Optional<object> val;
+                if(arg is SimpleArgumentSyntax simple)
+                {
+                    val = state.AnalysisContext.SemanticModel.GetConstantValue(simple.Expression);
+                }
+                else
+                {
+                    val = new Optional<object>();
+                }
+
+                if (val.HasValue)
+                {
+                    if (destIx >= vals.Length)
+                        return false;
+
+                    vals[destIx] = val.Value?.ToString();
+                }
+
+                lexicalIx++;
+            }
+
+            foreach (var kv in condition)
+            {
+                var ix = int.Parse((string)kv.Key);
+
+                if (ix >= vals.Length)
+                    return false;
+
+                var expectedVal = ((IReadOnlyDictionary<object, object>)kv.Value)["Value"];
+                var codeVal = vals[ix];
+
+                if (codeVal == null)
+                    return false;
+
+                if (!codeVal.Equals(expectedVal.ToString()))
+                    return false;
+            }
+
             return true;
         }
 

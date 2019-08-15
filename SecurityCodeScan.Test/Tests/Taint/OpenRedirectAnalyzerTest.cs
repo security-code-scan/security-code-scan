@@ -332,64 +332,117 @@ End Class
         [TestMethod]
         public async Task ConditionalOpenRedirect()
         {
-            var cSharpTest1 = $@"
+            var cSharpTest1 = @"
 using Microsoft.AspNetCore.Mvc;
 
 class OpenRedirect : Controller
-{{
+{
     public ActionResult Vulnerable(string scary)
-    {{
+    {
         return ConditionalRedirect(scary, false);
-    }}
+    }
 
     public ActionResult Safe(string notScary)
-    {{
+    {
         return ConditionalRedirect(notScary, true);
-    }}
+    }
 
     private ActionResult ConditionalRedirect(string url, bool internalOnly)
-    {{
+    {
         // pretend this does something
         return null;
-    }}
-}}
+    }
+}
 ";
-            var cSharpTest2 = $@"
+            var cSharpTest2 = @"
 using Microsoft.AspNetCore.Mvc;
 
 class OpenRedirect : Controller
-{{
+{
     public ActionResult Vulnerable(string scary1)
-    {{
+    {
         return ConditionalRedirect(scary1, false);
-    }}
+    }
 
     public ActionResult VulnerableNamed(string scary2)
-    {{
+    {
         return ConditionalRedirect(internalOnly: false, url: scary2);
-    }}
+    }
 
     public ActionResult Safe(string notScary1)
-    {{
+    {
         return ConditionalRedirect(notScary1);
-    }}
+    }
 
     public ActionResult SafeNamed1(string notScary2)
-    {{
+    {
         return ConditionalRedirect(url: notScary2);
-    }}
+    }
 
     public ActionResult SafeNamed2(string notScary3)
-    {{
+    {
         return ConditionalRedirect(internalOnly: true, url: notScary3);
-    }}
+    }
 
     private ActionResult ConditionalRedirect(string url, bool internalOnly = true)
-    {{
+    {
         // pretend this does something
         return null;
-    }}
-}}
+    }
+}
+";
+
+            var vbTest1 = @"
+Imports Microsoft.AspNetCore.Mvc
+
+Class OpenRedirect
+    Inherits Controller
+
+    Public Function Vulnerable(ByVal scary As String) As ActionResult
+        Return ConditionalRedirect(scary, False)
+    End Function
+
+    Public Function Safe(ByVal notScary As String) As ActionResult
+        Return ConditionalRedirect(notScary, True)
+    End Function
+
+    Private Function ConditionalRedirect(ByVal url As String, ByVal internalOnly As Boolean) As ActionResult
+        Return Nothing
+    End Function
+End Class
+";
+
+            var vbTest2 = @"
+Imports Microsoft.AspNetCore.Mvc
+
+Class OpenRedirect
+    Inherits Controller
+
+    Public Function Vulnerable(ByVal scary1 As String) As ActionResult
+        Return ConditionalRedirect(scary1, False)
+    End Function
+
+    Public Function VulnerableNamed(ByVal scary2 As String) As ActionResult
+        Return ConditionalRedirect(internalOnly:=False, url:=scary2)
+    End Function
+
+    Public Function Safe(ByVal notScary1 As String) As ActionResult
+        Return ConditionalRedirect(notScary1)
+    End Function
+
+    Public Function SafeNamed1(ByVal notScary2 As String) As ActionResult
+        Return ConditionalRedirect(url:=notScary2)
+    End Function
+
+    Public Function SafeNamed2(ByVal notScary3 As String) As ActionResult
+        Return ConditionalRedirect(internalOnly:=True, url:=notScary3)
+    End Function
+
+    Private Function ConditionalRedirect(ByVal url As String, ByVal Optional internalOnly As Boolean = True) As ActionResult
+        Return Nothing
+    End Function
+End Class
+
 ";
 
 
@@ -417,12 +470,24 @@ Behavior:
                     Expected.WithLocation(8, 36),
                     Expected.WithLocation(13, 62)
                 };
+            var expectedVB1 =
+                new[]
+                {
+                    Expected.WithLocation(8, 36)
+                };
+            var expectedVB2 =
+                new[]
+                {
+                    Expected.WithLocation(8, 36),
+                    Expected.WithLocation(12, 62)
+                };
 
             var config = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             await VerifyCSharpDiagnostic(cSharpTest1, expectedCSharp1, options: config).ConfigureAwait(false);
             await VerifyCSharpDiagnostic(cSharpTest2, expectedCSharp2, options: config).ConfigureAwait(false);
 
-            // todo: VB
+            await VerifyVisualBasicDiagnostic(vbTest1, expectedVB1, options: config).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest2, expectedVB2, options: config).ConfigureAwait(false);
         }
     }
 }

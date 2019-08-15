@@ -115,8 +115,8 @@ TaintEntryPoints:
 
             var testConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(config);
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(23), testConfig).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(16), testConfig).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(21), testConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(14), testConfig).ConfigureAwait(false);
         }
 
         [DataTestMethod]
@@ -241,8 +241,8 @@ TaintEntryPoints:
 
             if (warn)
             {
-                await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(32), testConfig).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(25), testConfig).ConfigureAwait(false);
+                await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(28), testConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(20), testConfig).ConfigureAwait(false);
             }
             else
             {

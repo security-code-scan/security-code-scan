@@ -631,8 +631,6 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                                           ? VariableTaint.Unset
                                                                           : VariableTaint.Unknown);
 
-            var reducedMethodSymbol = (methodSymbol?.ReducedFrom ?? methodSymbol);
-            var methodParameterCount = methodSymbol != null ? reducedMethodSymbol.Parameters.Length : 0;
             var argCount = argList?.Arguments.Count;
             var argumentStates = argCount.HasValue &&
                                  argCount.Value > 0 &&
@@ -688,10 +686,10 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                 var argumentToSearch = adjustedArgumentIdx;
                 if (methodSymbol != null                           &&
-                    i            >= methodParameterCount &&
-                    reducedMethodSymbol.Parameters[methodParameterCount - 1].IsParams)
+                    i            >= methodSymbol.Parameters.Length &&
+                    methodSymbol.Parameters[methodSymbol.Parameters.Length - 1].IsParams)
                 {
-                    argumentToSearch = methodParameterCount - 1;
+                    argumentToSearch = isExtensionMethod ? methodSymbol.Parameters.Length : methodSymbol.Parameters.Length - 1;
                 }
 
                 if (returnPostCondition == null ||
@@ -729,7 +727,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     {
                         if (arg.Key >= methodSymbol.Parameters.Length)
                         {
-                            if (!reducedMethodSymbol.Parameters[methodParameterCount - 1].IsParams)
+                            if (!methodSymbol.Parameters[methodSymbol.Parameters.Length - 1].IsParams)
                                 throw new IndexOutOfRangeException();
                         }
                         else if (methodSymbol.Parameters[arg.Key].RefKind != RefKind.None)
@@ -744,7 +742,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 methodSymbol        != null &&
                 methodSymbol.ReturnsVoid    &&
                 !methodSymbol.IsStatic      &&
-                reducedMethodSymbol.Parameters.All(x => x.RefKind == RefKind.None))
+                methodSymbol.Parameters.All(x => x.RefKind == RefKind.None))
             {
                 memberVariableState.MergeTaint(returnState.Taint);
             }

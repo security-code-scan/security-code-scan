@@ -710,8 +710,13 @@ namespace SecurityCodeScan.Analyzers.Taint
                     {
                         foreach (var argIdx in postCondition.TaintFromArguments)
                         {
-                            var adjustedArgumentIdx = isExtensionMethod ? argIdx + 1 : argIdx;
-                            if (!argumentStates.TryGetValue(adjustedArgumentIdx, out var postConditionStateSource))
+                            if (isExtensionMethod && argIdx == 0)
+                            {
+                                arg.Value.MergeTaint(initialTaint.Value); // shouldn't be null, otherwise fail early
+                                continue;
+                            }
+
+                            if (!argumentStates.TryGetValue(argIdx, out var postConditionStateSource))
                                 continue;
 
                             arg.Value.MergeTaint(postConditionStateSource.Taint);

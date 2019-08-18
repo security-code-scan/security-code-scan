@@ -2764,5 +2764,291 @@ Behavior:
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
         }
+
+        [TestMethod]
+        [TestCategory("Safe")]
+        public async Task ExtensionMethodWithRef()
+        {
+            var cSharpTest = @"
+class Test
+{
+    public void Foo(string bar)
+    {
+        int c = 1;
+        bar.ExtensionMethodRef(ref c);
+        int d;
+        bar.ExtensionMethodOut(out d);
+    }
+}
+
+static class Exts
+{
+    public static void ExtensionMethodRef(this string str, ref int a)
+    {
+        a = str.Length;
+    }
+
+    public static void ExtensionMethodOut(this string str, out int a)
+    {
+        a = str.Length;
+    }
+}
+";
+
+            var vbTest = @"
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+
+Class Test
+    Public Sub Foo(ByVal bar As String)
+        Dim c As Integer = 1
+        bar.ExtensionMethodRef(c)
+        Dim d As Integer
+        bar.ExtensionMethodOut(d)
+    End Sub
+End Class
+
+Module Exts
+    <Extension()>
+    Sub ExtensionMethodRef(ByVal str As String, ByRef a As Integer)
+        a = str.Length
+    End Sub
+
+    <Extension()>
+    Sub ExtensionMethodOut(ByVal str As String, <Out> ByRef a As Integer)
+        a = str.Length
+    End Sub
+End Module
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        [TestCategory("Detect")]
+        public async Task ExtensionMethodWithPostCondition()
+        {
+            var cSharpTest = @"
+class Test
+{
+    public void Foo(string userInput)
+    {
+        string foo = """";
+        userInput.ExtensionMethodRef(ref foo);
+        Sink(foo);
+    }
+
+    private void Sink(string input)
+    {
+    }
+}
+
+static class Exts
+{
+    public static void ExtensionMethodRef(this string str, ref string a)
+    {
+        a += str;
+    }
+}
+";
+
+            var vbTest = @"
+Imports System.Runtime.CompilerServices
+
+Class Test
+    Public Sub Foo(ByVal userInput As String)
+        Dim foo As String = ""
+        ""
+        userInput.ExtensionMethodRef(foo)
+        Sink(foo)
+    End Sub
+
+    Private Sub Sink(ByVal input As String)
+    End Sub
+End Class
+
+Module Exts
+    <Extension()>
+    Sub ExtensionMethodRef(ByVal str As String, ByRef a As String)
+        a += str
+    End Sub
+End Module
+";
+
+            var testConfig = @"
+TaintEntryPoints:
+  Test:
+    ClassName: Test
+
+Behavior:
+  123:
+    ClassName: Exts
+    Name: ExtensionMethodRef
+    Method:
+      1:
+        TaintFromArguments: [0]
+
+  MyKey:
+    ClassName: Test
+    Name: Sink
+    Method:
+      InjectableArguments: [SCS0026: 0]
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        [TestCategory("Detect")]
+        public async Task ExtensionMethodWithPostCondition2()
+        {
+            var cSharpTest = @"
+class Test
+{
+    public void Foo(string userInput)
+    {
+        string foo = """";
+        userInput.ExtensionMethodRef(ref foo, userInput);
+        Sink(foo);
+    }
+
+    private void Sink(string input)
+    {
+    }
+}
+
+static class Exts
+{
+    public static void ExtensionMethodRef(this string str, ref string a, string b)
+    {
+        a += b;
+    }
+}
+";
+
+            var vbTest = @"
+Imports System.Runtime.CompilerServices
+
+Class Test
+    Public Sub Foo(ByVal userInput As String)
+        Dim foo As String = ""
+        ""
+        userInput.ExtensionMethodRef(foo, userInput)
+        Sink(foo)
+    End Sub
+
+    Private Sub Sink(ByVal input As String)
+    End Sub
+End Class
+
+Module Exts
+    <Extension()>
+    Sub ExtensionMethodRef(ByVal str As String, ByRef a As String, ByVal b As String)
+        a += b
+    End Sub
+End Module
+";
+
+            var testConfig = @"
+TaintEntryPoints:
+  Test:
+    ClassName: Test
+
+Behavior:
+  123:
+    ClassName: Exts
+    Name: ExtensionMethodRef
+    Method:
+      1:
+        TaintFromArguments: [2]
+
+  MyKey:
+    ClassName: Test
+    Name: Sink
+    Method:
+      InjectableArguments: [SCS0026: 0]
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        [TestCategory("Detect")]
+        public async Task ExtensionMethodWithParams()
+        {
+            var cSharpTest = @"
+class Test
+{
+    public void Foo(string userInput)
+    {
+        string foo = """";
+        Sink(foo.ExtensionMethod(foo, foo, userInput));
+    }
+
+    private void Sink(string input)
+    {
+    }
+}
+
+static class Exts
+{
+    public static string ExtensionMethod(this string str, params string[] args)
+    {
+        return args[0];
+    }
+}
+";
+
+            var vbTest = @"
+Imports System.Runtime.CompilerServices
+
+Class Test
+    Public Sub Foo(ByVal userInput As String)
+        Dim foo As String = ""
+        ""
+        Sink(foo.ExtensionMethod(foo, foo, userInput))
+    End Sub
+
+    Private Sub Sink(ByVal input As String)
+    End Sub
+End Class
+
+Module Exts
+    <Extension()>
+    Function ExtensionMethod(ByVal str As String, ParamArray args As String()) As String
+        Return args(0)
+    End Function
+End Module
+";
+
+            var testConfig = @"
+TaintEntryPoints:
+  Test:
+    ClassName: Test
+
+Behavior:
+  123:
+    ClassName: Exts
+    Name: ExtensionMethod
+    Method:
+      Returns:
+        TaintFromArguments: [1]
+
+  MyKey:
+    ClassName: Test
+    Name: Sink
+    Method:
+      InjectableArguments: [SCS0026: 0]
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
     }
 }

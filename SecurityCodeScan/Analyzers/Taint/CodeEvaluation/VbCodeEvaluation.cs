@@ -710,8 +710,13 @@ namespace SecurityCodeScan.Analyzers.Taint
                     {
                         foreach (var argIdx in postCondition.TaintFromArguments)
                         {
-                            var adjustedArgumentIdx = isExtensionMethod ? argIdx + 1 : argIdx;
-                            if (!argumentStates.TryGetValue(adjustedArgumentIdx, out var postConditionStateSource))
+                            if (isExtensionMethod && argIdx == 0)
+                            {
+                                arg.Value.MergeTaint(initialTaint.Value); // shouldn't be null, otherwise fail early
+                                continue;
+                            }
+
+                            if (!argumentStates.TryGetValue(argIdx, out var postConditionStateSource))
                                 continue;
 
                             arg.Value.MergeTaint(postConditionStateSource.Taint);
@@ -721,12 +726,14 @@ namespace SecurityCodeScan.Analyzers.Taint
                     }
                     else if (methodSymbol != null)
                     {
-                        if (arg.Key >= methodSymbol.Parameters.Length)
+                        var adjustedArgIx = isExtensionMethod ? arg.Key - 1 : arg.Key;
+
+                        if (adjustedArgIx >= methodSymbol.Parameters.Length)
                         {
-                            if (!methodSymbol.Parameters[methodSymbol.Parameters.Length - 1].IsParams)
+                            if (!methodSymbol.Parameters[adjustedArgIx].IsParams)
                                 throw new IndexOutOfRangeException();
                         }
-                        else if (methodSymbol.Parameters[arg.Key].RefKind != RefKind.None)
+                        else if (methodSymbol.Parameters[adjustedArgIx].RefKind != RefKind.None)
                         {
                             arg.Value.MergeTaint(returnState.Taint);
                         }

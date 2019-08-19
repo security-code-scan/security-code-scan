@@ -656,7 +656,6 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             var behaviorApplies = behavior != null && BehaviorApplies(behavior.AppliesUnderCondition, methodSymbol, argList?.Arguments, state);
 
-
             for (var i = 0; i < argList?.Arguments.Count; i++)
             {
                 var argument      = argList.Arguments[i];

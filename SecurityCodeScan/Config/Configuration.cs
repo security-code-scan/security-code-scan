@@ -625,7 +625,6 @@ namespace SecurityCodeScan.Config
                 if(argIx < 0)
                     throw new Exception("Condition key must be an argument index >= 0");
 
-
                 if(!(kv.Value is IReadOnlyDictionary<object, object> valDict))
                     throw new Exception("Condition value must be a dictionary");
 

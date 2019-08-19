@@ -811,21 +811,39 @@ namespace SecurityCodeScan.Analyzers.Taint
                 lexicalIx++;
             }
 
-            foreach (var kv in condition)
+            foreach (int ix in condition.Keys)
             {
-                var ix = int.Parse((string)kv.Key);
-
                 if (ix >= vals.Length)
                     return false;
 
-                var expectedVal = ((IReadOnlyDictionary<object, object>)kv.Value)["Value"];
+                var val = (IReadOnlyDictionary<object, object>)condition[ix];
+                var expectedVal = val["Value"];
                 var codeVal = vals[ix];
 
                 if (codeVal == null)
                     return false;
 
-                if (!codeVal.Equals(expectedVal.ToString()))
-                    return false;
+                switch (expectedVal)
+                {
+                    case string expectValStr:
+                    if (!codeVal.Equals(expectedVal))
+                        return false;
+
+                    break;
+                    case int expectedValInt:
+                    if (!int.TryParse(codeVal, out var codeValInt) || codeValInt != expectedValInt)
+                        return false;
+
+                    break;
+                    case bool expectedValBool:
+                    if (!bool.TryParse(codeVal, out var codeValBool) || codeValBool != expectedValBool)
+                        return false;
+
+                    break;
+                    default:
+                    // types are validated as part of parsing configuration, so this case should never be hit
+                    throw new InvalidOperationException("Condition value was not one of string, int, or bool; shouldn't be possible");
+                }
             }
 
             return true;

@@ -818,9 +818,6 @@ namespace SecurityCodeScan.Analyzers.Taint
                 var val = state.AnalysisContext.SemanticModel.GetConstantValue(arg.Expression);
                 if (val.HasValue)
                 {
-                    if (destIx >= vals.Length)
-                        return false;
-
                     vals[destIx] = val.Value?.ToString();
                 }
 
@@ -829,9 +826,6 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             foreach (int ix in condition.Keys)
             {
-                if (ix >= vals.Length)
-                    return false;
-
                 var val = (IReadOnlyDictionary<object, object>)condition[ix];
                 var expectedVal = val["Value"];
                 var codeVal = vals[ix];

@@ -60,7 +60,6 @@ namespace SecurityCodeScan.Analyzers.Taint
                     Logger.Log($"{e.InnerException.Message}");
 
                 Logger.Log($"\n{e.StackTrace}", false);
-
                 throw;
             }
         }

@@ -352,6 +352,88 @@ End Namespace
             }
         }
 
+        [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(input, parameters)", true, "SCS0035")]
+        [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(\"select\", parameters)", false, null)]
+        [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(TransactionalBehavior.DoNotEnsureTransaction, input, parameters)", true, "SCS0035")]
+        [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(TransactionalBehavior.DoNotEnsureTransaction, \"select\", parameters)", false, null)]
+        [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(input, new CancellationToken(), parameters)", true, "SCS0035")]
+        [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(\"select\", new CancellationToken(), parameters)", false, null)]
+        [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(TransactionalBehavior.DoNotEnsureTransaction, input, new CancellationToken(), parameters)", true, "SCS0035")]
+        [DataRow("new DbContext(\"connectionString\").Database.ExecuteSqlCommandAsync(TransactionalBehavior.DoNotEnsureTransaction, \"select\", new CancellationToken(), parameters)", false, null)]
+        [DataTestMethod]
+        public async Task AwaitedSqlInjection(string sink, bool warn, string warningId)
+        {
+            var cSharpTest = $@"
+#pragma warning disable 8019
+    using System;
+    using System.Threading.Tasks;
+    using System.Data.SqlClient;
+    using System.Data.Common;
+    using System.Data;
+    using System.Web.UI.WebControls;
+    using System.Data.Entity;
+    using System.Threading;
+    using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
+    using System.Data.SQLite;
+    using System.Web.Mvc;
+#pragma warning restore 8019
+
+namespace sample
+{{
+    class MyFoo : Controller
+    {{
+        public async Task Run(string input, params object[] parameters)
+        {{
+            await {sink};
+        }}
+    }}
+}}
+";
+
+            sink = sink.CSharpReplaceToVBasic();
+
+            var visualBasicTest = $@"
+#Disable Warning BC50001
+    Imports System
+    Imports System.Data.SqlClient
+    Imports System.Data.Common
+    Imports System.Data
+    Imports System.Web.UI.WebControls
+    Imports System.Data.Entity
+    Imports System.Threading
+    Imports Microsoft.Practices.EnterpriseLibrary.Data.Sql
+    Imports System.Data.SQLite
+    Imports System.Web.Mvc
+#Enable Warning BC50001
+
+Namespace sample
+    Class MyFoo
+        Inherits Controller
+
+        Public Async Sub Run(input As System.String, ParamArray parameters() As Object)
+            Dim temp = Await {sink}
+        End Sub
+    End Class
+End Namespace
+";
+            var expected = new DiagnosticResult
+            {
+                Id = warningId,
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            }
+        }
+
         // todo: EF Core 2.0
         [DataRow("new SampleContext().Test.FromSql(input)", true)]
         [DataRow("new SampleContext().Test.FromSql(input, null)", true)]

@@ -105,7 +105,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                 var symbol = state.AnalysisContext.SemanticModel.GetDeclaredSymbol(node);
                 if (symbol != null)
                 {
-                    if (symbol.IsTaintEntryPoint(ProjectConfiguration.TaintEntryPoints))
+                    if (symbol is IMethodSymbol methodSymbol && methodSymbol.IsStatic && methodSymbol.Name == "Main")
+                        TaintParameters(node, parameterList, state);
+                    else if (symbol.IsTaintEntryPoint(ProjectConfiguration.TaintEntryPoints))
                         TaintParameters(node, parameterList, state);
                 }
             }
@@ -538,6 +540,12 @@ namespace SecurityCodeScan.Analyzers.Taint
                 var taintSourceState = CheckIfTaintSource(memberAccessExpression, state);
                 if (taintSourceState != null)
                     memberVariableState.MergeTaint(taintSourceState.Taint);
+            }
+            else if (node.Expression is IdentifierNameSyntax && state.GetSymbol(node) == null)
+            {
+                // VB array access is weird:
+                // array access is recognized as invocation expression and GetSymbol fails
+                return VisitExpression(node.Expression, state);
             }
 
             return VisitInvocationAndCreation(node, node.ArgumentList, state, memberVariableState?.Taint, memberVariableState);

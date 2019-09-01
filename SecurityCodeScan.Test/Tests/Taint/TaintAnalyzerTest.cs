@@ -2565,6 +2565,46 @@ Behavior:
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestMethod]
+        public async Task TaintSourceMain()
+        {
+            var cSharpTest = @"
+class MyClass
+{
+    private static void Main(string[] args)
+    {
+        Sink(args[1]);
+    }
+
+    private static void Sink(string input) {}
+}
+";
+
+            var visualBasicTest = $@"
+Class [MyClass]
+    Private Shared Sub Main(ByVal args As String())
+        Sink(args(1))
+    End Sub
+
+    Private Shared Sub Sink(ByVal input As String)
+    End Sub
+End Class
+";
+
+            var testConfig = @"
+Behavior:
+  MyKey:
+    ClassName: MyClass
+    Name: Sink
+    Method:
+      InjectableArguments: [SCS0026: 0]
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
         [DataTestMethod]
         [DataRow("HtmlTextArea",            "m_control.Value",                  true)]
         [DataRow("HtmlInputText",           "m_control.Value",                  true)]

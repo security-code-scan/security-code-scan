@@ -108,7 +108,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                 var symbol = state.AnalysisContext.SemanticModel.GetDeclaredSymbol(node);
                 if (symbol != null)
                 {
-                    if (symbol.IsTaintEntryPoint(ProjectConfiguration.TaintEntryPoints))
+                    if (symbol is IMethodSymbol methodSymbol && methodSymbol.IsStatic && methodSymbol.Name == "Main")
+                        TaintParameters(node, state);
+                    else if (symbol.IsTaintEntryPoint(ProjectConfiguration.TaintEntryPoints))
                         TaintParameters(node, state);
                 }
             }

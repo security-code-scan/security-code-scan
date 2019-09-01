@@ -3683,6 +3683,14 @@ Behavior:
       Returns:
         Taint: Tainted
 
+  System.Console_ReadLine:
+    Namespace: System
+    ClassName: Console
+    Name: ReadLine
+    Method:
+      Returns:
+        Taint: Tainted
+
 # Taint entry points that introduce taint into the program like main(args).
 # All parameters of such API are treated as tainted.
 # Format:

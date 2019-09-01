@@ -2521,6 +2521,50 @@ Behavior:
             }
         }
 
+        [TestMethod]
+        public async Task TaintSourceConsole()
+        {
+            var cSharpTest = @"
+using System;
+
+class MyClass
+{
+    private void Foo()
+    {
+        Sink(Console.ReadLine());
+    }
+
+    private void Sink(string input) {}
+}
+";
+
+            var visualBasicTest = $@"
+Imports System
+
+Class [MyClass]
+    Private Sub Foo()
+        Sink(Console.ReadLine())
+    End Sub
+
+    Private Sub Sink(ByVal input As String)
+    End Sub
+End Class
+";
+
+            var testConfig = @"
+Behavior:
+  MyKey:
+    ClassName: MyClass
+    Name: Sink
+    Method:
+      InjectableArguments: [SCS0026: 0]
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
         [DataTestMethod]
         [DataRow("HtmlTextArea",            "m_control.Value",                  true)]
         [DataRow("HtmlInputText",           "m_control.Value",                  true)]

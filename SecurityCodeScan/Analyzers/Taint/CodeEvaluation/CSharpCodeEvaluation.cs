@@ -765,46 +765,47 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             if (condition == null || methodSymbol == null || condition.Count == 0)
                 return true;
-            
+
             var ps = methodSymbol.Parameters;
-
-            var vals = new object[ps.Length];
-            for(var i = 0; i < ps.Length; i++)
-            {
-                var p = ps[i];
-                if(p.HasExplicitDefaultValue)
-                {
-                    vals[i] = p.ExplicitDefaultValue;
-                }
-                else
-                {
-                    vals[i] = null;
-                }
-            }
-
-            if (args != null)
-            {
-                var lexicalIx = 0;
-                foreach (var arg in args)
-                {
-                    var destIx = methodSymbol?.FindArgumentIndex(lexicalIx, arg) ?? lexicalIx;
-
-                    var val = state.AnalysisContext.SemanticModel.GetConstantValue(arg.Expression);
-                    if (val.HasValue)
-                    {
-                        vals[destIx] = val.Value;
-                    }
-
-                    lexicalIx++;
-                }
-            }
 
             foreach (var kv in condition)
             {
                 var ix = (int)kv.Key;
-                var val = (IReadOnlyDictionary<object, object>)kv.Value;
-                var expectedVal = val["Value"];
-                var codeVal = vals[ix];
+                var valDict = (IReadOnlyDictionary<object, object>)kv.Value;
+                var expectedVal = valDict["Value"];
+
+                object codeVal = null;
+
+                // fill in the default
+                if(ix < ps.Length)
+                {
+                    var p = ps[ix];
+
+                    if (p.HasExplicitDefaultValue)
+                        codeVal = p.ExplicitDefaultValue;
+
+                }
+
+                // look at each arg, figure out if it changes the default
+                if (args != null)
+                {
+                    var lexicalIx = 0;
+                    foreach (var arg in args)
+                    {
+                        var destIx = methodSymbol?.FindArgumentIndex(lexicalIx, arg) ?? lexicalIx;
+
+                        if (destIx == ix)
+                        {
+                            var val = state.AnalysisContext.SemanticModel.GetConstantValue(arg.Expression);
+                            if (val.HasValue)
+                                codeVal = val.Value;
+
+                            break;
+                        }
+
+                        lexicalIx++;
+                    }
+                }
 
                 if (!expectedVal.Equals(codeVal))
                     return false;

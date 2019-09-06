@@ -768,13 +768,11 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             if (methodSymbol == null)
                 return false;
-
-            if (args == null)
-                return false;
-
+            
             var ps = methodSymbol.GetParameters();
 
             var vals = new string[ps.Length];
+
             for (var i = 0; i < ps.Length; i++)
             {
                 var p = ps[i];
@@ -788,27 +786,30 @@ namespace SecurityCodeScan.Analyzers.Taint
                 }
             }
 
-            var lexicalIx = 0;
-            foreach (var arg in args)
+            if (args != null)
             {
-                var destIx = methodSymbol?.FindArgumentIndex(lexicalIx, arg) ?? lexicalIx;
-
-                Optional<object> val;
-                if(arg is SimpleArgumentSyntax simple)
+                var lexicalIx = 0;
+                foreach (var arg in args)
                 {
-                    val = state.AnalysisContext.SemanticModel.GetConstantValue(simple.Expression);
-                }
-                else
-                {
-                    val = new Optional<object>();
-                }
+                    var destIx = methodSymbol?.FindArgumentIndex(lexicalIx, arg) ?? lexicalIx;
 
-                if (val.HasValue)
-                {
-                    vals[destIx] = val.Value?.ToString();
-                }
+                    Optional<object> val;
+                    if (arg is SimpleArgumentSyntax simple)
+                    {
+                        val = state.AnalysisContext.SemanticModel.GetConstantValue(simple.Expression);
+                    }
+                    else
+                    {
+                        val = new Optional<object>();
+                    }
 
-                lexicalIx++;
+                    if (val.HasValue)
+                    {
+                        vals[destIx] = val.Value?.ToString();
+                    }
+
+                    lexicalIx++;
+                }
             }
 
             foreach (var kv in condition)

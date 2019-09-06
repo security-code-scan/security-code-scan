@@ -770,9 +770,6 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (methodSymbol == null)
                 return false;
 
-            if (args == null)
-                return false;
-
             var ps = methodSymbol.GetParameters();
 
             var vals = new string[ps.Length];
@@ -789,18 +786,21 @@ namespace SecurityCodeScan.Analyzers.Taint
                 }
             }
 
-            var lexicalIx = 0;
-            foreach (var arg in args)
+            if (args != null)
             {
-                var destIx = methodSymbol?.FindArgumentIndex(lexicalIx, arg) ?? lexicalIx;
-
-                var val = state.AnalysisContext.SemanticModel.GetConstantValue(arg.Expression);
-                if (val.HasValue)
+                var lexicalIx = 0;
+                foreach (var arg in args)
                 {
-                    vals[destIx] = val.Value?.ToString();
-                }
+                    var destIx = methodSymbol?.FindArgumentIndex(lexicalIx, arg) ?? lexicalIx;
 
-                lexicalIx++;
+                    var val = state.AnalysisContext.SemanticModel.GetConstantValue(arg.Expression);
+                    if (val.HasValue)
+                    {
+                        vals[destIx] = val.Value?.ToString();
+                    }
+
+                    lexicalIx++;
+                }
             }
 
             foreach (var kv in condition)

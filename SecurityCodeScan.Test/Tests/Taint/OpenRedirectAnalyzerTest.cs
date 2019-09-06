@@ -327,6 +327,99 @@ End Class
 
         [TestCategory("Detect")]
         [TestMethod]
+        public async Task ConditionalConstructorOpenRedirect()
+        {
+            var cSharpTest = @"
+using Microsoft.AspNetCore.Mvc;
+
+class OpenRedirect : Controller
+{
+    public ActionResult Vulnerable(string scary)
+    {
+        return new ConditionallyScaryRedirect(scary, injectable: true);
+    }
+
+    public ActionResult SafeDefault()
+    {
+        return new ConditionallyScaryRedirect();
+    }
+
+    public ActionResult SafePassed(string notScary)
+    {
+        return new ConditionallyScaryRedirect(notScary);
+    }
+}
+
+class ConditionallyScaryRedirect : ActionResult
+{
+    public ConditionallyScaryRedirect(string maybeTainted = null, bool injectable = false) : base()
+    {
+        // pretend there's something here
+    }   
+}
+";
+
+            var vbTest = @"
+Imports Microsoft.AspNetCore.Mvc
+
+Class OpenRedirect
+    Inherits Controller
+
+    Public Function Vulnerable(ByVal scary As String) As ActionResult
+        Return New ConditionallyScaryRedirect(scary, injectable:=True)
+    End Function
+
+    Public Function SafeDefault() As ActionResult
+        Return New ConditionallyScaryRedirect()
+    End Function
+
+    Public Function SafePassed(ByVal notScary As String) As ActionResult
+        Return New ConditionallyScaryRedirect(notScary)
+    End Function
+End Class
+
+Class ConditionallyScaryRedirect
+    Inherits ActionResult
+
+    Public Sub New(ByVal Optional maybeTainted As String = Nothing, ByVal Optional injectable As Boolean = False)
+        MyBase.New()
+    End Sub
+End Class
+
+";
+
+
+            var testConfig = @"
+Behavior:
+
+  Conditional:
+    ClassName: ConditionallyScaryRedirect
+    Name: .ctor
+    Method:
+      Condition: {1: { Value: True } }
+      ArgTypes: (System.String, System.Boolean)
+      InjectableArguments: [SCS0027: 0]
+";
+
+            var expectedCSharp =
+                new[]
+                {
+                    Expected.WithLocation(8, 47)
+                };
+
+            var expectedVB =
+                new[]
+                {
+                    Expected.WithLocation(8, 47)
+                };
+
+            var config = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, expectedCSharp, options: config).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest, expectedVB, options: config).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [TestMethod]
         public async Task ConditionalOpenRedirect()
         {
             var cSharpTest1 = @"

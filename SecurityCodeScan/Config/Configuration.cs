@@ -618,7 +618,7 @@ namespace SecurityCodeScan.Config
         {
             foreach (var key in condition.Keys.ToList())
             {
-                if (!(key is int conditionIndex) && !(key is string str && int.TryParse(str, out conditionIndex)))
+                if (!int.TryParse(key.ToString(), out var conditionIndex))
                     throw new Exception("Condition key must be an argument index");
 
                 var val = condition[key];

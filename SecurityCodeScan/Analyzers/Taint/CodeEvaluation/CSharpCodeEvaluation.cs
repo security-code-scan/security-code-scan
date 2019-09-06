@@ -812,11 +812,6 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                 switch (expectedVal)
                 {
-                    case string expectValStr:
-                        if (!codeVal.Equals(expectedVal))
-                            return false;
-
-                        break;
                     case int expectedValInt:
                         if (!int.TryParse(codeVal, out var codeValInt) || codeValInt != expectedValInt)
                             return false;

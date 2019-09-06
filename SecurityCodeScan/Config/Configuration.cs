@@ -616,7 +616,7 @@ namespace SecurityCodeScan.Config
 
         private void ValidateCondition(IDictionary<object, object> condition)
         {
-            foreach(var key in condition.Keys.ToList())
+            foreach (var key in condition.Keys.ToList())
             {
                 if (!(key is int conditionIndex) && !(key is string str && int.TryParse(str, out conditionIndex)))
                     throw new Exception("Condition key must be an argument index");
@@ -627,21 +627,39 @@ namespace SecurityCodeScan.Config
                 condition.Remove(key);
                 condition[conditionIndex] = val;
 
-                if(conditionIndex < 0)
+                if (conditionIndex < 0)
                     throw new Exception("Condition key must be an argument index >= 0");
 
-                if(!(val is IReadOnlyDictionary<object, object> valDict))
+                if (!(val is IReadOnlyDictionary<object, object> valDict))
                     throw new Exception("Condition value must be a dictionary");
 
-                if(valDict.Count != 1)
+                if (valDict.Count != 1)
                     throw new Exception("Condition dictionary must have a single value");
 
-                if(!valDict.TryGetValue("Value", out var conditionValue))
+                if (!valDict.TryGetValue("Value", out var conditionValue))
                     throw new Exception("Condition dictionary must contain 'Value'");
 
-                var validConditionValue = conditionValue is string || val is int || val is bool;
-                if (!validConditionValue)
-                    throw new Exception("Condition value must be a string, integer, or boolean");
+                if (!(conditionValue is int) && !(conditionValue is bool))
+                {
+                    var updatedValueDict = new Dictionary<object, object>(1);
+
+                    var asStr = conditionValue?.ToString();
+
+                    if (int.TryParse(asStr, out var asInt))
+                    {
+                        updatedValueDict["Value"] = asInt;
+                    }
+                    else if (bool.TryParse(asStr, out var asBool))
+                    {
+                        updatedValueDict["Value"] = asBool;
+                    }
+                    else
+                    {
+                        throw new Exception("Condition value must be a integer, or boolean");
+                    }
+
+                    condition[conditionIndex] = updatedValueDict;
+                }
             }
         }
 

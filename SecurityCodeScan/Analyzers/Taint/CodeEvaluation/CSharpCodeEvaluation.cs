@@ -803,9 +803,10 @@ namespace SecurityCodeScan.Analyzers.Taint
                 lexicalIx++;
             }
 
-            foreach (int ix in condition.Keys)
+            foreach (var kv in condition)
             {
-                var val = (IReadOnlyDictionary<object, object>)condition[ix];
+                var ix = (int)kv.Key;
+                var val = (IReadOnlyDictionary<object, object>)kv.Value;
                 var expectedVal = val["Value"];
                 var codeVal = vals[ix];
 

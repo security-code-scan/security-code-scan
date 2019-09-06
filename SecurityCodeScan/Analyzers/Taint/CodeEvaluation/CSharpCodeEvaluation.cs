@@ -764,12 +764,9 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         private bool BehaviorApplies(IReadOnlyDictionary<object, object> condition, IMethodSymbol methodSymbol, SeparatedSyntaxList<ArgumentSyntax>? args, ExecutionState state)
         {
-            if (condition == null || condition.Count == 0)
+            if (condition == null || methodSymbol == null || condition.Count == 0)
                 return true;
-
-            if (methodSymbol == null)
-                return false;
-
+            
             var ps = methodSymbol.Parameters;
 
             var vals = new string[ps.Length];

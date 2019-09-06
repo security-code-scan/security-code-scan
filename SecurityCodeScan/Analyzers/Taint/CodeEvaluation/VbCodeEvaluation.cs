@@ -55,6 +55,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 Logger.Log(errorMsg);
                 if (e.InnerException != null)
                     Logger.Log($"{e.InnerException.Message}");
+
                 Logger.Log($"\n{e.StackTrace}", false);
                 throw;
             }

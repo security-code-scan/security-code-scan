@@ -769,13 +769,13 @@ namespace SecurityCodeScan.Analyzers.Taint
             
             var ps = methodSymbol.Parameters;
 
-            var vals = new string[ps.Length];
+            var vals = new object[ps.Length];
             for(var i = 0; i < ps.Length; i++)
             {
                 var p = ps[i];
                 if(p.HasExplicitDefaultValue)
                 {
-                    vals[i] = p.ExplicitDefaultValue?.ToString();
+                    vals[i] = p.ExplicitDefaultValue;
                 }
                 else
                 {
@@ -793,7 +793,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     var val = state.AnalysisContext.SemanticModel.GetConstantValue(arg.Expression);
                     if (val.HasValue)
                     {
-                        vals[destIx] = val.Value?.ToString();
+                        vals[destIx] = val.Value;
                     }
 
                     lexicalIx++;
@@ -807,25 +807,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                 var expectedVal = val["Value"];
                 var codeVal = vals[ix];
 
-                if (codeVal == null)
+                if (!expectedVal.Equals(codeVal))
                     return false;
-
-                switch (expectedVal)
-                {
-                    case int expectedValInt:
-                        if (!int.TryParse(codeVal, out var codeValInt) || codeValInt != expectedValInt)
-                            return false;
-
-                        break;
-                    case bool expectedValBool:
-                        if (!bool.TryParse(codeVal, out var codeValBool) || codeValBool != expectedValBool)
-                            return false;
-
-                        break;
-                    default:
-                        // types are validated as part of parsing configuration, so this case should never be hit
-                        throw new InvalidOperationException("Condition value was not one of string, int, or bool; shouldn't be possible");
-                }
             }
 
             return true;

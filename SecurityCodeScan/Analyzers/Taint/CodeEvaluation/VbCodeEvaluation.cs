@@ -768,8 +768,8 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             if (methodSymbol == null)
                 return false;
-            
-            var ps = methodSymbol.GetParameters();
+
+            var ps = methodSymbol.Parameters;
 
             var vals = new string[ps.Length];
 

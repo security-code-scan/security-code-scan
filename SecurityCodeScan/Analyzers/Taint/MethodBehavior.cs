@@ -47,6 +47,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
     internal class MethodBehavior
     {
+        public IReadOnlyDictionary<object, object>          AppliesUnderCondition { get; }
         public IReadOnlyDictionary<int, InjectableArgument> InjectableArguments { get; }
         public IReadOnlyList<Condition>                     Conditions          { get; }
         public IReadOnlyDictionary<int, PostCondition>      PostConditions      { get; }
@@ -54,15 +55,17 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         private readonly InjectableArgument NotInjectableArgument = new InjectableArgument(0ul, null);
 
-        public MethodBehavior(IReadOnlyList<Condition>                     preConditions,
+        public MethodBehavior(IReadOnlyDictionary<object, object>          appliesUnderCondition,
+                              IReadOnlyList<Condition>                     preConditions,
                               IReadOnlyDictionary<int, PostCondition>      postConditions,
                               IReadOnlyDictionary<int, InjectableArgument> injectableArguments,
                               InjectableArgument                           injectableField)
         {
-            InjectableArguments = injectableArguments ?? EmptyDictionary<int, InjectableArgument>.Value;
-            PostConditions      = postConditions      ?? EmptyDictionary<int, PostCondition>.Value;
-            Conditions          = preConditions       ?? EmptyList<Condition>.Value;
-            InjectableField     = injectableField     ?? NotInjectableArgument;
+            AppliesUnderCondition = appliesUnderCondition ?? EmptyDictionary<object, object>.Value;
+            InjectableArguments = injectableArguments     ?? EmptyDictionary<int, InjectableArgument>.Value;
+            PostConditions      = postConditions          ?? EmptyDictionary<int, PostCondition>.Value;
+            Conditions          = preConditions           ?? EmptyList<Condition>.Value;
+            InjectableField     = injectableField         ?? NotInjectableArgument;
         }
     }
 }

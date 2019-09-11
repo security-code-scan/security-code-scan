@@ -618,14 +618,22 @@ namespace SecurityCodeScan.Config
         {
             foreach (var key in condition.Keys.ToList())
             {
-                if (!int.TryParse(key.ToString(), out var conditionIndex))
-                    throw new Exception("Condition key must be an argument index");
-
+                int conditionIndex;
                 var val = condition[key];
 
-                // force condition to have a integer typed keys
-                condition.Remove(key);
-                condition[conditionIndex] = val;
+                if (key is int)
+                {
+                    conditionIndex = (int)key;
+                }
+                else
+                {
+                    if (!(key is string keyString) || !int.TryParse(keyString, out conditionIndex))
+                        throw new Exception("Condition key must be an argument index");
+
+                    // force condition to have a integer typed keys
+                    condition.Remove(key);
+                    condition[conditionIndex] = val;
+                }
 
                 if (conditionIndex < 0)
                     throw new Exception("Condition key must be an argument index >= 0");
@@ -643,7 +651,7 @@ namespace SecurityCodeScan.Config
                 {
                     var updatedValueDict = new Dictionary<object, object>(1);
 
-                    var asStr = conditionValue?.ToString();
+                    var asStr = conditionValue as string;
 
                     if (int.TryParse(asStr, out var asInt))
                     {

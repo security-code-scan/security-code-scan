@@ -783,7 +783,6 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                     if (p.HasExplicitDefaultValue)
                         codeVal = p.ExplicitDefaultValue;
-
                 }
 
                 // look at each arg, figure out if it changes the default

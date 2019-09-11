@@ -325,69 +325,38 @@ End Class
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Detect")]
-        [TestMethod]
-        public async Task ConditionalConstructorOpenRedirect()
+        [DataRow("false", "string scary", "(scary, injectable: true)", true)]
+        [DataRow("false", "string scary", "(scary, injectable: false)", false)]
+        [DataRow("false", "string scary", "(scary)", false)]
+        [DataRow("true", "string scary", "(scary)", true)]
+        [DataRow("true", "", "{x = 0}", false)]
+        [DataRow("false", "", "{x = 0}", false)]
+        [DataTestMethod]
+        public async Task ConditionalConstructorOpenRedirectCSharp(string injectableByDefault, string arguments, string parameters, bool warn)
         {
-            var cSharpTest = @"
+            var cSharpTest = $@"
 using Microsoft.AspNetCore.Mvc;
 
 class OpenRedirect : Controller
-{
-    public ActionResult Vulnerable(string scary)
-    {
-        return new ConditionallyScaryRedirect(scary, injectable: true);
-    }
-
-    public ActionResult SafeDefault()
-    {
-        return new ConditionallyScaryRedirect();
-    }
-
-    public ActionResult SafePassed(string notScary)
-    {
-        return new ConditionallyScaryRedirect(notScary);
-    }
-}
+{{
+    public ActionResult Foo({arguments})
+    {{
+        return new ConditionallyScaryRedirect{parameters};
+    }}
+}}
 
 class ConditionallyScaryRedirect : ActionResult
-{
-    public ConditionallyScaryRedirect(string maybeTainted = null, bool injectable = false) : base()
-    {
+{{
+    public ConditionallyScaryRedirect(string maybeTainted = null, bool injectable = {injectableByDefault}) : base()
+    {{
         // pretend there's something here
-    }   
-}
+    }}
+
+#pragma warning disable CS0649
+    public int x;
+#pragma warning restore CS0649
+}}
 ";
-
-            var vbTest = @"
-Imports Microsoft.AspNetCore.Mvc
-
-Class OpenRedirect
-    Inherits Controller
-
-    Public Function Vulnerable(ByVal scary As String) As ActionResult
-        Return New ConditionallyScaryRedirect(scary, injectable:=True)
-    End Function
-
-    Public Function SafeDefault() As ActionResult
-        Return New ConditionallyScaryRedirect()
-    End Function
-
-    Public Function SafePassed(ByVal notScary As String) As ActionResult
-        Return New ConditionallyScaryRedirect(notScary)
-    End Function
-End Class
-
-Class ConditionallyScaryRedirect
-    Inherits ActionResult
-
-    Public Sub New(ByVal Optional maybeTainted As String = Nothing, ByVal Optional injectable As Boolean = False)
-        MyBase.New()
-    End Sub
-End Class
-
-";
-
 
             var testConfig = @"
 Behavior:
@@ -401,21 +370,95 @@ Behavior:
       InjectableArguments: [SCS0027: 0]
 ";
 
-            var expectedCSharp =
+            var config = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            if (warn)
+            {
+                var expectedCSharp =
                 new[]
                 {
-                    Expected.WithLocation(8, 47)
+                    Expected.WithLocation(8)
                 };
 
-            var expectedVB =
+                var expectedVB =
                 new[]
                 {
-                    Expected.WithLocation(8, 47)
+                    Expected.WithLocation(8)
                 };
+
+                await VerifyCSharpDiagnostic(cSharpTest, expectedCSharp, options: config).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, options: config).ConfigureAwait(false);
+            }
+        }
+
+        [DataRow("False", "ByVal scary As String", "(scary, injectable:=True)",  true)]
+        [DataRow("False", "ByVal scary As String", "(scary, injectable:=False)", false)]
+        [DataRow("False", "ByVal scary As String", "(scary)",                    false)]
+        [DataRow("True",  "ByVal scary As String", "(scary)",                    true)]
+        [DataRow("True",  "",                      " With {.x = 0}",             false)]
+        [DataRow("False", "",                      " With {.x = 0}",             false)]
+        [DataTestMethod]
+        public async Task ConditionalConstructorOpenRedirectVBasic(string injectableByDefault, string arguments, string parameters, bool warn)
+        {
+            var vbTest = $@"
+Imports Microsoft.AspNetCore.Mvc
+
+Class OpenRedirect
+    Inherits Controller
+
+    Public Function Foo({arguments}) As ActionResult
+        Return New ConditionallyScaryRedirect{parameters}
+    End Function
+End Class
+
+Class ConditionallyScaryRedirect
+    Inherits ActionResult
+
+    Public Sub New(ByVal Optional maybeTainted As String = Nothing, ByVal Optional injectable As Boolean = {injectableByDefault})
+        MyBase.New()
+    End Sub
+
+    Public x As Integer
+End Class
+";
+
+            var testConfig = @"
+Behavior:
+
+  Conditional:
+    ClassName: ConditionallyScaryRedirect
+    Name: .ctor
+    Method:
+      Condition: {1: { Value: True } }
+      ArgTypes: (System.String, System.Boolean)
+      InjectableArguments: [SCS0027: 0]
+";
 
             var config = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
-            await VerifyCSharpDiagnostic(cSharpTest, expectedCSharp, options: config).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(vbTest, expectedVB, options: config).ConfigureAwait(false);
+
+            if (warn)
+            {
+                var expectedCSharp =
+                new[]
+                {
+                    Expected.WithLocation(8)
+                };
+
+                var expectedVB =
+                new[]
+                {
+                    Expected.WithLocation(8)
+                };
+
+                await VerifyVisualBasicDiagnostic(vbTest, expectedVB, options: config).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyVisualBasicDiagnostic(vbTest, null, options: config).ConfigureAwait(false);
+            }
         }
 
         [TestCategory("Detect")]

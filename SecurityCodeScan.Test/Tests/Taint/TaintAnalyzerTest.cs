@@ -60,13 +60,11 @@ class Test
         if (output == null)
             return;
     }
-
     public void Injectable(string input)
     {
         // pretend it does something
     }
 }
-
 class TestInput
 {
     public void Input(string userProvided)
@@ -84,11 +82,9 @@ Class Test
     Public Sub Encode(ByVal input As String, ByVal Optional x As Integer = 0, ByVal Optional output As System.Text.StringBuilder = Nothing)
         If output Is Nothing Then Return
     End Sub
-
     Public Sub Injectable(ByVal input As String)
     End Sub
 End Class
-
 Class TestInput
     Public Sub Input(ByVal userProvided As String)
         Dim t = New Test()
@@ -112,7 +108,6 @@ Behavior:
     Method:
       2:
         TaintFromArguments: [0]
-
 TaintEntryPoints:
   Test:
     ClassName: TestInput
@@ -120,40 +115,40 @@ TaintEntryPoints:
 
             var testConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(config);
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(23), testConfig).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(16), testConfig).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(21), testConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(14), testConfig).ConfigureAwait(false);
         }
 
         [DataTestMethod]
-        [DataRow("Injectable", "userProvided, userProvided",          true)]
-        [DataRow("Injectable", "\"\", userProvided",                  false)]
-        [DataRow("Injectable", "userProvided, \"\"",                  true)]
-        [DataRow("Injectable", "\"\", \"\"",                          false)]
-        [DataRow("Injectable", "dangerous: userProvided, safe: \"\"", true)]
-        [DataRow("Injectable", "dangerous: \"\", safe: userProvided", false)]
-        [DataRow("Injectable", "safe: userProvided, dangerous: \"\"", false)]
-        [DataRow("Injectable", "safe: \"\", dangerous: userProvided", true)]
+        [DataRow("Injectable", "userProvided, userProvided",            true)]
+        [DataRow("Injectable", "\"\", userProvided",                    false)]
+        [DataRow("Injectable", "userProvided, \"\"",                    true)]
+        [DataRow("Injectable", "\"\", \"\"",                            false)]
+        [DataRow("Injectable", "dangerous: userProvided, safe: \"\"",   true)]
+        [DataRow("Injectable", "dangerous: \"\", safe: userProvided",   false)]
+        [DataRow("Injectable", "safe: userProvided, dangerous: \"\"",   false)]
+        [DataRow("Injectable", "safe: \"\", dangerous: userProvided",   true)]
 
-        [DataRow("Injectable2", "userProvided, userProvided",          true)]
-        [DataRow("Injectable2", "\"\", userProvided",                  false)]
-        [DataRow("Injectable2", "userProvided, \"\"",                  true)]
-        [DataRow("Injectable2", "\"\", \"\"",                          false)]
-        [DataRow("Injectable2", "dangerous: userProvided, safe: \"\"", true)]
-        [DataRow("Injectable2", "dangerous: \"\", safe: userProvided", false)]
-        [DataRow("Injectable2", "safe: userProvided, dangerous: \"\"", false)]
-        [DataRow("Injectable2", "safe: \"\", dangerous: userProvided", true)]
+        [DataRow("Injectable2", "userProvided, userProvided",           true)]
+        [DataRow("Injectable2", "\"\", userProvided",                   false)]
+        [DataRow("Injectable2", "userProvided, \"\"",                   true)]
+        [DataRow("Injectable2", "\"\", \"\"",                           false)]
+        [DataRow("Injectable2", "dangerous: userProvided, safe: \"\"",  true)]
+        [DataRow("Injectable2", "dangerous: \"\", safe: userProvided",  false)]
+        [DataRow("Injectable2", "safe: userProvided, dangerous: \"\"",  false)]
+        [DataRow("Injectable2", "safe: \"\", dangerous: userProvided",  true)]
 
-        [DataRow("InjectableOpt", "",                           false)]
-        [DataRow("InjectableOpt", "userProvided, userProvided", true)]
-        [DataRow("InjectableOpt", "safe: userProvided",         false)]
-        [DataRow("InjectableOpt", "dangerous: userProvided",    true)]
-        [DataRow("InjectableOpt", "dangerous: \"\"",            false)]
+        [DataRow("InjectableOpt", "",                                   false)]
+        [DataRow("InjectableOpt", "userProvided, userProvided",         true)]
+        [DataRow("InjectableOpt", "safe: userProvided",                 false)]
+        [DataRow("InjectableOpt", "dangerous: userProvided",            true)]
+        [DataRow("InjectableOpt", "dangerous: \"\"",                    false)]
 
-        [DataRow("InjectableOpt2", "",                           false)]
-        [DataRow("InjectableOpt2", "userProvided, userProvided", true)]
-        [DataRow("InjectableOpt2", "safe: userProvided",         false)]
-        [DataRow("InjectableOpt2", "dangerous: userProvided",    true)]
-        [DataRow("InjectableOpt2", "dangerous: \"\"",            false)]
+        [DataRow("InjectableOpt2", "",                                  false)]
+        [DataRow("InjectableOpt2", "userProvided, userProvided",        true)]
+        [DataRow("InjectableOpt2", "safe: userProvided",                false)]
+        [DataRow("InjectableOpt2", "dangerous: userProvided",           true)]
+        [DataRow("InjectableOpt2", "dangerous: \"\"",                   false)]
         public async Task NamedArguments(string function, string payload, bool warn)
         {
             var cSharpTest = $@"
@@ -163,26 +158,22 @@ class Test
     {{
         // pretend it does something
     }}
-
     public void InjectableOpt(string dangerous=""foo"", string safe=""bar"")
     {{
         // pretend it does something
     }}
 }}
-
 static class TestExtensions
 {{
     public static void Injectable2(this Test self, string dangerous, string safe)
     {{
         // pretend it does something
     }}
-
     public static void InjectableOpt2(this Test self, string dangerous=""foo"", string safe=""bar"")
     {{
         // pretend it does something
     }}
 }}
-
 class TestInput
 {{
     public void Input(string userProvided)
@@ -197,25 +188,20 @@ class TestInput
 
             var vbTest = $@"
 Imports System.Runtime.CompilerServices
-
 Class Test
     Public Sub Injectable(ByVal dangerous As String, ByVal safe As String)
     End Sub
-
     Public Sub InjectableOpt(ByVal Optional dangerous As String = ""foo"", ByVal Optional safe As String = ""bar"")
     End Sub
 End Class
-
 Module TestExtensions
     <Extension()>
     Public Sub Injectable2(ByVal self As Test, ByVal dangerous As String, ByVal safe As String)
     End Sub
-
     <Extension()>
     Public Sub InjectableOpt2(ByVal self As Test, ByVal Optional dangerous As String = ""foo"", ByVal Optional safe As String = ""bar"")
     End Sub
 End Module
-
 Class TestInput
     Public Sub Input(ByVal userProvided As String)
         Dim a As New Test()
@@ -246,7 +232,6 @@ Behavior:
     Name: InjectableOpt2
     Method:
       InjectableArguments: [SCS0026: 1]
-
 TaintEntryPoints:
   Test:
     ClassName: TestInput
@@ -256,8 +241,8 @@ TaintEntryPoints:
 
             if (warn)
             {
-                await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(32), testConfig).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(25), testConfig).ConfigureAwait(false);
+                await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(28), testConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(20), testConfig).ConfigureAwait(false);
             }
             else
             {
@@ -2524,6 +2509,90 @@ Behavior:
             }
         }
 
+        [TestMethod]
+        public async Task TaintSourceConsole()
+        {
+            var cSharpTest = @"
+using System;
+
+class MyClass
+{
+    private void Foo()
+    {
+        Sink(Console.ReadLine());
+    }
+
+    private void Sink(string input) {}
+}
+";
+
+            var visualBasicTest = $@"
+Imports System
+
+Class [MyClass]
+    Private Sub Foo()
+        Sink(Console.ReadLine())
+    End Sub
+
+    Private Sub Sink(ByVal input As String)
+    End Sub
+End Class
+";
+
+            var testConfig = @"
+Behavior:
+  MyKey:
+    ClassName: MyClass
+    Name: Sink
+    Method:
+      InjectableArguments: [SCS0026: 0]
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task TaintSourceMain()
+        {
+            var cSharpTest = @"
+class MyClass
+{
+    private static void Main(string[] args)
+    {
+        Sink(args[1]);
+    }
+
+    private static void Sink(string input) {}
+}
+";
+
+            var visualBasicTest = $@"
+Class [MyClass]
+    Private Shared Sub Main(ByVal args As String())
+        Sink(args(1))
+    End Sub
+
+    Private Shared Sub Sink(ByVal input As String)
+    End Sub
+End Class
+";
+
+            var testConfig = @"
+Behavior:
+  MyKey:
+    ClassName: MyClass
+    Name: Sink
+    Method:
+      InjectableArguments: [SCS0026: 0]
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
         [DataTestMethod]
         [DataRow("HtmlTextArea",            "m_control.Value",                  true)]
         [DataRow("HtmlInputText",           "m_control.Value",                  true)]
@@ -2766,6 +2835,292 @@ Behavior:
 
             await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        [TestCategory("Safe")]
+        public async Task ExtensionMethodWithRef()
+        {
+            var cSharpTest = @"
+class Test
+{
+    public void Foo(string bar)
+    {
+        int c = 1;
+        bar.ExtensionMethodRef(ref c);
+        int d;
+        bar.ExtensionMethodOut(out d);
+    }
+}
+
+static class Exts
+{
+    public static void ExtensionMethodRef(this string str, ref int a)
+    {
+        a = str.Length;
+    }
+
+    public static void ExtensionMethodOut(this string str, out int a)
+    {
+        a = str.Length;
+    }
+}
+";
+
+            var vbTest = @"
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+
+Class Test
+    Public Sub Foo(ByVal bar As String)
+        Dim c As Integer = 1
+        bar.ExtensionMethodRef(c)
+        Dim d As Integer
+        bar.ExtensionMethodOut(d)
+    End Sub
+End Class
+
+Module Exts
+    <Extension()>
+    Sub ExtensionMethodRef(ByVal str As String, ByRef a As Integer)
+        a = str.Length
+    End Sub
+
+    <Extension()>
+    Sub ExtensionMethodOut(ByVal str As String, <Out> ByRef a As Integer)
+        a = str.Length
+    End Sub
+End Module
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        [TestCategory("Detect")]
+        public async Task ExtensionMethodWithPostCondition()
+        {
+            var cSharpTest = @"
+class Test
+{
+    public void Foo(string userInput)
+    {
+        string foo = """";
+        userInput.ExtensionMethodRef(ref foo);
+        Sink(foo);
+    }
+
+    private void Sink(string input)
+    {
+    }
+}
+
+static class Exts
+{
+    public static void ExtensionMethodRef(this string str, ref string a)
+    {
+        a += str;
+    }
+}
+";
+
+            var vbTest = @"
+Imports System.Runtime.CompilerServices
+
+Class Test
+    Public Sub Foo(ByVal userInput As String)
+        Dim foo As String = ""
+        ""
+        userInput.ExtensionMethodRef(foo)
+        Sink(foo)
+    End Sub
+
+    Private Sub Sink(ByVal input As String)
+    End Sub
+End Class
+
+Module Exts
+    <Extension()>
+    Sub ExtensionMethodRef(ByVal str As String, ByRef a As String)
+        a += str
+    End Sub
+End Module
+";
+
+            var testConfig = @"
+TaintEntryPoints:
+  Test:
+    ClassName: Test
+
+Behavior:
+  123:
+    ClassName: Exts
+    Name: ExtensionMethodRef
+    Method:
+      1:
+        TaintFromArguments: [0]
+
+  MyKey:
+    ClassName: Test
+    Name: Sink
+    Method:
+      InjectableArguments: [SCS0026: 0]
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        [TestCategory("Detect")]
+        public async Task ExtensionMethodWithPostCondition2()
+        {
+            var cSharpTest = @"
+class Test
+{
+    public void Foo(string userInput)
+    {
+        string foo = """";
+        userInput.ExtensionMethodRef(ref foo, userInput);
+        Sink(foo);
+    }
+
+    private void Sink(string input)
+    {
+    }
+}
+
+static class Exts
+{
+    public static void ExtensionMethodRef(this string str, ref string a, string b)
+    {
+        a += b;
+    }
+}
+";
+
+            var vbTest = @"
+Imports System.Runtime.CompilerServices
+
+Class Test
+    Public Sub Foo(ByVal userInput As String)
+        Dim foo As String = ""
+        ""
+        userInput.ExtensionMethodRef(foo, userInput)
+        Sink(foo)
+    End Sub
+
+    Private Sub Sink(ByVal input As String)
+    End Sub
+End Class
+
+Module Exts
+    <Extension()>
+    Sub ExtensionMethodRef(ByVal str As String, ByRef a As String, ByVal b As String)
+        a += b
+    End Sub
+End Module
+";
+
+            var testConfig = @"
+TaintEntryPoints:
+  Test:
+    ClassName: Test
+
+Behavior:
+  123:
+    ClassName: Exts
+    Name: ExtensionMethodRef
+    Method:
+      1:
+        TaintFromArguments: [2]
+
+  MyKey:
+    ClassName: Test
+    Name: Sink
+    Method:
+      InjectableArguments: [SCS0026: 0]
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        [TestCategory("Detect")]
+        public async Task ExtensionMethodWithParams()
+        {
+            var cSharpTest = @"
+class Test
+{
+    public void Foo(string userInput)
+    {
+        string foo = """";
+        Sink(foo.ExtensionMethod(foo, foo, userInput));
+    }
+
+    private void Sink(string input)
+    {
+    }
+}
+
+static class Exts
+{
+    public static string ExtensionMethod(this string str, params string[] args)
+    {
+        return args[0];
+    }
+}
+";
+
+            var vbTest = @"
+Imports System.Runtime.CompilerServices
+
+Class Test
+    Public Sub Foo(ByVal userInput As String)
+        Dim foo As String = ""
+        ""
+        Sink(foo.ExtensionMethod(foo, foo, userInput))
+    End Sub
+
+    Private Sub Sink(ByVal input As String)
+    End Sub
+End Class
+
+Module Exts
+    <Extension()>
+    Function ExtensionMethod(ByVal str As String, ParamArray args As String()) As String
+        Return args(0)
+    End Function
+End Module
+";
+
+            var testConfig = @"
+TaintEntryPoints:
+  Test:
+    ClassName: Test
+
+Behavior:
+  123:
+    ClassName: Exts
+    Name: ExtensionMethod
+    Method:
+      Returns:
+        TaintFromArguments: [1]
+
+  MyKey:
+    ClassName: Test
+    Name: Sink
+    Method:
+      InjectableArguments: [SCS0026: 0]
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
     }
 }

@@ -327,5 +327,303 @@ End Class
             await VerifyCSharpDiagnostic(cSharpTest2).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
+
+        [DataRow("false", "string scary", "(scary, injectable: true)", true)]
+        [DataRow("false", "string scary", "(scary, injectable: false)", false)]
+        [DataRow("false", "string scary", "(scary)", false)]
+        [DataRow("true", "string scary", "(scary)", true)]
+        [DataRow("true", "", "{x = 0}", false)]
+        [DataRow("false", "", "{x = 0}", false)]
+        [DataTestMethod]
+        public async Task ConditionalConstructorOpenRedirectCSharp(string injectableByDefault, string arguments, string parameters, bool warn)
+        {
+            var cSharpTest = $@"
+using Microsoft.AspNetCore.Mvc;
+
+class OpenRedirect : Controller
+{{
+    public ActionResult Foo({arguments})
+    {{
+        return new ConditionallyScaryRedirect{parameters};
+    }}
+}}
+
+class ConditionallyScaryRedirect : ActionResult
+{{
+    public ConditionallyScaryRedirect(string maybeTainted = null, bool injectable = {injectableByDefault}) : base()
+    {{
+        // pretend there's something here
+    }}
+
+#pragma warning disable CS0649
+    public int x;
+#pragma warning restore CS0649
+}}
+";
+
+            var testConfig = @"
+Behavior:
+
+  Conditional:
+    ClassName: ConditionallyScaryRedirect
+    Name: .ctor
+    Method:
+      Condition: {1: { Value: True } }
+      ArgTypes: (System.String, System.Boolean)
+      InjectableArguments: [SCS0027: 0]
+";
+
+            var config = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            if (warn)
+            {
+                var expectedCSharp =
+                new[]
+                {
+                    Expected.WithLocation(8)
+                };
+
+                var expectedVB =
+                new[]
+                {
+                    Expected.WithLocation(8)
+                };
+
+                await VerifyCSharpDiagnostic(cSharpTest, expectedCSharp, options: config).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, options: config).ConfigureAwait(false);
+            }
+        }
+
+        [DataRow("False", "ByVal scary As String", "(scary, injectable:=True)",  true)]
+        [DataRow("False", "ByVal scary As String", "(scary, injectable:=False)", false)]
+        [DataRow("False", "ByVal scary As String", "(scary)",                    false)]
+        [DataRow("True",  "ByVal scary As String", "(scary)",                    true)]
+        [DataRow("True",  "",                      " With {.x = 0}",             false)]
+        [DataRow("False", "",                      " With {.x = 0}",             false)]
+        [DataTestMethod]
+        public async Task ConditionalConstructorOpenRedirectVBasic(string injectableByDefault, string arguments, string parameters, bool warn)
+        {
+            var vbTest = $@"
+Imports Microsoft.AspNetCore.Mvc
+
+Class OpenRedirect
+    Inherits Controller
+
+    Public Function Foo({arguments}) As ActionResult
+        Return New ConditionallyScaryRedirect{parameters}
+    End Function
+End Class
+
+Class ConditionallyScaryRedirect
+    Inherits ActionResult
+
+    Public Sub New(ByVal Optional maybeTainted As String = Nothing, ByVal Optional injectable As Boolean = {injectableByDefault})
+        MyBase.New()
+    End Sub
+
+    Public x As Integer
+End Class
+";
+
+            var testConfig = @"
+Behavior:
+
+  Conditional:
+    ClassName: ConditionallyScaryRedirect
+    Name: .ctor
+    Method:
+      Condition: {1: { Value: True } }
+      ArgTypes: (System.String, System.Boolean)
+      InjectableArguments: [SCS0027: 0]
+";
+
+            var config = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            if (warn)
+            {
+                var expectedCSharp =
+                new[]
+                {
+                    Expected.WithLocation(8)
+                };
+
+                var expectedVB =
+                new[]
+                {
+                    Expected.WithLocation(8)
+                };
+
+                await VerifyVisualBasicDiagnostic(vbTest, expectedVB, options: config).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyVisualBasicDiagnostic(vbTest, null, options: config).ConfigureAwait(false);
+            }
+        }
+
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task ConditionalOpenRedirect()
+        {
+            var cSharpTest1 = @"
+using Microsoft.AspNetCore.Mvc;
+
+class OpenRedirect : Controller
+{
+    public ActionResult Vulnerable(string scary)
+    {
+        return ConditionalRedirect(scary, false);
+    }
+
+    public ActionResult Safe(string notScary)
+    {
+        return ConditionalRedirect(notScary, true);
+    }
+
+    private ActionResult ConditionalRedirect(string url, bool internalOnly)
+    {
+        // pretend this does something
+        return null;
+    }
+}
+";
+            var cSharpTest2 = @"
+using Microsoft.AspNetCore.Mvc;
+
+class OpenRedirect : Controller
+{
+    public ActionResult Vulnerable(string scary1)
+    {
+        return ConditionalRedirect(scary1, false);
+    }
+
+    public ActionResult VulnerableNamed(string scary2)
+    {
+        return ConditionalRedirect(internalOnly: false, url: scary2);
+    }
+
+    public ActionResult Safe(string notScary1)
+    {
+        return ConditionalRedirect(notScary1);
+    }
+
+    public ActionResult SafeNamed1(string notScary2)
+    {
+        return ConditionalRedirect(url: notScary2);
+    }
+
+    public ActionResult SafeNamed2(string notScary3)
+    {
+        return ConditionalRedirect(internalOnly: true, url: notScary3);
+    }
+
+    private ActionResult ConditionalRedirect(string url, bool internalOnly = true)
+    {
+        // pretend this does something
+        return null;
+    }
+}
+";
+
+            var vbTest1 = @"
+Imports Microsoft.AspNetCore.Mvc
+
+Class OpenRedirect
+    Inherits Controller
+
+    Public Function Vulnerable(ByVal scary As String) As ActionResult
+        Return ConditionalRedirect(scary, False)
+    End Function
+
+    Public Function Safe(ByVal notScary As String) As ActionResult
+        Return ConditionalRedirect(notScary, True)
+    End Function
+
+    Private Function ConditionalRedirect(ByVal url As String, ByVal internalOnly As Boolean) As ActionResult
+        Return Nothing
+    End Function
+End Class
+";
+
+            var vbTest2 = @"
+Imports Microsoft.AspNetCore.Mvc
+
+Class OpenRedirect
+    Inherits Controller
+
+    Public Function Vulnerable(ByVal scary1 As String) As ActionResult
+        Return ConditionalRedirect(scary1, False)
+    End Function
+
+    Public Function VulnerableNamed(ByVal scary2 As String) As ActionResult
+        Return ConditionalRedirect(internalOnly:=False, url:=scary2)
+    End Function
+
+    Public Function Safe(ByVal notScary1 As String) As ActionResult
+        Return ConditionalRedirect(notScary1)
+    End Function
+
+    Public Function SafeNamed1(ByVal notScary2 As String) As ActionResult
+        Return ConditionalRedirect(url:=notScary2)
+    End Function
+
+    Public Function SafeNamed2(ByVal notScary3 As String) As ActionResult
+        Return ConditionalRedirect(internalOnly:=True, url:=notScary3)
+    End Function
+
+    Private Function ConditionalRedirect(ByVal url As String, ByVal Optional internalOnly As Boolean = True) As ActionResult
+        Return Nothing
+    End Function
+End Class
+
+";
+
+
+            var testConfig = @"
+Behavior:
+
+  Conditional:
+    ClassName: OpenRedirect
+    Name: ConditionalRedirect
+    Method:
+      Condition: {1: { Value: False } }
+      ArgTypes: (System.String, System.Boolean)
+      InjectableArguments: [SCS0027: 0]
+";
+
+            var expectedCSharp1 =
+                new[]
+                {
+                    Expected.WithLocation(8, 36)
+                };
+
+            var expectedCSharp2 =
+                new[]
+                {
+                    Expected.WithLocation(8, 36),
+                    Expected.WithLocation(13, 62)
+                };
+            var expectedVB1 =
+                new[]
+                {
+                    Expected.WithLocation(8, 36)
+                };
+            var expectedVB2 =
+                new[]
+                {
+                    Expected.WithLocation(8, 36),
+                    Expected.WithLocation(12, 62)
+                };
+
+            var config = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest1, expectedCSharp1, options: config).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest2, expectedCSharp2, options: config).ConfigureAwait(false);
+
+            await VerifyVisualBasicDiagnostic(vbTest1, expectedVB1, options: config).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest2, expectedVB2, options: config).ConfigureAwait(false);
+        }
     }
 }

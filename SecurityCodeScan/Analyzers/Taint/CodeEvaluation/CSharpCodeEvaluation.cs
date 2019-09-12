@@ -58,6 +58,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 Logger.Log(errorMsg);
                 if (e.InnerException != null)
                     Logger.Log($"{e.InnerException.Message}");
+
                 Logger.Log($"\n{e.StackTrace}", false);
                 throw;
             }
@@ -108,7 +109,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                 var symbol = state.AnalysisContext.SemanticModel.GetDeclaredSymbol(node);
                 if (symbol != null)
                 {
-                    if (symbol.IsTaintEntryPoint(ProjectConfiguration.TaintEntryPoints))
+                    if (symbol is IMethodSymbol methodSymbol && methodSymbol.IsStatic && methodSymbol.Name == "Main")
+                        TaintParameters(node, state);
+                    else if (symbol.IsTaintEntryPoint(ProjectConfiguration.TaintEntryPoints))
                         TaintParameters(node, state);
                 }
             }
@@ -653,6 +656,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                                      ? new Dictionary<int, VariableState>(argCount.Value)
                                      : null;
 
+            var behaviorApplies = behavior != null && BehaviorApplies(behavior.AppliesUnderCondition, methodSymbol, argList?.Arguments, state);
+
             for (var i = 0; i < argList?.Arguments.Count; i++)
             {
                 var argument      = argList.Arguments[i];
@@ -668,8 +673,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 #if DEBUG
                 Logger.Log(symbol.ContainingType + "." + symbol.Name + " -> " + argumentState);
 #endif
-
-                if (behavior != null)
+                if (behaviorApplies)
                 {
                     if ((argumentState.Taint & (ProjectConfiguration.AuditMode
                                                     ? VariableTaint.Tainted | VariableTaint.Unknown
@@ -736,8 +740,13 @@ namespace SecurityCodeScan.Analyzers.Taint
                     {
                         foreach (var argIdx in postCondition.TaintFromArguments)
                         {
-                            var adjustedArgumentIdx = isExtensionMethod ? argIdx + 1 : argIdx;
-                            if (!argumentStates.TryGetValue(adjustedArgumentIdx, out var postConditionStateSource))
+                            if (isExtensionMethod && argIdx == 0)
+                            {
+                                arg.Value.MergeTaint(initialTaint.Value); // shouldn't be null, otherwise fail early
+                                continue;
+                            }
+
+                            if (!argumentStates.TryGetValue(argIdx, out var postConditionStateSource))
                                 continue;
 
                             arg.Value.MergeTaint(postConditionStateSource.Taint);
@@ -747,12 +756,14 @@ namespace SecurityCodeScan.Analyzers.Taint
                     }
                     else if (methodSymbol != null)
                     {
-                        if (arg.Key >= methodSymbol.Parameters.Length)
+                        var adjustedArgIx = isExtensionMethod ? arg.Key - 1 : arg.Key;
+
+                        if (adjustedArgIx >= methodSymbol.Parameters.Length)
                         {
-                            if (!methodSymbol.Parameters[methodSymbol.Parameters.Length - 1].IsParams)
+                            if (!methodSymbol.Parameters[adjustedArgIx].IsParams)
                                 throw new IndexOutOfRangeException();
                         }
-                        else if (methodSymbol.Parameters[arg.Key].RefKind != RefKind.None)
+                        else if (methodSymbol.Parameters[adjustedArgIx].RefKind != RefKind.None)
                         {
                             arg.Value.MergeTaint(returnState.Taint);
                         }
@@ -776,6 +787,58 @@ namespace SecurityCodeScan.Analyzers.Taint
             }
 
             return returnState;
+        }
+
+        private bool BehaviorApplies(IReadOnlyDictionary<object, object> condition, IMethodSymbol methodSymbol, SeparatedSyntaxList<ArgumentSyntax>? args, ExecutionState state)
+        {
+            if (condition == null || methodSymbol == null || condition.Count == 0)
+                return true;
+
+            var ps = methodSymbol.Parameters;
+
+            foreach (var kv in condition)
+            {
+                var ix = (int)kv.Key;
+                var valDict = (IReadOnlyDictionary<object, object>)kv.Value;
+                var expectedVal = valDict["Value"];
+
+                object codeVal = null;
+
+                // fill in the default
+                if(ix < ps.Length)
+                {
+                    var p = ps[ix];
+
+                    if (p.HasExplicitDefaultValue)
+                        codeVal = p.ExplicitDefaultValue;
+                }
+
+                // look at each arg, figure out if it changes the default
+                if (args != null)
+                {
+                    var lexicalIx = 0;
+                    foreach (var arg in args)
+                    {
+                        var destIx = methodSymbol?.FindArgumentIndex(lexicalIx, arg) ?? lexicalIx;
+
+                        if (destIx == ix)
+                        {
+                            var val = state.AnalysisContext.SemanticModel.GetConstantValue(arg.Expression);
+                            if (val.HasValue)
+                                codeVal = val.Value;
+
+                            break;
+                        }
+
+                        lexicalIx++;
+                    }
+                }
+
+                if (!expectedVal.Equals(codeVal))
+                    return false;
+            }
+
+            return true;
         }
 
         private VariableState VisitAssignment(AssignmentExpressionSyntax node, ExecutionState state)

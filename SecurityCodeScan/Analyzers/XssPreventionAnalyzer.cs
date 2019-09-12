@@ -202,7 +202,7 @@ namespace SecurityCodeScan.Analyzers
             "HttpContext.Server.HtmlEncode"
         };
 
-        protected string[] ControllerNames = { "Microsoft.AspNetCore.Mvc.Controller", "System.Web.Mvc.Controller" };
+        protected string[] ControllerNames = { "Microsoft.AspNetCore.Mvc.ControllerBase", "System.Web.Mvc.Controller" };
 
         protected static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor(DiagnosticId);
 

@@ -209,19 +209,22 @@ End Class
 
         [TestCategory("Detect")]
         [DataTestMethod]
-        [DataRow("System.Web.Mvc",                       "HttpGet")]
-        [DataRow("HG = System.Web.Mvc.HttpGetAttribute", "HG")]
-        public async Task UnencodedInputDataSystemWebMvc(string alias, string attributeName)
+        [DataRow("System.Web.Mvc",                                 "System.Web.Mvc.Controller",               "HttpGet")]
+        [DataRow("HG = System.Web.Mvc.HttpGetAttribute",           "System.Web.Mvc.Controller",               "HG")]
+        [DataRow("Microsoft.AspNetCore.Mvc",                       "Microsoft.AspNetCore.Mvc.Controller",     "HttpGet")]
+        [DataRow("HG = Microsoft.AspNetCore.Mvc.HttpGetAttribute", "Microsoft.AspNetCore.Mvc.Controller",     "HG")]
+        [DataRow("Microsoft.AspNetCore.Mvc",                       "Microsoft.AspNetCore.Mvc.ControllerBase", "HttpGet")]
+        public async Task UnencodedInputData(string alias, string controller, string attributeName)
         {
             string cSharpTest = $@"
 using {alias};
 
 namespace VulnerableApp
 {{
-    public class TestController : System.Web.Mvc.Controller
+    public class TestController : {controller}
     {{
         [{attributeName}]
-        public string Get(int inputData)
+        public string Get(string inputData)
         {{
             return ""value "" + inputData;
         }}
@@ -234,9 +237,9 @@ Imports {alias}
 
 Namespace VulnerableApp
     Public Class TestController
-        Inherits System.Web.Mvc.Controller
+        Inherits {controller}
         <{attributeName}> _
-        Public Function [Get](inputData As Integer) As String
+        Public Function [Get](inputData As String) As String
             Return ""value "" & inputData.ToString()
         End Function
     End Class
@@ -265,44 +268,6 @@ namespace VulnerableApp
             ";
 
             await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
-        }
-
-        [TestCategory("Detect")]
-        [TestMethod]
-        public async Task UnencodedInputData()
-        {
-            const string cSharpTest = @"
-using Microsoft.AspNetCore.Mvc;
-
-namespace VulnerableApp
-{
-    public class TestController : Controller
-    {
-        [HttpGet(""{inputData}"")]
-        public string Get(int inputData)
-        {
-            return ""value "" + inputData;
-        }
-    }
-}
-            ";
-
-            const string visualBasicTest = @"
-Imports Microsoft.AspNetCore.Mvc
-
-Namespace VulnerableApp
-    Public Class TestController
-        Inherits Controller
-        <HttpGet(""{inputData}"")> _
-        Public Function [Get](inputData As Integer) As String
-            Return ""value "" & inputData.ToString()
-        End Function
-    End Class
-End Namespace
-            ";
-
-            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]

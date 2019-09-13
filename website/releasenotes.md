@@ -1,4 +1,12 @@
 # Release Notes
+## 3.3.0
+* Better C# 7 handling
+* CSRF analyzer configuration made more flexible.  
+  Configuration file schema version has changed to 2.0, so if you had custom config settings, you’ll need to adjust to the schema and bump your file name from config-2.0.yml to config-2.1.yml or change from Version: 2.0 to Version: 2.1 if it was added to a project.
+* Bug fixes.
+
+Thanks [@kevin-montrose](https://github.com/kevin-montrose) for the contributions!
+
 ## 3.2.0
 Bugfix release.
 * Fixes using SCS as nuget. [#117](https://github.com/security-code-scan/security-code-scan/issues/117)

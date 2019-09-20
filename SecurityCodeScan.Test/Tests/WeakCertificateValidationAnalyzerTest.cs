@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using SecurityCodeScan.Test.Config;
 using DiagnosticVerifier = SecurityCodeScan.Test.Helpers.DiagnosticVerifier;
+using System;
 
 namespace SecurityCodeScan.Test
 {
@@ -37,22 +38,20 @@ namespace SecurityCodeScan.Test
 
         [TestCategory("Safe")]
         [DataTestMethod]
-        [DataRow("var request = (Rqst)WebRequest.Create(\"https://hack.me/\");", "request.ServerCertificateValidationCallback")]
-        [DataRow("var request = new WebRequestHandler();",                       "request.ServerCertificateValidationCallback")]
-        [DataRow("",                                                             "ServicePointManager.ServerCertificateValidationCallback")]
-        public async Task WeakCertFalsePositiveCSharp(string factory, string left)
+        [DataRow("var httpClientHandler = new HttpClientHandler();",             "httpClientHandler.ServerCertificateCustomValidationCallback", "GetCallbacks2")]
+        [DataRow("var request = (Rqst)WebRequest.Create(\"https://hack.me/\");", "request.ServerCertificateValidationCallback",                 "GetCallbacks")]
+        [DataRow("var request = new WebRequestHandler();",                       "request.ServerCertificateValidationCallback",                 "GetCallbacks")]
+        [DataRow("",                                                             "ServicePointManager.ServerCertificateValidationCallback",     "GetCallbacks")]
+        public async Task WeakCertFalsePositiveCSharp(string factory, string left, string callbackFunctionName)
         {
+            var method = GetType().GetMethod(callbackFunctionName, System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            Func<string[]> getCallbacks = () => (string[])method.Invoke(null, null);
+
             foreach (var returnValue in new[] {"false", "Unknown"})
             {
                 foreach (var assignment in new[] {"=", "+="})
                 {
-                    foreach (var right in new[]
-                    {
-                        "delegate {{ return {0}; }};",
-                        "delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) {{ return {0}; }};",
-                        "(sender, cert, chain, sslPolicyErrors) => {{ return {0}; }};",
-                        "(sender, cert, chain, sslPolicyErrors) => {0};"
-                    })
+                    foreach (var right in getCallbacks())
                     {
                         var payload = $"{left} {assignment} {string.Format(right, returnValue)}";
 
@@ -89,22 +88,20 @@ class WeakCert
 
         [TestCategory("Detect")]
         [DataTestMethod]
-        [DataRow("var request = (Rqst)WebRequest.Create(\"https://hack.me/\");", "request.ServerCertificateValidationCallback")]
-        [DataRow("var request = new WebRequestHandler();",                       "request.ServerCertificateValidationCallback")]
-        [DataRow("",                                                             "ServicePointManager.ServerCertificateValidationCallback")]
-        public async Task WeakCertAuditCSharp(string factory, string left)
+        [DataRow("var httpClientHandler = new HttpClientHandler();",             "httpClientHandler.ServerCertificateCustomValidationCallback", "GetCallbacks2")]
+        [DataRow("var request = (Rqst)WebRequest.Create(\"https://hack.me/\");", "request.ServerCertificateValidationCallback",                 "GetCallbacks")]
+        [DataRow("var request = new WebRequestHandler();",                       "request.ServerCertificateValidationCallback",                 "GetCallbacks")]
+        [DataRow("",                                                             "ServicePointManager.ServerCertificateValidationCallback",     "GetCallbacks")]
+        public async Task WeakCertAuditCSharp(string factory, string left, string callbackFunctionName)
         {
+            var method = GetType().GetMethod(callbackFunctionName, System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            Func<string[]> getCallbacks = () => (string[])method.Invoke(null, null);
+
             foreach (var returnValue in new[] { "Unknown" })
             {
                 foreach (var assignment in new[] { "=", "+=" })
                 {
-                    foreach (var right in new[]
-                    {
-                        "delegate {{ return {0}; }};",
-                        "delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) {{ return {0}; }};",
-                        "(sender, cert, chain, sslPolicyErrors) => {{ return {0}; }};",
-                        "(sender, cert, chain, sslPolicyErrors) => {0};"
-                    })
+                    foreach (var right in getCallbacks())
                     {
                         var payload = $"{left} {assignment} {string.Format(right, returnValue)}";
 
@@ -144,26 +141,46 @@ AuditMode: true
             }
         }
 
+        private static string[] GetCallbacks()
+        {
+            return new[]
+            {
+                "delegate {{ return {0}; }};",
+                "delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) {{ return {0}; }};",
+                "(sender, cert, chain, sslPolicyErrors) => {{ return {0}; }};",
+                "(sender, cert, chain, sslPolicyErrors) => {0};"
+            };
+        }
+
+        private static string[] GetCallbacks2()
+        {
+            return new[]
+            {
+                "delegate {{ return {0}; }};",
+                "delegate(HttpRequestMessage message, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors errors) {{ return {0}; }};",
+                "(message, cert, chain, sslPolicyErrors) => {{ return {0}; }};",
+                "(message, cert, chain, sslPolicyErrors) => {0};"
+            };
+        }
+
         // todo: add ServicePointManager.CertificatePolicy tests
 
         [TestCategory("Detect")]
         [DataTestMethod]
-        [DataRow("var request = (Rqst)WebRequest.Create(\"https://hack.me/\");", "request.ServerCertificateValidationCallback")]
-        [DataRow("var request = new WebRequestHandler();",                       "request.ServerCertificateValidationCallback")]
-        [DataRow("",                                                             "ServicePointManager.ServerCertificateValidationCallback")]
-        public async Task WeakCertVulnerableCSharp(string factory, string left)
+        [DataRow("var httpClientHandler = new HttpClientHandler();",             "httpClientHandler.ServerCertificateCustomValidationCallback", "GetCallbacks2")]
+        [DataRow("var request = (Rqst)WebRequest.Create(\"https://hack.me/\");", "request.ServerCertificateValidationCallback",                 "GetCallbacks")]
+        [DataRow("var request = new WebRequestHandler();",                       "request.ServerCertificateValidationCallback",                 "GetCallbacks")]
+        [DataRow("",                                                             "ServicePointManager.ServerCertificateValidationCallback",     "GetCallbacks")]
+        public async Task WeakCertVulnerableCSharp(string factory, string left, string callbackFunctionName)
         {
+            var method = GetType().GetMethod(callbackFunctionName, System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            Func<string[]> getCallbacks = () => (string[])method.Invoke(null, null);
+
             foreach (var returnValue in new[] { "true" })
             {
                 foreach (var assignment in new[] { "=", "+=" })
                 {
-                    foreach (var right in new[]
-                    {
-                        "delegate {{ return {0}; }};",
-                        "delegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors) {{ return {0}; }};",
-                        "(sender, cert, chain, sslPolicyErrors) => {{ return {0}; }};",
-                        "(sender, cert, chain, sslPolicyErrors) => {0};"
-                    })
+                    foreach (var right in getCallbacks())
                     {
                         var payload = $"{left} {assignment} {string.Format(right, returnValue)}";
 
@@ -201,6 +218,7 @@ class WeakCert
         //[DataRow("",                                                                           "ServicePointManager.ServerCertificateValidationCallback")]
         [DataRow("Dim request As Rqst = CType(WebRequest.Create(\"https://hack.me/\"), Rqst)", "request.ServerCertificateValidationCallback")]
         [DataRow("Dim request As New WebRequestHandler()",                                     "request.ServerCertificateValidationCallback")]
+        [DataRow("Dim request As New HttpClientHandler()",                                     "request.ServerCertificateCustomValidationCallback")]
         public async Task WeakCertVulnerableVBasic(string factory, string left)
         {
             foreach (var returnValue in new[] { "True" })

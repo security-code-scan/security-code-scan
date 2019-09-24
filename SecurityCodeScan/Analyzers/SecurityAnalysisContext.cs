@@ -25,6 +25,7 @@ namespace SecurityCodeScan.Analyzers
             {
                 worker.Initialize(this);
             }
+
             analysisContext.RegisterCompilationStartAction(OnCompilationStartAction);
             analysisContext.RegisterCompilationAction(OnCompilationAction);
 
@@ -34,16 +35,20 @@ namespace SecurityCodeScan.Analyzers
             }
         }
 
+        private readonly CompilationAnalyzer FinalAnalyzer = new CompilationAnalyzer();
+
         private readonly List<Action<CompilationStartAnalysisContext, Configuration>> OnCompilationStartActions = new List<Action<CompilationStartAnalysisContext, Configuration>>();
 
         private void OnCompilationStartAction(CompilationStartAnalysisContext context)
         {
-            var config = new ConfigurationManager().GetProjectConfiguration(context.Options.AdditionalFiles);
+            ProjectConfiguration = new ConfigurationManager().GetProjectConfiguration(context.Options.AdditionalFiles);
             foreach (var action in OnCompilationStartActions)
             {
-                action(context, config);
+                action(context, ProjectConfiguration);
             }
         }
+
+        private Configuration ProjectConfiguration;
 
         public void RegisterCompilationStartAction(Action<CompilationStartAnalysisContext, Configuration> action)
         {
@@ -58,6 +63,9 @@ namespace SecurityCodeScan.Analyzers
             {
                 action(context);
             }
+
+            if (ProjectConfiguration.ReportAnalysisCompletion)
+                FinalAnalyzer.OnCompilationAction(context);
         }
 
         public void RegisterCompilationAction(Action<CompilationAnalysisContext> action)

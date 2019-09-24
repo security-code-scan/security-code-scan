@@ -35,8 +35,9 @@ namespace SecurityCodeScan.Test.Config
             var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
 
             //ensuring that field count matches count of properties tested below (test should fail and be updated if someone adds new field in Configuration)
-            Assert.AreEqual(9, typeof(Configuration).GetProperties(BindingFlags.Instance | BindingFlags.Public).Length);
+            Assert.AreEqual(10, typeof(Configuration).GetProperties(BindingFlags.Instance | BindingFlags.Public).Length);
 
+            Assert.AreEqual(StartupConfiguration.ReportAnalysisCompletion,                  newConfig.ReportAnalysisCompletion);
             Assert.AreEqual(StartupConfiguration.AuditMode,                                 newConfig.AuditMode);
             Assert.AreEqual(StartupConfiguration.Behavior.Count,                            newConfig.Behavior.Count);
             Assert.AreEqual(StartupConfiguration.TaintEntryPoints.Count,                    newConfig.TaintEntryPoints.Count);
@@ -55,8 +56,9 @@ namespace SecurityCodeScan.Test.Config
             var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
 
             // ensuring that field count matches count of properties tested below
-            Assert.AreEqual(9, typeof(Configuration).GetProperties(BindingFlags.Instance | BindingFlags.Public).Length);
+            Assert.AreEqual(10, typeof(Configuration).GetProperties(BindingFlags.Instance | BindingFlags.Public).Length);
 
+            Assert.AreEqual(StartupConfiguration.ReportAnalysisCompletion,                  newConfig.ReportAnalysisCompletion);
             Assert.AreEqual(StartupConfiguration.AuditMode,                                 newConfig.AuditMode);
             Assert.AreEqual(StartupConfiguration.Behavior.Count,                            newConfig.Behavior.Count);
             Assert.AreEqual(StartupConfiguration.TaintEntryPoints.Count,                    newConfig.TaintEntryPoints.Count);

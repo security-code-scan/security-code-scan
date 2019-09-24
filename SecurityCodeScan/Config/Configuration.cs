@@ -37,6 +37,7 @@ namespace SecurityCodeScan.Config
 
         public Configuration(Configuration config)
         {
+            ReportAnalysisCompletion           = config.ReportAnalysisCompletion;
             AuditMode                          = config.AuditMode;
             PasswordValidatorRequiredLength    = config.PasswordValidatorRequiredLength;
             MinimumPasswordValidatorProperties = config.MinimumPasswordValidatorProperties;
@@ -73,6 +74,7 @@ namespace SecurityCodeScan.Config
             if (configData.TaintTypes != null)
                 RegisterTaintTypes(configData.TaintTypes);
 
+            ReportAnalysisCompletion           = configData.ReportAnalysisCompletion           ?? false;
             AuditMode                          = configData.AuditMode                          ?? false;
             MinimumPasswordValidatorProperties = configData.MinimumPasswordValidatorProperties ?? 0;
             PasswordValidatorRequiredLength    = configData.PasswordValidatorRequiredLength    ?? 0;
@@ -120,6 +122,7 @@ namespace SecurityCodeScan.Config
             }
         }
 
+        public bool ReportAnalysisCompletion           { get; private set; }
         public bool AuditMode                          { get; private set; }
         public int  PasswordValidatorRequiredLength    { get; private set; }
         public int  MinimumPasswordValidatorProperties { get; private set; }
@@ -151,6 +154,9 @@ namespace SecurityCodeScan.Config
         {
             if (config.TaintTypes != null)
                 RegisterTaintTypes(config.TaintTypes);
+
+            if (config.ReportAnalysisCompletion.HasValue)
+                ReportAnalysisCompletion = config.ReportAnalysisCompletion.Value;
 
             if (config.AuditMode.HasValue)
                 AuditMode = config.AuditMode.Value;

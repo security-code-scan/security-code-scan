@@ -1,5 +1,8 @@
 ﻿# IMPORTANT: YML is very strict about indentation and white spaces
 
+# Set to 'true' to get fake SCS0000 warning when analysis completes. Useful for grepping logs for a proof that analyzer did run.
+ReportAnalysisCompletion: false
+
 # Set to 'true' to see more warnings
 AuditMode: false
 

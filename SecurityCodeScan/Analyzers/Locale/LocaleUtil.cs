@@ -10,7 +10,11 @@ namespace SecurityCodeScan.Analyzers.Locale
         private static YamlResourceManager ResourceManager => ResourceManagerCached.Value;
         private static readonly Lazy<YamlResourceManager> ResourceManagerCached = new Lazy<YamlResourceManager>(() => new YamlResourceManager());
 
-        public static DiagnosticDescriptor GetDescriptor(string id, string titleId = "title", string descriptionId = "description", string[] args = null)
+        public static DiagnosticDescriptor GetDescriptor(string id,
+                                                         string titleId = "title",
+                                                         string descriptionId = "description",
+                                                         DiagnosticSeverity severity = DiagnosticSeverity.Warning,
+                                                         string[] args = null)
         {
             var localTitle = GetLocalString($"{id}_{titleId}");
             var localDesc  = GetLocalString($"{id}_{descriptionId}");
@@ -18,7 +22,7 @@ namespace SecurityCodeScan.Analyzers.Locale
                                             localTitle,
                                             localTitle,
                                             "Security",
-                                            DiagnosticSeverity.Warning,
+                                            severity,
                                             isEnabledByDefault: true,
                                             helpLinkUri: "https://security-code-scan.github.io/#" + id,
                                             description: args == null ?
@@ -26,13 +30,17 @@ namespace SecurityCodeScan.Analyzers.Locale
                                                              string.Format(localDesc.ToString(), args));
         }
 
-        public static DiagnosticDescriptor GetDescriptorByText(string id, string localTitle, string localDesc, string[] args = null)
+        public static DiagnosticDescriptor GetDescriptorByText(string id,
+                                                               string localTitle,
+                                                               string localDesc,
+                                                               DiagnosticSeverity severity = DiagnosticSeverity.Warning,
+                                                               string[] args = null)
         {
             return new DiagnosticDescriptor(id,
                                             localTitle,
                                             localTitle,
                                             "Security",
-                                            DiagnosticSeverity.Warning,
+                                            severity,
                                             isEnabledByDefault: true,
                                             helpLinkUri: "https://security-code-scan.github.io/#" + id,
                                             description: args == null ?

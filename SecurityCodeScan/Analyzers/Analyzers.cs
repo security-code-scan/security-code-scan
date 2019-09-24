@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
@@ -130,7 +131,8 @@ namespace SecurityCodeScan.Analyzers
 
         public override void Initialize(AnalysisContext analysisContext)
         {
-            analysisContext.EnableConcurrentExecution();
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                analysisContext.EnableConcurrentExecution();
 
             var config = new ConfigurationManager().GetBuiltInAndUserConfiguration();
             if (!config.AuditMode)

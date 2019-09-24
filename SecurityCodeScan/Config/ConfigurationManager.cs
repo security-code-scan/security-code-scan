@@ -168,6 +168,7 @@ namespace SecurityCodeScan.Config
     /// </summary>
     internal class ConfigData
     {
+        public bool?                                   ReportAnalysisCompletion            { get; set; }
         public bool?                                   AuditMode                           { get; set; }
         public int?                                    PasswordValidatorRequiredLength     { get; set; }
         public int?                                    MinimumPasswordValidatorProperties  { get; set; }

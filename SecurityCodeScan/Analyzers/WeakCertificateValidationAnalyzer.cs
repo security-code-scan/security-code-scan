@@ -166,7 +166,8 @@ namespace SecurityCodeScan.Analyzers
         {
             return symbolMemberAccess.IsType("System.Net.ServicePointManager.ServerCertificateValidationCallback")    ||
                    symbolMemberAccess.IsType("System.Net.Http.WebRequestHandler.ServerCertificateValidationCallback") ||
-                   symbolMemberAccess.IsType("System.Net.HttpWebRequest.ServerCertificateValidationCallback");
+                   symbolMemberAccess.IsType("System.Net.HttpWebRequest.ServerCertificateValidationCallback") ||
+                   symbolMemberAccess.IsType("System.Net.Http.HttpClientHandler.ServerCertificateCustomValidationCallback");
         }
     }
 }

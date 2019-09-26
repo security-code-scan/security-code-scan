@@ -64,8 +64,25 @@ namespace SecurityCodeScan.Analyzers
         public const string Sha1TypeName = "System.Security.Cryptography.SHA1";
         public const string Md5TypeName  = "System.Security.Cryptography.MD5";
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Md5Rule,
-                                                                                                           Sha1Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Md5Rule, Sha1Rule);
+
+        public static readonly WeakHashingDiagnosticGroup[] RuleGroups = new []
+        {
+            new WeakHashingDiagnosticGroup(Sha1TypeName, Sha1Rule),
+            new WeakHashingDiagnosticGroup(Md5TypeName, Md5Rule)
+        };
+    }
+
+    internal class WeakHashingDiagnosticGroup
+    {
+        public string TypeName { get; }
+        public DiagnosticDescriptor Rule { get; }
+
+        public WeakHashingDiagnosticGroup(string typeName, DiagnosticDescriptor rule)
+        {
+            TypeName = typeName;
+            Rule = rule;
+        }
     }
 
     internal class WeakHashingCompilationAnalyzer
@@ -120,18 +137,44 @@ namespace SecurityCodeScan.Analyzers
             if (symbol == null)
                 return;
 
-            CheckType(WeakHashingAnalyzer.Sha1TypeName, WeakHashingAnalyzer.Sha1Rule, symbol.ContainingType, ctx);
-            CheckType(WeakHashingAnalyzer.Md5TypeName,  WeakHashingAnalyzer.Md5Rule,  symbol.ContainingType, ctx);
+            CheckSymbol(symbol.ContainingType, ctx);
         }
 
-        private bool CheckType(string type, DiagnosticDescriptor diagnosticDescriptor, ITypeSymbol symbol, SyntaxNodeAnalysisContext ctx)
+        private bool CheckSymbol(
+            ITypeSymbol symbol,
+            SyntaxNodeAnalysisContext ctx
+        )
         {
-            if (!symbol.IsType(type) && !symbol.IsDerivedFrom(type))
-                return false;
+            var typeName = symbol.GetTypeName();
 
-            var diagnostic = Diagnostic.Create(diagnosticDescriptor, ctx.Node.GetLocation());
-            Report(diagnostic, ctx);
-            return true;
+            foreach(var group in WeakHashingAnalyzer.RuleGroups)
+            {
+                if (typeName == group.TypeName)
+                {
+                    var diagnostic = Diagnostic.Create(group.Rule, ctx.Node.GetLocation());
+                    Report(diagnostic, ctx);
+                    return true;
+                }
+            }
+
+            var symbolBaseType = symbol.BaseType;
+            while(symbolBaseType != null)
+            {
+                var baseTypeName = symbolBaseType.GetTypeName();
+                foreach (var group in WeakHashingAnalyzer.RuleGroups)
+                {
+                    if (baseTypeName == group.TypeName)
+                    {
+                        var diagnostic = Diagnostic.Create(group.Rule, ctx.Node.GetLocation());
+                        Report(diagnostic, ctx);
+                        return true;
+                    }
+                }
+
+                symbolBaseType = symbolBaseType.BaseType;
+            }
+
+            return false;
         }
 
         public void VisitMemberAccessSyntaxNode(SyntaxNodeAnalysisContext ctx)
@@ -142,8 +185,7 @@ namespace SecurityCodeScan.Analyzers
                 case null:
                     return;
                 case IMethodSymbol methodSymbol:
-                    CheckType(WeakHashingAnalyzer.Sha1TypeName, WeakHashingAnalyzer.Sha1Rule, methodSymbol.ReturnType, ctx);
-                    CheckType(WeakHashingAnalyzer.Md5TypeName,  WeakHashingAnalyzer.Md5Rule,  methodSymbol.ReturnType, ctx);
+                    CheckSymbol(methodSymbol.ReturnType, ctx);
                     break;
             }
         }
@@ -156,16 +198,16 @@ namespace SecurityCodeScan.Analyzers
                 case null:
                     return;
                 case IMethodSymbol method:
-                    bool ret = CheckType(WeakHashingAnalyzer.Sha1TypeName, WeakHashingAnalyzer.Sha1Rule, method.ReturnType, ctx);
-                    ret |= CheckType(WeakHashingAnalyzer.Md5TypeName, WeakHashingAnalyzer.Md5Rule, method.ReturnType, ctx);
+                    var ret = CheckSymbol(method.ReturnType, ctx);
                     if (ret)
                         return;
 
                     break;
             }
 
-            var symbolString = symbol.GetTypeName();
-            switch (symbolString)
+            var symbolTypeName = symbol.GetTypeName();
+
+            switch (symbolTypeName)
             {
                 case "System.Security.Cryptography.CryptoConfig.CreateFromName":
                 {

@@ -66,10 +66,11 @@ namespace SecurityCodeScan.Analyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Md5Rule, Sha1Rule);
 
-        public static readonly WeakHashingDiagnosticGroup[] RuleGroups = new []
+        public static readonly string[] TypeNames = new [] { Sha1TypeName, Md5TypeName };
+        public static readonly Dictionary<string, DiagnosticDescriptor> Rules = new Dictionary<string, DiagnosticDescriptor>
         {
-            new WeakHashingDiagnosticGroup(Sha1TypeName, Sha1Rule),
-            new WeakHashingDiagnosticGroup(Md5TypeName, Md5Rule)
+            { Sha1TypeName, Sha1Rule },
+            { Md5TypeName,  Md5Rule }
         };
     }
 
@@ -145,33 +146,11 @@ namespace SecurityCodeScan.Analyzers
             SyntaxNodeAnalysisContext ctx
         )
         {
-            var typeName = symbol.GetTypeName();
-
-            foreach(var group in WeakHashingAnalyzer.RuleGroups)
+            if (symbol.IsTypeOrDerivedFrom(WeakHashingAnalyzer.TypeNames, out var foundType))
             {
-                if (typeName == group.TypeName)
-                {
-                    var diagnostic = Diagnostic.Create(group.Rule, ctx.Node.GetLocation());
-                    Report(diagnostic, ctx);
-                    return true;
-                }
-            }
-
-            var symbolBaseType = symbol.BaseType;
-            while(symbolBaseType != null)
-            {
-                var baseTypeName = symbolBaseType.GetTypeName();
-                foreach (var group in WeakHashingAnalyzer.RuleGroups)
-                {
-                    if (baseTypeName == group.TypeName)
-                    {
-                        var diagnostic = Diagnostic.Create(group.Rule, ctx.Node.GetLocation());
-                        Report(diagnostic, ctx);
-                        return true;
-                    }
-                }
-
-                symbolBaseType = symbolBaseType.BaseType;
+                var diagnostic = Diagnostic.Create(WeakHashingAnalyzer.Rules[foundType], ctx.Node.GetLocation());
+                Report(diagnostic, ctx);
+                return true;
             }
 
             return false;

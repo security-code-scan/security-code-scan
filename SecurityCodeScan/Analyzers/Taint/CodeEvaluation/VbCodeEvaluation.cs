@@ -948,13 +948,14 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             var varState = VisitIdentifierName(expression, state);
 
-            if (varState.Taint == VariableTaint.Constant || expression.Expression == null)
+            if (varState.Taint != VariableTaint.Unknown || expression.Expression == null)
             {
                 return varState;
             }
 
             var expressionState = VisitExpression(expression.Expression, state);
             varState.MergeTaint(expressionState.Taint);
+            expressionState.AddOrMergeProperty(ResolveIdentifier(expression.Name.Identifier), varState);
 
             return varState;
         }

@@ -44,6 +44,7 @@ namespace SecurityCodeScan.Test.Taint
         [DataTestMethod]
         [DataRow("using System; using System.Web.Mvc;",           "!!Url.IsLocalUrl(input)",                                   "Redirect(input)",          false)]
         [DataRow("using System; using System.Web.Mvc;",           "Url.IsLocalUrl(input)",                                     "Redirect(input)",          false)]
+        [DataRow("using System; using System.Web.Mvc;",           "Url.IsLocalUrl(inputModel.x)",                              "Redirect(inputModel.x)",   false)]
         [DataRow("using System; using Microsoft.AspNetCore.Mvc;", "Url.IsLocalUrl(input)",                                     "Redirect(input)",          false)]
         [DataRow("using System; using System.Web.Mvc;",           "Uri.TryCreate(input, UriKind.Relative, out uri)",           "Redirect(uri.ToString())", false)]
         [DataRow("using System; using System.Web.Mvc;",           "Uri.TryCreate(input, UriKind.RelativeOrAbsolute, out uri)", "Redirect(uri.ToString())", true)]
@@ -54,9 +55,14 @@ namespace SecurityCodeScan.Test.Taint
 
 namespace sample
 {{
+    class Model
+    {{
+        public string x {{ get; set; }}
+    }}
+
     class MyController : Controller
     {{
-        public object Run(string input)
+        public object Run(string input, Model inputModel)
         {{
 #pragma warning disable CS0219
             Uri uri = null;
@@ -76,10 +82,14 @@ namespace sample
 {usingNamespace.CSharpReplaceToVBasic()}
 
 Namespace sample
-    Public Class MyController
+    Class Model
+        Public Property x As String
+    End Class
+
+    Class MyController
         Inherits Controller
 
-        Public Function Run(ByVal input As String) As Object
+        Public Function Run(ByVal input As String, ByVal inputModel As Model) As Object
 #Disable Warning BC42024
             Dim uri As Uri = Nothing
 #Enable Warning BC42024

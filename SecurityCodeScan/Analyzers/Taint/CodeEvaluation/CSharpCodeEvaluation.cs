@@ -435,6 +435,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitExpression(prefixUnaryExpressionSyntax.Operand, state);
                 case AwaitExpressionSyntax awaitSyntax:
                     return VisitExpression(awaitSyntax.Expression, state);
+                case ThisExpressionSyntax thisExpressionSyntax:
+                    return new VariableState(thisExpressionSyntax, VariableTaint.Unknown);
             }
 #if DEBUG
             Logger.Log("Unsupported expression " + expression.GetType() + " (" + expression + ")");

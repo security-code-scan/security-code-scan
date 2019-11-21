@@ -140,6 +140,10 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             switch (node)
             {
+                case SingleVariableDesignationSyntax singleVariableDesignationSyntax:
+                    var varState = new VariableState(singleVariableDesignationSyntax, VariableTaint.Unknown);
+                    state.AddNewValue(ResolveIdentifier(singleVariableDesignationSyntax.Identifier), varState);
+                    return varState;
                 case PrefixUnaryExpressionSyntax prefixUnaryExpression:
                     return VisitNode(prefixUnaryExpression.Operand, state);
                 case LocalDeclarationStatementSyntax declarationStatementSyntax:
@@ -380,6 +384,8 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             switch (expression)
             {
+                case DeclarationExpressionSyntax declarationExpressionSyntax:
+                    return VisitNode(declarationExpressionSyntax.Designation, state);
                 case ParenthesizedExpressionSyntax parenthesizedExpressionSyntax:
                     return VisitExpression(parenthesizedExpressionSyntax.Expression, state);
                 case InvocationExpressionSyntax invocationExpressionSyntax:

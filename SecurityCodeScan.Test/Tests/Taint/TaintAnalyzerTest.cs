@@ -2899,6 +2899,55 @@ End Module
 
         [TestMethod]
         [TestCategory("Detect")]
+        public async Task UsingDiscards()
+        {
+            var cSharpTest = @"
+class Test
+{
+    public void Foo(string userInput)
+    {
+        _ = this.Get(userInput, out var yourstring);
+        Sink(yourstring);
+    }
+
+    private bool Get(string input, out string yourstring)
+    {
+        yourstring = input;
+        return false;
+    }
+
+    private void Sink(string input)
+    {
+    }
+}
+";
+
+            var testConfig = @"
+TaintEntryPoints:
+  Test:
+    ClassName: Test
+
+Behavior:
+  123:
+    ClassName: Test
+    Name: Get
+    Method:
+      1:
+        TaintFromArguments: [0]
+
+  MyKey:
+    ClassName: Test
+    Name: Sink
+    Method:
+      InjectableArguments: [SCS0026: 0]
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        [TestCategory("Detect")]
         public async Task ExtensionMethodWithPostCondition()
         {
             var cSharpTest = @"

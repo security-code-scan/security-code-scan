@@ -64,8 +64,26 @@ namespace SecurityCodeScan.Analyzers
         public const string Sha1TypeName = "System.Security.Cryptography.SHA1";
         public const string Md5TypeName  = "System.Security.Cryptography.MD5";
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Md5Rule,
-                                                                                                           Sha1Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Md5Rule, Sha1Rule);
+
+        public static readonly string[] TypeNames = new [] { Sha1TypeName, Md5TypeName };
+        public static readonly Dictionary<string, DiagnosticDescriptor> Rules = new Dictionary<string, DiagnosticDescriptor>
+        {
+            { Sha1TypeName, Sha1Rule },
+            { Md5TypeName,  Md5Rule }
+        };
+    }
+
+    internal class WeakHashingDiagnosticGroup
+    {
+        public string TypeName { get; }
+        public DiagnosticDescriptor Rule { get; }
+
+        public WeakHashingDiagnosticGroup(string typeName, DiagnosticDescriptor rule)
+        {
+            TypeName = typeName;
+            Rule = rule;
+        }
     }
 
     internal class WeakHashingCompilationAnalyzer
@@ -120,18 +138,22 @@ namespace SecurityCodeScan.Analyzers
             if (symbol == null)
                 return;
 
-            CheckType(WeakHashingAnalyzer.Sha1TypeName, WeakHashingAnalyzer.Sha1Rule, symbol.ContainingType, ctx);
-            CheckType(WeakHashingAnalyzer.Md5TypeName,  WeakHashingAnalyzer.Md5Rule,  symbol.ContainingType, ctx);
+            CheckSymbol(symbol.ContainingType, ctx);
         }
 
-        private bool CheckType(string type, DiagnosticDescriptor diagnosticDescriptor, ITypeSymbol symbol, SyntaxNodeAnalysisContext ctx)
+        private bool CheckSymbol(
+            ITypeSymbol symbol,
+            SyntaxNodeAnalysisContext ctx
+        )
         {
-            if (!symbol.IsType(type) && !symbol.IsDerivedFrom(type))
-                return false;
+            if (symbol.IsTypeOrDerivedFrom(WeakHashingAnalyzer.TypeNames, out var foundType))
+            {
+                var diagnostic = Diagnostic.Create(WeakHashingAnalyzer.Rules[foundType], ctx.Node.GetLocation());
+                Report(diagnostic, ctx);
+                return true;
+            }
 
-            var diagnostic = Diagnostic.Create(diagnosticDescriptor, ctx.Node.GetLocation());
-            Report(diagnostic, ctx);
-            return true;
+            return false;
         }
 
         public void VisitMemberAccessSyntaxNode(SyntaxNodeAnalysisContext ctx)
@@ -142,8 +164,7 @@ namespace SecurityCodeScan.Analyzers
                 case null:
                     return;
                 case IMethodSymbol methodSymbol:
-                    CheckType(WeakHashingAnalyzer.Sha1TypeName, WeakHashingAnalyzer.Sha1Rule, methodSymbol.ReturnType, ctx);
-                    CheckType(WeakHashingAnalyzer.Md5TypeName,  WeakHashingAnalyzer.Md5Rule,  methodSymbol.ReturnType, ctx);
+                    CheckSymbol(methodSymbol.ReturnType, ctx);
                     break;
             }
         }
@@ -156,16 +177,16 @@ namespace SecurityCodeScan.Analyzers
                 case null:
                     return;
                 case IMethodSymbol method:
-                    bool ret = CheckType(WeakHashingAnalyzer.Sha1TypeName, WeakHashingAnalyzer.Sha1Rule, method.ReturnType, ctx);
-                    ret |= CheckType(WeakHashingAnalyzer.Md5TypeName, WeakHashingAnalyzer.Md5Rule, method.ReturnType, ctx);
+                    var ret = CheckSymbol(method.ReturnType, ctx);
                     if (ret)
                         return;
 
                     break;
             }
 
-            var symbolString = symbol.GetTypeName();
-            switch (symbolString)
+            var symbolTypeName = symbol.GetTypeName();
+
+            switch (symbolTypeName)
             {
                 case "System.Security.Cryptography.CryptoConfig.CreateFromName":
                 {

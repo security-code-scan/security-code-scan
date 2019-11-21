@@ -41,6 +41,20 @@ namespace SecurityCodeScan.Analyzers.Utils
             return symbol.IsDerivedFrom(types);
         }
 
+        public static bool IsTypeOrDerivedFrom(this ITypeSymbol symbol, IEnumerable<string> types, out string foundType)
+        {
+            foreach (var type in types)
+            {
+                if (symbol.IsType(type))
+                {
+                    foundType = type;
+                    return true;
+                }
+            }
+
+            return symbol.IsDerivedFrom(types, out foundType);
+        }
+
         public static bool IsDerivedFrom(this ITypeSymbol symbol, string type)
         {
             while (symbol.BaseType != null)
@@ -67,6 +81,26 @@ namespace SecurityCodeScan.Analyzers.Utils
                 }
             }
 
+            return false;
+        }
+
+        public static bool IsDerivedFrom(this ITypeSymbol symbol, IEnumerable<string> types, out string foundType)
+        {
+            while (symbol.BaseType != null)
+            {
+                symbol = symbol.BaseType;
+
+                foreach (var type in types)
+                {
+                    if (symbol.IsType(type))
+                    {
+                        foundType = type;
+                        return true;
+                    }
+                }
+            }
+
+            foundType = null;
             return false;
         }
 

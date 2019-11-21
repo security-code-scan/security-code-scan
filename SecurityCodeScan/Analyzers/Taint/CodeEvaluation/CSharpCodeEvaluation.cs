@@ -465,6 +465,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitExpression(prefixUnaryExpressionSyntax.Operand, state);
                 case AwaitExpressionSyntax awaitSyntax:
                     return VisitExpression(awaitSyntax.Expression, state);
+                case ThisExpressionSyntax thisExpressionSyntax:
+                    return new VariableState(thisExpressionSyntax, VariableTaint.Unknown);
             }
 #if DEBUG
             Logger.Log("Unsupported expression " + expression.GetType() + " (" + expression + ")");
@@ -970,13 +972,14 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             var varState = VisitIdentifierName(expression, state);
 
-            if (varState.Taint == VariableTaint.Constant || expression.Expression == null)
+            if (varState.Taint != VariableTaint.Unknown || expression.Expression == null)
             {
                 return varState;
             }
 
             var expressionState = VisitExpression(expression.Expression, state);
             varState.MergeTaint(expressionState.Taint);
+            expressionState.AddOrMergeProperty(ResolveIdentifier(expression.Name.Identifier), varState);
 
             return varState;
         }

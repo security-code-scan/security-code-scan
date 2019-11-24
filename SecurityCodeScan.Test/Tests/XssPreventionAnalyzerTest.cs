@@ -51,8 +51,6 @@ namespace SecurityCodeScan.Test
             Severity = DiagnosticSeverity.Warning
         };
 
-        #region Tests that are producing diagnostics
-
         [TestCategory("Detect")]
         [TestMethod]
         public async Task XssFromCSharpExpressionBody()
@@ -320,6 +318,95 @@ End Namespace
 
         [TestCategory("Safe")]
         [TestMethod]
+        public async Task NotAnInputParameter()
+        {
+            const string cSharpTest = @"
+using Microsoft.AspNetCore.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestController : Controller
+    {
+        private string Test()
+        {
+            return ""something"";
+        }
+
+        [HttpGet]
+        public string Get(string inputData)
+        {
+            return Test();
+        }
+    }
+}
+            ";
+
+            const string visualBasicTest = @"
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace VulnerableApp
+    Public Class TestController
+        Inherits Controller
+
+        Private Function Test() As String
+            Return ""something""
+        End Function
+
+        <HttpGet(""{inputData}"")> _
+        Public Function [Get](inputData As String) As String
+            Return Test()
+        End Function
+    End Class
+End Namespace
+            ";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestCategory("Safe")]
+        [TestMethod]
+        public async Task NotAnInputParameter2()
+        {
+            const string cSharpTest = @"
+using Microsoft.AspNetCore.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestController : Controller
+    {
+        [HttpGet]
+        public string Get(string inputData)
+        {
+            var x = inputData;
+            return ""constant"";
+        }
+    }
+}
+            ";
+
+            const string visualBasicTest = @"
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace VulnerableApp
+    Public Class TestController
+        Inherits Controller
+
+        <HttpGet(""{inputData}"")> _
+        Public Function [Get](inputData As String) As String
+            Dim x = inputData
+            Return ""constant""
+        End Function
+    End Class
+End Namespace
+            ";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestCategory("Safe")]
+        [TestMethod]
         [Ignore("Int is treated as injectable type")]
         public async Task UnencodedInputDataInt()
         {
@@ -377,8 +464,6 @@ End Namespace
         [DataRow("new Page(); temp.Response.Write(input)", true)]
         [DataRow("new Page(); temp.Response.Write(input.ToCharArray(), 0, 1)", true)]
 
-        #region False tests with using constant
-
         [DataRow("new Control(); temp.ID = \"constant\"", false)]
         [DataRow("new Label(); temp.Text = \"constant\"", false)]
         [DataRow("new HyperLink(); temp.NavigateUrl = \"constant\"", false)]
@@ -401,15 +486,9 @@ End Namespace
         [DataRow("new Page(); temp.Response.Write(\"constant\")", false)]
         [DataRow("new Page(); temp.Response.Write(\"constant\".ToCharArray(), 0, 1)", false)]
 
-        #endregion
-
-        #region False tests with using sanitizer
-
         [DataRow("new HyperLink(); temp.NavigateUrl = Encoder.UrlPathEncode(input)", false)]
         [DataRow("new Label(); temp.Text = new Page().Server.HtmlEncode(input)", false)]
         [DataRow("new Label(); var sw = new StringWriter(); var page = new Page(); page.Server.HtmlEncode(input, sw); temp.Text = sw.ToString()", false)]
-
-        #endregion
 
         [DataTestMethod]
         public async Task XssInWebForms(string sink, bool warn)
@@ -479,10 +558,6 @@ End Class
                 await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
             }
         }
-
-        #endregion
-
-        #region Tests that are not producing diagnostics
 
         [TestCategory("Safe")]
         [TestMethod]
@@ -854,7 +929,5 @@ End Namespace
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
-
-        #endregion
     }
 }

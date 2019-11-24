@@ -968,6 +968,25 @@ namespace SecurityCodeScan.Analyzers.Taint
             return null;
         }
 
+        private VariableState ResolveVariableState(ArrowExpressionClauseSyntax arrowExpressionClauseSyntax,
+                                                   ExpressionSyntax expression,
+                                                   SemanticModel possiblyOtherSemanticModel,
+                                                   ref HashSet<ExpressionSyntax> visited)
+        {
+            if (possiblyOtherSemanticModel.GetConstantValue(arrowExpressionClauseSyntax.Expression).HasValue)
+                return new VariableState(expression, VariableTaint.Constant);
+
+            if (visited == null)
+                visited = new HashSet<ExpressionSyntax>();
+            else if (!visited.Add(arrowExpressionClauseSyntax.Expression))
+                return new VariableState(expression, VariableTaint.Unknown);
+
+            return ResolveVariableState(arrowExpressionClauseSyntax.Expression,
+                                        null,
+                                        possiblyOtherSemanticModel,
+                                        visited);
+        }
+
         private VariableState ResolveVariableState(ExpressionSyntax expression,
                                                    ExecutionState state,
                                                    SemanticModel semanticModel = null,
@@ -978,61 +997,71 @@ namespace SecurityCodeScan.Analyzers.Taint
             switch (symbol)
             {
                 case null:
-                    return new VariableState(expression, VariableTaint.Unknown);
+                return new VariableState(expression, VariableTaint.Unknown);
                 case IFieldSymbol field:
-                    if (field.IsConst)
-                        return new VariableState(expression, VariableTaint.Constant);
+                if (field.IsConst)
+                    return new VariableState(expression, VariableTaint.Constant);
 
-                    if (!field.IsReadOnly)
-                        return new VariableState(expression, VariableTaint.Unknown);
-
-                    if (ProjectConfiguration.ConstantFields.Contains(field.GetTypeName()))
-                    {
-                        return new VariableState(expression, VariableTaint.Constant);
-                    }
-
+                if (!field.IsReadOnly)
                     return new VariableState(expression, VariableTaint.Unknown);
+
+                if (ProjectConfiguration.ConstantFields.Contains(field.GetTypeName()))
+                {
+                    return new VariableState(expression, VariableTaint.Constant);
+                }
+
+                return new VariableState(expression, VariableTaint.Unknown);
                 case IPropertySymbol prop:
-                    if (prop.IsVirtual || prop.IsOverride || prop.IsAbstract)
-                        return new VariableState(expression, VariableTaint.Unknown);
+                if (prop.IsVirtual || prop.IsOverride || prop.IsAbstract)
+                    return new VariableState(expression, VariableTaint.Unknown);
 
-                    // TODO: Use public API
-                    var syntaxNodeProperty = prop.GetMethod.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("BodySyntax");
-                    if (syntaxNodeProperty == null)
-                        return new VariableState(expression, VariableTaint.Unknown);
+                var getMtd = prop.GetMethod;
+                if (getMtd == null)
+                {
+                    return new VariableState(expression, VariableTaint.Unknown);
+                }
 
-                    var syntaxNode = (CSharpSyntaxNode)syntaxNodeProperty.GetValue(prop.GetMethod);
-                    if (syntaxNode == null)
-                        return new VariableState(expression, VariableTaint.Unknown);
+                var decls = getMtd.DeclaringSyntaxReferences;
+                if (decls.Length != 1)
+                {
+                    // partial methods can't return anything, so something weird is going on
+                    return new VariableState(expression, VariableTaint.Unknown);
+                }
 
-                    var possiblyOtherSemanticModel = semanticModel.Compilation.GetSemanticModel(syntaxNode.SyntaxTree);
-                    if (syntaxNode is ArrowExpressionClauseSyntax arrowExpressionClauseSyntax)
+                var syntaxNode = (CSharpSyntaxNode)decls[0].GetSyntax();
+                if (syntaxNode == null)
+                    return new VariableState(expression, VariableTaint.Unknown);
+
+                if (!semanticModel.Compilation.ContainsSyntaxTree(syntaxNode.SyntaxTree))
+                    return new VariableState(expression, VariableTaint.Unknown);
+
+                var possiblyOtherSemanticModel = semanticModel.Compilation.GetSemanticModel(syntaxNode.SyntaxTree);
+                if (syntaxNode is ArrowExpressionClauseSyntax arrowExpressionClauseSyntax)
+                    return ResolveVariableState(arrowExpressionClauseSyntax, expression, possiblyOtherSemanticModel, ref visited);
+
+                if (syntaxNode is AccessorDeclarationSyntax accessorDecl)
+                {
+                    if (accessorDecl.Body != null)
                     {
-                        if (possiblyOtherSemanticModel.GetConstantValue(arrowExpressionClauseSyntax.Expression).HasValue)
+                        var accessFlow = possiblyOtherSemanticModel.AnalyzeControlFlow(accessorDecl.Body);
+                        if (accessFlow.Succeeded && AllReturnConstant(accessFlow.ExitPoints, possiblyOtherSemanticModel, visited))
                             return new VariableState(expression, VariableTaint.Constant);
-
-                        if (visited == null)
-                            visited = new HashSet<ExpressionSyntax>();
-                        else if (!visited.Add(arrowExpressionClauseSyntax.Expression))
-                            return new VariableState(expression, VariableTaint.Unknown);
-
-                        return ResolveVariableState(arrowExpressionClauseSyntax.Expression,
-                                                    null,
-                                                    possiblyOtherSemanticModel,
-                                                    visited);
-                    }
-
-                    if (!(syntaxNode is StatementSyntax statementSyntax))
-                        return new VariableState(expression, VariableTaint.Unknown);
-
-                    var flow = possiblyOtherSemanticModel.AnalyzeControlFlow(statementSyntax);
-
-                    if (flow.Succeeded && AllReturnConstant(flow.ExitPoints, possiblyOtherSemanticModel, visited))
-                    {
-                        return new VariableState(expression, VariableTaint.Constant);
                     }
 
                     return new VariableState(expression, VariableTaint.Unknown);
+                }
+
+                if (!(syntaxNode is StatementSyntax statementSyntax))
+                    return new VariableState(expression, VariableTaint.Unknown);
+
+                var flow = possiblyOtherSemanticModel.AnalyzeControlFlow(statementSyntax);
+
+                if (flow.Succeeded && AllReturnConstant(flow.ExitPoints, possiblyOtherSemanticModel, visited))
+                {
+                    return new VariableState(expression, VariableTaint.Constant);
+                }
+
+                return new VariableState(expression, VariableTaint.Unknown);
             }
 
             return new VariableState(expression, VariableTaint.Unknown);

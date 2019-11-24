@@ -161,7 +161,7 @@ class Vulnerable
         {sink};
     }}
 }}
-            ";
+";
 
             inputType = inputType.CSharpReplaceToVBasic();
             var vbInput = string.IsNullOrEmpty(cast) ? inputType : $"DirectCast({inputType}, {cast})";
@@ -178,7 +178,7 @@ Class Vulnerable
         {sink}
     End Sub
 End Class
-            ";
+";
 
             await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
@@ -207,7 +207,7 @@ namespace VulnerableApp
         }}
     }}
 }}
-            ";
+";
 
             string visualBasicTest = $@"
 Imports {alias}
@@ -221,7 +221,7 @@ Namespace VulnerableApp
         End Function
     End Class
 End Namespace
-            ";
+";
 
             await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
@@ -269,7 +269,7 @@ Namespace VulnerableApp
         End Function
     End Class
 End Namespace
-            ";
+";
 
             await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
@@ -298,7 +298,7 @@ namespace VulnerableApp
         }
     }
 }
-            ";
+";
 
             const string visualBasicTest = @"
 Imports Microsoft.AspNetCore.Mvc
@@ -317,7 +317,7 @@ Namespace VulnerableApp
         End Function
     End Class
 End Namespace
-            ";
+";
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
@@ -342,7 +342,7 @@ namespace VulnerableApp
         }
     }
 }
-            ";
+";
 
             const string visualBasicTest = @"
 Imports Microsoft.AspNetCore.Mvc
@@ -358,7 +358,7 @@ Namespace VulnerableApp
         End Function
     End Class
 End Namespace
-            ";
+";
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
@@ -366,7 +366,6 @@ End Namespace
 
         [TestCategory("Safe")]
         [TestMethod]
-        [Ignore("Int is treated as injectable type")]
         public async Task UnencodedInputDataInt()
         {
             const string cSharpTest = @"
@@ -397,10 +396,91 @@ Namespace VulnerableApp
         End Function
     End Class
 End Namespace
-            ";
+";
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestCategory("Safe")]
+        [TestMethod]
+        public async Task UnencodedInputDataInt2()
+        {
+            const string cSharpTest = @"
+using Microsoft.AspNetCore.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestController : Controller
+    {
+        [HttpGet(""{inputData}"")]
+        public string Get(int inputDataInt, string inputDataString)
+        {
+            return ""value "" + inputDataInt;
+        }
+    }
+}
+";
+
+            const string visualBasicTest = @"
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace VulnerableApp
+    Public Class TestController
+        Inherits Controller
+        <HttpGet(""{inputData}"")> _
+        Public Function [Get](inputDataInt As Integer, inputDataString As String) As String
+            Return ""value "" & inputDataInt.ToString()
+        End Function
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task UnencodedInputDataCorrectReturnLine()
+        {
+            const string cSharpTest = @"
+using Microsoft.AspNetCore.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestController : Controller
+    {
+        [HttpGet(""{inputData}"")]
+        public string Get(int inputDataInt, string inputDataString)
+        {
+            if (inputDataString != null)
+                return inputDataString;
+
+            return ""value "" + inputDataInt;
+        }
+    }
+}
+";
+
+            const string visualBasicTest = @"
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace VulnerableApp
+    Public Class TestController
+        Inherits Controller
+
+        <HttpGet(""{inputData}"")>
+        Public Function [Get](ByVal inputDataInt As Integer, ByVal inputDataString As String) As String
+            If inputDataString IsNot Nothing Then Return inputDataString
+            Return ""value "" & inputDataInt
+        End Function
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(12)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(10)).ConfigureAwait(false);
         }
 
         [DataRow("new Control(); temp.ID = input", true)]
@@ -476,7 +556,7 @@ class Vulnerable
     }}
 
 }}
-            ";
+";
 
             sink = sink.CSharpReplaceToVBasic();
 
@@ -503,7 +583,7 @@ Class Vulnerable
 #Enable Warning BC40000
     End Sub
 End Class
-            ";
+";
 
 
             if (warn)
@@ -540,7 +620,7 @@ namespace VulnerableApp
         }
     }
 }
-            ";
+";
 
             const string visualBasicTest = @"
 Imports Microsoft.AspNetCore.Mvc
@@ -557,7 +637,7 @@ Namespace VulnerableApp
         End Function
     End Class
 End Namespace
-            ";
+";
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
@@ -580,7 +660,7 @@ namespace VulnerableApp
         }
     }
 }
-            ";
+";
 
             const string visualBasicTest = @"
 Imports Microsoft.AspNetCore.Mvc
@@ -593,7 +673,7 @@ Namespace VulnerableApp
         End Function
     End Class
 End Namespace
-            ";
+";
 
             await VerifyCSharpDiagnostic(cSharpTest, new[]
                                                         {
@@ -625,7 +705,7 @@ namespace VulnerableApp
         }
     }
 }
-            ";
+";
 
             const string visualBasicTest = @"
 Imports Microsoft.AspNetCore.Mvc
@@ -639,7 +719,7 @@ Namespace VulnerableApp
         End Function
     End Class
 End Namespace
-            ";
+";
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, new DiagnosticResult { Id = "BC42105" }).ConfigureAwait(false);
@@ -665,7 +745,7 @@ namespace VulnerableApp
         }
     }
 }
-            ";
+";
 
             const string visualBasicTest = @"
 Imports Microsoft.AspNetCore.Mvc
@@ -681,7 +761,7 @@ Namespace VulnerableApp
         End Function
     End Class
 End Namespace
-            ";
+";
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
@@ -706,7 +786,7 @@ namespace VulnerableApp
         }
     }
 }
-            ";
+";
 
             const string visualBasicTest = @"
 Imports System.Text.Encodings.Web
@@ -721,7 +801,7 @@ Namespace VulnerableApp
         End Function
     End Class
 End Namespace
-            ";
+";
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
@@ -746,7 +826,7 @@ namespace VulnerableApp
         }
     }
 }
-            ";
+";
 
             const string visualBasicTest = @"
 Imports System.Text.Encodings.Web
@@ -761,7 +841,7 @@ Namespace VulnerableApp
         End Function
     End Class
 End Namespace
-            ";
+";
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
@@ -787,7 +867,7 @@ namespace VulnerableApp
         }
     }
 }
-            ";
+";
 
             const string visualBasicTest = @"
 Imports System.Text.Encodings.Web
@@ -803,7 +883,7 @@ Namespace VulnerableApp
         End Function
     End Class
 End Namespace
-            ";
+";
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
@@ -829,7 +909,7 @@ namespace VulnerableApp
         }
     }
 }
-            ";
+";
 
             const string visualBasicTest = @"
 Imports Microsoft.AspNetCore.Mvc
@@ -845,7 +925,7 @@ Namespace VulnerableApp
         End Function
     End Class
 End Namespace
-            ";
+";
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
@@ -869,7 +949,7 @@ namespace VulnerableApp
         }
     }
 }
-            ";
+";
 
             const string visualBasicTest = @"
 Imports Microsoft.AspNetCore.Mvc
@@ -883,7 +963,7 @@ Namespace VulnerableApp
         End Function
     End Class
 End Namespace
-            ";
+";
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);

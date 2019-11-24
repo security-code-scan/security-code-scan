@@ -19,6 +19,7 @@ namespace SecurityCodeScan.Analyzers.Utils
     {
         private static readonly SymbolDisplayFormat SymbolDisplayFormat =
             new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeContainingType,
+                                    parameterOptions: SymbolDisplayParameterOptions.IncludeType,
                                     typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
         public static bool IsType(this ISymbol symbol, string type)

@@ -19,10 +19,25 @@ namespace SecurityCodeScan.Analyzers.Taint
         public  IReadOnlyDictionary<string, VariableState> VariableStates        => Variables;
         private Dictionary<string, VariableState>          Variables             { get; set; }
 
+        private Lazy<INamedTypeSymbol>                     _StringType;
+        public INamedTypeSymbol                            StringType            => _StringType.Value;
+
+        /// <summary>
+        /// Initialize the state with no variable recorded yet.
+        /// </summary>
+        /// <param name="ctx">Context used to resolve symbol.</param>
+        public ExecutionState(SyntaxNodeAnalysisContext ctx)
+        {
+            AnalysisContext = ctx;
+            Variables = new Dictionary<string, VariableState>();
+            _StringType = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetTypeByMetadataName("System.String"));
+        }
+
         public ExecutionState(ExecutionState other)
         {
             AnalysisContext = other.AnalysisContext;
             Variables       = new Dictionary<string, VariableState>(other.VariableStates.Count);
+            _StringType     = other._StringType;
 
             var otherVariableStateToNew = new Dictionary<VariableState, VariableState>();
             foreach (var otherVariablePair in other.VariableStates)
@@ -57,6 +72,8 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             AnalysisContext = state.AnalysisContext;
             Variables       = state.Variables;
+            if (!_StringType.IsValueCreated && state._StringType.IsValueCreated) // prone for race conditions, but small optimization
+                _StringType = state._StringType;
         }
 
         public void Merge(ExecutionState other)
@@ -83,16 +100,6 @@ namespace SecurityCodeScan.Analyzers.Taint
             }
 
             VariableState.Merge(queue, otherToSelf);
-        }
-
-        /// <summary>
-        /// Initialize the state with no variable recorded yet.
-        /// </summary>
-        /// <param name="ctx">Context used to resolve symbol.</param>
-        public ExecutionState(SyntaxNodeAnalysisContext ctx)
-        {
-            AnalysisContext = ctx;
-            Variables       = new Dictionary<string, VariableState>();
         }
 
         public void AddNewValue(string identifier, VariableState value)

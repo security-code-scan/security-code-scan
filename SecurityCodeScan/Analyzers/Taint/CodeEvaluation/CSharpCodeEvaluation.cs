@@ -321,7 +321,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     varState = VisitExpression(variable.Initializer.Value, state);
                     var type = state.AnalysisContext.SemanticModel.GetTypeInfo(variable.Initializer.Value);
 
-                    if (type.ConvertedType != null && (type.ConvertedType.IsType("System.String") || type.ConvertedType.IsValueType))
+                    if (type.ConvertedType != null && (type.ConvertedType == state.StringType || type.ConvertedType.IsValueType))
                     {
                         var copy = new VariableState(varState.Node, varState.Taint, varState.Value);
                         foreach (var property in varState.PropertyStates)
@@ -699,7 +699,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 //{
                 //    var argumentType = state.AnalysisContext.SemanticModel.GetTypeInfo(argument.Expression).Type;
                 //    if (argumentType.IsReferenceType &&
-                //        argumentType.IsType("System.String")) // string is immutable
+                //        argumentType == state.StringType) // string is immutable
                 //    {
                 //        state.MergeValue(ResolveIdentifier(identifierNameSyntax.Identifier),
                 //                         argumentState.Merge(new VariableState(argument, VariableTaint.Unknown)));

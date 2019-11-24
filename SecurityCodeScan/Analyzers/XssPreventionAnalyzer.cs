@@ -29,7 +29,7 @@ namespace SecurityCodeScan.Analyzers
             if (!method.ParameterList.Parameters.Any())
                 return;
 
-            if (state.AnalysisContext.SemanticModel.GetSymbolInfo(method.ReturnType).Symbol?.IsType("System.String") != true)
+            if (state.AnalysisContext.SemanticModel.GetSymbolInfo(method.ReturnType).Symbol != state.StringType)
                 return;
 
             if (!(node.Parent is CSharpSyntax.ClassDeclarationSyntax classNode))
@@ -101,7 +101,7 @@ namespace SecurityCodeScan.Analyzers
             if (retType == null)
                 return;
 
-            if (state.AnalysisContext.SemanticModel.GetSymbolInfo(retType).Symbol?.IsType("System.String") != true)
+            if (state.AnalysisContext.SemanticModel.GetSymbolInfo(retType).Symbol != state.StringType)
                 return;
 
             if (!(node.Parent is VBSyntax.ClassBlockSyntax classNode))

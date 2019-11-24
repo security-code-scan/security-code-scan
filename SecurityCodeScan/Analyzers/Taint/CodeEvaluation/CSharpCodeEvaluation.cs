@@ -79,7 +79,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                 foreach (var ext in Extensions)
                 {
-                    ext.VisitStatement(statement, state, ProjectConfiguration);
+                    ext.VisitStatement(statement, state, statementState, ProjectConfiguration);
                 }
             }
 
@@ -117,7 +117,15 @@ namespace SecurityCodeScan.Analyzers.Taint
             }
 
             if(node.ExpressionBody != null)
-                return VisitExpression(node.ExpressionBody.Expression, state);
+            {
+                var expressionState = VisitExpression(node.ExpressionBody.Expression, state);
+                foreach (var ext in Extensions)
+                {
+                    ext.VisitArrowExpressionClause(node.ExpressionBody, state, expressionState, ProjectConfiguration);
+                }
+
+                return expressionState;
+            }
 
             if (node.Body != null)
                 return VisitBlock(node.Body, state);
@@ -181,6 +189,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitNode(elseClauseSyntax.Statement, state);
                 case SwitchStatementSyntax switchStatementSyntax:
                     return VisitSwitch(switchStatementSyntax, state);
+                case ThrowStatementSyntax throwStatementSyntax:
+                    return VisitExpression(throwStatementSyntax.Expression, state);
             }
 
             foreach (var n in node.ChildNodes())

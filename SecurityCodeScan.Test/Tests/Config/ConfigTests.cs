@@ -35,7 +35,7 @@ namespace SecurityCodeScan.Test.Config
             var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
 
             //ensuring that field count matches count of properties tested below (test should fail and be updated if someone adds new field in Configuration)
-            Assert.AreEqual(10, typeof(Configuration).GetProperties(BindingFlags.Instance | BindingFlags.Public).Length);
+            Assert.AreEqual(11, typeof(Configuration).GetProperties(BindingFlags.Instance | BindingFlags.Public).Length);
 
             Assert.AreEqual(StartupConfiguration.ReportAnalysisCompletion,                  newConfig.ReportAnalysisCompletion);
             Assert.AreEqual(StartupConfiguration.AuditMode,                                 newConfig.AuditMode);
@@ -47,6 +47,7 @@ namespace SecurityCodeScan.Test.Config
             Assert.AreEqual(StartupConfiguration.PasswordFields.Count,                      newConfig.PasswordFields.Count);
             Assert.AreEqual(StartupConfiguration.ConstantFields.Count,                      newConfig.ConstantFields.Count);
             Assert.AreEqual(StartupConfiguration.CsrfGoups.Count,                           newConfig.CsrfGoups.Count);
+            Assert.AreEqual(StartupConfiguration.TaintTypeNameToBit.Count,                  newConfig.TaintTypeNameToBit.Count);
         }
 
         [TestMethod]
@@ -56,7 +57,7 @@ namespace SecurityCodeScan.Test.Config
             var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
 
             // ensuring that field count matches count of properties tested below
-            Assert.AreEqual(10, typeof(Configuration).GetProperties(BindingFlags.Instance | BindingFlags.Public).Length);
+            Assert.AreEqual(11, typeof(Configuration).GetProperties(BindingFlags.Instance | BindingFlags.Public).Length);
 
             Assert.AreEqual(StartupConfiguration.ReportAnalysisCompletion,                  newConfig.ReportAnalysisCompletion);
             Assert.AreEqual(StartupConfiguration.AuditMode,                                 newConfig.AuditMode);
@@ -68,6 +69,7 @@ namespace SecurityCodeScan.Test.Config
             Assert.AreEqual(StartupConfiguration.PasswordFields.Count,                      newConfig.PasswordFields.Count);
             Assert.AreEqual(StartupConfiguration.ConstantFields.Count,                      newConfig.ConstantFields.Count);
             Assert.AreEqual(StartupConfiguration.CsrfGoups.Count,                           newConfig.CsrfGoups.Count);
+            Assert.AreEqual(StartupConfiguration.TaintTypeNameToBit.Count,                  newConfig.TaintTypeNameToBit.Count);
         }
 
         [TestMethod]

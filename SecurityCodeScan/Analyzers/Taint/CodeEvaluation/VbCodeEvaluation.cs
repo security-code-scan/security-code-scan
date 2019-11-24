@@ -76,7 +76,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                 foreach (var ext in Extensions)
                 {
-                    ext.VisitStatement(statement, state, ProjectConfiguration);
+                    ext.VisitStatement(statement, state, statementState, ProjectConfiguration);
                 }
             }
 
@@ -208,6 +208,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitExpression(selectStatementSyntax.Expression, state);
                 case CaseBlockSyntax caseBlockSyntax:
                     return VisitStatements(caseBlockSyntax.Statements, state, new VariableState(caseBlockSyntax, VariableTaint.Unset));
+                case ThrowStatementSyntax throwStatementSyntax:
+                    return VisitExpression(throwStatementSyntax.Expression, state);
             }
 
             foreach (var n in node.ChildNodes())
@@ -495,6 +497,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitExpression(awaitSyntax.Expression, state);
                 case MeExpressionSyntax meExpressionSyntax:
                     return new VariableState(meExpressionSyntax, VariableTaint.Unknown);
+                case NameOfExpressionSyntax nameOfExpressionSyntax:
+                    return new VariableState(nameOfExpressionSyntax, VariableTaint.Constant);
             }
 
 #if DEBUG

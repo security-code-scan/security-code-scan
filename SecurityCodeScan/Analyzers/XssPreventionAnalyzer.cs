@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
+using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Analyzers.Utils;
 using SecurityCodeScan.Config;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
@@ -13,211 +14,143 @@ using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [SecurityAnalyzer(LanguageNames.CSharp)]
-    internal class XssPreventionAnalyzerCSharp : XssPreventionAnalyzer
+    internal class XssPreventionAnalyzerCSharp : TaintAnalyzerExtensionCSharp
     {
-        public override void Initialize(ISecurityAnalysisContext context)
-        {
-            context.RegisterCompilationStartAction(OnCompilationStartAction);
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => XssPreventionAnalyzer.SupportedDiagnostics;
 
-        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        public override void VisitBegin(SyntaxNode node, ExecutionState state, Configuration projectConfiguration)
         {
-            context.RegisterSyntaxNodeAction(VisitMethods, CSharp.SyntaxKind.ClassDeclaration);
-        }
-
-        private void VisitMethods(SyntaxNodeAnalysisContext ctx)
-        {
-            if (!(ctx.Node is CSharpSyntax.ClassDeclarationSyntax node))
+            if (!(node is CSharpSyntax.MethodDeclarationSyntax method))
                 return;
 
-            var classSymbol = CSharp.CSharpExtensions.GetDeclaredSymbol(ctx.SemanticModel, node);
+            if (!method.Modifiers.Any(x => x.IsKind(CSharp.SyntaxKind.PublicKeyword)))
+                return;
+
+            if (!method.ParameterList.Parameters.Any())
+                return;
+
+            if (state.AnalysisContext.SemanticModel.GetSymbolInfo(method.ReturnType).Symbol?.IsType("System.String") != true)
+                return;
+
+            if (!(node.Parent is CSharpSyntax.ClassDeclarationSyntax classNode))
+                return;
+
+            var classSymbol = CSharp.CSharpExtensions.GetDeclaredSymbol(state.AnalysisContext.SemanticModel, classNode);
             if (classSymbol == null ||
-                !classSymbol.IsDerivedFrom(ControllerNames))
+                !classSymbol.IsDerivedFrom(XssPreventionAnalyzer.ControllerNames))
             {
                 return;
             }
 
-            var methodsWithParameters = node.DescendantNodesAndSelf()
-                                            .OfType<CSharpSyntax.MethodDeclarationSyntax>()
-                                            .Where(method => method.ParameterList.Parameters.Any())
-                                            .Where(method => method.Modifiers
-                                                                   .Any(x => x.IsKind(CSharp.SyntaxKind.PublicKeyword)))
-                                            .Where(method => ctx.SemanticModel
-                                                                .GetSymbolInfo(method.ReturnType)
-                                                                .Symbol
-                                                                ?.IsType("System.String") == true);
+            if (!XssPreventionAnalyzer.ExecutionStates.TryAdd(state, state))
+                throw new Exception("Something went wrong. Failed to add execution state.");
+        }
 
-            foreach (CSharpSyntax.MethodDeclarationSyntax method in methodsWithParameters)
+        public override void VisitEnd(SyntaxNode node, ExecutionState state, Configuration projectConfiguration)
+        {
+            XssPreventionAnalyzer.ExecutionStates.TryRemove(state, out var _);
+        }
+
+        public override void VisitStatement(CSharpSyntax.StatementSyntax node,
+                                           ExecutionState state,
+                                           VariableState statementState,
+                                           Configuration projectConfiguration)
+        {
+            if (!XssPreventionAnalyzer.ExecutionStates.ContainsKey(state))
+                return;
+
+            if (!node.IsKind(CSharp.SyntaxKind.ReturnStatement))
+                return;
+
+            if ((statementState.Taint & VariableTaint.Tainted) != 0 &&
+                (((ulong)statementState.Taint) & projectConfiguration.TaintTypeNameToBit["HtmlEscaped"]) == 0)
             {
-                DataFlowAnalysis flow;
-                if (method.Body != null)
-                {
-                    SyntaxList<CSharpSyntax.StatementSyntax> methodStatements = method.Body.Statements;
-                    if (!methodStatements.Any())
-                        continue;
+                state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(XssPreventionAnalyzer.Rule, node.GetLocation()));
+            }
+        }
 
-                    flow = ctx.SemanticModel.AnalyzeDataFlow(methodStatements.First(),
-                                                             methodStatements.Last());
-                }
-                else if(method.ExpressionBody != null)
-                {
-                    flow = ctx.SemanticModel.AnalyzeDataFlow(method.ExpressionBody.Expression);
-                }
-                else
-                {
-                    continue;
-                }
+        public override void VisitArrowExpressionClause(CSharpSyntax.ArrowExpressionClauseSyntax node, ExecutionState state, VariableState statementState, Configuration projectConfiguration)
+        {
+            if (!XssPreventionAnalyzer.ExecutionStates.ContainsKey(state))
+                return;
 
-                var methodInvocations = method.DescendantNodes()
-                                                  .OfType<CSharpSyntax.InvocationExpressionSyntax>()
-                                                  .ToArray();
-
-                // Returns from the Data Flow Analysis of input data 
-                // Dangerous data is: Data passed as a parameter that is also returned as is by the method
-                var inputVariables = flow.DataFlowsIn.Union(flow.VariablesDeclared.Except(flow.AlwaysAssigned))
-                                                         .Union(flow.WrittenInside)
-                                                         .Intersect(flow.WrittenOutside)
-                                                         .ToArray();
-
-                if (!inputVariables.Any())
-                    continue;
-
-                foreach (ISymbol inputVariable in inputVariables)
-                {
-                    bool inputVariableIsEncoded = false;
-                    foreach (CSharpSyntax.InvocationExpressionSyntax methodInvocation in methodInvocations)
-                    {
-                        var arguments = methodInvocation.ArgumentList.Arguments;
-                        if (!arguments.Any())
-                            continue;
-
-                        if (arguments.First().ToString().Contains(inputVariable.Name))
-                        {
-                            inputVariableIsEncoded = true;
-                        }
-                    }
-
-                    if (!inputVariableIsEncoded)
-                    {
-                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, inputVariable.Locations[0]));
-                        break;
-                    }
-                }
+            if ((statementState.Taint & VariableTaint.Tainted) != 0 &&
+                (((ulong)statementState.Taint) & projectConfiguration.TaintTypeNameToBit["HtmlEscaped"]) == 0)
+            {
+                state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(XssPreventionAnalyzer.Rule, node.GetLocation()));
             }
         }
     }
 
-    [SecurityAnalyzer(LanguageNames.VisualBasic)]
-    internal class XssPreventionAnalyzerVisualBasic : XssPreventionAnalyzer
+    internal class XssPreventionAnalyzerVisualBasic : TaintAnalyzerExtensionVisualBasic
     {
-        public override void Initialize(ISecurityAnalysisContext context)
-        {
-            context.RegisterCompilationStartAction(OnCompilationStartAction);
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => XssPreventionAnalyzer.SupportedDiagnostics;
 
-        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        public override void VisitBegin(SyntaxNode node, ExecutionState state, Configuration projectConfiguration)
         {
-            context.RegisterSyntaxNodeAction(VisitMethods, VB.SyntaxKind.ClassBlock);
-        }
-
-        protected void VisitMethods(SyntaxNodeAnalysisContext ctx)
-        {
-            if (!(ctx.Node is VBSyntax.ClassBlockSyntax node))
+            if (!(node is VBSyntax.MethodBlockSyntax method))
                 return;
 
-            var classSymbol = VB.VisualBasicExtensions.GetDeclaredSymbol(ctx.SemanticModel, node);
+            if (!method.SubOrFunctionStatement.Modifiers.Any(x => x.IsKind(VB.SyntaxKind.PublicKeyword)))
+                return;
+
+            if (!method.SubOrFunctionStatement.ParameterList.Parameters.Any())
+                return;
+
+            var retType = method.SubOrFunctionStatement.AsClause?.Type;
+            if (retType == null)
+                return;
+
+            if (state.AnalysisContext.SemanticModel.GetSymbolInfo(retType).Symbol?.IsType("System.String") != true)
+                return;
+
+            if (!(node.Parent is VBSyntax.ClassBlockSyntax classNode))
+                return;
+
+            var classSymbol = VB.VisualBasicExtensions.GetDeclaredSymbol(state.AnalysisContext.SemanticModel, classNode);
             if (classSymbol == null ||
-                !classSymbol.IsDerivedFrom(ControllerNames))
+                !classSymbol.IsDerivedFrom(XssPreventionAnalyzer.ControllerNames))
             {
                 return;
             }
 
-            var methodsWithParameters = node.DescendantNodesAndSelf()
-                                            .OfType<VBSyntax.MethodBlockSyntax>()
-                                            .Where(method =>
-                                                       method.SubOrFunctionStatement.ParameterList.Parameters.Any())
-                                            .Where(method => method
-                                                             .SubOrFunctionStatement
-                                                             .Modifiers.Any(x => x.IsKind(VB.SyntaxKind.PublicKeyword)))
-                                            .Where(method =>
-                                            {
-                                                var retType = method.SubOrFunctionStatement.AsClause?.Type;
-                                                if (retType == null)
-                                                    return false;
+            if (!XssPreventionAnalyzer.ExecutionStates.TryAdd(state, state))
+                throw new Exception("Something went wrong. Failed to add execution state.");
+        }
 
-                                                return ctx.SemanticModel
-                                                          .GetSymbolInfo(retType)
-                                                          .Symbol
-                                                          ?.IsType("System.String") == true;
-                                            });
+        public override void VisitEnd(SyntaxNode node, ExecutionState state, Configuration projectConfiguration)
+        {
+            XssPreventionAnalyzer.ExecutionStates.TryRemove(state, out var _);
+        }
 
-            foreach (VBSyntax.MethodBlockSyntax method in methodsWithParameters)
+        public override void VisitStatement(VBSyntax.StatementSyntax node,
+                                           ExecutionState state,
+                                           VariableState statementState,
+                                           Configuration projectConfiguration)
+        {
+            if (!XssPreventionAnalyzer.ExecutionStates.ContainsKey(state))
+                return;
+
+            if (!node.IsKind(VB.SyntaxKind.ReturnStatement))
+                return;
+
+            if ((statementState.Taint & VariableTaint.Tainted) != 0 &&
+                (((ulong)statementState.Taint) & projectConfiguration.TaintTypeNameToBit["HtmlEscaped"]) == 0)
             {
-                SyntaxList<VBSyntax.StatementSyntax> methodStatements = method.Statements;
-                var methodInvocations = method.DescendantNodes()
-                                              .OfType<VBSyntax.InvocationExpressionSyntax>()
-                                              .ToArray();
-
-                if (!methodStatements.Any())
-                    continue;
-
-                DataFlowAnalysis flow = ctx.SemanticModel.AnalyzeDataFlow(methodStatements.First(),
-                                                                          methodStatements.Last());
-
-                // Returns from the Data Flow Analysis of input data 
-                // Dangerous data is: Data passed as a parameter that is also returned as is by the method
-                var inputVariables = flow.DataFlowsIn.Union(flow.VariablesDeclared.Except(flow.AlwaysAssigned))
-                                                        .Union(flow.WrittenInside)
-                                                        .Intersect(flow.WrittenOutside)
-                                                        .ToArray();
-
-                if (!inputVariables.Any())
-                    continue;
-
-                foreach (ISymbol inputVariable in inputVariables)
-                {
-                    bool inputVariableIsEncoded = false;
-                    foreach (VBSyntax.InvocationExpressionSyntax methodInvocation in methodInvocations)
-                    {
-                        var arguments = methodInvocation.ArgumentList.Arguments;
-                        if (!arguments.Any())
-                            continue;
-
-                        if (arguments.First().ToString().Contains(inputVariable.Name))
-                        {
-                            inputVariableIsEncoded = true;
-                        }
-                    }
-
-                    if (!inputVariableIsEncoded)
-                    {
-                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, inputVariable.Locations[0]));
-                        break;
-                    }
-                }
+                state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(XssPreventionAnalyzer.Rule, node.GetLocation()));
             }
         }
     }
 
-    // TODO: make this generic. 
-    // Problem #1: So many language specific syntax nodes.
-    // Problem #2: Literal strings are different.
-
-    internal abstract class XssPreventionAnalyzer : SecurityAnalyzer
+    internal static class XssPreventionAnalyzer
     {
-        public const string DiagnosticId = "SCS0029";
+        public const              string            DiagnosticId = "SCS0029";
+        public static readonly DiagnosticDescriptor Rule         = LocaleUtil.GetDescriptor(DiagnosticId);
 
-        private List<string> EncodingMethods = new List<string>
-        {
-            "HtmlEncoder.Default.Encode",
-            "HttpContext.Server.HtmlEncode"
-        };
+        public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-        protected string[] ControllerNames = { "Microsoft.AspNetCore.Mvc.ControllerBase", "System.Web.Mvc.Controller" };
+        public static ConcurrentDictionary<ExecutionState, ExecutionState> ExecutionStates = new ConcurrentDictionary<ExecutionState, ExecutionState>();
 
-        protected static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor(DiagnosticId);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
+        public static readonly string[] ControllerNames = { "Microsoft.AspNetCore.Mvc.ControllerBase", "System.Web.Mvc.Controller" };
     }
 }

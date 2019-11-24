@@ -21,9 +21,9 @@ namespace SecurityCodeScan.Test
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new TaintAnalyzerCSharp(), new XssPreventionAnalyzerCSharp()) };
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new TaintAnalyzerCSharp(new XssPreventionAnalyzerCSharp())) };
             else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new TaintAnalyzerVisualBasic(), new XssPreventionAnalyzerVisualBasic()) };
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new TaintAnalyzerVisualBasic(new XssPreventionAnalyzerVisualBasic())) };
         }
 
         private static readonly PortableExecutableReference[] References =
@@ -235,6 +235,7 @@ End Namespace
         {
             const string cSharpTest = @"
 using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace VulnerableApp
 {
@@ -243,16 +244,20 @@ namespace VulnerableApp
         [HttpGet(""{inputData}"")]
         // using 'virtual' to make 'public' not the only modifier
         // using 'System.String' instead of 'string' to see if it is handled
-        public virtual System.String Get(int inputData)
+        public virtual System.String Get(string inputData)
         {
+            if (inputData == null)
+                throw new ArgumentNullException(nameof(inputData));
+
             return ""value "" + inputData;
         }
     }
 }
-            ";
+";
 
             const string visualBasicTest = @"
 Imports Microsoft.AspNetCore.Mvc
+Imports System
 
 Namespace VulnerableApp
     Public Class TestController
@@ -260,8 +265,9 @@ Namespace VulnerableApp
         ' using Overridable to make Public not the only modifier
         ' using System.String instead of String to see if it is handled
         <HttpGet(""{inputData}"")> _
-        Public Overridable Function [Get](inputData As Integer) As System.String
-            Return ""value "" & inputData.ToString()
+        Public Overridable Function [Get](inputData As String) As System.String
+            If inputData Is Nothing Then Throw New ArgumentNullException(NameOf(inputData))
+            Return ""value "" & inputData
         End Function
     End Class
 End Namespace
@@ -269,6 +275,45 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+        }
+
+        [TestCategory("Safe")]
+        [TestMethod]
+        [Ignore("Int is treated as injectable type")]
+        public async Task UnencodedInputDataInt()
+        {
+            const string cSharpTest = @"
+using Microsoft.AspNetCore.Mvc;
+
+namespace VulnerableApp
+{
+    public class TestController : Controller
+    {
+        [HttpGet(""{inputData}"")]
+        public string Get(int inputData)
+        {
+            return ""value "" + inputData;
+        }
+    }
+}
+";
+
+            const string visualBasicTest = @"
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace VulnerableApp
+    Public Class TestController
+        Inherits Controller
+        <HttpGet(""{inputData}"")> _
+        Public Function [Get](inputData As Integer) As String
+            Return ""value "" & inputData.ToString()
+        End Function
+    End Class
+End Namespace
+            ";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [DataRow("new Control(); temp.ID = input", true)]

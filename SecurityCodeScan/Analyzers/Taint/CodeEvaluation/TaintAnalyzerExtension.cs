@@ -21,7 +21,14 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         public virtual void VisitStatement(CSharpSyntax.StatementSyntax node,
                                            ExecutionState state,
+                                           VariableState statementState,
                                            Configuration projectConfiguration) { }
+
+        public virtual void VisitArrowExpressionClause(CSharpSyntax.ArrowExpressionClauseSyntax node,
+                                                       ExecutionState state,
+                                                       VariableState statementState,
+                                                       Configuration projectConfiguration)
+        { }
 
         public virtual void VisitInvocationAndCreation(CSharpSyntax.ExpressionSyntax   node,
                                                        CSharpSyntax.ArgumentListSyntax argList,
@@ -48,6 +55,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         public virtual void VisitStatement(VBSyntax.StatementSyntax node,
                                            ExecutionState           state,
+                                           VariableState            statementState,
                                            Configuration            projectConfiguration) { }
 
         public virtual void VisitInvocationAndCreation(VBSyntax.ExpressionSyntax   node,

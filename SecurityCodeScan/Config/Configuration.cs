@@ -32,7 +32,7 @@ namespace SecurityCodeScan.Config
             _ConstantFields = new HashSet<string>();
             ConstantFields  = new ReadOnlyHashSet<string>(_ConstantFields);
 
-            TaintTypeNameToBit = new Dictionary<string, ulong>(62);
+            _TaintTypeNameToBit = new Dictionary<string, ulong>(62);
         }
 
         public Configuration(Configuration config)
@@ -66,7 +66,7 @@ namespace SecurityCodeScan.Config
             _ConstantFields = new HashSet<string>(config.ConstantFields);
             ConstantFields  = new ReadOnlyHashSet<string>(_ConstantFields);
 
-            TaintTypeNameToBit = new Dictionary<string, ulong>(config.TaintTypeNameToBit);
+            _TaintTypeNameToBit = new Dictionary<string, ulong>(config._TaintTypeNameToBit);
         }
 
         public Configuration(ConfigData configData) : this()
@@ -139,7 +139,8 @@ namespace SecurityCodeScan.Config
         private readonly HashSet<string>         _ConstantFields;
         public           ReadOnlyHashSet<string> ConstantFields { get; }
 
-        private Dictionary<string, ulong> TaintTypeNameToBit { get; }
+        private Dictionary<string, ulong> _TaintTypeNameToBit;
+        public IReadOnlyDictionary<string, ulong> TaintTypeNameToBit => _TaintTypeNameToBit;
 
         // is needed to have allow merging by configuration Id
         private readonly Dictionary<string, KeyValuePair<string, MethodBehavior>> ConfigurationBehavior;
@@ -270,7 +271,7 @@ namespace SecurityCodeScan.Config
                 if (availableBit == 0ul)
                     throw new Exception("Max number of taint types reached");
 
-                TaintTypeNameToBit[typeName] = availableBit;
+                _TaintTypeNameToBit[typeName] = availableBit;
                 availableBit                  = availableBit << 1;
             }
         }

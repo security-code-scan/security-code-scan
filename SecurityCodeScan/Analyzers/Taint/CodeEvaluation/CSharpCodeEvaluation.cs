@@ -191,6 +191,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitSwitch(switchStatementSyntax, state);
                 case ThrowStatementSyntax throwStatementSyntax:
                     return VisitExpression(throwStatementSyntax.Expression, state);
+                case SwitchSectionSyntax switchSectionSyntax:
+                    return VisitStatements(switchSectionSyntax.Statements, state, new VariableState(node, VariableTaint.Unset));
             }
 
             foreach (var n in node.ChildNodes())

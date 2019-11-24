@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -34,7 +33,7 @@ namespace SecurityCodeScan.Test
     <h3>Your application description page.</h3>
     <p>Use this area to provide additional information.</p>
 </asp:Content>
-              ";
+  ";
 
             var path     = Guid.NewGuid().ToString();
             var expected = new
@@ -65,7 +64,7 @@ namespace SecurityCodeScan.Test
     <h3>Your application description page.</h3>
     <p>Use this area to provide additional information.</p>
 </asp:Content>
-              ";
+  ";
 
             var diagnostics = await Analyze(html, Guid.NewGuid().ToString()).ConfigureAwait(false);
             diagnostics.Verify(call => call(It.Is<Diagnostic>(d => d.Id == WebConfigAnalyzer.RuleValidateRequest.Id)), Times.Never);

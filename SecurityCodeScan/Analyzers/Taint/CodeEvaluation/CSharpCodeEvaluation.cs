@@ -359,7 +359,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     varState = VisitExpression(variable.Initializer.Value, state);
                     var type = state.AnalysisContext.SemanticModel.GetTypeInfo(variable.Initializer.Value);
 
-                    if (type.ConvertedType != null && (type.ConvertedType.IsType("System.String") || type.ConvertedType.IsValueType))
+                    if (type.ConvertedType != null && (type.ConvertedType == state.StringType || type.ConvertedType.IsValueType))
                     {
                         var copy = new VariableState(varState.Node, varState.Taint, varState.Value);
                         foreach (var property in varState.PropertyStates)
@@ -739,7 +739,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                 //{
                 //    var argumentType = state.AnalysisContext.SemanticModel.GetTypeInfo(argument.Expression).Type;
                 //    if (argumentType.IsReferenceType &&
-                //        argumentType.IsType("System.String")) // string is immutable
+                //        argumentType == state.StringType) // string is immutable
                 //    {
                 //        state.MergeValue(ResolveIdentifier(identifierNameSyntax.Identifier),
                 //                         argumentState.Merge(new VariableState(argument, VariableTaint.Unknown)));
@@ -1037,23 +1037,23 @@ namespace SecurityCodeScan.Analyzers.Taint
             switch (symbol)
             {
                 case null:
-                    return new VariableState(expression, VariableTaint.Unknown);
+                return new VariableState(expression, VariableTaint.Unknown);
                 case IFieldSymbol field:
-                    if (field.IsConst)
-                        return new VariableState(expression, VariableTaint.Constant);
+                if (field.IsConst)
+                    return new VariableState(expression, VariableTaint.Constant);
 
-                    if (!field.IsReadOnly)
-                        return new VariableState(expression, VariableTaint.Unknown);
-
-                    if (ProjectConfiguration.ConstantFields.Contains(field.GetTypeName()))
-                    {
-                        return new VariableState(expression, VariableTaint.Constant);
-                    }
-
+                if (!field.IsReadOnly)
                     return new VariableState(expression, VariableTaint.Unknown);
+
+                if (ProjectConfiguration.ConstantFields.Contains(field.GetTypeName()))
+                {
+                    return new VariableState(expression, VariableTaint.Constant);
+                }
+
+                return new VariableState(expression, VariableTaint.Unknown);
                 case IPropertySymbol prop:
-                    if (prop.IsVirtual || prop.IsOverride || prop.IsAbstract)
-                        return new VariableState(expression, VariableTaint.Unknown);
+                if (prop.IsVirtual || prop.IsOverride || prop.IsAbstract)
+                    return new VariableState(expression, VariableTaint.Unknown);
 
                     var getMtd = prop.GetMethod;
                     if(getMtd == null)
@@ -1094,17 +1094,17 @@ namespace SecurityCodeScan.Analyzers.Taint
                         return new VariableState(expression, VariableTaint.Unknown);
                     }
 
-                    if (!(syntaxNode is StatementSyntax statementSyntax))
-                        return new VariableState(expression, VariableTaint.Unknown);
-
-                    var flow = possiblyOtherSemanticModel.AnalyzeControlFlow(statementSyntax);
-
-                    if (flow.Succeeded && AllReturnConstant(flow.ExitPoints, possiblyOtherSemanticModel, visited))
-                    {
-                        return new VariableState(expression, VariableTaint.Constant);
-                    }
-
+                if (!(syntaxNode is StatementSyntax statementSyntax))
                     return new VariableState(expression, VariableTaint.Unknown);
+
+                var flow = possiblyOtherSemanticModel.AnalyzeControlFlow(statementSyntax);
+
+                if (flow.Succeeded && AllReturnConstant(flow.ExitPoints, possiblyOtherSemanticModel, visited))
+                {
+                    return new VariableState(expression, VariableTaint.Constant);
+                }
+
+                return new VariableState(expression, VariableTaint.Unknown);
             }
 
             return new VariableState(expression, VariableTaint.Unknown);

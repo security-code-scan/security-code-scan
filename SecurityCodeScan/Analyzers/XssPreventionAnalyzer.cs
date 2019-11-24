@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -29,7 +30,7 @@ namespace SecurityCodeScan.Analyzers
             if (!method.ParameterList.Parameters.Any())
                 return;
 
-            if (state.AnalysisContext.SemanticModel.GetSymbolInfo(method.ReturnType).Symbol?.IsType("System.String") != true)
+            if (!ReferenceEquals(state.AnalysisContext.SemanticModel.GetSymbolInfo(method.ReturnType).Symbol, state.StringType))
                 return;
 
             if (!(node.Parent is CSharpSyntax.ClassDeclarationSyntax classNode))
@@ -42,7 +43,7 @@ namespace SecurityCodeScan.Analyzers
                 return;
             }
 
-            if (!XssPreventionAnalyzer.ExecutionStates.TryAdd(state, state))
+            if (!XssPreventionAnalyzer.ExecutionStates.TryAdd(state, method.Body.Statements.First()))
                 throw new Exception("Something went wrong. Failed to add execution state.");
         }
 
@@ -56,28 +57,32 @@ namespace SecurityCodeScan.Analyzers
                                            VariableState statementState,
                                            Configuration projectConfiguration)
         {
-            if (!XssPreventionAnalyzer.ExecutionStates.ContainsKey(state))
+            if (!XssPreventionAnalyzer.ExecutionStates.TryGetValue(state, out var _))
                 return;
 
-            if (!node.IsKind(CSharp.SyntaxKind.ReturnStatement))
+            var returnStatements = node.DescendantNodesAndSelf().OfType<CSharpSyntax.ReturnStatementSyntax>();
+            if (!returnStatements.Any())
                 return;
 
             if ((statementState.Taint & VariableTaint.Tainted) != 0 &&
                 (((ulong)statementState.Taint) & projectConfiguration.TaintTypeNameToBit["HtmlEscaped"]) == 0)
             {
-                state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(XssPreventionAnalyzer.Rule, node.GetLocation()));
+                XssPreventionAnalyzer.Check(node, state, projectConfiguration, returnStatements);
             }
         }
 
-        public override void VisitArrowExpressionClause(CSharpSyntax.ArrowExpressionClauseSyntax node, ExecutionState state, VariableState statementState, Configuration projectConfiguration)
+        public override void VisitArrowExpressionClause(CSharpSyntax.ArrowExpressionClauseSyntax node,
+                                                        ExecutionState state,
+                                                        VariableState statementState,
+                                                        Configuration projectConfiguration)
         {
-            if (!XssPreventionAnalyzer.ExecutionStates.ContainsKey(state))
+            if (!XssPreventionAnalyzer.ExecutionStates.TryGetValue(state, out var _))
                 return;
 
             if ((statementState.Taint & VariableTaint.Tainted) != 0 &&
                 (((ulong)statementState.Taint) & projectConfiguration.TaintTypeNameToBit["HtmlEscaped"]) == 0)
             {
-                state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(XssPreventionAnalyzer.Rule, node.GetLocation()));
+                XssPreventionAnalyzer.Check(node, state, projectConfiguration, Enumerable.Repeat(node, 1));
             }
         }
     }
@@ -101,7 +106,7 @@ namespace SecurityCodeScan.Analyzers
             if (retType == null)
                 return;
 
-            if (state.AnalysisContext.SemanticModel.GetSymbolInfo(retType).Symbol?.IsType("System.String") != true)
+            if (!ReferenceEquals(state.AnalysisContext.SemanticModel.GetSymbolInfo(retType).Symbol, state.StringType))
                 return;
 
             if (!(node.Parent is VBSyntax.ClassBlockSyntax classNode))
@@ -114,7 +119,7 @@ namespace SecurityCodeScan.Analyzers
                 return;
             }
 
-            if (!XssPreventionAnalyzer.ExecutionStates.TryAdd(state, state))
+            if (!XssPreventionAnalyzer.ExecutionStates.TryAdd(state, method.Statements.First()))
                 throw new Exception("Something went wrong. Failed to add execution state.");
         }
 
@@ -128,16 +133,17 @@ namespace SecurityCodeScan.Analyzers
                                            VariableState statementState,
                                            Configuration projectConfiguration)
         {
-            if (!XssPreventionAnalyzer.ExecutionStates.ContainsKey(state))
+            if (!XssPreventionAnalyzer.ExecutionStates.TryGetValue(state, out var _))
                 return;
 
-            if (!node.IsKind(VB.SyntaxKind.ReturnStatement))
+            var returnStatements = node.DescendantNodesAndSelf().OfType<VBSyntax.ReturnStatementSyntax>();
+            if (!returnStatements.Any())
                 return;
 
             if ((statementState.Taint & VariableTaint.Tainted) != 0 &&
                 (((ulong)statementState.Taint) & projectConfiguration.TaintTypeNameToBit["HtmlEscaped"]) == 0)
             {
-                state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(XssPreventionAnalyzer.Rule, node.GetLocation()));
+                XssPreventionAnalyzer.Check(node, state, projectConfiguration, returnStatements);
             }
         }
     }
@@ -149,8 +155,33 @@ namespace SecurityCodeScan.Analyzers
 
         public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-        public static ConcurrentDictionary<ExecutionState, ExecutionState> ExecutionStates = new ConcurrentDictionary<ExecutionState, ExecutionState>();
+        public static ConcurrentDictionary<ExecutionState, SyntaxNode> ExecutionStates = new ConcurrentDictionary<ExecutionState, SyntaxNode>();
 
         public static readonly string[] ControllerNames = { "Microsoft.AspNetCore.Mvc.ControllerBase", "System.Web.Mvc.Controller" };
+
+        public static void Check(SyntaxNode node,
+                                 ExecutionState state,
+                                 Configuration projectConfiguration,
+                                 IEnumerable<SyntaxNode> returnStatements)
+        {
+            var flow = state.AnalysisContext.SemanticModel.AnalyzeDataFlow(node, node);
+
+            if (!flow.Succeeded && !projectConfiguration.AuditMode)
+                return;
+
+            // Returns from the Data Flow Analysis of input data 
+            // Dangerous data is: Data passed as a parameter that is also returned as is by the method
+            var inputVariables = flow.DataFlowsIn.Union(flow.VariablesDeclared.Except(flow.AlwaysAssigned))
+                                                                              .Union(flow.WrittenInside)
+                                                                              .Intersect(flow.WrittenOutside);
+
+            if (inputVariables.All(x => !x.IsType("System.String")))
+                return; // only string tainted type are interested
+
+            foreach (var returnStatement in returnStatements)
+            {
+                state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(Rule, returnStatement.GetLocation()));
+            }
+        }
     }
 }

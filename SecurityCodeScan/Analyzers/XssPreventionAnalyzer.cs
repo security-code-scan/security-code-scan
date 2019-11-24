@@ -43,7 +43,7 @@ namespace SecurityCodeScan.Analyzers
                 return;
             }
 
-            if (!XssPreventionAnalyzer.ExecutionStates.TryAdd(state, method.Body.Statements.First()))
+            if (!XssPreventionAnalyzer.ExecutionStates.TryAdd(state, state))
                 throw new Exception("Something went wrong. Failed to add execution state.");
         }
 
@@ -57,7 +57,7 @@ namespace SecurityCodeScan.Analyzers
                                            VariableState statementState,
                                            Configuration projectConfiguration)
         {
-            if (!XssPreventionAnalyzer.ExecutionStates.TryGetValue(state, out var _))
+            if (!XssPreventionAnalyzer.ExecutionStates.ContainsKey(state))
                 return;
 
             var returnStatements = node.DescendantNodesAndSelf().OfType<CSharpSyntax.ReturnStatementSyntax>();
@@ -76,7 +76,7 @@ namespace SecurityCodeScan.Analyzers
                                                         VariableState statementState,
                                                         Configuration projectConfiguration)
         {
-            if (!XssPreventionAnalyzer.ExecutionStates.TryGetValue(state, out var _))
+            if (!XssPreventionAnalyzer.ExecutionStates.ContainsKey(state))
                 return;
 
             if ((statementState.Taint & VariableTaint.Tainted) != 0 &&
@@ -119,7 +119,7 @@ namespace SecurityCodeScan.Analyzers
                 return;
             }
 
-            if (!XssPreventionAnalyzer.ExecutionStates.TryAdd(state, method.Statements.First()))
+            if (!XssPreventionAnalyzer.ExecutionStates.TryAdd(state, state))
                 throw new Exception("Something went wrong. Failed to add execution state.");
         }
 
@@ -133,7 +133,7 @@ namespace SecurityCodeScan.Analyzers
                                            VariableState statementState,
                                            Configuration projectConfiguration)
         {
-            if (!XssPreventionAnalyzer.ExecutionStates.TryGetValue(state, out var _))
+            if (!XssPreventionAnalyzer.ExecutionStates.ContainsKey(state))
                 return;
 
             var returnStatements = node.DescendantNodesAndSelf().OfType<VBSyntax.ReturnStatementSyntax>();
@@ -155,7 +155,7 @@ namespace SecurityCodeScan.Analyzers
 
         public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
-        public static ConcurrentDictionary<ExecutionState, SyntaxNode> ExecutionStates = new ConcurrentDictionary<ExecutionState, SyntaxNode>();
+        public static ConcurrentDictionary<ExecutionState, ExecutionState> ExecutionStates = new ConcurrentDictionary<ExecutionState, ExecutionState>();
 
         public static readonly string[] ControllerNames = { "Microsoft.AspNetCore.Mvc.ControllerBase", "System.Web.Mvc.Controller" };
 

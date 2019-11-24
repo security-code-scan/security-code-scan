@@ -52,7 +52,7 @@ namespace SecurityCodeScan.Analyzers
             }
         }
 
-        public void CheckState(VariableState variableState, ExecutionState state, HashSet<VariableState> visited, Configuration configuration)
+        private void CheckState(VariableState variableState, ExecutionState state, HashSet<VariableState> visited, Configuration configuration)
         {
             if (!visited.Add(variableState))
                 return;

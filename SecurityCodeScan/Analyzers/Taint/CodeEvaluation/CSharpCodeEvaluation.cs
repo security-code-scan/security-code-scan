@@ -79,7 +79,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                 foreach (var ext in Extensions)
                 {
-                    ext.VisitStatement(statement, state, ProjectConfiguration);
+                    ext.VisitStatement(statement, state, statementState, ProjectConfiguration);
                 }
             }
 
@@ -174,6 +174,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitNode(elseClauseSyntax.Statement, state);
                 case SwitchStatementSyntax switchStatementSyntax:
                     return VisitSwitch(switchStatementSyntax, state);
+                case ThrowStatementSyntax throwStatementSyntax:
+                    return VisitExpression(throwStatementSyntax.Expression, state);
                 case SwitchSectionSyntax switchSectionSyntax:
                     return VisitStatements(switchSectionSyntax.Statements, state, new VariableState(node, VariableTaint.Unset));
             }

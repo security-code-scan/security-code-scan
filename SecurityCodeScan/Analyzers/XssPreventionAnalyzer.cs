@@ -82,7 +82,7 @@ namespace SecurityCodeScan.Analyzers
             if ((statementState.Taint & VariableTaint.Tainted) != 0 &&
                 (((ulong)statementState.Taint) & projectConfiguration.TaintTypeNameToBit["HtmlEscaped"]) == 0)
             {
-                XssPreventionAnalyzer.Check(node, state, projectConfiguration, Enumerable.Repeat(node, 1));
+                XssPreventionAnalyzer.Check(node, state, projectConfiguration, Enumerable.Repeat(node, 1), false);
             }
         }
     }
@@ -162,21 +162,25 @@ namespace SecurityCodeScan.Analyzers
         public static void Check(SyntaxNode node,
                                  ExecutionState state,
                                  Configuration projectConfiguration,
-                                 IEnumerable<SyntaxNode> returnStatements)
+                                 IEnumerable<SyntaxNode> returnStatements,
+                                 bool performDataFlowAnalysis = true)
         {
-            var flow = state.AnalysisContext.SemanticModel.AnalyzeDataFlow(node, node);
+            if (performDataFlowAnalysis)
+            {
+                var flow = state.AnalysisContext.SemanticModel.AnalyzeDataFlow(node, node);
 
-            if (!flow.Succeeded && !projectConfiguration.AuditMode)
-                return;
+                if (!flow.Succeeded && !projectConfiguration.AuditMode)
+                    return;
 
-            // Returns from the Data Flow Analysis of input data 
-            // Dangerous data is: Data passed as a parameter that is also returned as is by the method
-            var inputVariables = flow.DataFlowsIn.Union(flow.VariablesDeclared.Except(flow.AlwaysAssigned))
+                // Returns from the Data Flow Analysis of input data 
+                // Dangerous data is: Data passed as a parameter that is also returned as is by the method
+                var inputVariables = flow.DataFlowsIn.Union(flow.VariablesDeclared.Except(flow.AlwaysAssigned))
                                                                               .Union(flow.WrittenInside)
                                                                               .Intersect(flow.WrittenOutside);
 
-            if (inputVariables.All(x => !x.IsType("System.String")))
-                return; // only string tainted type are interested
+                if (inputVariables.All(x => !x.IsType("System.String")))
+                    return; // only string tainted type are interested
+            }
 
             foreach (var returnStatement in returnStatements)
             {

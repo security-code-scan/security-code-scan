@@ -234,16 +234,36 @@ namespace SecurityCodeScan.Analyzers.Taint
                             finalState.MergeTaint(catchState.Taint);
                         }
 
+                        if (tryStatementSyntax.Finally != null)
+                        {
+                            var finallyState = VisitNode(tryStatementSyntax.Finally, state);
+                            finalState.MergeTaint(finallyState.Taint);
+                        }
+
                         return finalState;
                     }
                 case CatchFilterClauseSyntax catchFilterClauseSyntax:
                     return VisitExpression(catchFilterClauseSyntax.FilterExpression, state);
                 case CatchClauseSyntax catchClauseSyntax:
                     {
-                        if (catchClauseSyntax.Filter != null)
-                            VisitNode(catchClauseSyntax.Filter, state);
+                        var finalState = new VariableState(catchClauseSyntax, VariableTaint.Unset);
 
-                        return VisitNode(catchClauseSyntax.Block, state);
+                        if (catchClauseSyntax.Declaration != null)
+                        {
+                            var declrationState = VisitNode(catchClauseSyntax.Declaration, state);
+                            finalState.MergeTaint(declrationState.Taint);
+                        }
+
+                        if (catchClauseSyntax.Filter != null)
+                        {
+                            var filterState = VisitNode(catchClauseSyntax.Filter, state);
+                            finalState.MergeTaint(filterState.Taint);
+                        }
+
+                        var blockState = VisitNode(catchClauseSyntax.Block, state);
+                        finalState.MergeTaint(blockState.Taint);
+
+                        return finalState;
                     }
                 case FinallyClauseSyntax finallyClauseSyntax:
                     return VisitNode(finallyClauseSyntax.Block, state);
@@ -251,7 +271,19 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitExpression(arrowExpressionClauseSyntax.Expression, state);
                 case UsingStatementSyntax usingStatementSyntax:
                     {
-                        var finalState = VisitNode(usingStatementSyntax.Declaration, state);
+                        var finalState = new VariableState(usingStatementSyntax, VariableTaint.Unset);
+
+                        if (usingStatementSyntax.Declaration != null)
+                        {
+                            var declarationState = VisitNode(usingStatementSyntax.Declaration, state);
+                            finalState.MergeTaint(declarationState.Taint);
+                        }
+
+                        if (usingStatementSyntax.Expression != null)
+                        {
+                            var expressionState = VisitExpression(usingStatementSyntax.Expression, state);
+                            finalState.MergeTaint(expressionState.Taint);
+                        }
 
                         if (usingStatementSyntax.Statement != null)
                         {
@@ -269,6 +301,12 @@ namespace SecurityCodeScan.Analyzers.Taint
                         {
                             var declarationState = VisitNode(forStatementSyntax.Declaration, state);
                             finalState.MergeTaint(declarationState.Taint);
+                        }
+
+                        foreach (var initializer in forStatementSyntax.Initializers)
+                        {
+                            var initializerState = VisitNode(initializer, state);
+                            finalState.MergeTaint(initializerState.Taint);
                         }
 
                         if (forStatementSyntax.Condition != null)

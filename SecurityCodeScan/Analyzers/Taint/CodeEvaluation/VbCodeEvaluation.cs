@@ -278,6 +278,24 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                         return lastState;
                     }
+                case UsingStatementSyntax usingStatementSyntax:
+                    {
+                        var lastState = new VariableState(usingStatementSyntax, VariableTaint.Unset);
+
+                        foreach (var variable in usingStatementSyntax.Variables)
+                        {
+                            var variableState = VisitNode(variable, state);
+                            lastState.MergeTaint(variableState.Taint);
+                        }
+
+                        if (usingStatementSyntax.Expression != null)
+                        {
+                            var expressionState = VisitExpression(usingStatementSyntax.Expression, state);
+                            lastState.MergeTaint(expressionState.Taint);
+                        }
+
+                        return lastState;
+                    }
             }
 
             foreach (var n in node.ChildNodes())
@@ -286,7 +304,6 @@ namespace SecurityCodeScan.Analyzers.Taint
             }
 
             var isBlockStatement = node is ForBlockSyntax ||
-                                   node is UsingStatementSyntax ||
                                    node is TryStatementSyntax ||
                                    node is CatchStatementSyntax ||
                                    node is EndBlockStatementSyntax ||

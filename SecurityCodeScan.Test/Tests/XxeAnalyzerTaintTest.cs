@@ -65,7 +65,8 @@ class PathTraversal
 {
     public static void Run(string strText)
     {
-        using (var reader = XmlReader.Create(new StringReader(strText)))
+        var reader = XmlReader.Create(new StringReader(strText));
+        using (reader)
         {
             reader.Read();
         }
@@ -79,7 +80,8 @@ Imports System.Xml
 
 Class PathTraversal
     Public Shared Sub Run(strText As String)
-        Using reader = XmlReader.Create(New StringReader(strText))
+        Dim reader = XmlReader.Create(New StringReader(strText))
+        Using reader
             reader.Read()
         End Using
     End Sub

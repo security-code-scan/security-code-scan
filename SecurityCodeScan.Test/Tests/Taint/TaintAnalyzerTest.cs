@@ -2507,6 +2507,48 @@ Behavior:
         }
 
         [TestMethod]
+        public async Task TaintNameof()
+        {
+            var cSharpTest = @"
+class MyClass
+{
+    private void Foo(string input)
+    {
+        Sink(nameof(input));
+    }
+
+    private void Sink(string input) {}
+}
+";
+
+            var visualBasicTest = $@"
+Class [MyClass]
+    Private Sub Foo(ByVal input As String)
+        Sink(NameOf(input))
+    End Sub
+
+    Private Sub Sink(ByVal input As String)
+    End Sub
+End Class
+";
+
+            var testConfig = @"
+AuditMode: true
+
+Behavior:
+  MyKey:
+    ClassName: MyClass
+    Name: Sink
+    Method:
+      InjectableArguments: [SCS0026: 0]
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestMethod]
         public async Task TaintSourceConsole()
         {
             var cSharpTest = @"

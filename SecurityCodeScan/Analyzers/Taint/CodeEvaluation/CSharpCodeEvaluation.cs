@@ -613,7 +613,13 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             var symbol = state.GetSymbol(node);
             if (symbol == null)
-                return new VariableState(node, initialTaint ?? VariableTaint.Unknown);
+            {
+                var constValue = state.AnalysisContext.SemanticModel.GetConstantValue(node);
+                if (constValue.HasValue)
+                    return new VariableState(node, VariableTaint.Constant);
+                else
+                    return new VariableState(node, initialTaint ?? VariableTaint.Unknown);
+            }
 
             var  methodSymbol      = symbol as IMethodSymbol;
             bool isExtensionMethod = methodSymbol?.ReducedFrom != null;

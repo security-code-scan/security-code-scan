@@ -209,7 +209,10 @@ namespace SecurityCodeScan.Analyzers.Taint
                 case CaseBlockSyntax caseBlockSyntax:
                     return VisitStatements(caseBlockSyntax.Statements, state, new VariableState(caseBlockSyntax, VariableTaint.Unset));
                 case ThrowStatementSyntax throwStatementSyntax:
-                    return VisitExpression(throwStatementSyntax.Expression, state);
+                    if (throwStatementSyntax.Expression != null)
+                        return VisitExpression(throwStatementSyntax.Expression, state);
+                    else
+                        return new VariableState(throwStatementSyntax, VariableTaint.Unknown);
             }
 
             foreach (var n in node.ChildNodes())

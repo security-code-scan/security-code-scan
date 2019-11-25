@@ -361,6 +361,53 @@ End Namespace
 
         [TestCategory("Detect")]
         [TestMethod]
+        public async Task ReThrow()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace sample
+{
+    class SqlConstant : Controller
+    {
+        public void Run()
+        {
+            try
+            {
+            }
+            catch
+            {
+                throw;
+            }
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace sample
+    Class SqlConstant
+        Inherits Controller
+
+        Public Sub Run()
+            Try
+            Catch
+                Throw
+            End Try
+        End Sub
+    End Class
+End Namespace
+";
+
+            // should not throw
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [TestMethod]
         public async Task Loop1()
         {
             var cSharpTest = @"
@@ -475,8 +522,8 @@ namespace sample
     {
         public void Foo(object o)
         {
-        if (o is String)
-            new SqlCommand((string)null);
+            if (o is String)
+                new SqlCommand((string)null);
         }
     }
 }

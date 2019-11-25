@@ -2510,6 +2510,91 @@ Behavior:
         }
 
         [TestMethod]
+        public async Task TaintInitializer()
+        {
+            var cSharpTest = @"
+class MyClass
+{
+    private void Foo(string input)
+    {
+        var x = new { Data = Sink(input) };
+    }
+
+    private string Sink(string input) { return input; }
+}
+";
+
+            var visualBasicTest = $@"
+Class [MyClass]
+    Private Sub Foo(ByVal input As String)
+        Dim x = New With {{ .Data = Sink(input) }}
+    End Sub
+
+    Private Function Sink(ByVal input As String) As String
+        Return input
+    End Function
+End Class
+";
+
+            var testConfig = @"
+AuditMode: true
+
+Behavior:
+  MyKey:
+    ClassName: MyClass
+    Name: Sink
+    Method:
+      InjectableArguments: [SCS0026: 0]
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task TaintNameof()
+        {
+            var cSharpTest = @"
+class MyClass
+{
+    private void Foo(string input)
+    {
+        Sink(nameof(input));
+    }
+
+    private void Sink(string input) {}
+}
+";
+
+            var visualBasicTest = $@"
+Class [MyClass]
+    Private Sub Foo(ByVal input As String)
+        Sink(NameOf(input))
+    End Sub
+
+    Private Sub Sink(ByVal input As String)
+    End Sub
+End Class
+";
+
+            var testConfig = @"
+AuditMode: true
+
+Behavior:
+  MyKey:
+    ClassName: MyClass
+    Name: Sink
+    Method:
+      InjectableArguments: [SCS0026: 0]
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestMethod]
         public async Task TaintSourceConsole()
         {
             var cSharpTest = @"

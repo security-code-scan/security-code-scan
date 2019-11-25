@@ -196,6 +196,102 @@ namespace SecurityCodeScan.Analyzers.Taint
                         return new VariableState(throwStatementSyntax, VariableTaint.Unknown);
                 case SwitchSectionSyntax switchSectionSyntax:
                     return VisitStatements(switchSectionSyntax.Statements, state, new VariableState(node, VariableTaint.Unset));
+                case BreakStatementSyntax breakStatementSyntax:
+                    return new VariableState(node, VariableTaint.Constant);
+                case SelectClauseSyntax selectClauseSyntax:
+                    return VisitExpression(selectClauseSyntax.Expression, state);
+                case QueryBodySyntax queryBodySyntax:
+                    {
+                        var finalState = new VariableState(queryBodySyntax, VariableTaint.Unset);
+
+                        foreach (QueryClauseSyntax clause in queryBodySyntax.Clauses)
+                        {
+                            var clauseState = VisitNode(clause, state);
+                            finalState.MergeTaint(clauseState.Taint);
+                        }
+
+                        if (queryBodySyntax.SelectOrGroup != null)
+                        {
+                            var selectState = VisitNode(queryBodySyntax.SelectOrGroup, state);
+                            finalState.MergeTaint(selectState.Taint);
+                        }
+
+                        if (queryBodySyntax.Continuation != null)
+                        {
+                            var continuationState = VisitNode(queryBodySyntax.Continuation, state);
+                            finalState.MergeTaint(continuationState.Taint);
+                        }
+
+                        return finalState;
+                    }
+                case TryStatementSyntax tryStatementSyntax:
+                    {
+                        var finalState = VisitNode(tryStatementSyntax.Block, state);
+
+                        foreach (var c in tryStatementSyntax.Catches)
+                        {
+                            var catchState = VisitNode(c, state);
+                            finalState.MergeTaint(catchState.Taint);
+                        }
+
+                        return finalState;
+                    }
+                case CatchFilterClauseSyntax catchFilterClauseSyntax:
+                    return VisitExpression(catchFilterClauseSyntax.FilterExpression, state);
+                case CatchClauseSyntax catchClauseSyntax:
+                    {
+                        if (catchClauseSyntax.Filter != null)
+                            VisitNode(catchClauseSyntax.Filter, state);
+
+                        return VisitNode(catchClauseSyntax.Block, state);
+                    }
+                case FinallyClauseSyntax finallyClauseSyntax:
+                    return VisitNode(finallyClauseSyntax.Block, state);
+                case ArrowExpressionClauseSyntax arrowExpressionClauseSyntax:
+                    return VisitExpression(arrowExpressionClauseSyntax.Expression, state);
+                case UsingStatementSyntax usingStatementSyntax:
+                    {
+                        var finalState = VisitNode(usingStatementSyntax.Declaration, state);
+
+                        if (usingStatementSyntax.Statement != null)
+                        {
+                            var catchState = VisitNode(usingStatementSyntax.Statement, state);
+                            finalState.MergeTaint(catchState.Taint);
+                        }
+
+                        return finalState;
+                    }
+                case ForStatementSyntax forStatementSyntax:
+                    {
+                        var finalState = new VariableState(forStatementSyntax, VariableTaint.Unset);
+
+                        if (forStatementSyntax.Declaration != null)
+                        {
+                            var declarationState = VisitNode(forStatementSyntax.Declaration, state);
+                            finalState.MergeTaint(declarationState.Taint);
+                        }
+
+                        if (forStatementSyntax.Condition != null)
+                        {
+                            var conditionState = VisitExpression(forStatementSyntax.Condition, state);
+                            finalState.MergeTaint(conditionState.Taint);
+                        }
+
+                        foreach (var incrementor in forStatementSyntax.Incrementors)
+                        {
+                            var incrementorState = VisitExpression(incrementor, state);
+                            finalState.MergeTaint(incrementorState.Taint);
+                        }
+
+                        if (forStatementSyntax.Statement != null)
+                        {
+                            var statementState = VisitNode(forStatementSyntax.Statement, state);
+                            finalState.MergeTaint(statementState.Taint);
+                        }
+
+                        return finalState;
+                    }
+
             }
 
             foreach (var n in node.ChildNodes())
@@ -203,16 +299,10 @@ namespace SecurityCodeScan.Analyzers.Taint
                 VisitNode(n, state);
             }
 
-            var isBlockStatement = node is ForStatementSyntax ||
-                                   node is UsingStatementSyntax;
-
-            if (!isBlockStatement)
-            {
 #if DEBUG
-                //throw new Exception("Unsupported statement " + node.GetType() + " (" + node + ")");
-                Logger.Log("Unsupported statement " + node.GetType() + " (" + node + ")");
+            if (Logger.IsConfigured())
+                throw new Exception("Unsupported statement " + node.GetType() + " (" + node + ")");
 #endif
-            }
 
             return new VariableState(node, VariableTaint.Unknown);
         }
@@ -478,13 +568,27 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return new VariableState(defaultExpressionSyntax, VariableTaint.Constant, value.HasValue ? value.Value : null);
                 case PrefixUnaryExpressionSyntax prefixUnaryExpressionSyntax:
                     return VisitExpression(prefixUnaryExpressionSyntax.Operand, state);
+                case PostfixUnaryExpressionSyntax postfixUnaryExpressionSyntax:
+                    return VisitExpression(postfixUnaryExpressionSyntax.Operand, state);
                 case AwaitExpressionSyntax awaitSyntax:
                     return VisitExpression(awaitSyntax.Expression, state);
                 case ThisExpressionSyntax thisExpressionSyntax:
                     return new VariableState(thisExpressionSyntax, VariableTaint.Unknown);
+                case AnonymousObjectCreationExpressionSyntax anonymousObjectCreationExpressionSyntax:
+                    {
+                        var finalState = new VariableState(anonymousObjectCreationExpressionSyntax, VariableTaint.Unset);
+                        foreach (AnonymousObjectMemberDeclaratorSyntax initializer in anonymousObjectCreationExpressionSyntax.Initializers)
+                        {
+                            var initializerState = VisitExpression(initializer.Expression, state);
+                            finalState.MergeTaint(initializerState.Taint);
+                        }
+
+                        return finalState;
+                    }
             }
 #if DEBUG
-            Logger.Log("Unsupported expression " + expression.GetType() + " (" + expression + ")");
+            if (Logger.IsConfigured())
+                throw new Exception("Unsupported expression " + expression.GetType() + " (" + expression + ")");
 #endif
             return new VariableState(expression, VariableTaint.Unknown);
         }
@@ -653,7 +757,13 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             var symbol = state.GetSymbol(node);
             if (symbol == null)
-                return new VariableState(node, initialTaint ?? VariableTaint.Unknown);
+            {
+                var constValue = state.AnalysisContext.SemanticModel.GetConstantValue(node);
+                if (constValue.HasValue)
+                    return new VariableState(node, VariableTaint.Constant);
+                else
+                    return new VariableState(node, initialTaint ?? VariableTaint.Unknown);
+            }
 
             var  methodSymbol      = symbol as IMethodSymbol;
             bool isExtensionMethod = methodSymbol?.ReducedFrom != null;

@@ -82,6 +82,12 @@ namespace SecurityCodeScan.Analyzers.Taint
             if (newVarTaint == Unset)
                 return;
 
+            if (newVarTaint == Safe || newVarTaint == Constant)
+            {
+                Taint = newVarTaint;
+                return;
+            }
+
             // only custom taint bits and Tainted are allowed
             if ((newVarTaint & (Safe | Tainted)) == 0)
                 throw new ArgumentOutOfRangeException();

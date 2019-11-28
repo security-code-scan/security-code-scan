@@ -479,8 +479,297 @@ Behavior:
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(20), optionsWithProjectConfig).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic     (cSharpTest,      Expected.WithLocation(20), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(16), optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [DataTestMethod]
+        [DataRow("SetValue(input)", "GetValue()", true,  false)]
+        [DataRow("SetValue(input)", "GetValue()", true,  true)]
+        [DataRow("SetConst(input)", "GetValue()", true,  false)]
+        [DataRow("SetConst(input)", "GetValue()", false, true)]
+        [DataRow("DoNothing()",     "GetValue()", false, false)]
+        [DataRow("DoNothing()",     "GetValue()", false, true)]
+
+        [DataRow("SetValue(input)", "GetConst()", true,  false)]
+        [DataRow("SetValue(input)", "GetConst()", false,  true)]
+        [DataRow("SetConst(input)", "GetConst()", true,  false)]
+        [DataRow("SetConst(input)", "GetConst()", false, true)]
+        [DataRow("DoNothing()",     "GetConst()", false, false)]
+        [DataRow("DoNothing()",     "GetConst()", false, true)]
+
+        [DataRow("DoNothing()",     "CallAndReturn(input)", true, false)]
+        [DataRow("DoNothing()",     "CallAndReturn(input)", true, true)]
+        [DataRow("DoNothing()",     "CallAndReturnConst(input)", true, false)]
+        [DataRow("DoNothing()",     "CallAndReturnConst(input)", false, true)]
+
+        [DataRow("CallRef(input, out outVar)", "CallAndReturn(outVar)",                 true,  false)]
+        [DataRow("CallRef(input, out outVar)", "CallAndReturn(outVar)",                 true,  true)]
+        [DataRow("DoNothing()",                "CallRefReturn(input, out outVar)",      true,  false)]
+        [DataRow("DoNothing()",                "CallRefReturn(input, out outVar)",      true,  true)]
+        [DataRow("DoNothing()",                "CallRefReturnConst(input, out outVar)", true,  false)]
+        [DataRow("DoNothing()",                "CallRefReturnConst(input, out outVar)", false, true)]
+        public async Task This2(string functionName1, string functionName2, bool detect, bool withBehavior)
+        {
+            var cSharpTest = $@"
+class Test
+{{
+    string GetUntrusted()
+    {{
+        return null;
+    }}
+
+    void Sink(string value)
+    {{
+    }}
+
+    public Test()
+    {{
+        string input = GetUntrusted();
+        var x = new SomeClass();
+#pragma warning disable CS0168
+        string outVar;
+#pragma warning restore CS0168
+        x.{functionName1};
+        Sink(x.{functionName2});
+    }}
+}}
+
+class SomeClass
+{{
+    private string _value;
+
+    public void SetValue(string value)
+    {{
+        _value = value;
+    }}
+
+    public void SetConst(string value)
+    {{
+        _value = """";
+    }}
+
+    public string CallAndReturnConst(string value)
+    {{
+        return """";
+    }}
+
+    public string CallAndReturn(string value)
+    {{
+        return value;
+    }}
+
+    public string GetConst()
+    {{
+        return """";
+    }}
+
+    public string GetValue()
+    {{
+        return _value;
+    }}
+
+    public void DoNothing()
+    {{
+    }}
+
+    public void CallRef(string value, out string outValue)
+    {{
+        outValue = value;
+    }}
+
+    public string CallRefReturn(string value, out string outValue)
+    {{
+        outValue = value;
+        return value;
+    }}
+
+    public string CallRefReturnConst(string value, out string outValue)
+    {{
+        outValue = value;
+        return """";
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Class Test
+    Private Function GetUntrusted() As String
+        Return Nothing
+    End Function
+
+    Private Sub Sink(ByVal value As String)
+    End Sub
+
+    Public Sub New()
+        Dim input As String = GetUntrusted()
+        Dim x = New SomeClass()
+#Disable Warning BC42024, BC42030
+        Dim outVar As String
+        x.{functionName1.CSharpReplaceToVBasic()}
+        Sink(x.{functionName2.CSharpReplaceToVBasic()})
+#Enable Warning BC42024, BC42030
+    End Sub
+End Class
+
+Class SomeClass
+    Private _value As String
+
+    Public Sub SetValue(ByVal value As String)
+        _value = value
+    End Sub
+
+    Public Sub SetConst(ByVal value As String)
+        _value = """"
+    End Sub
+
+    Public Function CallAndReturnConst(ByVal value As String) As String
+        Return """"
+    End Function
+
+    Public Function CallAndReturn(ByVal value As String) As String
+        Return value
+    End Function
+
+    Public Function GetConst() As String
+        Return """"
+    End Function
+
+    Public Function GetValue() As String
+        Return _value
+    End Function
+
+    Public Sub DoNothing()
+    End Sub
+
+    Public Sub CallRef(ByVal value As String, ByRef outValue As String)
+        outValue = value
+    End Sub
+
+    Public Function CallRefReturn(ByVal value As String, ByRef outValue As String) As String
+        outValue = value
+        Return value
+    End Function
+
+    Public Function CallRefReturnConst(ByVal value As String, ByRef outValue As String) As String
+        outValue = value
+        Return """"
+    End Function
+End Class
+";
+
+            var testConfig = @"
+Behavior:
+  Untrusted:
+    ClassName: Test
+    Name: GetUntrusted
+    Method:
+      Returns:
+        Taint: Tainted
+
+  Sink:
+    ClassName: Test
+    Name: Sink
+    Method:
+      InjectableArguments: [SCS0026: 0]
+";
+
+            var testConfigWithBehavior = @"
+Behavior:
+  Untrusted:
+    ClassName: Test
+    Name: GetUntrusted
+    Method:
+      Returns:
+        Taint: Tainted
+
+  Sink:
+    ClassName: Test
+    Name: Sink
+    Method:
+      InjectableArguments: [SCS0026: 0]
+
+  SomeClass_SetValue:
+    ClassName: SomeClass
+    Name: SetValue
+    Method:
+      This:
+        TaintFromArguments: [0]
+
+  SomeClass_SetConst:
+    ClassName: SomeClass
+    Name: SetConst
+    Method:
+      This:
+        Taint: Constant
+
+  SomeClass_CallAndReturn:
+    ClassName: SomeClass
+    Name: CallAndReturn
+    Method:
+      Returns:
+        TaintFromArguments: [0]
+
+  SomeClass_CallAndReturnConst:
+    ClassName: SomeClass
+    Name: CallAndReturnConst
+    Method:
+      Returns:
+        Taint: Constant
+
+  SomeClass_GetValue:
+    ClassName: SomeClass
+    Name: GetValue
+    Method:
+      Returns:
+        TaintFromArguments: [This]
+
+  SomeClass_GetConst:
+    ClassName: SomeClass
+    Name: GetConst
+    Method:
+      Returns:
+        Taint: Constant
+
+  SomeClass_CallRef:
+    ClassName: SomeClass
+    Name: CallRef
+    Method:
+      1:
+        TaintFromArguments: [0]
+
+  SomeClass_CallRefReturn:
+    ClassName: SomeClass
+    Name: CallRefReturn
+    Method:
+      1:
+        TaintFromArguments: [0]
+      Returns:
+        TaintFromArguments: [0]
+
+  SomeClass_CallRefReturnConst:
+    ClassName: SomeClass
+    Name: CallRefReturnConst
+    Method:
+      1:
+        TaintFromArguments: [0]
+      Returns:
+        Taint: Constant
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(withBehavior ? testConfigWithBehavior : testConfig);
+
+            if (detect)
+            {
+                await VerifyCSharpDiagnostic     (cSharpTest,      Expected.WithLocation(21), optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(16), optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic     (cSharpTest,      null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            }
         }
 
         [TestCategory("Detect")]

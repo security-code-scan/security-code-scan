@@ -950,13 +950,15 @@ namespace SecurityCodeScan.Analyzers.Taint
                 }
             }
 
-            if (memberVariableState != null &&
-                methodSymbol != null &&
-                methodSymbol.ReturnsVoid &&
-                !methodSymbol.IsStatic &&
+            // Some defaults if no behavior is specified:
+            // Apply taint to `this` if non-static void method without ref/out parameters
+            if (thisPostCondition == null &&
+                methodSymbol != null      &&
+                methodSymbol.ReturnsVoid  &&
+                !methodSymbol.IsStatic    &&
                 methodSymbol.Parameters.All(x => x.RefKind == RefKind.None))
             {
-                memberVariableState.MergeTaint(returnState.Taint);
+                thisState.MergeTaint(returnState.Taint);
             }
 
             //Additional analysis by extension

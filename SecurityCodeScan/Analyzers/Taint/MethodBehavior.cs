@@ -4,6 +4,12 @@ using SecurityCodeScan.Analyzers.Utils;
 
 namespace SecurityCodeScan.Analyzers.Taint
 {
+    internal enum ArgumentIndex
+    {
+        Returns = -1,
+        This = -2
+    }
+
     internal class PostCondition
     {
         public PostCondition(ulong taint, ImmutableHashSet<int> taintFromArguments = null)

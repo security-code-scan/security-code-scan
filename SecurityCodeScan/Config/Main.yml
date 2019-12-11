@@ -325,6 +325,46 @@ Behavior:
         Taint: HtmlEscaped
         TaintFromArguments: [0]
 
+  AntiXssEncoder_HtmlEncode:
+    Namespace: System.Web.Security.AntiXss
+    ClassName: AntiXssEncoder
+    Name: HtmlEncode
+    Method:
+      ArgTypes: (System.String, System.Boolean)
+      Returns:
+        Taint: HtmlEscaped
+        TaintFromArguments: [0]
+
+  HttpUtility_HtmlEncode1:
+    Namespace: System.Web
+    ClassName: HttpUtility
+    Name: HtmlEncode
+    Method:
+      ArgTypes: (System.String)
+      Returns:
+        Taint: HtmlEscaped
+        TaintFromArguments: [0]
+
+  HttpUtility_HtmlEncode2:
+    Namespace: System.Web
+    ClassName: HttpUtility
+    Name: HtmlEncode
+    Method:
+      ArgTypes: (System.Object)
+      Returns:
+        Taint: HtmlEscaped
+        TaintFromArguments: [0]
+
+  HttpUtility_HtmlEncode3:
+    Namespace: System.Web
+    ClassName: HttpUtility
+    Name: HtmlEncode
+    Method:
+      ArgTypes: (System.String, System.IO.TextWriter)
+      1:
+        Taint: HtmlEscaped
+        TaintFromArguments: [0]
+
   HttpServerUtility_HtmlEncode1:
     Namespace: System.Web
     ClassName: HttpServerUtility

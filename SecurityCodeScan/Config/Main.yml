@@ -232,10 +232,10 @@ Behavior:
 #         [Argument index]:
 #           Value: [Apply 'Then' part only if it equals to the value. Only strings and integers (even if it is an enum) are accepted.]
 #     Then:
-#       ['Returns' or Argument index]:
+#       ['Returns' or 'This' or Argument index]:
 #         Taint: (Optional) [Registered TaintType, see above or reserved taint type keyword] (If not specified 'Taint:' value from unconditional part is taken)
 #         TaintFromArguments: (Optional) [Argument index or comma separated list of indices] (Arguments to transfer taint from to specified output. If not specified 'TaintFromArguments:' value from uncoditional part is taken)
-#     ['Returns' or Argument index]:
+#     ['Returns' or 'This' or Argument index]:
 #        Taint: (Optional) [Single value or array of 'TaintTypes' (see the section above) to apply additionally to 'TaintFromArguments' or special keyword 'Safe'.
 #                           Sanitizers may apply the value to mark it as sanitized.
 #                           Taint sources may apply special keyword 'Tainted' to mark the value as untrusted.]
@@ -322,6 +322,46 @@ Behavior:
     Name: HtmlEncode
     Method:
       Returns:
+        Taint: HtmlEscaped
+        TaintFromArguments: [0]
+
+  AntiXssEncoder_HtmlEncode:
+    Namespace: System.Web.Security.AntiXss
+    ClassName: AntiXssEncoder
+    Name: HtmlEncode
+    Method:
+      ArgTypes: (System.String, System.Boolean)
+      Returns:
+        Taint: HtmlEscaped
+        TaintFromArguments: [0]
+
+  HttpUtility_HtmlEncode1:
+    Namespace: System.Web
+    ClassName: HttpUtility
+    Name: HtmlEncode
+    Method:
+      ArgTypes: (System.String)
+      Returns:
+        Taint: HtmlEscaped
+        TaintFromArguments: [0]
+
+  HttpUtility_HtmlEncode2:
+    Namespace: System.Web
+    ClassName: HttpUtility
+    Name: HtmlEncode
+    Method:
+      ArgTypes: (System.Object)
+      Returns:
+        Taint: HtmlEscaped
+        TaintFromArguments: [0]
+
+  HttpUtility_HtmlEncode3:
+    Namespace: System.Web
+    ClassName: HttpUtility
+    Name: HtmlEncode
+    Method:
+      ArgTypes: (System.String, System.IO.TextWriter)
+      1:
         Taint: HtmlEscaped
         TaintFromArguments: [0]
 
@@ -630,6 +670,139 @@ Behavior:
       ArgTypes: ()
       Returns:
         Taint: Safe
+
+# This
+
+ ## StringBuilder
+  StringBuilder_Append:
+    Namespace: System.Text
+    ClassName: StringBuilder
+    Name: Append
+    Method:
+      ArgTypes: (System.String)
+      This:
+        TaintFromArguments: [0]
+
+  StringBuilder_AppendFormat1:
+    Namespace: System.Text
+    ClassName: StringBuilder
+    Name: AppendFormat
+    Method:
+      ArgTypes: (System.IFormatProvider, System.String, System.Object, System.Object, System.Object)
+      This:
+        TaintFromArguments: [2,3,4]
+
+  StringBuilder_AppendFormat2:
+    Namespace: System.Text
+    ClassName: StringBuilder
+    Name: AppendFormat
+    Method:
+      ArgTypes: (System.String, System.Object)
+      This:
+        TaintFromArguments: [1]
+
+  StringBuilder_AppendFormat3:
+    Namespace: System.Text
+    ClassName: StringBuilder
+    Name: AppendFormat
+    Method:
+      ArgTypes: (System.String, System.Object[])
+      This:
+        TaintFromArguments: [1]
+
+  StringBuilder_AppendFormat4:
+    Namespace: System.Text
+    ClassName: StringBuilder
+    Name: AppendFormat
+    Method:
+      ArgTypes: (System.IFormatProvider, System.String, System.Object)
+      This:
+        TaintFromArguments: [2]
+
+  StringBuilder_AppendFormat5:
+    Namespace: System.Text
+    ClassName: StringBuilder
+    Name: AppendFormat
+    Method:
+      ArgTypes: (System.IFormatProvider, System.String, System.Object[])
+      This:
+        TaintFromArguments: [2]
+
+  StringBuilder_AppendFormat6:
+    Namespace: System.Text
+    ClassName: StringBuilder
+    Name: AppendFormat
+    Method:
+      ArgTypes: (System.String, System.Object, System.Object)
+      This:
+        TaintFromArguments: [1,2]
+
+  StringBuilder_AppendFormat7:
+    Namespace: System.Text
+    ClassName: StringBuilder
+    Name: AppendFormat
+    Method:
+      ArgTypes: (System.IFormatProvider, System.String, System.Object, System.Object)
+      This:
+        TaintFromArguments: [2,3]
+
+  StringBuilder_AppendFormat8:
+    Namespace: System.Text
+    ClassName: StringBuilder
+    Name: AppendFormat
+    Method:
+      ArgTypes: (System.String, System.Object, System.Object, System.Object)
+      This:
+        TaintFromArguments: [1,2,3]
+
+  StringBuilder_AppendJoin:
+    Namespace: System.Text
+    ClassName: StringBuilder
+    Name: AppendJoin
+    Method:
+      This:
+        TaintFromArguments: [0, 1]
+
+  StringBuilder_AppendLine:
+    Namespace: System.Text
+    ClassName: StringBuilder
+    Name: AppendLine
+    Method:
+      ArgTypes: (System.String)
+      This:
+        TaintFromArguments: [0]
+
+  StringBuilder_Clear:
+    Namespace: System.Text
+    ClassName: StringBuilder
+    Name: Clear
+    Method:
+      This:
+        Taint: Constant
+
+  StringBuilder_CopyTo:
+    Namespace: System.Text
+    ClassName: StringBuilder
+    Name: CopyTo
+    Method:
+      1:
+        TaintFromArguments: [This]
+
+  StringBuilder_Insert:
+    Namespace: System.Text
+    ClassName: StringBuilder
+    Name: Insert
+    Method:
+      This:
+        TaintFromArguments: [1]
+
+  StringBuilder_Replace:
+    Namespace: System.Text
+    ClassName: StringBuilder
+    Name: Replace
+    Method:
+      This:
+        TaintFromArguments: [1]
 
 # Pass-through
 

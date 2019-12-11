@@ -275,6 +275,24 @@ End Namespace
         [DataRow(@"var enc = System.Text.Encodings.Web.HtmlEncoder.Default.Encode(input);
                    Response.Write(enc);
                    var a = new SqlCommand(enc);",                                               "SCS0026")]
+        [DataRow(@"var enc = HttpUtility.HtmlEncode(input);
+                   Response.Write(enc);
+                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+        [DataRow(@"var o = (object)input;
+                   var enc = HttpUtility.HtmlEncode(o);
+                   Response.Write(enc);
+                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+        [DataRow(@"var w = new StringWriter();
+                   HttpUtility.HtmlEncode(input, w);
+                   var enc = w.ToString();
+                   Response.Write(enc);
+                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+        [DataRow(@"var enc = System.Web.Security.AntiXss.AntiXssEncoder.HtmlEncode(input, true);
+                   Response.Write(enc);
+                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+        [DataRow(@"var enc = System.Web.Security.AntiXss.AntiXssEncoder.HtmlEncode(input, false);
+                   Response.Write(enc);
+                   var a = new SqlCommand(enc);",                                               "SCS0026")]
         [DataRow(@"var w = new StringWriter();
                    System.Text.Encodings.Web.HtmlEncoder.Default.Encode(w, input);
                    var enc = w.ToString();

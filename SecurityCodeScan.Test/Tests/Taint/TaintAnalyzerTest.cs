@@ -461,15 +461,7 @@ Behavior:
     Method:
       InjectableArguments: [SCS0026: 0]
 
-  StringBuilder_ToString:
-    Namespace: System.Text
-    ClassName: StringBuilder
-    Name: ToString
-    Method:
-      Returns:
-        TaintFromArguments: [This]
-
-  StringBuilder_Apped:
+  StringBuilder_Append:
     Namespace: System.Text
     ClassName: StringBuilder
     Name: Append

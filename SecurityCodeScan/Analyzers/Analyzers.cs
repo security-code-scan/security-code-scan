@@ -131,6 +131,10 @@ namespace SecurityCodeScan.Analyzers
 
         public override void Initialize(AnalysisContext analysisContext)
         {
+            // uncomment for debugging visual studio extension
+            //if (!Debugger.IsAttached)
+            //    Debugger.Launch();
+
             if (!Debugger.IsAttached) // prefer single thread for debugging in development
                 analysisContext.EnableConcurrentExecution();
 

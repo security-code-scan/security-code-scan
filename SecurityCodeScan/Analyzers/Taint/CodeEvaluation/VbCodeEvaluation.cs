@@ -912,15 +912,13 @@ namespace SecurityCodeScan.Analyzers.Taint
                     {
                         var adjustedArgIx = isExtensionMethod ? arg.Key - 1 : arg.Key;
 
-                        if (adjustedArgIx >= methodSymbol.Parameters.Length)
+                        if (adjustedArgIx < methodSymbol.Parameters.Length)
                         {
-                            if (!methodSymbol.Parameters[adjustedArgIx].IsParams)
-                                throw new IndexOutOfRangeException();
+                            if (methodSymbol.Parameters[adjustedArgIx].RefKind != RefKind.None)
+                                arg.Value.MergeTaint(returnState.Taint);
                         }
-                        else if (methodSymbol.Parameters[adjustedArgIx].RefKind != RefKind.None)
-                        {
-                            arg.Value.MergeTaint(returnState.Taint);
-                        }
+                        else if (!methodSymbol.Parameters[methodSymbol.Parameters.Length - 1].IsParams)
+                            throw new IndexOutOfRangeException();
                     }
                 }
             }

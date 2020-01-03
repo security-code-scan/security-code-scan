@@ -33,7 +33,8 @@ namespace SecurityCodeScan.Config
             reader.BaseStream.Seek(0, SeekOrigin.Begin);
             using (var reader2 = new StreamReader(reader.BaseStream))
             {
-                var deserializer = new Deserializer();
+                var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties()
+                                                            .Build();
                 var data = deserializer.Deserialize<T>(reader2);
                 return data;
             }
@@ -64,10 +65,8 @@ namespace SecurityCodeScan.Config
             }
         }
 
-        public ConfigData GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles, out string path)
+        public ConfigData GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
         {
-            path = null;
-
             foreach (var file in additionalFiles)
             {
                 if (Path.GetFileName(file.Path) != ConfigName)
@@ -93,7 +92,6 @@ namespace SecurityCodeScan.Config
                         throw new ArgumentException($"Version mismatch in the project configuration file '{file.Path}'. Please read https://security-code-scan.github.io/#ReleaseNotes for the information what has changed in the configuration format.",
                                                     "Version");
 
-                    path = file.Path;
                     return projectConfig;
                 }
             }
@@ -122,7 +120,7 @@ namespace SecurityCodeScan.Config
 
         public Configuration GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
         {
-            var projectConfig = Reader.GetProjectConfiguration(additionalFiles, out var configPath);
+            var projectConfig = Reader.GetProjectConfiguration(additionalFiles);
             if (projectConfig == null)
             {
                 return GetBuiltInAndUserConfiguration();

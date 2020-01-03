@@ -757,6 +757,8 @@ TaintEntryPoints:
         }
 
         [DataTestMethod]
+        [DataRow("var query = Foo5(ref a, b, null);", true)]
+
         [DataRow("var query = Foo(a, b);",       true)]
         [DataRow("var query = Foo(a, null);",    true)]
         [DataRow("var query = Foo(null, b);",    true)]
@@ -826,6 +828,11 @@ class Test
         return null;
     }}
 
+    public string Foo5(ref string x, params string[] a)
+    {{
+        return null;
+    }}
+
     public void Run(string a, string b)
     {{
 #pragma warning disable CS0219
@@ -863,6 +870,10 @@ Class Test
     End Function
 
     Public Function Foo4(ByVal a As String, ByRef b As String) As String
+        Return Nothing
+    End Function
+
+    Public Function Foo5(ByRef x As String, ParamArray a As String()) As String
         Return Nothing
     End Function
 

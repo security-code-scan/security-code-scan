@@ -1,4 +1,9 @@
 # Release Notes
+## 3.4.0
+* XSS analyzer was rewritten. Additional sanitizers were added.
+* Added a [ReportAnalysisCompletion](https://github.com/security-code-scan/security-code-scan/commit/792c265cd218ea7abb8433d52ca159eb90ab91ae#diff-34b8f54577569f3aae468b7f58cc5d02) option to output a message that the analysis did run.
+* Bugfixes and improvements.
+
 ## 3.3.0
 * Better C# 7 handling
 * CSRF analyzer configuration made more flexible.  

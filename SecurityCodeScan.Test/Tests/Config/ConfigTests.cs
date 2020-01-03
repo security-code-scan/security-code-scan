@@ -51,6 +51,38 @@ namespace SecurityCodeScan.Test.Config
         }
 
         [TestMethod]
+        public void HandlingNewerConfigs1()
+        {
+            var options = ConfigurationTest.CreateAnalyzersOptionsWithConfig(@"
+Unknown: false
+
+Behavior:
+");
+            // should not throw
+            Manager.GetProjectConfiguration(options.AdditionalFiles);
+        }
+
+        [TestMethod]
+        public void HandlingNewerConfigs2()
+        {
+            var options = ConfigurationTest.CreateAnalyzersOptionsWithConfig(@"
+Behavior:
+  fdgfgfgfg:
+    Namespace: Test
+    ClassName: Test
+    Unknown: Abc
+    Name: Test
+    Method:
+      ArgTypes: (System.String)
+      Returns:
+        Taint: HtmlEscaped
+        TaintFromArguments: [0]
+");
+            // should not throw
+            Manager.GetProjectConfiguration(options.AdditionalFiles);
+        }
+
+        [TestMethod]
         public void MergingUserConfig_NoChanges()
         {
             var options   = ConfigurationTest.CreateAnalyzersOptionsWithConfig("Behavior:");

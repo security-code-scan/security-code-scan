@@ -434,11 +434,17 @@ End Namespace
             }
         }
 
-        // todo: EF Core 2.0
+        // todo: EF Core 2.2, 3.1
         [DataRow("new SampleContext().Test.FromSql(input)", true)]
         [DataRow("new SampleContext().Test.FromSql(input, null)", true)]
         [DataRow("new SampleContext().Test.FromSql(\"select\")", false)]
         [DataRow("new SampleContext().Test.FromSql(\"select\", null)", false)]
+        [DataRow("new SampleContext().Test.FromSql(\"select {0}\", input)", false)]
+        [DataRow("new SampleContext().Database.ExecuteSqlCommand(input)", true)]
+        [DataRow("new SampleContext().Database.ExecuteSqlCommand(input, null)", true)]
+        [DataRow("new SampleContext().Database.ExecuteSqlCommand(\"select\")", false)]
+        [DataRow("new SampleContext().Database.ExecuteSqlCommand(\"select\", null)", false)]
+        [DataRow("new SampleContext().Database.ExecuteSqlCommand(\"select {0}\", input)", false)]
         [DataTestMethod]
         public async Task SqlInjectionEntityFrameworkCore(string sink, bool warn)
         {

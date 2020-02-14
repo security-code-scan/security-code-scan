@@ -1657,12 +1657,46 @@ Behavior:
       ArgTypes: (System.String, params System.Object[])
       InjectableArguments: [SCS0035: 0]
 
-  Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions_ExecuteSqlCommand1:
+  RelationalDatabaseFacadeExtensions_ExecuteSqlCommand:
     Namespace: Microsoft.EntityFrameworkCore
     ClassName: RelationalDatabaseFacadeExtensions
     Name: ExecuteSqlCommand
     Method:
-      ArgTypes: (Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade, Microsoft.EntityFrameworkCore.RawSqlString, params System.Object[])
+      InjectableArguments: [SCS0035: 1]
+
+  RelationalDatabaseFacadeExtensions_ExecuteSqlCommandAsync:
+    Namespace: Microsoft.EntityFrameworkCore
+    ClassName: RelationalDatabaseFacadeExtensions
+    Name: ExecuteSqlCommandAsync
+    Method:
+      InjectableArguments: [SCS0035: 1]
+
+  RelationalDatabaseFacadeExtensions_ExecuteSqlInterpolated:
+    Namespace: Microsoft.EntityFrameworkCore
+    ClassName: RelationalDatabaseFacadeExtensions
+    Name: ExecuteSqlInterpolated
+    Method:
+      InjectableArguments: [SCS0035: 1]
+
+  RelationalDatabaseFacadeExtensions_ExecuteSqlInterpolatedAsync:
+    Namespace: Microsoft.EntityFrameworkCore
+    ClassName: RelationalDatabaseFacadeExtensions
+    Name: ExecuteSqlInterpolatedAsync
+    Method:
+      InjectableArguments: [SCS0035: 1]
+
+  RelationalDatabaseFacadeExtensions_ExecuteSqlRaw:
+    Namespace: Microsoft.EntityFrameworkCore
+    ClassName: RelationalDatabaseFacadeExtensions
+    Name: ExecuteSqlRaw
+    Method:
+      InjectableArguments: [SCS0035: 1]
+
+  RelationalDatabaseFacadeExtensions_ExecuteSqlRawAsync:
+    Namespace: Microsoft.EntityFrameworkCore
+    ClassName: RelationalDatabaseFacadeExtensions
+    Name: ExecuteSqlRawAsync
+    Method:
       InjectableArguments: [SCS0035: 1]
 
   Database_ExecuteSqlCommand_1:
@@ -1711,6 +1745,20 @@ Behavior:
     Name: ExecuteSqlCommandAsync
     Method:
       ArgTypes: (System.Data.Entity.TransactionalBehavior, System.String, System.Threading.CancellationToken, params System.Object[])
+      InjectableArguments: [SCS0035: 1]
+
+  RelationalQueryableExtensions_FromSqlRaw:
+    Namespace: Microsoft.EntityFrameworkCore
+    ClassName: RelationalQueryableExtensions
+    Name: FromSqlRaw
+    Method:
+      InjectableArguments: [SCS0035: 1]
+
+  RelationalQueryableExtensions_FromSqlInterpolated:
+    Namespace: Microsoft.EntityFrameworkCore
+    ClassName: RelationalQueryableExtensions
+    Name: FromSqlInterpolated
+    Method:
       InjectableArguments: [SCS0035: 1]
 
   RelationalQueryableExtensions_FromSql_1:

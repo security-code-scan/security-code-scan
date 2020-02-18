@@ -21,6 +21,44 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         private Lazy<INamedTypeSymbol>                     _StringType;
         public INamedTypeSymbol                            StringType            => _StringType.Value;
+        private Lazy<INamedTypeSymbol>                     _CharType;
+        public INamedTypeSymbol                            CharType              => _CharType.Value;
+        private Lazy<INamedTypeSymbol>                     _BooleanType;
+        public INamedTypeSymbol                            BooleanType           => _BooleanType.Value;
+        private Lazy<INamedTypeSymbol>                     _ByteType;
+        public INamedTypeSymbol                            ByteType              => _ByteType.Value;
+        private Lazy<INamedTypeSymbol>                     _SByteType;
+        public INamedTypeSymbol                            SByteType             => _SByteType.Value;
+        private Lazy<INamedTypeSymbol>                     _Int16Type;
+        public INamedTypeSymbol                            Int16Type             => _Int16Type.Value;
+        private Lazy<INamedTypeSymbol>                     _UInt16Type;
+        public INamedTypeSymbol                            UInt16Type            => _UInt16Type.Value;
+        private Lazy<INamedTypeSymbol>                     _Int32Type;
+        public INamedTypeSymbol                            Int32Type             => _Int32Type.Value;
+        private Lazy<INamedTypeSymbol>                     _UInt32Type;
+        public INamedTypeSymbol                            UInt32Type            => _UInt32Type.Value;
+        private Lazy<INamedTypeSymbol>                     _Int64Type;
+        public INamedTypeSymbol                            Int64Type             => _Int64Type.Value;
+        private Lazy<INamedTypeSymbol>                     _UInt64Type;
+        public INamedTypeSymbol                            UInt64Type            => _UInt64Type.Value;
+        private Lazy<INamedTypeSymbol>                     _IntPtrType;
+        public INamedTypeSymbol                            IntPtrType            => _IntPtrType.Value;
+        private Lazy<INamedTypeSymbol>                     _UIntPtrType;
+        public INamedTypeSymbol                            UIntPtrType           => _UIntPtrType.Value;
+        private Lazy<INamedTypeSymbol>                     _SingleType;
+        public INamedTypeSymbol                            SingleType            => _SingleType.Value;
+        private Lazy<INamedTypeSymbol>                     _DoubleType;
+        public INamedTypeSymbol                            DoubleType            => _DoubleType.Value;
+        private Lazy<INamedTypeSymbol>                     _DecimalType;
+        public INamedTypeSymbol                            DecimalType           => _DecimalType.Value;
+        private Lazy<INamedTypeSymbol>                     _EnumType;
+        public INamedTypeSymbol                            EnumType              => _EnumType.Value;
+        private Lazy<INamedTypeSymbol>                     _DateTimeType;
+        public INamedTypeSymbol                            DateTimeType          => _DateTimeType.Value;
+        private Lazy<INamedTypeSymbol>                     _DateTimeOffsetType;
+        public INamedTypeSymbol                            DateTimeOffsetType    => _DateTimeOffsetType.Value;
+        private Lazy<INamedTypeSymbol>                     _GuidType;
+        public INamedTypeSymbol                            GuidType              => _GuidType.Value;
 
         /// <summary>
         /// Initialize the state with no variable recorded yet.
@@ -30,7 +68,26 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             AnalysisContext = ctx;
             Variables = new Dictionary<string, VariableState>();
-            _StringType = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetTypeByMetadataName("System.String"));
+            _StringType = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_String));
+            _CharType = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Char));
+            _BooleanType = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Boolean));
+            _ByteType = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Byte));
+            _SByteType = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_SByte));
+            _Int16Type = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Int16));
+            _UInt16Type = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_UInt16));
+            _Int32Type = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Int32));
+            _UInt32Type = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_UInt32));
+            _Int64Type = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Int64));
+            _UInt64Type = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_UInt64));
+            _IntPtrType = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_IntPtr));
+            _UIntPtrType = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_UIntPtr));
+            _SingleType = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Single));
+            _DoubleType = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Double));
+            _DecimalType = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Decimal));
+            _EnumType = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Enum));
+            _DateTimeType = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_DateTime));
+            _DateTimeOffsetType = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetTypeByMetadataName("System.DateTimeOffset"));
+            _GuidType = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetTypeByMetadataName("System.Guid"));
         }
 
         public ExecutionState(ExecutionState other)

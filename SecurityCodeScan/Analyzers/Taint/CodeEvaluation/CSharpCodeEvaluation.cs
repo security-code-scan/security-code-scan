@@ -1358,26 +1358,26 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// safe when converted to its string representation, otherwise <see langword="false"/>.</returns>
         private static bool IsSafeTypeAsString(ExecutionState state, ExpressionSyntax expression)
         {
-            ITypeSymbol type = state.AnalysisContext.SemanticModel.GetTypeInfo(expression).ConvertedType;
-            return Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Boolean))
-                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Char))
-                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Byte))
-                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_SByte))
-                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Int16))
-                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_UInt16))
-                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Int32))
-                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_UInt32))
-                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Int64))
-                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_UInt64))
-                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_IntPtr))
-                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_UIntPtr))
-                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Single))
-                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Double))
-                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Decimal))
-                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Enum))
-                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_DateTime))
-                || Equals(type, state.AnalysisContext.Compilation.GetTypeByMetadataName("System.Guid"))
-                || Equals(type, state.AnalysisContext.Compilation.GetTypeByMetadataName("System.DateTimeOffset"));
+            ITypeSymbol type = state.AnalysisContext.SemanticModel.GetTypeInfo(expression).Type;
+            return Equals(type, state.BooleanType)
+                || Equals(type, state.CharType)
+                || Equals(type, state.ByteType)
+                || Equals(type, state.SByteType)
+                || Equals(type, state.Int16Type)
+                || Equals(type, state.UInt16Type)
+                || Equals(type, state.Int32Type)
+                || Equals(type, state.UInt32Type)
+                || Equals(type, state.Int64Type)
+                || Equals(type, state.UInt64Type)
+                || Equals(type, state.IntPtrType)
+                || Equals(type, state.UIntPtrType)
+                || Equals(type, state.SingleType)
+                || Equals(type, state.DoubleType)
+                || Equals(type, state.DecimalType)
+                || Equals(type, state.EnumType)
+                || Equals(type, state.DateTimeType)
+                || Equals(type, state.DateTimeOffsetType)
+                || Equals(type, state.GuidType);
         }
     }
 }

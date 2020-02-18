@@ -622,5 +622,90 @@ Behavior:
             await VerifyVisualBasicDiagnostic(vbTest1, expectedVB1, options: config).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(vbTest2, expectedVB2, options: config).ConfigureAwait(false);
         }
+
+        [TestCategory("Safe")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "int")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "short")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "long")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "uint")]
+        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect(\"\"+value)", "ushort")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "ulong")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "byte")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "sbyte")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "char")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "System.IntPtr")]
+        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect(\"\"+value)", "System.UIntPtr")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "bool")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "float")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "double")]
+        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect(\"\"+value)", "decimal")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "System.Int16")]
+        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect(\"\"+value)", "System.Single")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "System.UInt64")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "System.DateTime")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "System.DateTimeOffset")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "System.Guid")]
+        [DataTestMethod]
+        public async Task OpenRedirectImplicitString(string @namespace, string sink, string type)
+        {
+            var cSharpTest = $@"
+using {@namespace};
+
+class OpenRedirect
+{{
+    public static HttpResponse Response = null;
+
+    public void Run({type} value)
+    {{
+        {sink};
+    }}
+}}
+";
+
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    ClassName: OpenRedirect
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "string")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value, flag)", "string")]
+        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect(\"\"+value)", "string")]
+        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect(\"\"+value, flag)", "string")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "object")]
+        [DataRow("System.Web", "Response.Redirect(\"\"+value, flag)", "object")]
+        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect(\"\"+value)", "object")]
+        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect(\"\"+value, flag)", "object")]
+        [DataTestMethod]
+        public async Task OpenRedirectStringConcat(string @namespace, string sink, string type)
+        {
+            var cSharpTest = $@"
+using {@namespace};
+
+class OpenRedirect
+{{
+    public static HttpResponse Response = null;
+
+    public void Run({type} value, bool flag)
+    {{
+        {sink};
+    }}
+}}
+";
+
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    ClassName: OpenRedirect
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
     }
 }

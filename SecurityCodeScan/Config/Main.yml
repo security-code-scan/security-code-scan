@@ -2589,6 +2589,16 @@ Behavior:
     Field:
       Injectable: [SCS0018: AbsolutePath]
 
+ ## Web Forms
+
+  System.Web.UI.WebControls_FileUpload_SaveAs:
+    Namespace: System.Web.UI.WebControls
+    ClassName: FileUpload
+    Name: SaveAs
+    Method:
+      ArgTypes: (System.String)
+      InjectableArguments: [SCS0018: [0: AbsolutePath]]
+
  # LDAP injection
 
   DirectorySearcher_constructor_0:

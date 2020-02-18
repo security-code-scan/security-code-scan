@@ -607,7 +607,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     continue;
 
                 var expressionState = VisitExpression(interpolation.Expression, state);
-                varState.MergeTaint(expressionState.Taint);
+                varState.MergeTaint(IsSafeTypeAsString(state, interpolation.Expression) ? VariableTaint.Safe : expressionState.Taint);
             }
 
             return varState;
@@ -1305,21 +1305,25 @@ namespace SecurityCodeScan.Analyzers.Taint
             var left = VisitExpression(leftExpression, state);
             var right = VisitExpression(rightExpression, state);
 
-            if (expression.Kind() == SyntaxKind.AddExpression && IsStringType(expression))
+            // Detect implicit conversions to string through concatenation
+            // with the binary Add operator.
+            if (expression.Kind() == SyntaxKind.AddExpression && IsStringType(state, expression))
             {
-                bool leftIsString = IsStringType(leftExpression);
-                bool rightIsString = IsStringType(rightExpression);
+                // We only do this check if one side is a string
+                // and the other side is not.
+                bool leftIsString = IsStringType(state, leftExpression);
+                bool rightIsString = IsStringType(state, rightExpression);
                 if (leftIsString != rightIsString)
                 {
                     if (!leftIsString)
                     {
-                        result.MergeTaint(IsSafeType(leftExpression) ? VariableTaint.Safe : left.Taint);
+                        result.MergeTaint(IsSafeTypeAsString(state, leftExpression) ? VariableTaint.Safe : left.Taint);
                         result.MergeTaint(right.Taint);
                     }
                     else
                     {
                         result.MergeTaint(left.Taint);
-                        result.MergeTaint(IsSafeType(rightExpression) ? VariableTaint.Safe : right.Taint);
+                        result.MergeTaint(IsSafeTypeAsString(state, rightExpression) ? VariableTaint.Safe : right.Taint);
                     }
 
                     return result;
@@ -1330,35 +1334,50 @@ namespace SecurityCodeScan.Analyzers.Taint
             result.MergeTaint(right.Taint);
 
             return result;
+        }
 
-            bool IsStringType(ExpressionSyntax expr)
-            {
-                return Equals(state.AnalysisContext.SemanticModel.GetTypeInfo(expr).Type, state.StringType);
-            }
+        /// <summary>
+        /// Determines if an expression is ultimately a string type.
+        /// </summary>
+        /// <param name="state">The current execution state.</param>
+        /// <param name="expression">The expression being evaluated.</param>
+        /// <returns><see langword="true"/> if <paramref name="expression"/> is considered
+        /// a string, otherwise <see langword="false"/>.</returns>
+        private static bool IsStringType(ExecutionState state, ExpressionSyntax expression)
+        {
+            ITypeSymbol type = state.AnalysisContext.SemanticModel.GetTypeInfo(expression).ConvertedType;
+            return Equals(type, state.StringType);
+        }
 
-            bool IsSafeType(ExpressionSyntax expr)
-            {
-                ITypeSymbol type = state.AnalysisContext.SemanticModel.GetTypeInfo(expr).Type;
-                return Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Boolean))
-                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Char))
-                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Byte))
-                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_SByte))
-                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Int16))
-                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_UInt16))
-                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Int32))
-                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_UInt32))
-                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Int64))
-                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_UInt64))
-                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_IntPtr))
-                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_UIntPtr))
-                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Single))
-                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Double))
-                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Decimal))
-                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Enum))
-                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_DateTime))
-                    || Equals(type, state.AnalysisContext.Compilation.GetTypeByMetadataName("System.Guid"))
-                    || Equals(type, state.AnalysisContext.Compilation.GetTypeByMetadataName("System.DateTimeOffset"));
-            }
+        /// <summary>
+        /// Determines if an expression is safe if converted to a string.
+        /// </summary>
+        /// <param name="state">The current execution state.</param>
+        /// <param name="expression">The expression being evaluated.</param>
+        /// <returns><see langword="true"/> if <paramref name="expression"/> is considered
+        /// safe when converted to its string representation, otherwise <see langword="false"/>.</returns>
+        private static bool IsSafeTypeAsString(ExecutionState state, ExpressionSyntax expression)
+        {
+            ITypeSymbol type = state.AnalysisContext.SemanticModel.GetTypeInfo(expression).ConvertedType;
+            return Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Boolean))
+                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Char))
+                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Byte))
+                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_SByte))
+                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Int16))
+                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_UInt16))
+                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Int32))
+                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_UInt32))
+                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Int64))
+                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_UInt64))
+                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_IntPtr))
+                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_UIntPtr))
+                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Single))
+                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Double))
+                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Decimal))
+                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Enum))
+                || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_DateTime))
+                || Equals(type, state.AnalysisContext.Compilation.GetTypeByMetadataName("System.Guid"))
+                || Equals(type, state.AnalysisContext.Compilation.GetTypeByMetadataName("System.DateTimeOffset"));
         }
     }
 }

@@ -1303,10 +1303,62 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             var result = new VariableState(expression, VariableTaint.Unset);
             var left = VisitExpression(leftExpression, state);
-            result.MergeTaint(left.Taint);
             var right = VisitExpression(rightExpression, state);
+
+            if (expression.Kind() == SyntaxKind.AddExpression && IsStringType(expression))
+            {
+                bool leftIsString = IsStringType(leftExpression);
+                bool rightIsString = IsStringType(rightExpression);
+                if (leftIsString != rightIsString)
+                {
+                    if (!leftIsString)
+                    {
+                        result.MergeTaint(IsSafeType(leftExpression) ? VariableTaint.Safe : left.Taint);
+                        result.MergeTaint(right.Taint);
+                    }
+                    else
+                    {
+                        result.MergeTaint(left.Taint);
+                        result.MergeTaint(IsSafeType(rightExpression) ? VariableTaint.Safe : right.Taint);
+                    }
+
+                    return result;
+                }
+            }
+
+            result.MergeTaint(left.Taint);
             result.MergeTaint(right.Taint);
+
             return result;
+
+            bool IsStringType(ExpressionSyntax expr)
+            {
+                return Equals(state.AnalysisContext.SemanticModel.GetTypeInfo(expr).Type, state.StringType);
+            }
+
+            bool IsSafeType(ExpressionSyntax expr)
+            {
+                ITypeSymbol type = state.AnalysisContext.SemanticModel.GetTypeInfo(expr).Type;
+                return Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Boolean))
+                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Char))
+                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Byte))
+                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_SByte))
+                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Int16))
+                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_UInt16))
+                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Int32))
+                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_UInt32))
+                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Int64))
+                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_UInt64))
+                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_IntPtr))
+                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_UIntPtr))
+                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Single))
+                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Double))
+                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Decimal))
+                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_Enum))
+                    || Equals(type, state.AnalysisContext.Compilation.GetSpecialType(SpecialType.System_DateTime))
+                    || Equals(type, state.AnalysisContext.Compilation.GetTypeByMetadataName("System.Guid"))
+                    || Equals(type, state.AnalysisContext.Compilation.GetTypeByMetadataName("System.DateTimeOffset"));
+            }
         }
     }
 }

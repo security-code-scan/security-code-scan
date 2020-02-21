@@ -25,63 +25,6 @@ namespace SecurityCodeScan.Analyzers.Taint
         private Lazy<INamedTypeSymbol>                     StringTypeCached;
         public INamedTypeSymbol                            StringType            => StringTypeCached.Value;
 
-        private Lazy<INamedTypeSymbol>                     CharTypeCached;
-        public INamedTypeSymbol                            CharType              => CharTypeCached.Value;
-
-        private Lazy<INamedTypeSymbol>                     BooleanTypeCached;
-        public INamedTypeSymbol                            BooleanType           => BooleanTypeCached.Value;
-
-        private Lazy<INamedTypeSymbol>                     ByteTypeCached;
-        public INamedTypeSymbol                            ByteType              => ByteTypeCached.Value;
-
-        private Lazy<INamedTypeSymbol>                     SByteTypeCached;
-        public INamedTypeSymbol                            SByteType             => SByteTypeCached.Value;
-
-        private Lazy<INamedTypeSymbol>                     Int16TypeCached;
-        public INamedTypeSymbol                            Int16Type             => Int16TypeCached.Value;
-
-        private Lazy<INamedTypeSymbol>                     UInt16TypeCached;
-        public INamedTypeSymbol                            UInt16Type            => UInt16TypeCached.Value;
-
-        private Lazy<INamedTypeSymbol>                     Int32TypeCached;
-        public INamedTypeSymbol                            Int32Type             => Int32TypeCached.Value;
-
-        private Lazy<INamedTypeSymbol>                     UInt32TypeCached;
-        public INamedTypeSymbol                            UInt32Type            => UInt32TypeCached.Value;
-
-        private Lazy<INamedTypeSymbol>                     Int64TypeCached;
-        public INamedTypeSymbol                            Int64Type             => Int64TypeCached.Value;
-
-        private Lazy<INamedTypeSymbol>                     UInt64TypeCached;
-        public INamedTypeSymbol                            UInt64Type            => UInt64TypeCached.Value;
-
-        private Lazy<INamedTypeSymbol>                     IntPtrTypeCached;
-        public INamedTypeSymbol                            IntPtrType            => IntPtrTypeCached.Value;
-
-        private Lazy<INamedTypeSymbol>                     UIntPtrTypeCached;
-        public INamedTypeSymbol                            UIntPtrType           => UIntPtrTypeCached.Value;
-
-        private Lazy<INamedTypeSymbol>                     SingleTypeCached;
-        public INamedTypeSymbol                            SingleType            => SingleTypeCached.Value;
-
-        private Lazy<INamedTypeSymbol>                     DoubleTypeCached;
-        public INamedTypeSymbol                            DoubleType            => DoubleTypeCached.Value;
-
-        private Lazy<INamedTypeSymbol>                     DecimalTypeCached;
-        public INamedTypeSymbol                            DecimalType           => DecimalTypeCached.Value;
-
-        private Lazy<INamedTypeSymbol>                     EnumTypeCached;
-        public INamedTypeSymbol                            EnumType              => EnumTypeCached.Value;
-
-        private Lazy<INamedTypeSymbol>                     DateTimeTypeCached;
-        public INamedTypeSymbol                            DateTimeType          => DateTimeTypeCached.Value;
-
-        private Lazy<INamedTypeSymbol>                     DateTimeOffsetTypeCached;
-        public INamedTypeSymbol                            DateTimeOffsetType    => DateTimeOffsetTypeCached.Value;
-
-        private Lazy<INamedTypeSymbol>                     GuidTypeCached;
-        public INamedTypeSymbol                            GuidType              => GuidTypeCached.Value;
-
         /// <summary>
         /// Initialize the state with no variable recorded yet.
         /// </summary>
@@ -92,25 +35,6 @@ namespace SecurityCodeScan.Analyzers.Taint
             Variables = new Dictionary<string, VariableState>();
             ObjectTypeCached            = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Object));
             StringTypeCached            = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_String));
-            CharTypeCached              = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Char));
-            BooleanTypeCached           = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Boolean));
-            ByteTypeCached              = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Byte));
-            SByteTypeCached             = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_SByte));
-            Int16TypeCached             = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Int16));
-            UInt16TypeCached            = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_UInt16));
-            Int32TypeCached             = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Int32));
-            UInt32TypeCached            = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_UInt32));
-            Int64TypeCached             = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Int64));
-            UInt64TypeCached            = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_UInt64));
-            IntPtrTypeCached            = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_IntPtr));
-            UIntPtrTypeCached           = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_UIntPtr));
-            SingleTypeCached            = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Single));
-            DoubleTypeCached            = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Double));
-            DecimalTypeCached           = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Decimal));
-            EnumTypeCached              = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Enum));
-            DateTimeTypeCached          = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_DateTime));
-            DateTimeOffsetTypeCached    = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetTypeByMetadataName("System.DateTimeOffset"));
-            GuidTypeCached              = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetTypeByMetadataName("System.Guid"));
         }
 
         public ExecutionState(ExecutionState other)
@@ -119,25 +43,6 @@ namespace SecurityCodeScan.Analyzers.Taint
             Variables       = new Dictionary<string, VariableState>(other.VariableStates.Count);
             ObjectTypeCached            = other.ObjectTypeCached;
             StringTypeCached            = other.StringTypeCached;
-            CharTypeCached              = other.CharTypeCached;
-            BooleanTypeCached           = other.BooleanTypeCached;
-            ByteTypeCached              = other.ByteTypeCached;
-            SByteTypeCached             = other.SByteTypeCached;
-            Int16TypeCached             = other.Int16TypeCached;
-            UInt16TypeCached            = other.UInt16TypeCached;
-            Int32TypeCached             = other.Int32TypeCached;
-            UInt32TypeCached            = other.UInt32TypeCached;
-            Int64TypeCached             = other.Int64TypeCached;
-            UInt64TypeCached            = other.UInt64TypeCached;
-            IntPtrTypeCached            = other.IntPtrTypeCached;
-            UIntPtrTypeCached           = other.UIntPtrTypeCached;
-            SingleTypeCached            = other.SingleTypeCached;
-            DoubleTypeCached            = other.DoubleTypeCached;
-            DecimalTypeCached           = other.DecimalTypeCached;
-            EnumTypeCached              = other.EnumTypeCached;
-            DateTimeTypeCached          = other.DateTimeTypeCached;
-            DateTimeOffsetTypeCached    = other.DateTimeOffsetTypeCached;
-            GuidTypeCached              = other.GuidTypeCached;
 
             var otherVariableStateToNew = new Dictionary<VariableState, VariableState>();
             foreach (var otherVariablePair in other.VariableStates)
@@ -175,44 +80,6 @@ namespace SecurityCodeScan.Analyzers.Taint
                 ObjectTypeCached = state.ObjectTypeCached;
             if (!StringTypeCached.IsValueCreated && state.StringTypeCached.IsValueCreated)
                 StringTypeCached = state.StringTypeCached;
-            if (!CharTypeCached.IsValueCreated && state.CharTypeCached.IsValueCreated)
-                CharTypeCached = state.CharTypeCached;
-            if (!BooleanTypeCached.IsValueCreated && state.BooleanTypeCached.IsValueCreated)
-                BooleanTypeCached = state.BooleanTypeCached;
-            if (!ByteTypeCached.IsValueCreated && state.ByteTypeCached.IsValueCreated)
-                ByteTypeCached = state.ByteTypeCached;
-            if (!SByteTypeCached.IsValueCreated && state.SByteTypeCached.IsValueCreated)
-                SByteTypeCached = state.SByteTypeCached;
-            if (!Int16TypeCached.IsValueCreated && state.Int16TypeCached.IsValueCreated)
-                Int16TypeCached = state.Int16TypeCached;
-            if (!UInt16TypeCached.IsValueCreated && state.UInt16TypeCached.IsValueCreated)
-                UInt16TypeCached = state.UInt16TypeCached;
-            if (!Int32TypeCached.IsValueCreated && state.Int32TypeCached.IsValueCreated)
-                Int32TypeCached = state.Int32TypeCached;
-            if (!UInt32TypeCached.IsValueCreated && state.UInt32TypeCached.IsValueCreated)
-                UInt32TypeCached = state.UInt32TypeCached;
-            if (!Int64TypeCached.IsValueCreated && state.Int64TypeCached.IsValueCreated)
-                Int64TypeCached = state.Int64TypeCached;
-            if (!UInt64TypeCached.IsValueCreated && state.UInt64TypeCached.IsValueCreated)
-                UInt64TypeCached = state.UInt64TypeCached;
-            if (!IntPtrTypeCached.IsValueCreated && state.IntPtrTypeCached.IsValueCreated)
-                IntPtrTypeCached = state.IntPtrTypeCached;
-            if (!UIntPtrTypeCached.IsValueCreated && state.UIntPtrTypeCached.IsValueCreated)
-                UIntPtrTypeCached = state.UIntPtrTypeCached;
-            if (!SingleTypeCached.IsValueCreated && state.SingleTypeCached.IsValueCreated)
-                SingleTypeCached = state.SingleTypeCached;
-            if (!DoubleTypeCached.IsValueCreated && state.DoubleTypeCached.IsValueCreated)
-                DoubleTypeCached = state.DoubleTypeCached;
-            if (!DecimalTypeCached.IsValueCreated && state.DecimalTypeCached.IsValueCreated)
-                DecimalTypeCached = state.DecimalTypeCached;
-            if (!EnumTypeCached.IsValueCreated && state.EnumTypeCached.IsValueCreated)
-                EnumTypeCached = state.EnumTypeCached;
-            if (!DateTimeTypeCached.IsValueCreated && state.DateTimeTypeCached.IsValueCreated)
-                DateTimeTypeCached = state.DateTimeTypeCached;
-            if (!DateTimeOffsetTypeCached.IsValueCreated && state.DateTimeOffsetTypeCached.IsValueCreated)
-                DateTimeOffsetTypeCached = state.DateTimeOffsetTypeCached;
-            if (!GuidTypeCached.IsValueCreated && state.GuidTypeCached.IsValueCreated)
-                GuidTypeCached = state.GuidTypeCached;
         }
 
         public void Replace(ExecutionState other)

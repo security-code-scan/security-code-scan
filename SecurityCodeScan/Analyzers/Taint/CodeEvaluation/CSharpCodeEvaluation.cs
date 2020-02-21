@@ -1359,26 +1359,8 @@ namespace SecurityCodeScan.Analyzers.Taint
         private bool IsSafeTypeAsString(ExecutionState state, ExpressionSyntax expression)
         {
             ITypeSymbol type = state.AnalysisContext.SemanticModel.GetTypeInfo(expression).Type;
-            return (!ProjectConfiguration.AuditMode && ReferenceEquals(type, state.ObjectType))
-                || ReferenceEquals(type, state.BooleanType)
-                || ReferenceEquals(type, state.CharType)
-                || ReferenceEquals(type, state.ByteType)
-                || ReferenceEquals(type, state.SByteType)
-                || ReferenceEquals(type, state.Int16Type)
-                || ReferenceEquals(type, state.UInt16Type)
-                || ReferenceEquals(type, state.Int32Type)
-                || ReferenceEquals(type, state.UInt32Type)
-                || ReferenceEquals(type, state.Int64Type)
-                || ReferenceEquals(type, state.UInt64Type)
-                || ReferenceEquals(type, state.IntPtrType)
-                || ReferenceEquals(type, state.UIntPtrType)
-                || ReferenceEquals(type, state.SingleType)
-                || ReferenceEquals(type, state.DoubleType)
-                || ReferenceEquals(type, state.DecimalType)
-                || ReferenceEquals(type, state.EnumType)
-                || ReferenceEquals(type, state.DateTimeType)
-                || ReferenceEquals(type, state.DateTimeOffsetType)
-                || ReferenceEquals(type, state.GuidType);
+            return !ReferenceEquals(type, state.StringType) &&
+                   (!ProjectConfiguration.AuditMode || !ReferenceEquals(type, state.ObjectType));
         }
     }
 }

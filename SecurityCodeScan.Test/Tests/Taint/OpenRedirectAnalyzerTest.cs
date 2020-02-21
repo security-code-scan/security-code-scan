@@ -624,31 +624,54 @@ Behavior:
         }
 
         [TestCategory("Safe")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "int")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "short")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "long")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "uint")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect(\"\"+value)", "ushort")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "ulong")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "byte")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "sbyte")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "char")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "System.IntPtr")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect(\"\"+value)", "System.UIntPtr")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "bool")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "float")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "double")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect(\"\"+value)", "decimal")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "System.Int16")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect(\"\"+value)", "System.Single")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "System.UInt64")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "System.DateTime")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "System.DateTimeOffset")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "System.Guid")]
+        [DataRow("Response.Redirect(\"\"+value)")]
         [DataTestMethod]
-        public async Task OpenRedirectImplicitString(string @namespace, string sink, string type)
+        public async Task OpenRedirectImplicitString(string sink)
         {
-            var cSharpTest = $@"
+            var namespaces = new[] { "System.Web", "Microsoft.AspNetCore.Http" };
+            var types = new[]
+            {
+                "int",
+                "uint",
+                "short",
+                "ushort",
+                "long",
+                "ulong",
+                "byte",
+                "sbyte",
+                "char",
+                "bool",
+                "float",
+                "double",
+                "decimal",
+                "System.IntPtr",
+                "System.UIntPtr",
+                "System.Int16",
+                "System.UInt16",
+                "System.Int32",
+                "System.UInt32",
+                "System.Int64",
+                "System.UInt64",
+                "System.Single",
+                "System.Double",
+                "System.DateTime",
+                "System.DateTimeOffset",
+                "System.Guid",
+            };
+
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    ClassName: OpenRedirect
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            foreach (var @namespace in namespaces)
+            {
+                foreach(var type in types)
+                {
+                    var cSharpTest = $@"
 using {@namespace};
 
 class OpenRedirect
@@ -661,6 +684,23 @@ class OpenRedirect
     }}
 }}
 ";
+                    await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                }
+            }
+        }
+
+        [TestCategory("Detect")]
+        [DataRow("Response.Redirect(\"\"+value)")]
+        [DataRow("Response.Redirect(\"\"+value, flag)")]
+        [DataTestMethod]
+        public async Task OpenRedirectStringConcat(string sink)
+        {
+            var namespaces = new[] { "System.Web", "Microsoft.AspNetCore.Http" };
+            var types = new[]
+            {
+                "object",
+                "string",
+            };
 
             var testConfig = @"
 TaintEntryPoints:
@@ -669,22 +709,12 @@ TaintEntryPoints:
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
-            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
-        }
 
-        [TestCategory("Detect")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "string")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value, flag)", "string")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect(\"\"+value)", "string")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect(\"\"+value, flag)", "string")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value)", "object")]
-        [DataRow("System.Web", "Response.Redirect(\"\"+value, flag)", "object")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect(\"\"+value)", "object")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect(\"\"+value, flag)", "object")]
-        [DataTestMethod]
-        public async Task OpenRedirectStringConcat(string @namespace, string sink, string type)
-        {
-            var cSharpTest = $@"
+            foreach (var @namespace in namespaces)
+            {
+                foreach (var type in types)
+                {
+                    var cSharpTest = $@"
 using {@namespace};
 
 class OpenRedirect
@@ -697,47 +727,39 @@ class OpenRedirect
     }}
 }}
 ";
-
-            var testConfig = @"
-TaintEntryPoints:
-  AAA:
-    ClassName: OpenRedirect
-";
-
-            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
-            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                    await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                }
+            }
         }
 
         [TestCategory("Safe")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\")", "int")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\")", "short")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\")", "long")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\")", "uint")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect($\"{value}\")", "ushort")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\")", "ulong")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\")", "byte")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\")", "sbyte")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\")", "char")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\")", "System.IntPtr")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect($\"{value}\")", "System.UIntPtr")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\")", "bool")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\")", "float")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\")", "double")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect($\"{value}\")", "decimal")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\")", "System.Int16")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect($\"{value}\")", "System.Single")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\")", "System.UInt64")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\")", "System.DateTime")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\")", "System.DateTimeOffset")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\")", "System.Guid")]
-        [DataRow("System.Web", "Response.Redirect($\"{value:#.0}\")", "float")] // ensure we're not broken by composite formatting
-        [DataRow("System.Web", "Response.Redirect($\"{value:yyyy'-'MM'-'dd}\")", "System.DateTime")]
-        [DataRow("System.Web", "Response.Redirect($\"{value:O}\")", "System.DateTimeOffset")]
-        [DataRow("System.Web", "Response.Redirect($\"{value:G}\")", "System.Guid")]
+        [DataRow("Response.Redirect($\"{value}\")", new object[] {"int", "uint", "short", "ushort", "long", "ulong", "byte", "sbyte", "char", "bool",
+                                                                  "float", "double", "decimal", "System.IntPtr", "System.UIntPtr", "System.Int16",
+                                                                  "System.UInt16", "System.Int32", "System.UInt32", "System.Int64", "System.UInt64",
+                                                                  "System.Single", "System.Double", "System.DateTime", "System.DateTimeOffset", "System.Guid" })]
+
+        [DataRow("Response.Redirect($\"{value:#.0}\")",            "float")] // ensure we're not broken by composite formatting
+        [DataRow("Response.Redirect($\"{value:yyyy'-'MM'-'dd}\")", "System.DateTime")]
+        [DataRow("Response.Redirect($\"{value:O}\")",              "System.DateTimeOffset")]
+        [DataRow("Response.Redirect($\"{value:G}\")",              "System.Guid")]
         [DataTestMethod]
-        public async Task OpenRedirectInterpolatedStringSafe(string @namespace, string sink, string type)
+        public async Task OpenRedirectInterpolatedStringSafe(string sink, params string[] types)
         {
-            var cSharpTest = $@"
+            var namespaces = new[] { "System.Web", "Microsoft.AspNetCore.Http" };
+
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    ClassName: OpenRedirect
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            foreach (var @namespace in namespaces)
+            {
+                foreach (var type in types)
+                {
+                    var cSharpTest = $@"
 using {@namespace};
 
 class OpenRedirect
@@ -751,6 +773,28 @@ class OpenRedirect
 }}
 ";
 
+                    await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                }
+            }
+        }
+
+        [TestCategory("Detect")]
+        [DataRow(new[] {"Response.Redirect($\"{value}\")",
+                        "Response.Redirect($\"{value}\", flag)" }, new object[] { "string", "object" })]
+        // we're still tainted if we use a format string
+        [DataRow(new[] {"Response.Redirect($\"{value:G}\")",
+                        "Response.Redirect($\"{value:G}\", flag)" }, new object[] { "string", "object" })]
+        // {flag} is safe, ensure we're still tainted
+        [DataRow(new[] {"Response.Redirect($\"{flag}{value}\")",
+                        "Response.Redirect($\"{flag}{value}\", flag)" }, new object[] { "string", "object" })]
+        // concat + interp is still tainted
+        [DataRow(new[] {"Response.Redirect(flag+$\"{value}\")",
+                        "Response.Redirect($\"{value}\"+flag)" }, new object[] { "string", "object" })]
+        [DataTestMethod]
+        public async Task OpenRedirectInterpolatedStringDetect(string[] sinks, params string[] types)
+        {
+            var namespaces = new[] { "System.Web", "Microsoft.AspNetCore.Http" };
+
             var testConfig = @"
 TaintEntryPoints:
   AAA:
@@ -758,34 +802,14 @@ TaintEntryPoints:
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
-            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
-        }
 
-        [TestCategory("Detect")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\")", "string")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\", flag)", "string")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect($\"{value}\")", "string")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect($\"{value}\", flag)", "string")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\")", "object")]
-        [DataRow("System.Web", "Response.Redirect($\"{value}\", flag)", "object")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect($\"{value}\")", "object")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect($\"{value}\", flag)", "object")]
-        [DataRow("System.Web", "Response.Redirect($\"{value:G}\")", "object")] // we're still tainted if we use a format string
-        [DataRow("System.Web", "Response.Redirect($\"{value:G}\", flag)", "object")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect($\"{value:G}\")", "object")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect($\"{value:G}\", flag)", "object")]
-        [DataRow("System.Web", "Response.Redirect($\"{flag}{value}\")", "object")] // {flag} is safe, ensure we're still tainted
-        [DataRow("System.Web", "Response.Redirect($\"{flag}{value}\", flag)", "object")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect($\"{flag}{value}\")", "object")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect($\"{flag}{value}\", flag)", "object")]
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect(flag+$\"{value}\")", "string")] // concat + interp is still tainted
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect($\"{value}\"+flag)", "string")] 
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect(flag+$\"{value}\")", "object")] 
-        [DataRow("Microsoft.AspNetCore.Http", "Response.Redirect($\"{value}\"+flag)", "object")] 
-        [DataTestMethod]
-        public async Task OpenRedirectInterpolatedStringDetect(string @namespace, string sink, string type)
-        {
-            var cSharpTest = $@"
+            foreach (var @namespace in namespaces)
+            {
+                foreach(var sink in sinks)
+                {
+                    foreach (var type in types)
+                    {
+                        var cSharpTest = $@"
 using {@namespace};
 
 class OpenRedirect
@@ -799,14 +823,10 @@ class OpenRedirect
 }}
 ";
 
-            var testConfig = @"
-TaintEntryPoints:
-  AAA:
-    ClassName: OpenRedirect
-";
-
-            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
-            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                        await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                    }
+                }
+            }
         }
     }
 }

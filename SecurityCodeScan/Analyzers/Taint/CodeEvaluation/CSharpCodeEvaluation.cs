@@ -1346,7 +1346,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         private static bool IsStringType(ExecutionState state, ExpressionSyntax expression)
         {
             ITypeSymbol type = state.AnalysisContext.SemanticModel.GetTypeInfo(expression).ConvertedType;
-            return Equals(type, state.StringType);
+            return ReferenceEquals(type, state.StringType);
         }
 
         /// <summary>
@@ -1359,25 +1359,25 @@ namespace SecurityCodeScan.Analyzers.Taint
         private static bool IsSafeTypeAsString(ExecutionState state, ExpressionSyntax expression)
         {
             ITypeSymbol type = state.AnalysisContext.SemanticModel.GetTypeInfo(expression).Type;
-            return Equals(type, state.BooleanType)
-                || Equals(type, state.CharType)
-                || Equals(type, state.ByteType)
-                || Equals(type, state.SByteType)
-                || Equals(type, state.Int16Type)
-                || Equals(type, state.UInt16Type)
-                || Equals(type, state.Int32Type)
-                || Equals(type, state.UInt32Type)
-                || Equals(type, state.Int64Type)
-                || Equals(type, state.UInt64Type)
-                || Equals(type, state.IntPtrType)
-                || Equals(type, state.UIntPtrType)
-                || Equals(type, state.SingleType)
-                || Equals(type, state.DoubleType)
-                || Equals(type, state.DecimalType)
-                || Equals(type, state.EnumType)
-                || Equals(type, state.DateTimeType)
-                || Equals(type, state.DateTimeOffsetType)
-                || Equals(type, state.GuidType);
+            return ReferenceEquals(type, state.BooleanType)
+                || ReferenceEquals(type, state.CharType)
+                || ReferenceEquals(type, state.ByteType)
+                || ReferenceEquals(type, state.SByteType)
+                || ReferenceEquals(type, state.Int16Type)
+                || ReferenceEquals(type, state.UInt16Type)
+                || ReferenceEquals(type, state.Int32Type)
+                || ReferenceEquals(type, state.UInt32Type)
+                || ReferenceEquals(type, state.Int64Type)
+                || ReferenceEquals(type, state.UInt64Type)
+                || ReferenceEquals(type, state.IntPtrType)
+                || ReferenceEquals(type, state.UIntPtrType)
+                || ReferenceEquals(type, state.SingleType)
+                || ReferenceEquals(type, state.DoubleType)
+                || ReferenceEquals(type, state.DecimalType)
+                || ReferenceEquals(type, state.EnumType)
+                || ReferenceEquals(type, state.DateTimeType)
+                || ReferenceEquals(type, state.DateTimeOffsetType)
+                || ReferenceEquals(type, state.GuidType);
         }
     }
 }

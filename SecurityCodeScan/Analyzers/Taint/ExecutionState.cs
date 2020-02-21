@@ -19,8 +19,11 @@ namespace SecurityCodeScan.Analyzers.Taint
         public  IReadOnlyDictionary<string, VariableState> VariableStates        => Variables;
         private Dictionary<string, VariableState>          Variables             { get; set; }
 
-        private Lazy<INamedTypeSymbol>                     _StringType;
-        public INamedTypeSymbol                            StringType            => _StringType.Value;
+        private Lazy<INamedTypeSymbol>                     ObjectTypeCached;
+        public INamedTypeSymbol                            ObjectType => ObjectTypeCached.Value;
+
+        private Lazy<INamedTypeSymbol>                     StringTypeCached;
+        public INamedTypeSymbol                            StringType            => StringTypeCached.Value;
 
         /// <summary>
         /// Initialize the state with no variable recorded yet.
@@ -30,14 +33,16 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             AnalysisContext = ctx;
             Variables = new Dictionary<string, VariableState>();
-            _StringType = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetTypeByMetadataName("System.String"));
+            ObjectTypeCached            = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Object));
+            StringTypeCached            = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_String));
         }
 
         public ExecutionState(ExecutionState other)
         {
             AnalysisContext = other.AnalysisContext;
             Variables       = new Dictionary<string, VariableState>(other.VariableStates.Count);
-            _StringType     = other._StringType;
+            ObjectTypeCached            = other.ObjectTypeCached;
+            StringTypeCached            = other.StringTypeCached;
 
             var otherVariableStateToNew = new Dictionary<VariableState, VariableState>();
             foreach (var otherVariablePair in other.VariableStates)
@@ -68,16 +73,27 @@ namespace SecurityCodeScan.Analyzers.Taint
             }
         }
 
-        public void Replace(ExecutionState state)
+        private void MergeCachedTypes(ExecutionState state)
         {
-            AnalysisContext = state.AnalysisContext;
-            Variables       = state.Variables;
-            if (!_StringType.IsValueCreated && state._StringType.IsValueCreated) // prone for race conditions, but small optimization
-                _StringType = state._StringType;
+            // prone for race conditions, but small optimization
+            if (!ObjectTypeCached.IsValueCreated && state.ObjectTypeCached.IsValueCreated)
+                ObjectTypeCached = state.ObjectTypeCached;
+            if (!StringTypeCached.IsValueCreated && state.StringTypeCached.IsValueCreated)
+                StringTypeCached = state.StringTypeCached;
+        }
+
+        public void Replace(ExecutionState other)
+        {
+            AnalysisContext = other.AnalysisContext;
+            Variables       = other.Variables;
+
+            MergeCachedTypes(other);
         }
 
         public void Merge(ExecutionState other)
         {
+            MergeCachedTypes(other);
+
             var queue = new Queue<KeyValuePair<VariableState, VariableState>>();
             var otherToSelf = new Dictionary<VariableState, VariableState>();
 

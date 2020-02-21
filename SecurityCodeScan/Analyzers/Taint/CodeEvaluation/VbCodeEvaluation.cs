@@ -634,7 +634,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     continue;
 
                 var expressionState = VisitExpression(interpolation.Expression, state);
-                varState.MergeTaint(expressionState.Taint);
+                varState.MergeTaint(IsSafeTypeAsString(state, interpolation.Expression) ? VariableTaint.Safe : expressionState.Taint);
             }
 
             return varState;
@@ -1085,14 +1085,42 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <returns></returns>
         private VariableState VisitBinaryExpression(ExpressionSyntax expression,
                                                     ExpressionSyntax leftExpression,
-                                                    ExpressionSyntax rightExrpession,
+                                                    ExpressionSyntax rightExpression,
                                                     ExecutionState state)
         {
             var result = new VariableState(expression, VariableTaint.Unset);
-            var left   = VisitExpression(leftExpression, state);
+            var left  = VisitExpression(leftExpression, state);
+            var right = VisitExpression(rightExpression, state);
+
+            // Detect implicit conversions to string through concatenation
+            // with the binary Add operator.
+            if ((expression.Kind() == SyntaxKind.ConcatenateExpression || expression.Kind() == SyntaxKind.AddExpression) &&
+                ReferenceEquals(state.AnalysisContext.SemanticModel.GetTypeInfo(expression).ConvertedType, state.StringType))
+            {
+                // We only do this check if one side is a string
+                // and the other side is not.
+                bool leftIsString = ReferenceEquals(state.AnalysisContext.SemanticModel.GetTypeInfo(leftExpression).Type, state.StringType);
+                bool rightIsString = ReferenceEquals(state.AnalysisContext.SemanticModel.GetTypeInfo(rightExpression).Type, state.StringType);
+                if (leftIsString != rightIsString)
+                {
+                    if (!leftIsString)
+                    {
+                        result.MergeTaint(IsSafeTypeAsString(state, leftExpression) ? VariableTaint.Safe : left.Taint);
+                        result.MergeTaint(right.Taint);
+                    }
+                    else
+                    {
+                        result.MergeTaint(left.Taint);
+                        result.MergeTaint(IsSafeTypeAsString(state, rightExpression) ? VariableTaint.Safe : right.Taint);
+                    }
+
+                    return result;
+                }
+            }
+
             result.MergeTaint(left.Taint);
-            var right = VisitExpression(rightExrpession, state);
             result.MergeTaint(right.Taint);
+
             return result;
         }
 
@@ -1312,6 +1340,19 @@ namespace SecurityCodeScan.Analyzers.Taint
         private string ResolveIdentifier(SyntaxToken syntaxToken)
         {
             return syntaxToken.Text;
+        }
+
+        /// <summary>
+        /// Determines if an expression is safe if converted to a string.
+        /// </summary>
+        /// <param name="state">The current execution state.</param>
+        /// <param name="expression">The expression being evaluated.</param>
+        /// <returns><see langword="true"/> if <paramref name="expression"/> is considered
+        /// safe when converted to its string representation, otherwise <see langword="false"/>.</returns>
+        private bool IsSafeTypeAsString(ExecutionState state, ExpressionSyntax expression)
+        {
+            ITypeSymbol type = state.AnalysisContext.SemanticModel.GetTypeInfo(expression).Type;
+            return !ReferenceEquals(type, state.StringType) && !ReferenceEquals(type, state.ObjectType);
         }
     }
 }

@@ -624,14 +624,14 @@ Behavior:
         }
 
         [TestCategory("Safe")]
-        [DataRow("Response.Redirect(\"\"+value)", false, false, new [] { "int", "uint", "short", "ushort", "long", "ulong", "byte", "sbyte", "char", "bool",
-                                                                  "float", "double", "decimal", "System.IntPtr", "System.UIntPtr", "System.Int16",
-                                                                  "System.UInt16", "System.Int32", "System.UInt32", "System.Int64", "System.UInt64",
-                                                                  "System.Single", "System.Double", "System.DateTime", "System.DateTimeOffset", "System.Guid" })]
-        [DataRow("Response.Redirect(\"\"+value)", true,  false, new [] { "int", "uint", "short", "ushort", "long", "ulong", "byte", "sbyte", "char", "bool",
-                                                                  "float", "double", "decimal", "System.IntPtr", "System.UIntPtr", "System.Int16",
-                                                                  "System.UInt16", "System.Int32", "System.UInt32", "System.Int64", "System.UInt64",
-                                                                  "System.Single", "System.Double", "System.DateTime", "System.DateTimeOffset", "System.Guid" })]
+        [DataRow("Response.Redirect(\"\"+value)", false, false, new [] { "System.Byte", "System.SByte", "System.Char", "System.Boolean",
+                                                                         "System.Int16", "System.UInt16", "System.Int32", "System.UInt32",
+                                                                         "System.Int64", "System.UInt64", "System.Single", "System.Double",
+                                                                         "System.Decimal", "System.DateTime" })]
+        [DataRow("Response.Redirect(\"\"+value)", true,  false, new[] { "System.Byte", "System.SByte", "System.Char", "System.Boolean",
+                                                                        "System.Int16", "System.UInt16", "System.Int32", "System.UInt32",
+                                                                        "System.Int64", "System.UInt64", "System.Single", "System.Double",
+                                                                        "System.Decimal", "System.DateTime" })]
         [DataRow("Response.Redirect(\"\"+value)", false, false, new[] { "object" })]
         [DataRow("Response.Redirect(\"\"+value)", true,  true,  new[] { "object" })]
         [DataTestMethod]
@@ -666,10 +666,43 @@ class OpenRedirect
     }}
 }}
 ";
+
+                    var vbTest1 = $@"
+Imports {@namespace}
+
+Class OpenRedirect
+    Public Shared Response As HttpResponse = Nothing
+
+    Public Sub Run(value As {type})
+        {sink.Replace("+", "&")}
+    End Sub
+End Class
+";
+
+                    var vbTest2 = $@"
+Imports {@namespace}
+
+Class OpenRedirect
+    Public Shared Response As HttpResponse = Nothing
+
+    Public Sub Run(value As {type})
+        {sink}
+    End Sub
+End Class
+";
+
                     if (warn)
+                    {
                         await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                        await VerifyVisualBasicDiagnostic(vbTest1, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                        await VerifyVisualBasicDiagnostic(vbTest2, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                    }
                     else
+                    {
                         await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                        await VerifyVisualBasicDiagnostic(vbTest1, null, optionsWithProjectConfig).ConfigureAwait(false);
+                        await VerifyVisualBasicDiagnostic(vbTest2, null, optionsWithProjectConfig).ConfigureAwait(false);
+                    }
                 }
             }
         }
@@ -711,29 +744,56 @@ class OpenRedirect
     }}
 }}
 ";
+
+                    var vbTest1 = $@"
+Imports {@namespace}
+
+Class OpenRedirect
+    Public Shared Response As HttpResponse = Nothing
+
+    Public Sub Run(value As {type}, flag As System.Boolean)
+        {sink.Replace("+", "&")}
+    End Sub
+End Class
+";
+
+                    var vbTest2 = $@"
+Imports {@namespace}
+
+Class OpenRedirect
+    Public Shared Response As HttpResponse = Nothing
+
+    Public Sub Run(value As {type}, flag As System.Boolean)
+        {sink}
+    End Sub
+End Class
+";
+
                     await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                    await VerifyVisualBasicDiagnostic(vbTest1, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                    await VerifyVisualBasicDiagnostic(vbTest2, Expected, optionsWithProjectConfig).ConfigureAwait(false);
                 }
             }
         }
 
         [TestCategory("Safe")]
-        [DataRow("Response.Redirect($\"{value}\")", false, false, new[] { "int", "uint", "short", "ushort", "long", "ulong", "byte", "sbyte", "char", "bool",
-                                                                          "float", "double", "decimal", "System.IntPtr", "System.UIntPtr", "System.Int16",
-                                                                          "System.UInt16", "System.Int32", "System.UInt32", "System.Int64", "System.UInt64",
-                                                                          "System.Single", "System.Double", "System.DateTime", "System.DateTimeOffset", "System.Guid" })]
-        [DataRow("Response.Redirect($\"{value}\")", true,  false, new[] { "int", "uint", "short", "ushort", "long", "ulong", "byte", "sbyte", "char", "bool",
-                                                                          "float", "double", "decimal", "System.IntPtr", "System.UIntPtr", "System.Int16",
-                                                                          "System.UInt16", "System.Int32", "System.UInt32", "System.Int64", "System.UInt64",
-                                                                          "System.Single", "System.Double", "System.DateTime", "System.DateTimeOffset", "System.Guid" })]
+        [DataRow("Response.Redirect($\"{value}\")", false, false, new[] { "System.Byte", "System.SByte", "System.Char", "System.Boolean",
+                                                                          "System.Int16", "System.UInt16", "System.Int32", "System.UInt32",
+                                                                          "System.Int64", "System.UInt64", "System.Single", "System.Double",
+                                                                          "System.Decimal", "System.DateTime" })]
+        [DataRow("Response.Redirect($\"{value}\")", true,  false, new[] { "System.Byte", "System.SByte", "System.Char", "System.Boolean",
+                                                                          "System.Int16", "System.UInt16", "System.Int32", "System.UInt32",
+                                                                          "System.Int64", "System.UInt64", "System.Single", "System.Double",
+                                                                          "System.Decimal", "System.DateTime" })]
 
         [DataRow("Response.Redirect($\"{value}\")", false, false, new[] { "object" })]
         [DataRow("Response.Redirect($\"{value}\")", true,  true, new[] { "object" })]
 
-        [DataRow("Response.Redirect($\"{value:#.0}\")",             false, false, new[] { "float" })] // ensure we're not broken by composite formatting
+        [DataRow("Response.Redirect($\"{value:#.0}\")",             false, false, new[] { "System.Single" })] // ensure we're not broken by composite formatting
         [DataRow("Response.Redirect($\"{value:yyyy'-'MM'-'dd}\")",  false, false, new[] { "System.DateTime" })]
         [DataRow("Response.Redirect($\"{value:O}\")",               false, false, new[] { "System.DateTimeOffset" })]
         [DataRow("Response.Redirect($\"{value:G}\")",               false, false, new[] { "System.Guid" })]
-        [DataRow("Response.Redirect($\"{value:#.0}\")",             true,  false, new[] { "float" })]
+        [DataRow("Response.Redirect($\"{value:#.0}\")",             true,  false, new[] { "System.Single" })]
         [DataRow("Response.Redirect($\"{value:yyyy'-'MM'-'dd}\")",  true,  false, new[] { "System.DateTime" })]
         [DataRow("Response.Redirect($\"{value:O}\")",               true,  false, new[] { "System.DateTimeOffset" })]
         [DataRow("Response.Redirect($\"{value:G}\")",               true,  false, new[] { "System.Guid" })]
@@ -770,10 +830,43 @@ class OpenRedirect
 }}
 ";
 
+
+                    var vbTest1 = $@"
+Imports {@namespace}
+
+Class OpenRedirect
+    Public Shared Response As HttpResponse = Nothing
+
+    Public Sub Run(value As {type})
+        {sink.Replace("+", "&")}
+    End Sub
+End Class
+";
+
+                    var vbTest2 = $@"
+Imports {@namespace}
+
+Class OpenRedirect
+    Public Shared Response As HttpResponse = Nothing
+
+    Public Sub Run(value As {type})
+        {sink}
+    End Sub
+End Class
+";
+
                     if (warn)
+                    {
                         await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                        await VerifyVisualBasicDiagnostic(vbTest1, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                        await VerifyVisualBasicDiagnostic(vbTest2, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                    }
                     else
+                    {
                         await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                        await VerifyVisualBasicDiagnostic(vbTest1, null, optionsWithProjectConfig).ConfigureAwait(false);
+                        await VerifyVisualBasicDiagnostic(vbTest2, null, optionsWithProjectConfig).ConfigureAwait(false);
+                    }
                 }
             }
         }
@@ -788,8 +881,8 @@ class OpenRedirect
         [DataRow(new[] {"Response.Redirect($\"{flag}{value}\")",
                         "Response.Redirect($\"{flag}{value}\", flag)" }, new object[] { "string" })]
         // concat + interp is still tainted
-        [DataRow(new[] {"Response.Redirect(flag+$\"{value}\")",
-                        "Response.Redirect($\"{value}\"+flag)" }, new object[] { "string" })]
+        [DataRow(new[] {"Response.Redirect(flag + $\"{value}\")",
+                        "Response.Redirect($\"{value}\" + flag)" }, new object[] { "string" })]
         [DataTestMethod]
         public async Task OpenRedirectInterpolatedStringDetect(string[] sinks, params string[] types)
         {
@@ -823,7 +916,33 @@ class OpenRedirect
 }}
 ";
 
+                        var vbTest1 = $@"
+Imports {@namespace}
+
+Class OpenRedirect
+    Public Shared Response As HttpResponse = Nothing
+
+    Public Sub Run(value As {type}, flag As System.Boolean)
+        {sink.Replace("+", "&")}
+    End Sub
+End Class
+";
+
+                        var vbTest2 = $@"
+Imports {@namespace}
+
+Class OpenRedirect
+    Public Shared Response As HttpResponse = Nothing
+
+    Public Sub Run(value As {type}, flag As System.Boolean)
+        {sink}
+    End Sub
+End Class
+";
+
                         await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                        await VerifyVisualBasicDiagnostic(vbTest1, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                        await VerifyVisualBasicDiagnostic(vbTest2, Expected, optionsWithProjectConfig).ConfigureAwait(false);
                     }
                 }
             }

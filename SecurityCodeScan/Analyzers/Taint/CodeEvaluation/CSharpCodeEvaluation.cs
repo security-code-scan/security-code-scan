@@ -1307,12 +1307,13 @@ namespace SecurityCodeScan.Analyzers.Taint
 
             // Detect implicit conversions to string through concatenation
             // with the binary Add operator.
-            if (expression.Kind() == SyntaxKind.AddExpression && IsStringType(state, expression))
+            if (expression.Kind() == SyntaxKind.AddExpression &&
+                ReferenceEquals(state.AnalysisContext.SemanticModel.GetTypeInfo(expression).ConvertedType, state.StringType))
             {
                 // We only do this check if one side is a string
                 // and the other side is not.
-                bool leftIsString = IsStringType(state, leftExpression);
-                bool rightIsString = IsStringType(state, rightExpression);
+                bool leftIsString = ReferenceEquals(state.AnalysisContext.SemanticModel.GetTypeInfo(leftExpression).Type, state.StringType);
+                bool rightIsString = ReferenceEquals(state.AnalysisContext.SemanticModel.GetTypeInfo(rightExpression).Type, state.StringType);
                 if (leftIsString != rightIsString)
                 {
                     if (!leftIsString)
@@ -1334,19 +1335,6 @@ namespace SecurityCodeScan.Analyzers.Taint
             result.MergeTaint(right.Taint);
 
             return result;
-        }
-
-        /// <summary>
-        /// Determines if an expression is ultimately a string type.
-        /// </summary>
-        /// <param name="state">The current execution state.</param>
-        /// <param name="expression">The expression being evaluated.</param>
-        /// <returns><see langword="true"/> if <paramref name="expression"/> is considered
-        /// a string, otherwise <see langword="false"/>.</returns>
-        private static bool IsStringType(ExecutionState state, ExpressionSyntax expression)
-        {
-            ITypeSymbol type = state.AnalysisContext.SemanticModel.GetTypeInfo(expression).ConvertedType;
-            return ReferenceEquals(type, state.StringType);
         }
 
         /// <summary>

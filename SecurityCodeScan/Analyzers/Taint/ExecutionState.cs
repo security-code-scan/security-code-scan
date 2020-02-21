@@ -19,6 +19,9 @@ namespace SecurityCodeScan.Analyzers.Taint
         public  IReadOnlyDictionary<string, VariableState> VariableStates        => Variables;
         private Dictionary<string, VariableState>          Variables             { get; set; }
 
+        private Lazy<INamedTypeSymbol>                     ObjectTypeCached;
+        public INamedTypeSymbol                            ObjectType => ObjectTypeCached.Value;
+
         private Lazy<INamedTypeSymbol>                     StringTypeCached;
         public INamedTypeSymbol                            StringType            => StringTypeCached.Value;
 
@@ -87,6 +90,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             AnalysisContext = ctx;
             Variables = new Dictionary<string, VariableState>();
+            ObjectTypeCached            = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Object));
             StringTypeCached            = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_String));
             CharTypeCached              = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Char));
             BooleanTypeCached           = new Lazy<INamedTypeSymbol>(() => ctx.Compilation.GetSpecialType(SpecialType.System_Boolean));
@@ -113,6 +117,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             AnalysisContext = other.AnalysisContext;
             Variables       = new Dictionary<string, VariableState>(other.VariableStates.Count);
+            ObjectTypeCached            = other.ObjectTypeCached;
             StringTypeCached            = other.StringTypeCached;
             CharTypeCached              = other.CharTypeCached;
             BooleanTypeCached           = other.BooleanTypeCached;
@@ -166,6 +171,8 @@ namespace SecurityCodeScan.Analyzers.Taint
         private void MergeCachedTypes(ExecutionState state)
         {
             // prone for race conditions, but small optimization
+            if (!ObjectTypeCached.IsValueCreated && state.ObjectTypeCached.IsValueCreated)
+                ObjectTypeCached = state.ObjectTypeCached;
             if (!StringTypeCached.IsValueCreated && state.StringTypeCached.IsValueCreated)
                 StringTypeCached = state.StringTypeCached;
             if (!CharTypeCached.IsValueCreated && state.CharTypeCached.IsValueCreated)

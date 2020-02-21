@@ -1356,10 +1356,11 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <param name="expression">The expression being evaluated.</param>
         /// <returns><see langword="true"/> if <paramref name="expression"/> is considered
         /// safe when converted to its string representation, otherwise <see langword="false"/>.</returns>
-        private static bool IsSafeTypeAsString(ExecutionState state, ExpressionSyntax expression)
+        private bool IsSafeTypeAsString(ExecutionState state, ExpressionSyntax expression)
         {
             ITypeSymbol type = state.AnalysisContext.SemanticModel.GetTypeInfo(expression).Type;
-            return ReferenceEquals(type, state.BooleanType)
+            return (!ProjectConfiguration.AuditMode && ReferenceEquals(type, state.ObjectType))
+                || ReferenceEquals(type, state.BooleanType)
                 || ReferenceEquals(type, state.CharType)
                 || ReferenceEquals(type, state.ByteType)
                 || ReferenceEquals(type, state.SByteType)

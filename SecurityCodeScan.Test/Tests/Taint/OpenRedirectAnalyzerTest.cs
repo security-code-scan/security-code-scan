@@ -624,42 +624,24 @@ Behavior:
         }
 
         [TestCategory("Safe")]
-        [DataRow("Response.Redirect(\"\"+value)")]
+        [DataRow("Response.Redirect(\"\"+value)", false, false, new [] { "int", "uint", "short", "ushort", "long", "ulong", "byte", "sbyte", "char", "bool",
+                                                                  "float", "double", "decimal", "System.IntPtr", "System.UIntPtr", "System.Int16",
+                                                                  "System.UInt16", "System.Int32", "System.UInt32", "System.Int64", "System.UInt64",
+                                                                  "System.Single", "System.Double", "System.DateTime", "System.DateTimeOffset", "System.Guid" })]
+        [DataRow("Response.Redirect(\"\"+value)", true,  false, new [] { "int", "uint", "short", "ushort", "long", "ulong", "byte", "sbyte", "char", "bool",
+                                                                  "float", "double", "decimal", "System.IntPtr", "System.UIntPtr", "System.Int16",
+                                                                  "System.UInt16", "System.Int32", "System.UInt32", "System.Int64", "System.UInt64",
+                                                                  "System.Single", "System.Double", "System.DateTime", "System.DateTimeOffset", "System.Guid" })]
+        [DataRow("Response.Redirect(\"\"+value)", false, false, new[] { "object" })]
+        [DataRow("Response.Redirect(\"\"+value)", true,  true,  new[] { "object" })]
         [DataTestMethod]
-        public async Task OpenRedirectImplicitString(string sink)
+        public async Task OpenRedirectImplicitString(string sink, bool auditMode, bool warn, string[] types)
         {
             var namespaces = new[] { "System.Web", "Microsoft.AspNetCore.Http" };
-            var types = new[]
-            {
-                "int",
-                "uint",
-                "short",
-                "ushort",
-                "long",
-                "ulong",
-                "byte",
-                "sbyte",
-                "char",
-                "bool",
-                "float",
-                "double",
-                "decimal",
-                "System.IntPtr",
-                "System.UIntPtr",
-                "System.Int16",
-                "System.UInt16",
-                "System.Int32",
-                "System.UInt32",
-                "System.Int64",
-                "System.UInt64",
-                "System.Single",
-                "System.Double",
-                "System.DateTime",
-                "System.DateTimeOffset",
-                "System.Guid",
-            };
 
-            var testConfig = @"
+            var testConfig = $@"
+AuditMode: {auditMode}
+
 TaintEntryPoints:
   AAA:
     ClassName: OpenRedirect
@@ -684,7 +666,10 @@ class OpenRedirect
     }}
 }}
 ";
-                    await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                    if (warn)
+                        await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                    else
+                        await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
                 }
             }
         }
@@ -698,7 +683,6 @@ class OpenRedirect
             var namespaces = new[] { "System.Web", "Microsoft.AspNetCore.Http" };
             var types = new[]
             {
-                "object",
                 "string",
             };
 
@@ -733,21 +717,34 @@ class OpenRedirect
         }
 
         [TestCategory("Safe")]
-        [DataRow("Response.Redirect($\"{value}\")", new object[] {"int", "uint", "short", "ushort", "long", "ulong", "byte", "sbyte", "char", "bool",
-                                                                  "float", "double", "decimal", "System.IntPtr", "System.UIntPtr", "System.Int16",
-                                                                  "System.UInt16", "System.Int32", "System.UInt32", "System.Int64", "System.UInt64",
-                                                                  "System.Single", "System.Double", "System.DateTime", "System.DateTimeOffset", "System.Guid" })]
+        [DataRow("Response.Redirect($\"{value}\")", false, false, new[] { "int", "uint", "short", "ushort", "long", "ulong", "byte", "sbyte", "char", "bool",
+                                                                          "float", "double", "decimal", "System.IntPtr", "System.UIntPtr", "System.Int16",
+                                                                          "System.UInt16", "System.Int32", "System.UInt32", "System.Int64", "System.UInt64",
+                                                                          "System.Single", "System.Double", "System.DateTime", "System.DateTimeOffset", "System.Guid" })]
+        [DataRow("Response.Redirect($\"{value}\")", true,  false, new[] { "int", "uint", "short", "ushort", "long", "ulong", "byte", "sbyte", "char", "bool",
+                                                                          "float", "double", "decimal", "System.IntPtr", "System.UIntPtr", "System.Int16",
+                                                                          "System.UInt16", "System.Int32", "System.UInt32", "System.Int64", "System.UInt64",
+                                                                          "System.Single", "System.Double", "System.DateTime", "System.DateTimeOffset", "System.Guid" })]
 
-        [DataRow("Response.Redirect($\"{value:#.0}\")",            "float")] // ensure we're not broken by composite formatting
-        [DataRow("Response.Redirect($\"{value:yyyy'-'MM'-'dd}\")", "System.DateTime")]
-        [DataRow("Response.Redirect($\"{value:O}\")",              "System.DateTimeOffset")]
-        [DataRow("Response.Redirect($\"{value:G}\")",              "System.Guid")]
+        [DataRow("Response.Redirect($\"{value}\")", false, false, new[] { "object" })]
+        [DataRow("Response.Redirect($\"{value}\")", true,  true, new[] { "object" })]
+
+        [DataRow("Response.Redirect($\"{value:#.0}\")",             false, false, new[] { "float" })] // ensure we're not broken by composite formatting
+        [DataRow("Response.Redirect($\"{value:yyyy'-'MM'-'dd}\")",  false, false, new[] { "System.DateTime" })]
+        [DataRow("Response.Redirect($\"{value:O}\")",               false, false, new[] { "System.DateTimeOffset" })]
+        [DataRow("Response.Redirect($\"{value:G}\")",               false, false, new[] { "System.Guid" })]
+        [DataRow("Response.Redirect($\"{value:#.0}\")",             true,  false, new[] { "float" })]
+        [DataRow("Response.Redirect($\"{value:yyyy'-'MM'-'dd}\")",  true,  false, new[] { "System.DateTime" })]
+        [DataRow("Response.Redirect($\"{value:O}\")",               true,  false, new[] { "System.DateTimeOffset" })]
+        [DataRow("Response.Redirect($\"{value:G}\")",               true,  false, new[] { "System.Guid" })]
         [DataTestMethod]
-        public async Task OpenRedirectInterpolatedStringSafe(string sink, params string[] types)
+        public async Task OpenRedirectInterpolatedStringSafe(string sink, bool auditMode, bool warn, string[] types)
         {
             var namespaces = new[] { "System.Web", "Microsoft.AspNetCore.Http" };
 
-            var testConfig = @"
+            var testConfig = $@"
+AuditMode: {auditMode}
+
 TaintEntryPoints:
   AAA:
     ClassName: OpenRedirect
@@ -773,23 +770,26 @@ class OpenRedirect
 }}
 ";
 
-                    await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                    if (warn)
+                        await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                    else
+                        await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
                 }
             }
         }
 
         [TestCategory("Detect")]
         [DataRow(new[] {"Response.Redirect($\"{value}\")",
-                        "Response.Redirect($\"{value}\", flag)" }, new object[] { "string", "object" })]
+                        "Response.Redirect($\"{value}\", flag)" }, new object[] { "string" })]
         // we're still tainted if we use a format string
         [DataRow(new[] {"Response.Redirect($\"{value:G}\")",
-                        "Response.Redirect($\"{value:G}\", flag)" }, new object[] { "string", "object" })]
+                        "Response.Redirect($\"{value:G}\", flag)" }, new object[] { "string" })]
         // {flag} is safe, ensure we're still tainted
         [DataRow(new[] {"Response.Redirect($\"{flag}{value}\")",
-                        "Response.Redirect($\"{flag}{value}\", flag)" }, new object[] { "string", "object" })]
+                        "Response.Redirect($\"{flag}{value}\", flag)" }, new object[] { "string" })]
         // concat + interp is still tainted
         [DataRow(new[] {"Response.Redirect(flag+$\"{value}\")",
-                        "Response.Redirect($\"{value}\"+flag)" }, new object[] { "string", "object" })]
+                        "Response.Redirect($\"{value}\"+flag)" }, new object[] { "string" })]
         [DataTestMethod]
         public async Task OpenRedirectInterpolatedStringDetect(string[] sinks, params string[] types)
         {

@@ -483,6 +483,38 @@ Behavior:
 
  ## ToString
 
+  System.Byte.ToString:
+    Namespace: System
+    ClassName: Byte
+    Name: ToString
+    Method:
+      Returns:
+        Taint: Safe
+
+  System.SByte.ToString:
+    Namespace: System
+    ClassName: SByte
+    Name: ToString
+    Method:
+      Returns:
+        Taint: Safe
+
+  System.Char.ToString:
+    Namespace: System
+    ClassName: Char
+    Name: ToString
+    Method:
+      Returns:
+        Taint: Safe
+
+  System.Boolean.ToString:
+    Namespace: System
+    ClassName: Boolean
+    Name: ToString
+    Method:
+      Returns:
+        Taint: Safe
+
   System.Int16.ToString:
     Namespace: System
     ClassName: Int16
@@ -542,6 +574,14 @@ Behavior:
   System.UIntPtr.ToString:
     Namespace: System
     ClassName: UIntPtr
+    Name: ToString
+    Method:
+      Returns:
+        Taint: Safe
+
+  System.Single.ToString:
+    Namespace: System
+    ClassName: Single
     Name: ToString
     Method:
       Returns:

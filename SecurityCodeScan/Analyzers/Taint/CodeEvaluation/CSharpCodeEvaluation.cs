@@ -572,6 +572,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return VisitExpression(awaitSyntax.Expression, state);
                 case ThisExpressionSyntax thisExpressionSyntax:
                     return new VariableState(thisExpressionSyntax, VariableTaint.Unknown);
+                case PredefinedTypeSyntax predefinedTypeSyntax:
+                    return new VariableState(predefinedTypeSyntax, VariableTaint.Unknown);
                 case AnonymousObjectCreationExpressionSyntax anonymousObjectCreationExpressionSyntax:
                     {
                         var finalState = new VariableState(anonymousObjectCreationExpressionSyntax, VariableTaint.Unset);
@@ -1347,8 +1349,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         private bool IsSafeTypeAsString(ExecutionState state, ExpressionSyntax expression)
         {
             ITypeSymbol type = state.AnalysisContext.SemanticModel.GetTypeInfo(expression).Type;
-            return !ReferenceEquals(type, state.StringType) &&
-                   (!ProjectConfiguration.AuditMode || !ReferenceEquals(type, state.ObjectType));
+            return !ReferenceEquals(type, state.StringType) && !ReferenceEquals(type, state.ObjectType);
         }
     }
 }

@@ -623,17 +623,121 @@ Behavior:
             await VerifyVisualBasicDiagnostic(vbTest2, expectedVB2, options: config).ConfigureAwait(false);
         }
 
+        [DataRow(@"var t = new Test();
+                   t.SetVal(value);
+                   Response.Redirect(t.ToString());", true)]
+        [DataRow(@"var t = new Test();
+                   t.SetVal(""const"");
+                   Response.Redirect(t.ToString());", false)]
+        [DataRow(@"var t = new Test();
+                   t.SetVal(value);
+                   Response.Redirect(t.GetVal());", true)]
+        [DataRow(@"var t = new Test();
+                   t.SetVal(""const"");
+                   Response.Redirect(t.GetVal());", false)]
+        [DataRow(@"var t = new Test();
+                   t.SetVal(value);
+                   Response.Redirect(string.Format(""{0}"", t));", true)]
+        [DataRow(@"var t = new Test();
+                   t.SetVal(""const"");
+                   Response.Redirect(string.Format(""{0}"", t));", false)]
+        [DataTestMethod]
+        public async Task OpenRedirectStringObject(string payload, bool warn)
+        {
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    ClassName: OpenRedirect
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            var cSharpTest = $@"
+using System.Web;
+
+class Test
+{{
+    private string _val;
+
+    public void SetVal(string val)
+    {{
+        _val = val;
+    }}
+
+    public string GetVal()
+    {{
+        return _val;
+    }}
+
+    public override string ToString()
+    {{
+        return _val;
+    }}
+}}
+
+class OpenRedirect
+{{
+    public static HttpResponse Response = null;
+
+    public void Run(string value)
+    {{
+        {payload}
+    }}
+}}
+";
+
+        var vbTest = $@"
+Imports System.Web
+
+Class Test
+    Private _val As String
+
+    Public Sub SetVal(ByVal val As String)
+        _val = val
+    End Sub
+
+    Public Function GetVal() As String
+        Return _val
+    End Function
+
+    Public Overrides Function ToString() As String
+        Return _val
+    End Function
+End Class
+
+Class OpenRedirect
+    Public Shared Response As HttpResponse = Nothing
+
+    Public Sub Run(value As String)
+        {payload.CSharpReplaceToVBasic()}
+    End Sub
+End Class
+";
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(vbTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(vbTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+        }
+
         [TestCategory("Safe")]
         [DataRow("Response.Redirect(\"\"+value)", false, false, new [] { "System.Byte", "System.SByte", "System.Char", "System.Boolean",
                                                                          "System.Int16", "System.UInt16", "System.Int32", "System.UInt32",
                                                                          "System.Int64", "System.UInt64", "System.Single", "System.Double",
                                                                          "System.Decimal", "System.DateTime" })]
-        [DataRow("Response.Redirect(\"\"+value)", true,  false, new[] { "System.Byte", "System.SByte", "System.Char", "System.Boolean",
-                                                                        "System.Int16", "System.UInt16", "System.Int32", "System.UInt32",
-                                                                        "System.Int64", "System.UInt64", "System.Single", "System.Double",
-                                                                        "System.Decimal", "System.DateTime" })]
-        [DataRow("Response.Redirect(\"\"+value)", false, false, new[] { "object" })]
-        [DataRow("Response.Redirect(\"\"+value)", true,  true,  new[] { "object" })]
+
+        [DataRow(@"var t = new Test();
+                   t.Prop1 = value;
+                   Response.Redirect(""""+t.Prop1)", false, false, new[] { "System.Byte", "System.SByte", "System.Char", "System.Boolean",
+                                                                         "System.Int16", "System.UInt16", "System.Int32", "System.UInt32",
+                                                                         "System.Int64", "System.UInt64", "System.Single", "System.Double",
+                                                                         "System.Decimal", "System.DateTime" })]
         [DataTestMethod]
         public async Task OpenRedirectImplicitString(string sink, bool auditMode, bool warn, string[] types)
         {
@@ -656,6 +760,11 @@ TaintEntryPoints:
                     var cSharpTest = $@"
 using {@namespace};
 
+class Test
+{{
+    public {type} Prop1 {{ get; set; }}
+}}
+
 class OpenRedirect
 {{
     public static HttpResponse Response = null;
@@ -670,11 +779,15 @@ class OpenRedirect
                     var vbTest1 = $@"
 Imports {@namespace}
 
+Class Test
+    Public Property Prop1 As {type}
+End Class
+
 Class OpenRedirect
     Public Shared Response As HttpResponse = Nothing
 
     Public Sub Run(value As {type})
-        {sink.Replace("+", "&")}
+        {CsToVbConverter.CSharpReplaceToVBasic(sink).Replace("+", "&")}
     End Sub
 End Class
 ";
@@ -682,11 +795,15 @@ End Class
                     var vbTest2 = $@"
 Imports {@namespace}
 
+Class Test
+    Public Property Prop1 As {type}
+End Class
+
 Class OpenRedirect
     Public Shared Response As HttpResponse = Nothing
 
     Public Sub Run(value As {type})
-        {sink}
+        {CsToVbConverter.CSharpReplaceToVBasic(sink)}
     End Sub
 End Class
 ";
@@ -708,16 +825,12 @@ End Class
         }
 
         [TestCategory("Detect")]
-        [DataRow("Response.Redirect(\"\"+value)")]
-        [DataRow("Response.Redirect(\"\"+value, flag)")]
+        [DataRow("Response.Redirect(\"\"+value)",       new object[] { "string", "object" })]
+        [DataRow("Response.Redirect(\"\"+value, flag)", new object[] { "string", "object" })]
         [DataTestMethod]
-        public async Task OpenRedirectStringConcat(string sink)
+        public async Task OpenRedirectStringConcat(string sink, params string[] types)
         {
             var namespaces = new[] { "System.Web", "Microsoft.AspNetCore.Http" };
-            var types = new[]
-            {
-                "string",
-            };
 
             var testConfig = @"
 TaintEntryPoints:
@@ -785,9 +898,6 @@ End Class
                                                                           "System.Int16", "System.UInt16", "System.Int32", "System.UInt32",
                                                                           "System.Int64", "System.UInt64", "System.Single", "System.Double",
                                                                           "System.Decimal", "System.DateTime" })]
-
-        [DataRow("Response.Redirect($\"{value}\")", false, false, new[] { "object" })]
-        [DataRow("Response.Redirect($\"{value}\")", true,  true, new[] { "object" })]
 
         [DataRow("Response.Redirect($\"{value:#.0}\")",             false, false, new[] { "System.Single" })] // ensure we're not broken by composite formatting
         [DataRow("Response.Redirect($\"{value:yyyy'-'MM'-'dd}\")",  false, false, new[] { "System.DateTime" })]
@@ -873,16 +983,16 @@ End Class
 
         [TestCategory("Detect")]
         [DataRow(new[] {"Response.Redirect($\"{value}\")",
-                        "Response.Redirect($\"{value}\", flag)" }, new object[] { "string" })]
+                        "Response.Redirect($\"{value}\", flag)" }, new object[] { "string", "object" })]
         // we're still tainted if we use a format string
         [DataRow(new[] {"Response.Redirect($\"{value:G}\")",
-                        "Response.Redirect($\"{value:G}\", flag)" }, new object[] { "string" })]
+                        "Response.Redirect($\"{value:G}\", flag)" }, new object[] { "string", "object" })]
         // {flag} is safe, ensure we're still tainted
         [DataRow(new[] {"Response.Redirect($\"{flag}{value}\")",
-                        "Response.Redirect($\"{flag}{value}\", flag)" }, new object[] { "string" })]
+                        "Response.Redirect($\"{flag}{value}\", flag)" }, new object[] { "string", "object" })]
         // concat + interp is still tainted
         [DataRow(new[] {"Response.Redirect(flag + $\"{value}\")",
-                        "Response.Redirect($\"{value}\" + flag)" }, new object[] { "string" })]
+                        "Response.Redirect($\"{value}\" + flag)" }, new object[] { "string", "object" })]
         [DataTestMethod]
         public async Task OpenRedirectInterpolatedStringDetect(string[] sinks, params string[] types)
         {

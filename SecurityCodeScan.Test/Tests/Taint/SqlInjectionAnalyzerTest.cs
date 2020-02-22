@@ -673,5 +673,56 @@ namespace Foo
             }
         }
 
+        [DataRow("new NpgsqlCommand(\"SELECT * FROM users WHERE username = '\" + username + \"';\");",                  true)]
+        [DataRow("new NpgsqlCommand(\"SELECT * FROM users WHERE username = '\" + username + \"';\", null);",            true)]
+        [DataRow("new NpgsqlCommand(\"SELECT * FROM users WHERE username = '\" + username + \"';\", null, null);",      true)]
+        [DataRow("new NpgsqlCommand { CommandText = \"SELECT * FROM users WHERE username = '\" + username + \"';\" };", true)]
+
+        [DataRow("new NpgsqlCommand(\"SELECT * FROM users WHERE username = 'indy@email.com';\");",                  false)]
+        [DataRow("new NpgsqlCommand(\"SELECT * FROM users WHERE username = 'indy@email.com';\", null);",            false)]
+        [DataRow("new NpgsqlCommand(\"SELECT * FROM users WHERE username = 'indy@email.com';\", null, null);",      false)]
+        [DataRow("new NpgsqlCommand { CommandText = \"SELECT * FROM users WHERE username = 'indy@email.com';\" };", false)]
+        [DataTestMethod]
+        public async Task NpgsqlInjection(string sink, bool warn)
+        {
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: Foo
+    ClassName: SampleClass
+    Name: Execute
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            var cSharpTest = $@"
+using Npgsql;
+
+namespace Foo
+{{
+    public class SampleClass
+    {{
+        public void Execute(string username)
+        {{
+            {sink}
+        }}
+    }}
+}}
+";
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0039",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, options: optionsWithProjectConfig).ConfigureAwait(false);
+            }
+        }
     }
 }

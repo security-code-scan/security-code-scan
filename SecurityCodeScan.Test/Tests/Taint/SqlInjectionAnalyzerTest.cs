@@ -569,5 +569,38 @@ End Namespace
                 await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
             }
         }
+
+        [DataRow("\"SELECT * FROM Users WHERE username = '\" + username + \"';\"", true)]
+        [DataTestMethod]
+        public async Task nHibernateSqlInjection(string sink, bool warn)
+        {
+            var cSharpTest = $@"using NHibernate;
+
+namespace Foo
+{{
+    public class SampleClass
+    {{
+        public void Execute(string username, ISession session)
+        {{
+            session.CreateSQLQuery({sink});
+        }}
+    }}
+}}
+";
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0037",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            }
+        }
     }
 }

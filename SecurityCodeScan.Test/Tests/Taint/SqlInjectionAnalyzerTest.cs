@@ -32,7 +32,8 @@ namespace SecurityCodeScan.Test.Taint
             MetadataReference.CreateFromFile(typeof(Microsoft.Data.Sqlite.SqliteCommand).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(NHibernate.ISession).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(Cassandra.ISession).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(Cassandra.ISession).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Npgsql.NpgsqlCommand).Assembly.Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;

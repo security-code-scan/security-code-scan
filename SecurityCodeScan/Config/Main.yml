@@ -1955,6 +1955,15 @@ Behavior:
       ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
       InjectableArguments: [SCS0036: 2]
 
+  # nHiberate SQL Injection
+  nHiberate_Session_CreateSQLQuery_1:
+    Namespace: NHibernate
+    ClassName: ISession
+    Name: CreateSQLQuery
+    Method:
+      ArgTypes: (System.String)
+      InjectableArguments: [SCS0037: 0]
+
   # Process
 
   systemdiagnostic_process:

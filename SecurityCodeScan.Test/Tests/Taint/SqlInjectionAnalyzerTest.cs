@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
+using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
 
 namespace SecurityCodeScan.Test.Taint
@@ -575,6 +576,16 @@ End Namespace
         [DataTestMethod]
         public async Task NHibernateSqlInjection(string sink, bool warn)
         {
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: Foo
+    ClassName: SampleClass
+    Name: Execute
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
             var cSharpTest = $@"
 using NHibernate;
 
@@ -582,7 +593,9 @@ namespace Foo
 {{
     public class SampleClass
     {{
-        public void Execute(string username, ISession session)
+        private ISession session = null;
+
+        public void Execute(string username)
         {{
             session.CreateSQLQuery({sink});
         }}
@@ -597,11 +610,11 @@ namespace Foo
 
             if (warn)
             {
-                await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+                await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
             }
             else
             {
-                await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+                await VerifyCSharpDiagnostic(cSharpTest, options: optionsWithProjectConfig).ConfigureAwait(false);
             }
         }
     }

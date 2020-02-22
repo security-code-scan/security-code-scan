@@ -29,7 +29,8 @@ namespace SecurityCodeScan.Test.Taint
             MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.RelationalQueryableExtensions).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(System.Data.SQLite.SQLiteCommand).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.Data.Sqlite.SqliteCommand).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(NHibernate.ISession).Assembly.Location),
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
@@ -572,9 +573,10 @@ End Namespace
 
         [DataRow("\"SELECT * FROM Users WHERE username = '\" + username + \"';\"", true)]
         [DataTestMethod]
-        public async Task nHibernateSqlInjection(string sink, bool warn)
+        public async Task NHibernateSqlInjection(string sink, bool warn)
         {
-            var cSharpTest = $@"using NHibernate;
+            var cSharpTest = $@"
+using NHibernate;
 
 namespace Foo
 {{

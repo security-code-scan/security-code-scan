@@ -1989,6 +1989,38 @@ Behavior:
       ArgTypes: (System.String, Cassandra.ConsistencyLevel)
       InjectableArguments: [SCS0038: 0]
 
+  # PG SQL Injection
+  Npgsql_1:
+    Namespace: Npgsql
+    ClassName: NpgsqlCommand
+    Name: .ctor
+    Method:
+      ArgTypes: (System.String)
+      InjectableArguments: [SCS0039: 0]
+
+  Npgsql_2:
+    Namespace: Npgsql
+    ClassName: NpgsqlCommand
+    Name: .ctor
+    Method:
+      ArgTypes: (System.String, Npgsql.NpgsqlConnection)
+      InjectableArguments: [SCS0039: 0]
+
+  Npgsql_3:
+    Namespace: Npgsql
+    ClassName: NpgsqlCommand
+    Name: .ctor
+    Method:
+      ArgTypes: (System.String, Npgsql.NpgsqlConnection, Npgsql.NpgsqlTransaction)
+      InjectableArguments: [SCS0039: 0]
+
+  Npgsql_4:
+    Namespace: Npgsql
+    ClassName: NpgsqlCommand
+    Name: CommandText
+    Field:
+      Injectable: SCS0039
+
   # Process
 
   systemdiagnostic_process:

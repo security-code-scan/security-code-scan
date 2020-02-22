@@ -573,6 +573,7 @@ End Namespace
         }
 
         [DataRow("\"SELECT * FROM Users WHERE username = '\" + username + \"';\"", true)]
+        [DataRow("\"SELECT * FROM Users WHERE username = 'indy@email.com';\"", false)]
         [DataTestMethod]
         public async Task NHibernateSqlInjection(string sink, bool warn)
         {

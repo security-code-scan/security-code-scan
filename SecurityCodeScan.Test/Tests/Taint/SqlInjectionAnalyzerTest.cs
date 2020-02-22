@@ -32,6 +32,7 @@ namespace SecurityCodeScan.Test.Taint
             MetadataReference.CreateFromFile(typeof(Microsoft.Data.Sqlite.SqliteCommand).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(NHibernate.ISession).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Cassandra.ISession).Assembly.Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
@@ -618,5 +619,58 @@ namespace Foo
                 await VerifyCSharpDiagnostic(cSharpTest, options: optionsWithProjectConfig).ConfigureAwait(false);
             }
         }
+
+        [DataRow("\"SELECT * FROM Users WHERE username = '\" + username + \"';\"",                           true)]
+        [DataRow("\"SELECT * FROM Users WHERE username = '\" + username + \"';\", 1",                        true)]
+        [DataRow("\"SELECT * FROM Users WHERE username = '\" + username + \"';\", ConsistencyLevel.All",     true)]
+
+        [DataRow("\"SELECT * FROM Users WHERE username = 'indy@email.com';\"",                           false)]
+        [DataRow("\"SELECT * FROM Users WHERE username = 'indy@email.com';\", 1",                        false)]
+        [DataRow("\"SELECT * FROM Users WHERE username = 'indy@email.com';\", ConsistencyLevel.All",     false)]
+        [DataTestMethod]
+        public async Task CassandraCqlInjection(string sink, bool warn)
+        {
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: Foo
+    ClassName: SampleClass
+    Name: Execute
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            var cSharpTest = $@"
+using Cassandra;
+
+namespace Foo
+{{
+    public class SampleClass
+    {{
+        private ISession session = null;
+
+        public void Execute(string username)
+        {{
+            session.Execute({sink});
+        }}
+    }}
+}}
+";
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0038",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, options: optionsWithProjectConfig).ConfigureAwait(false);
+            }
+        }
+
     }
 }

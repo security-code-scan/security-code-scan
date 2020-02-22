@@ -1964,6 +1964,31 @@ Behavior:
       ArgTypes: (System.String)
       InjectableArguments: [SCS0037: 0]
 
+  # Cassandra CQL Injection
+  Cassandra_Execute_1:
+    Namespace: Cassandra
+    ClassName: ISession
+    Name: Execute
+    Method:
+      ArgTypes: (System.String)
+      InjectableArguments: [SCS0038: 0]
+      
+  Cassandra_Execute_2:
+    Namespace: Cassandra
+    ClassName: ISession
+    Name: Execute
+    Method:
+      ArgTypes: (System.String, System.Int32)
+      InjectableArguments: [SCS0038: 0]
+
+  Cassandra_Execute_3:
+    Namespace: Cassandra
+    ClassName: ISession
+    Name: Execute
+    Method:
+      ArgTypes: (System.String, Cassandra.ConsistencyLevel)
+      InjectableArguments: [SCS0038: 0]
+
   # Process
 
   systemdiagnostic_process:

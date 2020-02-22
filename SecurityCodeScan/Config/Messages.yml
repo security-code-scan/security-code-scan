@@ -54,6 +54,11 @@ SCS0036:
   title_assignment: Possible SQL injection
   description: The dynamic value passed in the SQL query should be validated.
 
+SCS0038:
+  title: "Possible CQL injection in {1} argument passed to '{0}'"
+  title_assignment: Possible CQL injection
+  description: The dynamic value passed in the CQL query should be validated.
+
 SCS0037:
   title: "Possible SQL injection in {1} argument passed to '{0}'"
   title_assignment: Possible SQL injection

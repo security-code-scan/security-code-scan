@@ -147,7 +147,12 @@ namespace SecurityCodeScan.Test.Helpers
                                                    ? await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false)
                                                    : await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false);
 
-                foreach (var diag in diags)
+                // workaround to suppress:
+                // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'NHibernate' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+                // in NHibernateSqlInjection
+                var filtered = diags.Where(x => x.Id != "CS1701");
+
+                foreach (var diag in filtered)
                 {
                     if (diag.Location == Location.None || diag.Location.IsInMetadata)
                     {

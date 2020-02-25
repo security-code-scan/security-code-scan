@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
+using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
 
 namespace SecurityCodeScan.Test.Taint
@@ -29,7 +30,10 @@ namespace SecurityCodeScan.Test.Taint
             MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.RelationalQueryableExtensions).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(System.Data.SQLite.SQLiteCommand).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.Data.Sqlite.SqliteCommand).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(NHibernate.ISession).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Cassandra.ISession).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Npgsql.NpgsqlCommand).Assembly.Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
@@ -567,6 +571,208 @@ End Namespace
             {
                 await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
                 await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            }
+        }
+
+        [DataRow("\"SELECT * FROM Users WHERE username = '\" + username + \"';\"", true)]
+        [DataRow("\"SELECT * FROM Users WHERE username = 'indy@email.com';\"", false)]
+        [DataTestMethod]
+        public async Task NHibernateSqlInjection(string sink, bool warn)
+        {
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: Foo
+    ClassName: SampleClass
+    Name: Execute
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            var cSharpTest = $@"
+using NHibernate;
+
+namespace Foo
+{{
+    public class SampleClass
+    {{
+        private ISession session = null;
+
+        public void Execute(string username)
+        {{
+            session.CreateSQLQuery({sink});
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports NHibernate
+
+Namespace Foo
+    Public Class SampleClass
+        Private session As ISession = Nothing
+
+        Public Sub Execute(ByVal username As String)
+            session.CreateSQLQuery({sink})
+        End Sub
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0037",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, options: optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, options: optionsWithProjectConfig).ConfigureAwait(false);
+            }
+        }
+
+        [DataRow("\"SELECT * FROM Users WHERE username = '\" + username + \"';\"",                           true)]
+        [DataRow("\"SELECT * FROM Users WHERE username = '\" + username + \"';\", 1",                        true)]
+        [DataRow("\"SELECT * FROM Users WHERE username = '\" + username + \"';\", ConsistencyLevel.All",     true)]
+
+        [DataRow("\"SELECT * FROM Users WHERE username = 'indy@email.com';\"",                           false)]
+        [DataRow("\"SELECT * FROM Users WHERE username = 'indy@email.com';\", 1",                        false)]
+        [DataRow("\"SELECT * FROM Users WHERE username = 'indy@email.com';\", ConsistencyLevel.All",     false)]
+        [DataTestMethod]
+        public async Task CassandraCqlInjection(string sink, bool warn)
+        {
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: Foo
+    ClassName: SampleClass
+    Name: Execute
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            var cSharpTest = $@"
+using Cassandra;
+
+namespace Foo
+{{
+    public class SampleClass
+    {{
+        private ISession session = null;
+
+        public void Execute(string username)
+        {{
+            session.Execute({sink});
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports Cassandra
+
+Namespace Foo
+    Public Class SampleClass
+        Private session As ISession = Nothing
+
+        Public Sub Execute(ByVal username As String)
+            session.Execute({sink})
+        End Sub
+    End Class
+End Namespace
+";
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0038",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, options: optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, options: optionsWithProjectConfig).ConfigureAwait(false);
+            }
+        }
+
+        [DataRow("var sql = new NpgsqlCommand(\"SELECT * FROM users WHERE username = '\" + username + \"';\");",                  true)]
+        [DataRow("var sql = new NpgsqlCommand(\"SELECT * FROM users WHERE username = '\" + username + \"';\", null);",            true)]
+        [DataRow("var sql = new NpgsqlCommand(\"SELECT * FROM users WHERE username = '\" + username + \"';\", null, null);",      true)]
+        [DataRow("var sql = new NpgsqlCommand(); sql.CommandText = \"SELECT * FROM users WHERE username = '\" + username + \"';\";", true)]
+
+        [DataRow("var sql = new NpgsqlCommand(\"SELECT * FROM users WHERE username = 'indy@email.com';\");",                  false)]
+        [DataRow("var sql = new NpgsqlCommand(\"SELECT * FROM users WHERE username = 'indy@email.com';\", null);",            false)]
+        [DataRow("var sql = new NpgsqlCommand(\"SELECT * FROM users WHERE username = 'indy@email.com';\", null, null);",      false)]
+        [DataRow("var sql = new NpgsqlCommand(); sql.CommandText = \"SELECT * FROM users WHERE username = 'indy@email.com';\";", false)]
+        [DataTestMethod]
+        public async Task NpgsqlInjection(string sink, bool warn)
+        {
+            var testConfig = @"
+TaintEntryPoints:
+  AAA:
+    Namespace: Foo
+    ClassName: SampleClass
+    Name: Execute
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            var cSharpTest = $@"
+using Npgsql;
+
+namespace Foo
+{{
+    public class SampleClass
+    {{
+        public void Execute(string username)
+        {{
+            {sink}
+        }}
+    }}
+}}
+";
+
+            sink = sink.Replace("var ", "Dim ");
+            sink = sink.Replace(";", "\r\n");
+            sink = sink.Replace("null", "Nothing");
+
+            var visualBasicTest = $@"
+Imports Npgsql
+
+Namespace Foo
+    Public Class SampleClass
+        Public Sub Execute(ByVal username As String)
+            {sink}
+        End Sub
+    End Class
+End Namespace
+";
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0039",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, options: optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, options: optionsWithProjectConfig).ConfigureAwait(false);
             }
         }
     }

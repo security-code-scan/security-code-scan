@@ -1955,6 +1955,72 @@ Behavior:
       ArgTypes: (System.Data.Common.DbTransaction, System.Data.CommandType, System.String)
       InjectableArguments: [SCS0036: 2]
 
+  # nHiberate SQL Injection
+  nHiberate_Session_CreateSQLQuery_1:
+    Namespace: NHibernate
+    ClassName: ISession
+    Name: CreateSQLQuery
+    Method:
+      ArgTypes: (System.String)
+      InjectableArguments: [SCS0037: 0]
+
+  # Cassandra CQL Injection
+  Cassandra_Execute_1:
+    Namespace: Cassandra
+    ClassName: ISession
+    Name: Execute
+    Method:
+      ArgTypes: (System.String)
+      InjectableArguments: [SCS0038: 0]
+      
+  Cassandra_Execute_2:
+    Namespace: Cassandra
+    ClassName: ISession
+    Name: Execute
+    Method:
+      ArgTypes: (System.String, System.Int32)
+      InjectableArguments: [SCS0038: 0]
+
+  Cassandra_Execute_3:
+    Namespace: Cassandra
+    ClassName: ISession
+    Name: Execute
+    Method:
+      ArgTypes: (System.String, Cassandra.ConsistencyLevel)
+      InjectableArguments: [SCS0038: 0]
+
+  # PG SQL Injection
+  Npgsql_1:
+    Namespace: Npgsql
+    ClassName: NpgsqlCommand
+    Name: .ctor
+    Method:
+      ArgTypes: (System.String)
+      InjectableArguments: [SCS0039: 0]
+
+  Npgsql_2:
+    Namespace: Npgsql
+    ClassName: NpgsqlCommand
+    Name: .ctor
+    Method:
+      ArgTypes: (System.String, Npgsql.NpgsqlConnection)
+      InjectableArguments: [SCS0039: 0]
+
+  Npgsql_3:
+    Namespace: Npgsql
+    ClassName: NpgsqlCommand
+    Name: .ctor
+    Method:
+      ArgTypes: (System.String, Npgsql.NpgsqlConnection, Npgsql.NpgsqlTransaction)
+      InjectableArguments: [SCS0039: 0]
+
+  Npgsql_4:
+    Namespace: Npgsql
+    ClassName: NpgsqlCommand
+    Name: CommandText
+    Field:
+      Injectable: SCS0039
+
   # Process
 
   systemdiagnostic_process:

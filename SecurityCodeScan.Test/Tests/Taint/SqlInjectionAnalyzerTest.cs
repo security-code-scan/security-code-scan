@@ -605,6 +605,21 @@ namespace Foo
     }}
 }}
 ";
+
+            var visualBasicTest = $@"
+Imports NHibernate
+
+Namespace Foo
+    Public Class SampleClass
+        Private session As ISession = Nothing
+
+        Public Sub Execute(ByVal username As String)
+            session.CreateSQLQuery({sink})
+        End Sub
+    End Class
+End Namespace
+";
+
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0037",
@@ -614,10 +629,12 @@ namespace Foo
             if (warn)
             {
                 await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
             }
             else
             {
                 await VerifyCSharpDiagnostic(cSharpTest, options: optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, options: optionsWithProjectConfig).ConfigureAwait(false);
             }
         }
 
@@ -657,6 +674,20 @@ namespace Foo
     }}
 }}
 ";
+
+            var visualBasicTest = $@"
+Imports Cassandra
+
+Namespace Foo
+    Public Class SampleClass
+        Private session As ISession = Nothing
+
+        Public Sub Execute(ByVal username As String)
+            session.Execute({sink})
+        End Sub
+    End Class
+End Namespace
+";
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0038",
@@ -666,22 +697,24 @@ namespace Foo
             if (warn)
             {
                 await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
             }
             else
             {
                 await VerifyCSharpDiagnostic(cSharpTest, options: optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, options: optionsWithProjectConfig).ConfigureAwait(false);
             }
         }
 
-        [DataRow("new NpgsqlCommand(\"SELECT * FROM users WHERE username = '\" + username + \"';\");",                  true)]
-        [DataRow("new NpgsqlCommand(\"SELECT * FROM users WHERE username = '\" + username + \"';\", null);",            true)]
-        [DataRow("new NpgsqlCommand(\"SELECT * FROM users WHERE username = '\" + username + \"';\", null, null);",      true)]
-        [DataRow("new NpgsqlCommand { CommandText = \"SELECT * FROM users WHERE username = '\" + username + \"';\" };", true)]
+        [DataRow("var sql = new NpgsqlCommand(\"SELECT * FROM users WHERE username = '\" + username + \"';\");",                  true)]
+        [DataRow("var sql = new NpgsqlCommand(\"SELECT * FROM users WHERE username = '\" + username + \"';\", null);",            true)]
+        [DataRow("var sql = new NpgsqlCommand(\"SELECT * FROM users WHERE username = '\" + username + \"';\", null, null);",      true)]
+        [DataRow("var sql = new NpgsqlCommand(); sql.CommandText = \"SELECT * FROM users WHERE username = '\" + username + \"';\";", true)]
 
-        [DataRow("new NpgsqlCommand(\"SELECT * FROM users WHERE username = 'indy@email.com';\");",                  false)]
-        [DataRow("new NpgsqlCommand(\"SELECT * FROM users WHERE username = 'indy@email.com';\", null);",            false)]
-        [DataRow("new NpgsqlCommand(\"SELECT * FROM users WHERE username = 'indy@email.com';\", null, null);",      false)]
-        [DataRow("new NpgsqlCommand { CommandText = \"SELECT * FROM users WHERE username = 'indy@email.com';\" };", false)]
+        [DataRow("var sql = new NpgsqlCommand(\"SELECT * FROM users WHERE username = 'indy@email.com';\");",                  false)]
+        [DataRow("var sql = new NpgsqlCommand(\"SELECT * FROM users WHERE username = 'indy@email.com';\", null);",            false)]
+        [DataRow("var sql = new NpgsqlCommand(\"SELECT * FROM users WHERE username = 'indy@email.com';\", null, null);",      false)]
+        [DataRow("var sql = new NpgsqlCommand(); sql.CommandText = \"SELECT * FROM users WHERE username = 'indy@email.com';\";", false)]
         [DataTestMethod]
         public async Task NpgsqlInjection(string sink, bool warn)
         {
@@ -709,6 +742,22 @@ namespace Foo
     }}
 }}
 ";
+
+            sink = sink.Replace("var ", "Dim ");
+            sink = sink.Replace(";", "\r\n");
+            sink = sink.Replace("null", "Nothing");
+
+            var visualBasicTest = $@"
+Imports Npgsql
+
+Namespace Foo
+    Public Class SampleClass
+        Public Sub Execute(ByVal username As String)
+            {sink}
+        End Sub
+    End Class
+End Namespace
+";
             var expected = new DiagnosticResult
             {
                 Id       = "SCS0039",
@@ -718,10 +767,12 @@ namespace Foo
             if (warn)
             {
                 await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
             }
             else
             {
                 await VerifyCSharpDiagnostic(cSharpTest, options: optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, options: optionsWithProjectConfig).ConfigureAwait(false);
             }
         }
     }

@@ -211,6 +211,14 @@ Behavior:
 
  # ToString
 
+  System.Byte.ToString:
+
+  System.SByte.ToString:
+
+  System.Char.ToString:
+
+  System.Boolean.ToString:
+
   System.Int16.ToString:
 
   System.Int32.ToString:
@@ -226,6 +234,8 @@ Behavior:
   System.UInt64.ToString:
 
   System.UIntPtr.ToString:
+
+  System.Single.ToString:
 
   System.Double.ToString:
 

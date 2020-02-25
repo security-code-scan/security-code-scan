@@ -510,5 +510,98 @@ End Class
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
+
+        [DataRow("fileUpload.SaveAs(path)")]
+        [TestCategory("Detect")]
+        [DataTestMethod]
+        public async Task PathTraversalFileUploadSaveAs(string sink)
+        {
+            var cSharpTest = $@"
+#pragma warning disable 8019
+    using System;
+    using System.Web.Mvc;
+    using System.Web.UI.WebControls;
+#pragma warning restore 8019
+
+class PathTraversal : Controller
+{{
+    public void Run(string path)
+    {{
+        FileUpload fileUpload = new FileUpload();
+        {sink};
+    }}
+}}
+";
+
+            sink = sink.CSharpReplaceToVBasic();
+            var visualBasicTest = $@"
+#Disable Warning BC50001
+    Imports System
+    Imports System.Web.Mvc
+    Imports System.Web.UI.WebControls
+#Enable Warning BC50001
+
+Class PathTraversal
+    Inherits Controller
+
+    Public Sub Run(path As String)
+        Dim fileUpload As New FileUpload()
+        {sink.CSharpReplaceToVBasic()}
+    End Sub
+End Class
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0018",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+        }
+
+        [DataRow("fileUpload.SaveAs(\"\")")]
+        [TestCategory("Safe")]
+        [DataTestMethod]
+        public async Task PathTraversalFileUploadSaveAsConst(string sink)
+        {
+            var cSharpTest = $@"
+#pragma warning disable 8019
+    using System;
+    using System.Web.Mvc;
+    using System.Web.UI.WebControls;
+#pragma warning restore 8019
+
+class PathTraversal : Controller
+{{
+    public void Run()
+    {{
+        FileUpload fileUpload = new FileUpload();
+        {sink};
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+#Disable Warning BC50001
+    Imports System
+    Imports System.Web.Mvc
+    Imports System.Web.UI.WebControls
+#Enable Warning BC50001
+
+Class PathTraversal
+    Inherits Controller
+
+    Public Sub Run()
+        Dim fileUpload As New FileUpload()
+        {sink.CSharpReplaceToVBasic()}
+    End Sub
+End Class
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
     }
 }

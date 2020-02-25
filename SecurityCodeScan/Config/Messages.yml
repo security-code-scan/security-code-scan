@@ -54,6 +54,21 @@ SCS0036:
   title_assignment: Possible SQL injection
   description: The dynamic value passed in the SQL query should be validated.
 
+SCS0037:
+  title: "Possible nHibernate SQL injection in {1} argument passed to '{0}'"
+  title_assignment: Possible nHibernate SQL injection
+  description: The dynamic value passed in the nHibernate SQL query should be bound as a named parameter.
+
+SCS0038:
+  title: "Possible CQL injection in {1} argument passed to '{0}'"
+  title_assignment: Possible CQL injection
+  description: The dynamic value passed in the CQL query should be bound as a named parameter.
+
+SCS0039:
+  title: "Possible NPGSQL injection in {1} argument passed to '{0}'"
+  title_assignment: Possible NPGSQL injection
+  description: The dynamic value passed in the NPGSQL query should be bound as a named parameter.
+
 SCS0027:
   title: "Open redirect: possibly unvalidated input in {1} argument passed to '{0}'"
   title_assignment: Possible open redirect

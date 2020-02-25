@@ -2713,7 +2713,7 @@ Behavior:
         [DataRow("Request.HttpMethod",                                false)]
         [DataRow("Request.InputStream.ToString()",                    true)]
         [DataRow("Request.IsAuthenticated.ToString()",                false)]
-        [DataRow("Request.IsLocal.ToString()",                        true)]
+        [DataRow("Request.IsLocal.ToString()",                        false)]
         [DataRow("Request.IsSecureConnection.ToString()",             false)]
         [DataRow("Request[\"id\"]",                                   true)]
         [DataRow("Request.LogonUserIdentity.ToString()",              false)]

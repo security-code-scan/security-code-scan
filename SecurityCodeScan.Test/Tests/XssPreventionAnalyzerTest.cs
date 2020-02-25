@@ -260,7 +260,7 @@ namespace VulnerableApp
     public class TestController : Controller
     {
         [HttpGet(""{inputData}"")]
-        public string Get(int inputData) => ""value "" + inputData;
+        public string Get(string inputData) => ""value "" + inputData;
     }
 }
             ";

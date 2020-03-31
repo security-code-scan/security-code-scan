@@ -28,10 +28,10 @@ msbuild
 
 #### Tests
 Most of the tests are written in two languages: C# and VB.NET. If you aren't an expert in VB.NET (me neither) use [any online converter](https://converter.telerik.com/) to create the VB.NET counterpart from tested C# code example.  
-Tests are ideal for developing features are fixing bugs as it is easy to debug.
+Tests are ideal for developing features and fixing bugs as it is easy to debug.
 
 #### Debugging
-In case you are not sure what is wrong or you see AD0001 error with an exception, it is possible to debug the problematic Visual Studio solution.  
+In case you are not sure what is wrong or you see AD0001 error with an exception, it is possible to debug the analysis of problematic Visual Studio solution.  
 > Visual Studio offloads some static analysis work to a separate process. It is a good idea to uncomment [the lines](https://github.com/security-code-scan/security-code-scan/blob/b246418f5d17ba8634ffd70295da636ee3596fc5/SecurityCodeScan/Analyzers/Analyzers.cs#L134-L135) to have a chance to debug the child process.
 
 First, make sure there are no Security Code Scan Visual Studio extensions installed to avoid interference.  

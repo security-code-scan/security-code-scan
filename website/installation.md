@@ -21,8 +21,8 @@ The NuGet version runs during a build and in background as IntelliSense (VS exte
 If the CI server of your choice is using MSBuild, then integration of SCS is just a matter of adding NuGet packages and collecting the output from the build. SCS warnings are in the form of  
 `[source file](line,column): warning SCS[rule id]: [warning description] [project_file]`  
 If your CI server doesn't support MSBuild, here is an example how it can be scripted to use Docker container for building:  
-* `git clone` or copy by other means the sources to a local directory.
+* `git clone` or copy by other means the sources of your project to a local directory.
 * `docker run -ti --rm --volume $PWD/SourcesFolderName:/tmp/app -w /tmp/app microsoft/dotnet:2.0-sdk`
-* `dotnet add src/SourcesFolderName/ProjectName.csproj package SecurityCodeScanVS2017` to reference SCS NuGet package in specific project file. Repeat for every project you want to analyze. Strictly speaking the step is not necessary if the SCS NuGet package is already referenced in project during development.
+* `dotnet add src/SourcesFolderName/ProjectName.csproj package SecurityCodeScan` to reference SCS NuGet package in specific project file. Repeat for every project you want to analyze. Strictly speaking the step is not necessary if the SCS NuGet package is already referenced in project during development.
 * `dotnet build`
 * Grep the output.

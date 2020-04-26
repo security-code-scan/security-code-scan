@@ -23,6 +23,9 @@ If the CI server of your choice is using MSBuild, then integration of SCS is jus
 If your CI server doesn't support MSBuild, here is an example how it can be scripted to use Docker container for building:  
 * `git clone` or copy by other means the sources of your project to a local directory.
 * `docker run -ti --rm --volume $PWD/SourcesFolderName:/tmp/app -w /tmp/app microsoft/dotnet:2.0-sdk`
-* `dotnet add src/SourcesFolderName/ProjectName.csproj package SecurityCodeScan` to reference SCS NuGet package in specific project file. Repeat for every project you want to analyze. Strictly speaking the step is not necessary if the SCS NuGet package is already referenced in project during development.
+* `dotnet add src/SourcesFolderName/ProjectName.csproj package SecurityCodeScanVS2017` to reference SCS NuGet package in specific project file. Repeat for every project you want to analyze. Strictly speaking the step is not necessary if the SCS NuGet package is already referenced in project during development.
+> ⚠️If there is an error `Package 'SecurityCodeScanVS2017' is incompatible with 'all' frameworks in project` try:  
+a. `dotnet nuget locals all -c` as suggested in [this NuGet issue](https://github.com/NuGet/Home/issues/5127#issuecomment-360645795).  
+b. or using `dotnet add src/SourcesFolderName/ProjectName.csproj package SecurityCodeScan` instead.  
 * `dotnet build`
 * Grep the output.

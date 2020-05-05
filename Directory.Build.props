@@ -1,5 +1,14 @@
 <Project>
-  <PropertyGroup>
-    <AssemblyVersionNumber Condition=" '$(AssemblyVersionNumber)' == '' ">3.5.1.0</AssemblyVersionNumber>
-  </PropertyGroup>
+  <Choose>
+    <When Condition=" '$(APPVEYOR)' != '' ">
+      <PropertyGroup>
+        <AssemblyVersionNumber>$([System.Text.RegularExpressions.Regex]::Match($(AssemblyVersionNumber).Value, '^\d\.\d\.\d\.\d'))</AssemblyVersionNumber>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <AssemblyVersionNumber>3.5.1.0</AssemblyVersionNumber>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
 </Project>

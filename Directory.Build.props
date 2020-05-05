@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <AssemblyVersionNumber Condition=" '$(AssemblyVersionNumber)' == '' ">3.5.1.0</AssemblyVersionNumber>
+  </PropertyGroup>
+</Project>

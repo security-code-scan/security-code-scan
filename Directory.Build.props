@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <AssemblyVersionNumber Condition=" '$(APPVEYOR_REPO_TAG_NAME)' == '' ">1.1.1.1</AssemblyVersionNumber>
+  </PropertyGroup>
+</Project>

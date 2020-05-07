@@ -1,4 +1,8 @@
 # Release Notes
+## 3.5.1
+Bugfix release.
+* Fix MissingMethodException "Method not found: 'YamlDotNet.Serialization.IDeserializer YamlDotNet.Serialization.DeserializerBuilder.Build()'" if incompatible version of YamlDotNet is loaded by the process.
+
 ## 3.5.0
 * Better taint analysis in implicit string conversions case.
 * Out of range exception fix.

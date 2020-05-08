@@ -55,6 +55,8 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="maketplace.md" />
+    <None Include="marketplace.json" />
     <None Include="packages.config" />
     <None Include="$(IntermediateOutputPath)source.extension.vsixmanifest" />
     <AdditionalFiles Include="source.extension.vsixmanifest">

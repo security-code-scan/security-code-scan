@@ -1,0 +1,36 @@
+﻿{
+  "$schema": "http://json.schemastore.org/vsix-publish",
+  "categories": [ "Security", "Coding" ],
+  "identity": {
+    "internalName": "SecurityCodeScan",
+    "tags": [
+      ".NET",
+      "Analysis",
+      "Analyzer",
+      "Analyzers",
+      "Code",
+      "CSRF",
+      "Injection",
+      "OWASP",
+      "Roslyn",
+      "Roslyn Analyzer",
+      "Scan",
+      "Security",
+      "Security Code",
+      "Security Code Scan",
+      "SeuciryCodeScan",
+      "SQLi",
+      "Static Analysis",
+      "Static Code Analysis",
+      "Vulnerability",
+      "XSS",
+      "XXE"
+    ]
+  },
+  "overview": "marketplace.md",
+  "priceCategory": "free",
+  "publisher": "JaroslavLobacevski",
+  "private": false,
+  "qna": false,
+  "repo": "https://github.com/security-code-scan/security-code-scan"
+}

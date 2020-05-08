@@ -10,7 +10,7 @@
         <ReleaseNotes>https://security-code-scan.github.io/#ReleaseNotes</ReleaseNotes>
         <Icon>icon.png</Icon>
         <PreviewImage>preview.png</PreviewImage>
-        <Tags>SecurityCodeScan,Security.Code.Scan,Security Code Scan,Static Code Analysis,Security,Vulnerability,Analyzer,Analyzers,.NET,Roslyn,OWASP,Injection,XSS,CSRF,XXE,SQLi</Tags>
+        <Tags>SecurityCodeScan;Security.Code.Scan;Security Code Scan;Static Code Analysis;Security;Vulnerability;Analyzer;Analyzers;.NET;Roslyn;OWASP;Injection;XSS;CSRF;XXE;SQLi</Tags>
     </Metadata>
     <Installation>
         <InstallationTarget Version="[15.0,17.0)" Id="Microsoft.VisualStudio.Pro" />

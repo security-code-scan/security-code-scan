@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -33,10 +35,26 @@ namespace SecurityCodeScan.Test.Taint
             MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(NHibernate.ISession).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Cassandra.ISession).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(Npgsql.NpgsqlCommand).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(Npgsql.NpgsqlCommand).Assembly.Location),
+            MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
+                                                     .Location),
+            MetadataReference.CreateFromFile(Assembly.Load("Microsoft.Bcl.AsyncInterfaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
+                                                     .Location),
         };
 
-        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
+        private DiagnosticResult CSharpDeprecated = new DiagnosticResult
+        {
+            Id = "CS0619",
+            Severity = DiagnosticSeverity.Error,
+        };
+
+        private DiagnosticResult VBasicDeprecated = new DiagnosticResult
+        {
+            Id = "BC30668",
+            Severity = DiagnosticSeverity.Error,
+        };
+
+    protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [TestMethod]
         [Ignore("Full taint analysis is needed")]
@@ -438,19 +456,21 @@ End Namespace
             }
         }
 
-        // todo: EF Core 2.2, 3.1
-        [DataRow("new SampleContext().Test.FromSql(input)", true)]
-        [DataRow("new SampleContext().Test.FromSql(input, null)", true)]
-        [DataRow("new SampleContext().Test.FromSql(\"select\")", false)]
-        [DataRow("new SampleContext().Test.FromSql(\"select\", null)", false)]
-        [DataRow("new SampleContext().Test.FromSql(\"select {0}\", input)", false)]
+        [DataRow("new SampleContext().Test.FromSqlInterpolated($\"select {input}\")", false)]
+        [DataRow("new SampleContext().Database.ExecuteSqlInterpolated($\"select {input}\")", false)]
+        [DataRow("new SampleContext().Database.ExecuteSqlInterpolatedAsync($\"select {input}\")", false)]
+        [DataRow("new SampleContext().Test.FromSql(input)", true, true)]
+        [DataRow("new SampleContext().Test.FromSql(input, null)", true, true)]
+        [DataRow("new SampleContext().Test.FromSql(\"select\")", false, true)]
+        [DataRow("new SampleContext().Test.FromSql(\"select\", null)", false, true)]
+        [DataRow("new SampleContext().Test.FromSql(\"select {0}\", input)", false, true)]
         [DataRow("new SampleContext().Database.ExecuteSqlCommand(input)", true)]
         [DataRow("new SampleContext().Database.ExecuteSqlCommand(input, null)", true)]
         [DataRow("new SampleContext().Database.ExecuteSqlCommand(\"select\")", false)]
         [DataRow("new SampleContext().Database.ExecuteSqlCommand(\"select\", null)", false)]
         [DataRow("new SampleContext().Database.ExecuteSqlCommand(\"select {0}\", input)", false)]
         [DataTestMethod]
-        public async Task SqlInjectionEntityFrameworkCore(string sink, bool warn)
+        public async Task SqlInjectionEntityFrameworkCore(string sink, bool warn, bool obsolete = false)
         {
             var cSharpTest = $@"
 using Microsoft.EntityFrameworkCore;
@@ -467,7 +487,9 @@ namespace sample
     {{
         public void Run(string input, params object[] parameters)
         {{
+#pragma warning disable CS0618
             {sink};
+#pragma warning restore CS0618
         }}
     }}
 }}
@@ -490,11 +512,16 @@ Namespace sample
         Inherits Controller
 
         Public Sub Run(input As System.String, ParamArray parameters() As Object)
+#Disable Warning BC40000
             Dim temp = {sink}
+#Enable Warning BC40000
         End Sub
     End Class
 End Namespace
 ";
+            var csDeprecated = CSharpDeprecated.WithLocation(17, 13);
+            var vbDeprecated = VBasicDeprecated.WithLocation(17, 24);
+
             var expected = new DiagnosticResult
             {
                 Id = "SCS0035",
@@ -503,13 +530,13 @@ End Namespace
 
             if (warn)
             {
-                await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+                await VerifyCSharpDiagnostic(cSharpTest, obsolete ? new [] { csDeprecated, expected } : new[] { expected }, dotNetVersion: new Version(4, 6, 1)).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, obsolete ? new[] { vbDeprecated, expected } : new[] { expected }, dotNetVersion: new Version(4, 6, 1)).ConfigureAwait(false);
             }
             else
             {
-                await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+                await VerifyCSharpDiagnostic(cSharpTest, obsolete ? new[] { csDeprecated } : null,  dotNetVersion: new Version(4, 6, 1)).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, obsolete ? new[] { vbDeprecated } : null, dotNetVersion: new Version(4, 6, 1)).ConfigureAwait(false);
             }
         }
 

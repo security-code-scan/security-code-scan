@@ -1714,20 +1714,6 @@ Behavior:
     Method:
       InjectableArguments: [SCS0035: 1]
 
-  RelationalDatabaseFacadeExtensions_ExecuteSqlInterpolated:
-    Namespace: Microsoft.EntityFrameworkCore
-    ClassName: RelationalDatabaseFacadeExtensions
-    Name: ExecuteSqlInterpolated
-    Method:
-      InjectableArguments: [SCS0035: 1]
-
-  RelationalDatabaseFacadeExtensions_ExecuteSqlInterpolatedAsync:
-    Namespace: Microsoft.EntityFrameworkCore
-    ClassName: RelationalDatabaseFacadeExtensions
-    Name: ExecuteSqlInterpolatedAsync
-    Method:
-      InjectableArguments: [SCS0035: 1]
-
   RelationalDatabaseFacadeExtensions_ExecuteSqlRaw:
     Namespace: Microsoft.EntityFrameworkCore
     ClassName: RelationalDatabaseFacadeExtensions
@@ -1794,13 +1780,6 @@ Behavior:
     Namespace: Microsoft.EntityFrameworkCore
     ClassName: RelationalQueryableExtensions
     Name: FromSqlRaw
-    Method:
-      InjectableArguments: [SCS0035: 1]
-
-  RelationalQueryableExtensions_FromSqlInterpolated:
-    Namespace: Microsoft.EntityFrameworkCore
-    ClassName: RelationalQueryableExtensions
-    Name: FromSqlInterpolated
     Method:
       InjectableArguments: [SCS0035: 1]
 

@@ -152,6 +152,7 @@ namespace SecurityCodeScan.Config
         public Dictionary<string, TaintEntryPointData> TaintEntryPoints                    { get; set; }
         public List<CsrfProtectionData>                CsrfProtection                      { get; set; }
         public List<string>                            PasswordFields                      { get; set; }
+        public string                                  WebConfigFiles                      { get; set; }
         public List<string>                            ConstantFields                      { get; set; }
         public List<string>                            TaintTypes                          { get; set; }
     }

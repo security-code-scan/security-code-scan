@@ -6,6 +6,9 @@ ReportAnalysisCompletion: false
 # Set to 'true' to see more warnings
 AuditMode: false
 
+# Case insensitive pattern of web config files to analyze when AdditionalFileItemNames are configured (see https://security-code-scan.github.io/#Analyzing.aspxandweb.configFiles)
+WebConfigFiles: ^web\.config.*
+
 # Allows to define custom anti CSRF attributes and conditions
 # The format is:
 # <<<

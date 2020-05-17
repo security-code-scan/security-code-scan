@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.RegularExpressions;
 using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Analyzers.Utils;
 
@@ -63,6 +64,8 @@ namespace SecurityCodeScan.Config
             _PasswordFields = new HashSet<string>(config.PasswordFields);
             PasswordFields  = new ReadOnlyHashSet<string>(_PasswordFields);
 
+            WebConfigFilesRegex = config.WebConfigFilesRegex;
+
             _ConstantFields = new HashSet<string>(config.ConstantFields);
             ConstantFields  = new ReadOnlyHashSet<string>(_ConstantFields);
 
@@ -116,6 +119,11 @@ namespace SecurityCodeScan.Config
                 }
             }
 
+            if (configData.WebConfigFiles != null)
+            {
+                WebConfigFilesRegex = new Regex(configData.WebConfigFiles, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            }
+
             foreach (var data in configData.ConstantFields)
             {
                 _ConstantFields.Add(data);
@@ -135,6 +143,8 @@ namespace SecurityCodeScan.Config
 
         private readonly HashSet<string>         _PasswordFields;
         public           ReadOnlyHashSet<string> PasswordFields { get; }
+
+        public Regex                             WebConfigFilesRegex { get; private set; }
 
         private readonly HashSet<string>         _ConstantFields;
         public           ReadOnlyHashSet<string> ConstantFields { get; }
@@ -231,6 +241,11 @@ namespace SecurityCodeScan.Config
                 {
                     _PasswordFields.Add(field.ToUpperInvariant());
                 }
+            }
+
+            if (config.WebConfigFiles != null)
+            {
+                WebConfigFilesRegex = new Regex(config.WebConfigFiles, RegexOptions.IgnoreCase | RegexOptions.Compiled);
             }
 
             if (config.ConstantFields != null)

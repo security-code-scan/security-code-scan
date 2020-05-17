@@ -29,16 +29,29 @@ namespace SecurityCodeScan.Analyzers
 
         public override void Initialize(ISecurityAnalysisContext context)
         {
+            context.RegisterCompilationStartAction(OnCompilationStartAction);
             context.RegisterCompilationAction(OnCompilationAction);
+        }
+
+        private Configuration Config;
+
+#pragma warning disable RS1012 // Start action has no registered actions.
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+#pragma warning restore RS1012 // Start action has no registered actions.
+        {
+            Config = config;
         }
 
         private void OnCompilationAction(CompilationAnalysisContext ctx)
         {
             //Load Web.config files : ASP.net web application configuration
-            foreach (AdditionalText file in ctx.Options
-                                               .AdditionalFiles
-                                               .Where(file => Path.GetFileName(file.Path).StartsWith("Web.config")))
+            foreach (AdditionalText file in ctx.Options.AdditionalFiles)
             {
+                var fileName = Path.GetFileName(file.Path);
+
+                if (!Config.WebConfigFilesRegex.IsMatch(fileName))
+                    continue;
+
                 AnalyzeFile(file, ctx);
             }
         }

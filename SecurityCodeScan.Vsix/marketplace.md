@@ -5,11 +5,9 @@
 
 * Taint analysis to track user input data.
 
-* One click refactoring for some vulnerabilities.
-
 * Analyzes .NET and [.NET Core](https://en.wikipedia.org/wiki/.NET_Framework#.NET_Core) projects in a background (IntelliSense) or during a build.
 
-* Continuous Integration (CI) through [MSBuild](https://msdn.microsoft.com/en-us/library/dd393574.aspx).  For Unix CI runners please use [VS2017 nuget package](https://www.nuget.org/packages/SecurityCodeScan.VS2017).
+* Continuous Integration (CI) through [MSBuild](https://msdn.microsoft.com/en-us/library/dd393574.aspx). For Unix CI runners please use [VS2017 nuget package](https://www.nuget.org/packages/SecurityCodeScan.VS2017).
 
 * Works with Visual Studio 2015 or higher. Visual Studio [Community](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx), Professional and Enterprise editions are supported. Other editors that support Roslyn based analyzers like Rider or OmniSharp should work too.
 

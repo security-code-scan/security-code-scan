@@ -38,7 +38,7 @@ namespace SecurityCodeScan.Test.Taint
             MetadataReference.CreateFromFile(Assembly.Load("System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")
                                                      .Location),
             MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
-                                                     .Location)
+                                                     .Location),
         };
 
         private DiagnosticResult Expected = new DiagnosticResult

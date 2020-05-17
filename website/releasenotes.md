@@ -1,4 +1,8 @@
 # Release Notes
+## 3.5.3
+* Removed EntityFramework "Interpolated" sinks that caused false positives.
+* Added configuration entry for Web Config analyzer to allow filtering file names.
+
 ## 3.5.2
 Bugfix release.
 * Fix MissingMethodException "Method not found: 'YamlDotNet.Serialization.IDeserializer YamlDotNet.Serialization.DeserializerBuilder.Build()'" if incompatible version of YamlDotNet is loaded by the process.

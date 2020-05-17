@@ -3,7 +3,7 @@
 
 * Detects various [security vulnerability patterns](https://security-code-scan.github.io/#rules): SQL Injection, Cross-Site Scripting (XSS), Cross-Site Request Forgery (CSRF), XML eXternal Entity Injection (XXE), etc.
 
-* Taint analysis to track user input data.
+* Basic intraprocedural taint analysis for input data.
 
 * Analyzes .NET and [.NET Core](https://en.wikipedia.org/wiki/.NET_Framework#.NET_Core) projects in a background (IntelliSense) or during a build.
 

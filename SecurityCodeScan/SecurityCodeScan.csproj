@@ -67,4 +67,10 @@
     </Exec>
   </Target>
 
+  <Import Project="..\Roslyn\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
+
+  <Import Project="..\Roslyn\FlowAnalysis\FlowAnalysis.Utilities.projitems" Label="Shared" />
+
+  <Import Project="..\Roslyn\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />
+
 </Project>

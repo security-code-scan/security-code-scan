@@ -1,15 +1,31 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26127.3
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30225.117
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityCodeScan", "SecurityCodeScan\SecurityCodeScan.csproj", "{D7034F4A-4741-4493-8E1E-0A6D3BE9734E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SecurityCodeScan", "SecurityCodeScan\SecurityCodeScan.csproj", "{D7034F4A-4741-4493-8E1E-0A6D3BE9734E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityCodeScan.Test", "SecurityCodeScan.Test\SecurityCodeScan.Test.csproj", "{5F79D0FA-AC61-4D61-A12E-010A026A0D27}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityCodeScan.Vsix", "SecurityCodeScan.Vsix\SecurityCodeScan.Vsix.csproj", "{449FA31F-A571-4091-97A7-FDD37F0AE7AC}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Roslyn", "Roslyn", "{34B11A26-6373-492D-ACCC-F11D1E4FC16F}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Analyzer.Utilities", "Roslyn\Compiler\Analyzer.Utilities.shproj", "{EC946164-1E17-410B-B7D9-7DE7E6268D63}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "FlowAnalysis.Utilities", "Roslyn\FlowAnalysis\FlowAnalysis.Utilities.shproj", "{FCB56CBA-FA35-46A8-86B7-BAE5433197D9}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Workspaces.Utilities", "Roslyn\Workspaces\Workspaces.Utilities.shproj", "{99F594B1-3916-471D-A761-A6731FC50E9A}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Roslyn\Workspaces\Workspaces.Utilities.projitems*{99f594b1-3916-471d-a761-a6731fc50e9a}*SharedItemsImports = 13
+		Roslyn\Compiler\Analyzer.Utilities.projitems*{d7034f4a-4741-4493-8e1e-0a6d3be9734e}*SharedItemsImports = 5
+		Roslyn\FlowAnalysis\FlowAnalysis.Utilities.projitems*{d7034f4a-4741-4493-8e1e-0a6d3be9734e}*SharedItemsImports = 5
+		Roslyn\Workspaces\Workspaces.Utilities.projitems*{d7034f4a-4741-4493-8e1e-0a6d3be9734e}*SharedItemsImports = 5
+		Roslyn\Compiler\Analyzer.Utilities.projitems*{ec946164-1e17-410b-b7d9-7de7e6268d63}*SharedItemsImports = 13
+		Roslyn\FlowAnalysis\FlowAnalysis.Utilities.projitems*{fcb56cba-fa35-46a8-86b7-bae5433197d9}*SharedItemsImports = 13
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -31,8 +47,13 @@ Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EC946164-1E17-410B-B7D9-7DE7E6268D63} = {34B11A26-6373-492D-ACCC-F11D1E4FC16F}
+		{FCB56CBA-FA35-46A8-86B7-BAE5433197D9} = {34B11A26-6373-492D-ACCC-F11D1E4FC16F}
+		{99F594B1-3916-471D-A761-A6731FC50E9A} = {34B11A26-6373-492D-ACCC-F11D1E4FC16F}
+	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		EnterpriseLibraryConfigurationToolBinariesPathV6 = packages\EnterpriseLibrary.Common.6.0.1304.0\lib\NET45;packages\EnterpriseLibrary.Data.6.0.1304.0\lib\NET45
 		SolutionGuid = {4890F503-884C-48F5-982B-41C1DB7472F5}
+		EnterpriseLibraryConfigurationToolBinariesPathV6 = packages\EnterpriseLibrary.Common.6.0.1304.0\lib\NET45;packages\EnterpriseLibrary.Data.6.0.1304.0\lib\NET45
 	EndGlobalSection
 EndGlobal

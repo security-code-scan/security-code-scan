@@ -19,7 +19,11 @@ namespace SecurityCodeScan.Analyzers
 
     internal class SecurityAnalysisContext : ISecurityAnalysisContext
     {
+#pragma warning disable RS1025 // Configure generated code analysis (already done by the caller)
+#pragma warning disable RS1026 // Enable concurrent execution (already done by the caller)
         public void Initialize(AnalysisContext analysisContext, IEnumerable<SecurityAnalyzer> workers)
+#pragma warning restore RS1026 // Enable concurrent execution (already done by the caller)
+#pragma warning restore RS1025 // Configure generated code analysis (already done by the caller)
         {
             foreach (var worker in workers)
             {

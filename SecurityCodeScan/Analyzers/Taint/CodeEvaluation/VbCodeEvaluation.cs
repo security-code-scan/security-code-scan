@@ -495,7 +495,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                     varState = VisitExpression(declaration.Initializer.Value, state);
                     var type = state.AnalysisContext.SemanticModel.GetTypeInfo(declaration.Initializer.Value);
 
-                    if (type.ConvertedType != null && (type.ConvertedType == state.StringType || type.ConvertedType.IsValueType))
+                    if (type.ConvertedType != null && (Equals(type.ConvertedType, state.StringType) || type.ConvertedType.IsValueType))
                     {
                         var copy = new VariableState(varState.Node, varState.Taint, varState.Value);
                         foreach (var property in varState.PropertyStates)

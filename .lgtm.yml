@@ -1,0 +1,5 @@
+# https://lgtm.com/help/lgtm/customizing-file-classification
+extraction:
+  csharp:
+    index:
+      solution: "LGTM.sln"

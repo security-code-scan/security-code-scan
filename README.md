@@ -39,3 +39,4 @@ First, make sure there are no Security Code Scan Visual Studio extensions instal
 Right click `SecurityCodeScan.Vsix` project in the solution and choose `Set as StartUp project`.  
 Start debugging in Visual Studio. It will open another instance of Visual Studio with debugger attached.  
 Open the solution with the problematic source.  
+

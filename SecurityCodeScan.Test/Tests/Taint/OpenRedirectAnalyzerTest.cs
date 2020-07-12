@@ -146,10 +146,9 @@ TaintEntryPoints:
         [DataRow("System.Web.Mvc",           "new RedirectResult(input, true)")]
         [DataRow("Microsoft.AspNetCore.Mvc", "new RedirectResult(input)")]
         [DataRow("Microsoft.AspNetCore.Mvc", "new RedirectResult(input, true)")]
-        // todo: AspNetCore 2.0
-        //[DataRow("Microsoft.AspNetCore.Mvc", "new RedirectResult(input, true, true)")]
-        //[DataRow("Microsoft.AspNetCore.Mvc", "RedirectPreserveMethod(input)")]
-        //[DataRow("Microsoft.AspNetCore.Mvc", "RedirectPermanentPreserveMethod(input)")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "new RedirectResult(input, true, true)")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "RedirectPreserveMethod(input)")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "RedirectPermanentPreserveMethod(input)")]
         [DataTestMethod]
         public async Task OpenRedirectController(string @namespace, string sink)
         {
@@ -190,10 +189,9 @@ End Class
         [DataRow("System.Web.Mvc",           "new RedirectResult(\"\", flag)")]
         [DataRow("Microsoft.AspNetCore.Mvc", "new RedirectResult(\"\")")]
         [DataRow("Microsoft.AspNetCore.Mvc", "new RedirectResult(\"\", flag)")]
-        // todo: AspNetCore 2.0
-        //[DataRow("Microsoft.AspNetCore.Mvc", "new RedirectResult(\"\", flag, flag)")]
-        //[DataRow("Microsoft.AspNetCore.Mvc", "RedirectPreserveMethod(\"\")")]
-        //[DataRow("Microsoft.AspNetCore.Mvc", "RedirectPermanentPreserveMethod(\"\")")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "new RedirectResult(\"\", flag, flag)")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "RedirectPreserveMethod(\"\")")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "RedirectPermanentPreserveMethod(\"\")")]
         [DataRow("System.Web.Mvc",           "Redirect(Url.RouteUrl(new {controller = input}) + \"#Id\")")]
         [DataTestMethod]
         public async Task OpenRedirectControllerConst(string @namespace, string sink)

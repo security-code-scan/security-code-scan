@@ -271,7 +271,13 @@ namespace SecurityCodeScan.Test.Helpers
                 count++;
             }
 
-            return solution.GetProject(projectId);
+            var newProject = solution.GetProject(projectId);
+
+            var parseOptions = newProject.ParseOptions.WithFeatures(
+                    newProject.ParseOptions.Features.Concat(
+                        new[] { new KeyValuePair<string, string>("flow-analysis", "true") }));
+
+            return newProject.WithParseOptions(parseOptions);
         }
 
         #endregion

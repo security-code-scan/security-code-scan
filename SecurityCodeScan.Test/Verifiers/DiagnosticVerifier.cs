@@ -179,7 +179,7 @@ namespace SecurityCodeScan.Test.Helpers
                                                          GetAdditionalReferences(),
                                                          includeCompilerDiagnostics).ConfigureAwait(false);
 
-            await VerifyDiagnosticResults(diagnostics.Diagnostics, diagnostics.Documents, analyzers, language, cancellationToken, expected)
+            await VerifyDiagnosticResults(diagnostics.Diagnostics, diagnostics.Documents, language, cancellationToken, expected)
                 .ConfigureAwait(false);
         }
 
@@ -216,21 +216,24 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="expectedResults">Diagnostic Results that should have appeared in the code</param>
         private static async Task VerifyDiagnosticResults(ICollection<Diagnostic>            actualResults,
                                                           IEnumerable<Document>              documents,
-                                                          ImmutableArray<DiagnosticAnalyzer> analyzers,
                                                           string                             language,
                                                           CancellationToken                  cancellationToken,
                                                           params DiagnosticResult[]          expectedResults)
         {
+            string diagnosticsOutput = actualResults.Any()
+                                               ? FormatDiagnostics(actualResults.ToArray())
+                                               : "    NONE.";
+            Console.WriteLine($@"
+Diagnostics:
+{diagnosticsOutput}
+");
+
             int expectedCount = expectedResults.Length;
             int actualCount   = actualResults.Count;
             var documentsWithLineNumbers = await GetSourceWithLineNumbers(documents, cancellationToken).ConfigureAwait(false);
 
             if (expectedCount != actualCount)
             {
-                string diagnosticsOutput = actualResults.Any()
-                                               ? FormatDiagnostics(analyzers, actualResults.ToArray())
-                                               : "    NONE.";
-
                 var msg = $@"{documentsWithLineNumbers}
 Mismatch between number of diagnostics returned, expected ""{expectedCount}"" actual ""{actualCount}"" (Language:{language})
 
@@ -238,13 +241,6 @@ Diagnostics:
 {diagnosticsOutput}
 ";
                 Assert.IsTrue(false, msg);
-            }
-
-            //For debug purpose
-            foreach (var actual in actualResults)
-            {
-                var lineSpan = actual.Location.GetLineSpan();
-                Console.WriteLine($"{actual.Id} ({actual.Severity}): {lineSpan.Path} {lineSpan.StartLinePosition}");
             }
 
             for (int i = 0; i < expectedResults.Length; i++)
@@ -255,34 +251,11 @@ Diagnostics:
 
                 if (expected.Line != -1 || expected.Column != -1)
                 {
-                    VerifyDiagnosticLocation(analyzers,
-                                             documentsWithLineNumbers,
-                                             actual,
+                    VerifyDiagnosticLocation(documentsWithLineNumbers,
                                              actual.Location,
                                              expected.Locations.First(),
-                                             language);
-
-                    var additionalLocations = actual.AdditionalLocations.ToArray();
-
-                    if (additionalLocations.Length != expected.Locations.Count - 1)
-                    {
-                        Assert.IsTrue(false,
-                                      $@"{documentsWithLineNumbers}
-Expected {expected.Locations.Count - 1} additional locations but got {additionalLocations.Length} for Diagnostic:
-{FormatDiagnostics(analyzers, actual)}
-(Language: {language})
-");
-                    }
-
-                    for (int j = 0; j < additionalLocations.Length; ++j)
-                    {
-                        VerifyDiagnosticLocation(analyzers,
-                                                 documentsWithLineNumbers,
-                                                 actual,
-                                                 additionalLocations[j],
-                                                 expected.Locations[j + 1],
-                                                 language);
-                    }
+                                             language,
+                                             diagnosticsOutput);
                 }
 
                 if (actual.Id != expected.Id)
@@ -291,9 +264,8 @@ Expected {expected.Locations.Count - 1} additional locations but got {additional
                                   $@"{documentsWithLineNumbers}
 Expected diagnostic id to be ""{expected.Id}"" was ""{actual.Id}""
 
-Diagnostic:
-    {FormatDiagnostics(analyzers, actual)}
-(Language: {language})
+Diagnostics:
+{diagnosticsOutput}
  ");
                 }
 
@@ -303,9 +275,8 @@ Diagnostic:
                                   $@"{documentsWithLineNumbers}
 Expected diagnostic severity to be ""{expected.Severity}"" was ""{actual.Severity}""
 
-Diagnostic:
-    {FormatDiagnostics(analyzers, actual)}
-(Language: {language})
+Diagnostics:
+{diagnosticsOutput}
  ");
                 }
 
@@ -315,9 +286,8 @@ Diagnostic:
                                   $@"{documentsWithLineNumbers}
 Expected diagnostic message to be ""{expected.Message}"" was ""{actual.GetMessage()}""
 
-Diagnostic:
-    {FormatDiagnostics(analyzers, actual)}
-(Language: {language})
+Diagnostics:
+{diagnosticsOutput}
  ");
                 }
             }
@@ -327,12 +297,11 @@ Diagnostic:
         /// Helper method to VerifyDiagnosticResult that checks the location of a diagnostic and
         /// compares it with the location in the expected DiagnosticResult.
         /// </summary>
-        private static void VerifyDiagnosticLocation(ImmutableArray<DiagnosticAnalyzer> analyzers,
-                                                     string                             documentsWithLineNumbers,
-                                                     Diagnostic                         diagnostic,
+        private static void VerifyDiagnosticLocation(string                             documentsWithLineNumbers,
                                                      Location                           actual,
                                                      DiagnosticResultLocation           expected,
-                                                     string                             language)
+                                                     string                             language,
+                                                     string                             diagnosticsOutput)
         {
             var actualSpan = actual.GetLineSpan();
             var extension = language == LanguageNames.CSharp ? CSharpDefaultFileExt : VisualBasicDefaultExt;
@@ -341,9 +310,8 @@ Diagnostic:
                           $@"{documentsWithLineNumbers}
 Expected diagnostic to be in file ""{expected.Path}.{extension}"" was actually in file ""{actualSpan.Path}""
 
-Diagnostic:
-    {FormatDiagnostics(analyzers, diagnostic)}
-(Language: {language})
+Diagnostics:
+{diagnosticsOutput}
  ");
 
             var actualLinePosition = actualSpan.StartLinePosition;
@@ -357,9 +325,8 @@ Diagnostic:
                                   $@"{documentsWithLineNumbers}
 Expected diagnostic to be on line ""{expected.Line}"" was actually on line ""{actualLinePosition.Line + 1}""
 
-Diagnostic:
-    {FormatDiagnostics(analyzers, diagnostic)}
-(Language: {language})
+Diagnostics:
+{diagnosticsOutput}
  ");
                 }
             }
@@ -374,9 +341,8 @@ Diagnostic:
                               $@"{documentsWithLineNumbers}
 Expected diagnostic to start at column ""{expected.Column}"" was actually at column ""{actualLinePosition.Character + 1}""
 
-Diagnostic:
-    {FormatDiagnostics(analyzers, diagnostic)}
-(Language: {language})
+Diagnostics:
+{diagnosticsOutput}
  ");
             }
         }
@@ -389,57 +355,15 @@ Diagnostic:
         /// Helper method to format a Diagnostic into an easily readable string
         /// </summary>
         /// <returns>The Diagnostics formatted as a string</returns>
-        private static string FormatDiagnostics(ImmutableArray<DiagnosticAnalyzer> analyzers, params Diagnostic[] diagnostics)
+        private static string FormatDiagnostics(params Diagnostic[] diagnostics)
         {
             var builder = new StringBuilder();
             for (int i = 0; i < diagnostics.Length; ++i)
             {
-                builder.AppendLine("// " + diagnostics[i]);
-                FormatDiagnostic(builder, analyzers, diagnostics[i], i == diagnostics.Length - 1);
+                builder.AppendLine(diagnostics[i].ToString());
             }
 
             return builder.ToString();
-        }
-
-        private static void FormatDiagnostic(StringBuilder builder, ImmutableArray<DiagnosticAnalyzer> analyzers, Diagnostic diagnostic, bool lastDiagnostic)
-        {
-            foreach (var analyzer in analyzers)
-            {
-                var analyzerType = analyzer.GetType();
-                var rules        = analyzer.SupportedDiagnostics;
-
-                foreach (var rule in rules)
-                {
-                    if (rule.Id != diagnostic.Id)
-                        continue;
-
-                    var location = diagnostic.Location;
-                    if (location == Location.None)
-                    {
-                        builder.AppendFormat("GetGlobalResult({0}.{1})", analyzerType.Name, rule.Id);
-                    }
-                    else
-                    {
-                        Assert.IsTrue(location.IsInSource,
-                                      $"Test base does not currently handle diagnostics in metadata locations. Diagnostic in metadata: {diagnostic}\r\n");
-
-                        string resultMethodName = diagnostic.Location.SourceTree.FilePath.EndsWith(".cs")
-                                                      ? "GetCSharpResultAt"
-                                                      : "GetBasicResultAt";
-                        var linePosition = diagnostic.Location.GetLineSpan().StartLinePosition;
-
-                        builder.Append($"{resultMethodName}({linePosition.Line + 1}, {linePosition.Character + 1}, {analyzerType.Name}.{rule.Id})");
-                    }
-
-                    if (!lastDiagnostic)
-                    {
-                        builder.Append(',');
-                    }
-
-                    builder.AppendLine();
-                    return;
-                }
-            }
         }
 
         #endregion

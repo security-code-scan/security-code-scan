@@ -20,6 +20,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             var sourceInfosBuilder = PooledHashSet<SourceInfo>.GetInstance();
 
             sourceInfosBuilder.AddSourceInfo(
+                WellKnownTypeNames.SystemWebMvcControllerBase,
+                isInterface: false,
+                taintedProperties: null,
+                taintedMethods: null,
+                taintPublicMethodParameters: true);
+            sourceInfosBuilder.AddSourceInfo(
+                WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerBase,
+                isInterface: false,
+                taintedProperties: null,
+                taintedMethods: null,
+                taintPublicMethodParameters: true);
+            sourceInfosBuilder.AddSourceInfo(
+                WellKnownTypeNames.SystemWebHttpApiController,
+                isInterface: false,
+                taintedProperties: null,
+                taintedMethods: null,
+                taintPublicMethodParameters: true);
+            sourceInfosBuilder.AddSourceInfo(
                 WellKnownTypeNames.SystemWebHttpCookie,
                 isInterface: false,
                 taintedProperties: new string[] {

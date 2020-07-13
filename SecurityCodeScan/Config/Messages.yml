@@ -86,7 +86,7 @@ SCS0028:
   description: Deserialization from untrusted source is unsafe.
 
 SCS0031:
-  title: "Possible LDAP injection in {1} argument passed to '{0}'"
+  title: "Potential LDAP injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
   title_assignment: Possible LDAP injection
   description: The dynamic value passed in the LDAP query should be validated.
 

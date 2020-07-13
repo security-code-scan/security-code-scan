@@ -412,7 +412,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 IEnumerable<SinkKind> sinkKinds,
                 IEnumerable<SymbolAccess> sources)
             {
-                SymbolAccess sink = new SymbolAccess(sinkSymbol, sinkLocation, this.OwningSymbol);
+                SymbolAccess sink = new SymbolAccess(sinkSymbol, sinkLocation, sinkSymbol.ContainingSymbol);
                 this.TrackTaintedDataEnteringSink(sink, sinkKinds, sources);
             }
 
@@ -449,7 +449,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                             if (this.IsMethodArgumentASink(targetMethod, infosForType, taintedArgument, out HashSet<SinkKind>? sinkKinds))
                             {
                                 TaintedDataAbstractValue abstractValue = this.GetCachedAbstractValue(taintedArgument);
-                                this.TrackTaintedDataEnteringSink(targetMethod, originalOperation.Syntax.GetLocation(), sinkKinds, abstractValue.SourceOrigins);
+                                this.TrackTaintedDataEnteringSink(taintedArgument.Parameter, taintedArgument.Syntax.GetLocation(), sinkKinds, abstractValue.SourceOrigins);
                             }
                         }
                     }

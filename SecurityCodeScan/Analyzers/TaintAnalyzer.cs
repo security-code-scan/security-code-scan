@@ -231,7 +231,7 @@ namespace SecurityCodeScan.Analyzers
                                                             sourceSink.Sink.Location,
                                                             additionalLocations: new Location[] { sourceOrigin.Location },
                                                             messageArgs: new object[] {
-                                                        sourceSink.Sink.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
+                                                        sourceSink.Sink.Symbol.Name,
                                                         sourceSink.Sink.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
                                                         sourceOrigin.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
                                                         sourceOrigin.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)});

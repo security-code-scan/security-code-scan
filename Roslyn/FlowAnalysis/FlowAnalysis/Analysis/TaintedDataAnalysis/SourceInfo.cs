@@ -27,7 +27,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <param name="taintedMethodsNeedsPointsToAnalysis">Methods that generate tainted data and whose arguments don't need extra value content analysis.</param>
         /// <param name="taintedMethodsNeedsValueContentAnalysis">Methods that generate tainted data and whose arguments need extra value content analysis and points to analysis.</param>
         /// <param name="taintConstantArray"></param>
-        /// <param name="taintPublicMethodParameters"></param>
         public SourceInfo(
             string fullTypeName,
             bool isInterface,
@@ -36,8 +35,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)> taintedMethodsNeedsPointsToAnalysis,
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)> taintedMethodsNeedsValueContentAnalysis,
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)> transferMethods,
-            bool taintConstantArray,
-            bool taintPublicMethodParameters)
+            bool taintConstantArray)
         {
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
             IsInterface = isInterface;
@@ -47,7 +45,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             TaintedMethodsNeedsValueContentAnalysis = taintedMethodsNeedsValueContentAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsValueContentAnalysis));
             TransferMethods = transferMethods ?? throw new ArgumentNullException(nameof(transferMethods));
             TaintConstantArray = taintConstantArray;
-            TaintPublicMethodParameters = taintPublicMethodParameters;
         }
 
         /// <summary>
@@ -142,11 +139,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         public bool TaintConstantArray { get; }
 
         /// <summary>
-        /// Indicates all public methods' parameters of this type generate tainted data.
-        /// </summary>
-        public bool TaintPublicMethodParameters { get; }
-
-        /// <summary>
         /// Indicates that this <see cref="SourceInfo"/> uses <see cref="ValueContentAbstractValue"/>s.
         /// </summary>
         public bool RequiresValueContentAnalysis => this.TaintedMethodsNeedsValueContentAnalysis.Any();
@@ -154,14 +146,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         public override int GetHashCode()
         {
             return HashUtilities.Combine(this.TaintConstantArray.GetHashCode(),
-                HashUtilities.Combine(this.TaintPublicMethodParameters.GetHashCode(),
                 HashUtilities.Combine(this.TaintedProperties,
                 HashUtilities.Combine(this.TaintedMethods,
                 HashUtilities.Combine(this.TaintedMethodsNeedsPointsToAnalysis,
                 HashUtilities.Combine(this.TaintedMethodsNeedsValueContentAnalysis,
                 HashUtilities.Combine(this.TransferMethods,
                 HashUtilities.Combine(this.IsInterface.GetHashCode(),
-                    StringComparer.Ordinal.GetHashCode(this.FullTypeName)))))))));
+                    StringComparer.Ordinal.GetHashCode(this.FullTypeName))))))));
         }
 
         public override bool Equals(object obj)
@@ -179,8 +170,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && this.TaintedMethodsNeedsPointsToAnalysis == other.TaintedMethodsNeedsPointsToAnalysis
                 && this.TaintedMethodsNeedsValueContentAnalysis == other.TaintedMethodsNeedsValueContentAnalysis
                 && this.TransferMethods == other.TransferMethods
-                && this.TaintConstantArray == other.TaintConstantArray
-                && this.TaintPublicMethodParameters == other.TaintPublicMethodParameters;
+                && this.TaintConstantArray == other.TaintConstantArray;
         }
     }
 }

@@ -17,33 +17,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             PooledHashSet<SinkInfo> builder = PooledHashSet<SinkInfo>.GetInstance();
 
             builder.AddSinkInfo(
-                WellKnownTypeNames.SystemIOStreamReader,
-                SinkKind.FilePathInjection,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: null,
-                sinkMethodParameters: new[] {
-                    ( ".ctor", new[] { "path" } ),
-                });
-            builder.AddSinkInfo(
-                WellKnownTypeNames.SystemIOStreamWriter,
-                SinkKind.FilePathInjection,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: null,
-                sinkMethodParameters: new[] {
-                    ( ".ctor", new[] { "path" } ),
-                });
-            builder.AddSinkInfo(
-                WellKnownTypeNames.SystemIOFileStream,
-                SinkKind.FilePathInjection,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: null,
-                sinkMethodParameters: new[] {
-                    ( ".ctor", new[] { "handle", "path" } ),
-                });
-            builder.AddSinkInfo(
                 WellKnownTypeNames.SystemIODirectory,
                 SinkKind.FilePathInjection,
                 isInterface: false,
@@ -81,7 +54,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ( "ReadAllText", new[] { "path" } ),
                     ( "ReadAllTextAsync", new[] { "path" } ),
                     ( "ReadLines", new[] { "path" } ),
-                    ( "Replace", new[] { "sourceFileName", "destinationFileName", "destinationBackupFileName" } ),
                     ( "WriteAllBytes", new[] { "path" } ),
                     ( "WriteAllBytesAsync", new[] { "path" } ),
                     ( "WriteAllLines", new[] { "path" } ),
@@ -99,15 +71,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ( "CopyTo", new[] { "destFileName" } ),
                     ( "MoveTo", new[] { "destFileName" } ),
                     ( "Replace", new[] { "destinationFileName"} ),
-                });
-            builder.AddSinkInfo(
-                WellKnownTypeNames.SystemWebUIWebControlsFileUpload,
-                SinkKind.FilePathInjection,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: null,
-                sinkMethodParameters: new[] {
-                    ( "SaveAs", new[] { "filename" } ),
                 });
 
             SinkInfos = builder.ToImmutableAndFree();

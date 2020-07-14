@@ -17,33 +17,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             var sinkInfosBuilder = PooledHashSet<SinkInfo>.GetInstance();
 
             sinkInfosBuilder.AddSinkInfo(
-                "Test",
-                SinkKind.Sql,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: null,
-                sinkMethodParameters: new[] {
-                    ( "Sink", new[] { "input", } ),
-                    ( "Injectable", new[] { "dangerous", } ),
-                    ( "InjectableOpt", new[] { "dangerous", } ),
-                });
-            sinkInfosBuilder.AddSinkInfo(
-                "TestExtensions",
-                SinkKind.Sql,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: null,
-                sinkMethodParameters: new[] {
-                    ( "Injectable2", new[] { "dangerous", } ),
-                    ( "InjectableOpt2", new[] { "dangerous", } ),
-                });
-
-
-
-
-
-
-            sinkInfosBuilder.AddSinkInfo(
                 WellKnownTypeNames.SystemDataIDbCommand,
                 SinkKind.Sql,
                 isInterface: true,
@@ -73,58 +46,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "SelectCommand",
                     "UpdateCommand",
                 },
-                sinkMethodParameters: new[] {
-                    ( ".ctor", new[] { "selectCommand", } ),
-                });
-            //sinkInfosBuilder.AddSinkInfo(
-            //    WellKnownTypeNames.MicrosoftEntityFrameworkCoreRelationalDatabaseFacadeExtensions,
-            //    SinkKind.Sql,
-            //    isInterface: false,
-            //    isAnyStringParameterInConstructorASink: false,
-            //    sinkProperties: null,
-            //    sinkMethodParameters: new[] {
-            //        ( "ExecuteSqlCommand", new[] { "sql", } ),
-            //        ( "ExecuteSqlCommandAsync", new[]{ "sql", } ),
-            //        ( "ExecuteSqlRaw", new[] { "sql", } ),
-            //        ( "ExecuteSqlRawAsync", new[] { "sql", } ),
-            //    });
-            sinkInfosBuilder.AddSinkInfo(
-                WellKnownTypeNames.SystemDataEntityDatabase,
-                SinkKind.Sql,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: null,
-                sinkMethodParameters: new[] {
-                    ( "ExecuteSqlCommand", new[] { "sql", } ),
-                    ( "ExecuteSqlCommandAsync", new[]{ "sql", } ),
-                });
-            //sinkInfosBuilder.AddSinkInfo(
-            //    WellKnownTypeNames.SystemDataSqlClientSqlDataAdapter,
-            //    SinkKind.Sql,
-            //    isInterface: false,
-            //    isAnyStringParameterInConstructorASink: false,
-            //    sinkProperties: null,
-            //    sinkMethodParameters: new[] {
-            //        ( ".ctor", new[] { "selectCommandText", } ),
-            //    });
-            //sinkInfosBuilder.AddSinkInfo(
-            //    WellKnownTypeNames.SystemDataSqlClientSqlCommand,
-            //    SinkKind.Sql,
-            //    isInterface: false,
-            //    isAnyStringParameterInConstructorASink: false,
-            //    sinkProperties: null,
-            //    sinkMethodParameters: new[] {
-            //        ( ".ctor", new[] { "cmdText", } ),
-            //    });
-            sinkInfosBuilder.AddSinkInfo(
-                WellKnownTypeNames.MicrosoftPracticesEnterpriseLibraryDataDatabase,
-                SinkKind.Sql,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: null,
-                sinkMethodParameters: new[] {
-                    ( "GetSqlStringCommand", new[] { "query", } ),
-                });
+                sinkMethodParameters: null);
 
             SinkInfos = sinkInfosBuilder.ToImmutableAndFree();
         }

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
@@ -126,31 +125,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     return true;
                 }
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Determines if the given parameter is a tainted data source.
-        /// </summary>
-        /// <param name="sourceSymbolMap"></param>
-        /// <param name="parameterSymbol"></param>
-        /// <returns></returns>
-        public static bool IsSourceParameter(this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap, IParameterSymbol parameterSymbol)
-        {
-            ISymbol containingSymbol = parameterSymbol.ContainingSymbol;
-
-            if (containingSymbol.DeclaredAccessibility != Accessibility.Public)
-                return false;
-
-            if (containingSymbol.IsConstructor())
-                return false;
-
-            foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(containingSymbol.ContainingType))
-            {
-                if (sourceInfo.TaintPublicMethodParameters)
-                    return true;
             }
 
             return false;

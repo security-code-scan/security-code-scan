@@ -29,15 +29,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ( "RedirectToRoutePermanent", new[] { "routeName" }),
                 });
             builder.AddSinkInfo(
-                WellKnownTypeNames.MicrosoftAspNetCoreHttpResponse,
-                SinkKind.Redirect,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: null,
-                sinkMethodParameters: new[] {
-                    ( "Redirect", new[] { "location" }),
-                });
-            builder.AddSinkInfo(
                 WellKnownTypeNames.SystemWebHttpResponseBase,
                 SinkKind.Redirect,
                 isInterface: false,
@@ -48,46 +39,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ( "RedirectPermanent", new[] { "url" }),
                     ( "RedirectToRoute", new[] { "routeName" }),
                     ( "RedirectToRoutePermanent", new[] { "routeName" }),
-                });
-            builder.AddSinkInfo(
-                WellKnownTypeNames.MicrosoftAspNetCoreMvcRedirectResult,
-                SinkKind.Redirect,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: new[] { "Url" },
-                sinkMethodParameters: new[] {
-                    ( ".ctor", new[] { "url" }),
-                });
-            builder.AddSinkInfo(
-                WellKnownTypeNames.SystemWebMvcRedirectResult,
-                SinkKind.Redirect,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: new[] { "Url" },
-                sinkMethodParameters: new[] {
-                    ( ".ctor", new[] { "url" }),
-                });
-            builder.AddSinkInfo(
-                WellKnownTypeNames.SystemWebMvcController,
-                SinkKind.Redirect,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: null,
-                sinkMethodParameters: new[] {
-                    ( "Redirect", new[] { "url" }),
-                    ( "RedirectPermanent", new[] { "url" }),
-                });
-            builder.AddSinkInfo(
-                WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerBase,
-                SinkKind.Redirect,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: null,
-                sinkMethodParameters: new[] {
-                    ( "Redirect", new[] { "url" }),
-                    ( "RedirectPermanent", new[] { "url" }),
-                    ( "RedirectPreserveMethod", new[] { "url" }),
-                    ( "RedirectPermanentPreserveMethod", new[] { "url" }),
                 });
 
             SinkInfos = builder.ToImmutableAndFree();

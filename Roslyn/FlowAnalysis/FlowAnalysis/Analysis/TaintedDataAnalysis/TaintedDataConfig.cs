@@ -233,18 +233,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 case SinkKind.Dll:
                 case SinkKind.InformationDisclosure:
+                case SinkKind.FilePathInjection:
                 case SinkKind.ProcessCommand:
                 case SinkKind.Regex:
+                case SinkKind.Redirect:
                 case SinkKind.Xaml:
                 case SinkKind.HardcodedEncryptionKey:
                 case SinkKind.HardcodedCertificate:
                     return ImmutableHashSet<SanitizerInfo>.Empty;
-
-                case SinkKind.FilePathInjection:
-                    return FilePathInjectionSanitizers.SanitizerInfos;
-
-                case SinkKind.Redirect:
-                    return RedirectSanitizers.SanitizerInfos;
 
                 case SinkKind.ZipSlip:
                     return ZipSlipSanitizers.SanitizerInfos;

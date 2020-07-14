@@ -20,64 +20,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             var sourceInfosBuilder = PooledHashSet<SourceInfo>.GetInstance();
 
             sourceInfosBuilder.AddSourceInfo(
-                "PathTraversal",
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethods: null,
-                taintPublicMethodParameters: true);
-            sourceInfosBuilder.AddSourceInfo(
-                "TestInput",
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethods: null,
-                taintPublicMethodParameters: true);
-            sourceInfosBuilder.AddSourceInfo(
-                "sample.MyFoo",
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethods: null,
-                taintPublicMethodParameters: true);
-            sourceInfosBuilder.AddSourceInfo(
-                "OpenRedirect",
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethods: null,
-                taintPublicMethodParameters: true);
-            sourceInfosBuilder.AddSourceInfo(
-                "sample.Test",
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethods: new string[] {
-                    "GetUntrusted",
-                });
-            sourceInfosBuilder.AddSourceInfo(
-                "Exts",
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethods: new string[] {
-                    "ExtensionMethod",
-                });
-
-
-            sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypeNames.SystemWebMvcControllerBase,
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethods: null,
-                taintPublicMethodParameters: true);
-            sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerBase,
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethods: null,
-                taintPublicMethodParameters: true);
-            sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypeNames.SystemWebHttpApiController,
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethods: null,
-                taintPublicMethodParameters: true);
-            sourceInfosBuilder.AddSourceInfo(
                 WellKnownTypeNames.SystemWebHttpCookie,
                 isInterface: false,
                 taintedProperties: new string[] {

@@ -75,17 +75,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ( "SelectSingleNode", new[] { "xpath" }),
                 });
             builder.AddSinkInfo(
-                WellKnownTypeNames.SystemXmlXPathExtensions,
-                SinkKind.XPath,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: null,
-                sinkMethodParameters: new[] {
-                    ( "XPathSelectElement", new[] { "expression" }),
-                    ( "XPathSelectElements", new[] { "expression" }),
-                    ( "XPathEvaluate", new[] { "expression" }),
-                });
-            builder.AddSinkInfo(
                 WellKnownTypeNames.SystemXmlXPathXPathExpression,
                 SinkKind.XPath,
                 isInterface: false,

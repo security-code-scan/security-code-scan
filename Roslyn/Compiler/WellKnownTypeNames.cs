@@ -9,6 +9,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreHttpCookieOptions = "Microsoft.AspNetCore.Http.CookieOptions";
         public const string MicrosoftAspNetCoreHttpInternalResponseCookies = "Microsoft.AspNetCore.Http.Internal.ResponseCookies";
         public const string MicrosoftAspNetCoreHttpIResponseCookies = "Microsoft.AspNetCore.Http.IResponseCookies";
+        public const string MicrosoftAspNetCoreHttpResponse = "Microsoft.AspNetCore.Http.HttpResponse";
         public const string MicrosoftAspNetCoreMvcController = "Microsoft.AspNetCore.Mvc.Controller";
         public const string MicrosoftAspNetCoreMvcControllerBase = "Microsoft.AspNetCore.Mvc.ControllerBase";
         public const string MicrosoftAspNetCoreMvcFiltersAuthorizationFilterContext = "Microsoft.AspNetCore.Mvc.Filters.AuthorizationFilterContext";
@@ -25,7 +26,9 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreMvcHttpPutAttribute = "Microsoft.AspNetCore.Mvc.HttpPutAttribute";
         public const string MicrosoftAspNetCoreMvcNonActionAttribute = "Microsoft.AspNetCore.Mvc.NonActionAttribute";
         public const string MicrosoftAspNetCoreMvcRouteAttribute = "Microsoft.AspNetCore.Mvc.RouteAttribute";
+        public const string MicrosoftAspNetCoreMvcRedirectResult = "Microsoft.AspNetCore.Mvc.RedirectResult";
         public const string MicrosoftAspNetCoreMvcRoutingHttpMethodAttribute = "Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute";
+        public const string MicrosoftAspNetCoreMvcUrlHelperExtensions = "Microsoft.AspNetCore.Mvc.UrlHelperExtensions";
         public const string MicrosoftAspNetCoreRazorHostingRazorCompiledItemAttribute = "Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemAttribute";
         public const string MicrosoftCodeAnalysisCompilation = "Microsoft.CodeAnalysis.Compilation";
         public const string MicrosoftCodeAnalysisCSharpCSharpCompilation = "Microsoft.CodeAnalysis.CSharp.CSharpCompilation";
@@ -51,6 +54,8 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisSymbolKind = "Microsoft.CodeAnalysis.SymbolKind";
         public const string MicrosoftCodeAnalysisVisualBasicVisualBasicCompilation = "Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";
         public const string MicrosoftEntityFrameworkCoreEntityFrameworkQueryableExtensions = "Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions";
+        //public const string MicrosoftEntityFrameworkCoreRelationalDatabaseFacadeExtensions = "Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions";
+        public const string MicrosoftPracticesEnterpriseLibraryDataDatabase = "Microsoft.Practices.EnterpriseLibrary.Data.Database";
         public const string MicrosoftSecurityApplicationAntiXss = "Microsoft.Security.Application.AntiXss";
         public const string MicrosoftSecurityApplicationAntiXssEncoder = "Microsoft.Security.Application.AntiXssEncoder";
         public const string MicrosoftSecurityApplicationEncoder = "Microsoft.Security.Application.Encoder";
@@ -130,9 +135,12 @@ namespace Analyzer.Utilities
         public const string SystemDataDataSet = "System.Data.DataSet";
         public const string SystemDataDataTable = "System.Data.DataTable";
         public const string SystemDataDataViewManager = "System.Data.DataViewManager";
+        public const string SystemDataEntityDatabase = "System.Data.Entity.Database";
         public const string SystemDataEntityQueryableExtensions = "System.Data.Entity.QueryableExtensions";
         public const string SystemDataIDataAdapter = "System.Data.IDataAdapter";
         public const string SystemDataIDbCommand = "System.Data.IDbCommand";
+        public const string SystemDataSqlClientSqlCommand = "System.Data.SqlClient.SqlCommand";
+        //public const string SystemDataSqlClientSqlDataAdapter = "System.Data.SqlClient.SqlDataAdapter";
         public const string SystemDateTime = "System.DateTime";
         public const string SystemDecimal = "System.Decimal";
         public const string SystemDiagnosticContractsContract = "System.Diagnostics.Contracts.Contract";
@@ -177,6 +185,8 @@ namespace Analyzer.Utilities
         public const string SystemIOPath = "System.IO.Path";
         public const string SystemIOStream = "System.IO.Stream";
         public const string SystemIOStringReader = "System.IO.StringReader";
+        public const string SystemIOStreamReader = "System.IO.StreamReader";
+        public const string SystemIOStreamWriter = "System.IO.StreamWriter";
         public const string SystemIOUnmanagedMemoryStream = "System.IO.UnmanagedMemoryStream";
         public const string SystemIProgress1 = "System.IProgress`1";
         public const string SystemLinqEnumerable = "System.Linq.Enumerable";
@@ -322,6 +332,8 @@ namespace Analyzer.Utilities
         public const string SystemWebMvcHttpPutAttribute = "System.Web.Mvc.HttpPutAttribute";
         public const string SystemWebMvcHttpVerbs = "System.Web.Mvc.HttpVerbs";
         public const string SystemWebMvcNonActionAttribute = "System.Web.Mvc.NonActionAttribute";
+        public const string SystemWebMvcRedirectResult = "System.Web.Mvc.RedirectResult";
+        public const string SystemWebMvcUrlHelper = "System.Web.Mvc.UrlHelper";
         public const string SystemWebMvcValidateAntiForgeryTokenAttribute = "System.Web.Mvc.ValidateAntiForgeryTokenAttribute";
         public const string SystemWebMvcValidateInputAttribute = "System.Web.Mvc.ValidateInputAttribute";
         public const string SystemWebScriptSerializationJavaScriptSerializer = "System.Web.Script.Serialization.JavaScriptSerializer";
@@ -331,6 +343,7 @@ namespace Analyzer.Utilities
         public const string SystemWebSecurityAntiXssUnicodeCharacterEncoder = "System.Web.Security.AntiXss.UnicodeCharacterEncoder";
         public const string SystemWebServicesWebMethodAttribute = "System.Web.Services.WebMethodAttribute";
         public const string SystemWebUIAdaptersPageAdapter = "System.Web.UI.Adapters.PageAdapter";
+        public const string SystemWebUIClientScriptManager = "System.Web.UI.ClientScriptManager";
         public const string SystemWebUIControl = "System.Web.UI.Control";
         public const string SystemWebUIDataBoundLiteralControl = "System.Web.UI.DataBoundLiteralControl";
         public const string SystemWebUIDesignerDataBoundLiteralControl = "System.Web.UI.DesignerDataBoundLiteralControl";
@@ -369,6 +382,7 @@ namespace Analyzer.Utilities
         public const string SystemWebUIWebControlsDetailsView = "System.Web.UI.WebControls.DetailsView";
         public const string SystemWebUIWebControlsDetailsViewInsertEventArgs = "System.Web.UI.WebControls.DetailsViewInsertEventArgs";
         public const string SystemWebUIWebControlsDetailsViewUpdateEventArgs = "System.Web.UI.WebControls.DetailsViewUpdateEventArgs";
+        public const string SystemWebUIWebControlsFileUpload = "System.Web.UI.WebControls.FileUpload";
         public const string SystemWebUIWebControlsFormView = "System.Web.UI.WebControls.FormView";
         public const string SystemWebUIWebControlsFormViewInsertEventArgs = "System.Web.UI.WebControls.FormViewInsertEventArgs";
         public const string SystemWebUIWebControlsFormViewUpdateEventArgs = "System.Web.UI.WebControls.FormViewUpdateEventArgs";
@@ -388,8 +402,10 @@ namespace Analyzer.Utilities
         public const string SystemWebUIWebControlsMenu = "System.Web.UI.WebControls.Menu";
         public const string SystemWebUIWebControlsMenuItem = "System.Web.UI.WebControls.MenuItem";
         public const string SystemWebUIWebControlsMenuItemBinding = "System.Web.UI.WebControls.MenuItemBinding";
+        public const string SystemWebUIWebControlsPanel = "System.Web.UI.WebControls.Panel";
         public const string SystemWebUIWebControlsPasswordRecovery = "System.Web.UI.WebControls.PasswordRecovery";
         public const string SystemWebUIWebControlsQueryStringParameter = "System.Web.UI.WebControls.QueryStringParameter";
+        public const string SystemWebUIWebControlsRadioButton = "System.Web.UI.WebControls.RadioButton";
         public const string SystemWebUIWebControlsRadioButtonList = "System.Web.UI.WebControls.RadioButtonList";
         public const string SystemWebUIWebControlsRepeatInfo = "System.Web.UI.WebControls.RepeatInfo";
         public const string SystemWebUIWebControlsServerValidateEventArgs = "System.Web.UI.WebControls.ServerValidateEventArgs";
@@ -433,6 +449,7 @@ namespace Analyzer.Utilities
         public const string SystemXmlSchemaXmlSchemaCollection = "System.Xml.Schema.XmlSchemaCollection";
         public const string SystemXmlSchemaXmlSchemaXPath = "System.Xml.Schema.XmlSchemaXPath";
         public const string SystemXmlSerializationXmlSerializer = "System.Xml.Serialization.XmlSerializer";
+        public const string SystemXmlXPathExtensions = "System.Xml.XPath.Extensions";
         public const string SystemXmlXmlAttribute = "System.Xml.XmlAttribute";
         public const string SystemXmlXmlDocument = "System.Xml.XmlDocument";
         public const string SystemXmlXmlDocumentFragment = "System.Xml.XmlDocumentFragment";

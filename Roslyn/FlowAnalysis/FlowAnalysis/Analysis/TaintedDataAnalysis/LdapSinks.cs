@@ -31,15 +31,20 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: true,
                 sinkProperties: new[] {
-                    "Filter",
+                    "PropertiesToLoad",
+                    "Filter"
                 },
-                sinkMethodParameters: null);
+                sinkMethodParameters: new[] {
+                    (".ctor", new[] { "propertiesToLoad" } ),
+                });
             builder.AddSinkInfo(
                 WellKnownTypeNames.SystemDirectoryDirectoryEntry,
                 SinkKind.Ldap,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
-                sinkProperties: null,
+                sinkProperties: new[] {
+                    "Path",
+                },
                 sinkMethodParameters: new[] {
                     (".ctor", new[] { "path", "adsObject" } ),
                 });

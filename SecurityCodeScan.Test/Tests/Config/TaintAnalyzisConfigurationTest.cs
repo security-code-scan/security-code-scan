@@ -64,7 +64,7 @@ End Namespace
 ";
             var expected = new DiagnosticResult
             {
-                Id       = "SCS0026",
+                Id       = "SCS0002",
                 Severity = DiagnosticSeverity.Warning,
             };
             await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
@@ -255,7 +255,7 @@ End Namespace
 
             var expected = new DiagnosticResult
             {
-                Id       = "SCS0026",
+                Id       = "SCS0002",
                 Severity = DiagnosticSeverity.Warning,
             };
 
@@ -430,7 +430,7 @@ End Namespace
 
             var expected = new DiagnosticResult
             {
-                Id       = "SCS0026",
+                Id       = "SCS0002",
                 Severity = DiagnosticSeverity.Warning,
             };
 

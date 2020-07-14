@@ -87,7 +87,7 @@ namespace sample
             if (warn)
             {
                 await VerifyCSharpDiagnostic(cSharpTest,
-                                             new DiagnosticResult { Id = "SCS0026" }.WithLocation(15))
+                                             new DiagnosticResult { Id = "SCS0002" }.WithLocation(15))
                     .ConfigureAwait(false);
             }
             else
@@ -124,7 +124,7 @@ End Namespace
             if (warn)
             {
                 await VerifyVisualBasicDiagnostic(visualBasicTest,
-                                                  new DiagnosticResult { Id = "SCS0026" }.WithLocation(15))
+                                                  new DiagnosticResult { Id = "SCS0002" }.WithLocation(15))
                     .ConfigureAwait(false);
             }
             else

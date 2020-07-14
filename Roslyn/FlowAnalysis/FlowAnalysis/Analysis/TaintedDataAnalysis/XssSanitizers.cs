@@ -42,6 +42,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sanitizingMethods: new[] {
                     "HtmlAttributeEncode",
                     "HtmlEncode",
+                    "UrlEncode",
                     "XmlAttributeEncode",
                 });
             builder.AddSanitizerInfo(
@@ -96,6 +97,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sanitizingMethods: new[] {
                     "HtmlAttributeEncode",
                     "HtmlEncode",
+                    "UrlEncode",
                     "XmlAttributeEncode",
                 });
             builder.AddSanitizerInfo(

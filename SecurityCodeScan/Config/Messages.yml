@@ -23,7 +23,7 @@ SCS0001:
   description: The dynamic value passed to the command execution should be validated.
 
 SCS0002:
-  title: "LINQ API: SQL injection possible in {1} argument passed to '{0}'"
+  title: "Potential SQL injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'.'"
   description: The dynamic value passed in the SQL query should be validated.
 
 SCS0014:

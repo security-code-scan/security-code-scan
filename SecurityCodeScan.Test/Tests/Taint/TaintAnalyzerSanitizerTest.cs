@@ -225,16 +225,16 @@ End Namespace
 
         [TestCategory("Detect")]
         [DataTestMethod]
-        [DataRow(@"var s = new SqlCommand(input);",                                             "SCS0026")]
+        [DataRow(@"var s = new SqlCommand(input);",                                             "SCS0002")]
 
         [DataRow(@"Redirect(input);",                                                           "SCS0027")]
         [DataRow(@"var r = Url.RouteUrl(input);
                 var a = new SqlCommand(r);
-                Redirect(r);",                                                                  "SCS0026")]
+                Redirect(r);",                                                                  "SCS0002")]
         [DataRow(@"var r = Url.RouteUrl(input);
                 var r2 = r;
                 var a = new SqlCommand(r2);
-                Redirect(r2);",                                                                 "SCS0026")]
+                Redirect(r2);",                                                                 "SCS0002")]
 
         [DataRow(@"var d = new DirectoryEntry();
                    d.Path = input;",                                                            "SCS0031")]
@@ -246,10 +246,10 @@ End Namespace
         [DataRow(@"var d = new DirectoryEntry();
                    var enc = Encoder.LdapDistinguishedNameEncode(input);
                    d.Path = enc;
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var enc = Encoder.LdapDistinguishedNameEncode(input);
                    var d = new DirectoryEntry(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
 
         [DataRow(@"var d = new DirectorySearcher();
                    d.Filter = input;",                                                          "SCS0031")]
@@ -261,92 +261,92 @@ End Namespace
         [DataRow(@"var enc = Encoder.LdapFilterEncode(input);
                    var d = new DirectorySearcher();
                    d.Filter = enc;
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var enc = Encoder.LdapFilterEncode(input);
                    var d = new DirectorySearcher(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
 
         [DataRow(@"Response.Write(input);",                                                     "SCS0029")]
         [DataRow(@"Response.Write(Encoder.LdapFilterEncode(input));",                           "SCS0029")]
         [DataRow(@"var enc = Encoder.HtmlEncode(input);
                    Response.Write(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var enc = _HttpServerUtility.HtmlEncode(input);
                    Response.Write(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var enc = System.Text.Encodings.Web.HtmlEncoder.Default.Encode(input);
                    Response.Write(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var enc = HttpUtility.HtmlEncode(input);
                    Response.Write(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var o = (object)input;
                    var enc = HttpUtility.HtmlEncode(o);
                    Response.Write(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var w = new StringWriter();
                    HttpUtility.HtmlEncode(input, w);
                    var enc = w.ToString();
                    Response.Write(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var enc = System.Web.Security.AntiXss.AntiXssEncoder.HtmlEncode(input, true);
                    Response.Write(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var enc = System.Web.Security.AntiXss.AntiXssEncoder.HtmlEncode(input, false);
                    Response.Write(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var w = new StringWriter();
                    System.Text.Encodings.Web.HtmlEncoder.Default.Encode(w, input);
                    var enc = w.ToString();
                    Response.Write(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var w = new StringWriter();
                    System.Text.Encodings.Web.HtmlEncoder.Default.Encode(w, input, 0, 10);
                    var enc = w.ToString();
                    Response.Write(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var w = new StringWriter();
                    System.Text.Encodings.Web.HtmlEncoder.Default.Encode(w, inputChars, 0, 10);
                    var enc = w.ToString();
                    Response.Write(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var w = new StringWriter();
                    _HttpServerUtility.HtmlEncode(input, w);
                    var enc = w.ToString();
                    Response.Write(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
 
         // sanitizer bit merging
         // sanitized with safe
         [DataRow(@"var r = Url.RouteUrl(input) + Path.GetRandomFileName();
                    var a = new SqlCommand(r);
-                   Redirect(r);",                                                               "SCS0026")]
+                   Redirect(r);",                                                               "SCS0002")]
         [DataRow(@"var r = Path.GetRandomFileName() + Url.RouteUrl(input);
                    var a = new SqlCommand(r);
-                   Redirect(r);",                                                               "SCS0026")]
+                   Redirect(r);",                                                               "SCS0002")]
 
         // sanitized with const
         [DataRow(@"var r = Url.RouteUrl(input) + ""a"";
                    var a = new SqlCommand(r);
-                   Redirect(r);",                                                               "SCS0026")]
+                   Redirect(r);",                                                               "SCS0002")]
         [DataRow(@"var r = ""a"" + Url.RouteUrl(input);
                    var a = new SqlCommand(r);
-                   Redirect(r);",                                                               "SCS0026")]
+                   Redirect(r);",                                                               "SCS0002")]
         [DataRow(@"var enc = Encoder.HtmlEncode(input) + Encoder.HtmlEncode(""a"");
                    Response.Write(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var enc = Encoder.HtmlEncode(""a"") + Encoder.HtmlEncode(input);
                    Response.Write(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var enc = Encoder.HtmlEncode(""a"") + Encoder.HtmlEncode(""a"");
                    Response.Write(enc);
                    var a = new SqlCommand(enc);
-                   var b = new SqlCommand(input);",                                             "SCS0026")]
+                   var b = new SqlCommand(input);",                                             "SCS0002")]
 
         // sanitized with sanitized same type and different
         [DataRow(@"var enc = Encoder.HtmlEncode(input) + Encoder.HtmlEncode(input);
                    Response.Write(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var enc = Encoder.HtmlEncode(input) + Encoder.HtmlEncode(Encoder.LdapFilterEncode(input));
                    Response.Write(enc);
                    var d = new DirectorySearcher(enc);",                                        "SCS0031")]
@@ -356,7 +356,7 @@ End Namespace
         [DataRow(@"var enc = Encoder.HtmlEncode(Encoder.LdapFilterEncode(input)) + Encoder.HtmlEncode(Encoder.LdapFilterEncode(input));
                    Response.Write(enc);
                    var d = new DirectorySearcher(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0026")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var enc = Encoder.HtmlEncode(input) + Encoder.LdapFilterEncode(input);
                    Response.Write(enc);",                                                       "SCS0029")]
         [DataRow(@"var enc = Encoder.LdapFilterEncode(input) + Encoder.HtmlEncode(input);

@@ -8,6 +8,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreHttpCookieOptions = "Microsoft.AspNetCore.Http.CookieOptions";
         public const string MicrosoftAspNetCoreHttpIResponseCookies = "Microsoft.AspNetCore.Http.IResponseCookies";
         public const string MicrosoftAspNetCoreHttpInternalResponseCookies = "Microsoft.AspNetCore.Http.Internal.ResponseCookies";
+        public const string MicrosoftAspNetCoreHttpResponse = "Microsoft.AspNetCore.Http.HttpResponse";
         public const string MicrosoftAspNetCoreMvcController = "Microsoft.AspNetCore.Mvc.Controller";
         public const string MicrosoftAspNetCoreMvcControllerBase = "Microsoft.AspNetCore.Mvc.ControllerBase";
         public const string MicrosoftAspNetCoreMvcFiltersAuthorizationFilterContext = "Microsoft.AspNetCore.Mvc.Filters.AuthorizationFilterContext";
@@ -20,12 +21,16 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreMvcHttpPostAttribute = "Microsoft.AspNetCore.Mvc.HttpPostAttribute";
         public const string MicrosoftAspNetCoreMvcHttpPutAttribute = "Microsoft.AspNetCore.Mvc.HttpPutAttribute";
         public const string MicrosoftAspNetCoreMvcNonActionAttribute = "Microsoft.AspNetCore.Mvc.NonActionAttribute";
+        public const string MicrosoftAspNetCoreMvcRedirectResult = "Microsoft.AspNetCore.Mvc.RedirectResult";
         public const string MicrosoftAspNetCoreMvcRoutingHttpMethodAttribute = "Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute";
+        public const string MicrosoftAspNetCoreMvcUrlHelperExtensions = "Microsoft.AspNetCore.Mvc.UrlHelperExtensions";
         public const string MicrosoftAspNetCoreRazorHostingRazorCompiledItemAttribute = "Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemAttribute";
         public const string MicrosoftCodeAnalysisCSharpCSharpCompilation = "Microsoft.CodeAnalysis.CSharp.CSharpCompilation";
         public const string MicrosoftCodeAnalysisDiagnosticsGeneratedCodeAnalysisFlags = "Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags";
         public const string MicrosoftCodeAnalysisHostMefMefConstruction = "Microsoft.CodeAnalysis.Host.Mef.MefConstruction";
         public const string MicrosoftEntityFrameworkCoreEntityFrameworkQueryableExtensions = "Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions";
+        //public const string MicrosoftEntityFrameworkCoreRelationalDatabaseFacadeExtensions = "Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions";
+        public const string MicrosoftPracticesEnterpriseLibraryDataDatabase = "Microsoft.Practices.EnterpriseLibrary.Data.Database";
         public const string MicrosoftSecurityApplicationAntiXss = "Microsoft.Security.Application.AntiXss";
         public const string MicrosoftSecurityApplicationAntiXssEncoder = "Microsoft.Security.Application.AntiXssEncoder";
         public const string MicrosoftSecurityApplicationEncoder = "Microsoft.Security.Application.Encoder";
@@ -106,11 +111,14 @@ namespace Analyzer.Utilities
         public const string SystemDataDataSet = "System.Data.DataSet";
         public const string SystemDataDataTable = "System.Data.DataTable";
         public const string SystemDataDataViewManager = "System.Data.DataViewManager";
+        public const string SystemDataEntityDatabase = "System.Data.Entity.Database";
         public const string SystemDataEntityQueryableExtensions = "System.Data.Entity.QueryableExtensions";
         public const string SystemDataIDataAdapter = "System.Data.IDataAdapter";
         public const string SystemDataIDbCommand = "System.Data.IDbCommand";
         public const string SystemDataOdbcOdbcParameter = "System.Data.Odbc.OdbcParameter";
         public const string SystemDataOleDbOleDbParameter = "System.Data.OleDb.OleDbParameter";
+        public const string SystemDataSqlClientSqlCommand = "System.Data.SqlClient.SqlCommand";
+        //public const string SystemDataSqlClientSqlDataAdapter = "System.Data.SqlClient.SqlDataAdapter";
         public const string SystemDataSqlClientSqlParameter = "System.Data.SqlClient.SqlParameter";
         public const string SystemDateTime = "System.DateTime";
         public const string SystemDecimal = "System.Decimal";
@@ -149,6 +157,8 @@ namespace Analyzer.Utilities
         public const string SystemIOFileStream = "System.IO.FileStream";
         public const string SystemIOLogLogStore = "System.IO.Log.LogStore";
         public const string SystemIOPath = "System.IO.Path";
+        public const string SystemIOStreamReader = "System.IO.StreamReader";
+        public const string SystemIOStreamWriter = "System.IO.StreamWriter";
         public const string SystemIOUnmanagedMemoryStream = "System.IO.UnmanagedMemoryStream";
         public const string SystemInt16 = "System.Int16";
         public const string SystemInt32 = "System.Int32";
@@ -276,6 +286,8 @@ namespace Analyzer.Utilities
         public const string SystemWebMvcHttpPutAttribute = "System.Web.Mvc.HttpPutAttribute";
         public const string SystemWebMvcHttpVerbs = "System.Web.Mvc.HttpVerbs";
         public const string SystemWebMvcNonActionAttribute = "System.Web.Mvc.NonActionAttribute";
+        public const string SystemWebMvcRedirectResult = "System.Web.Mvc.RedirectResult";
+        public const string SystemWebMvcUrlHelper = "System.Web.Mvc.UrlHelper";
         public const string SystemWebMvcValidateAntiForgeryTokenAttribute = "System.Web.Mvc.ValidateAntiForgeryTokenAttribute";
         public const string SystemWebMvcValidateInputAttribute = "System.Web.Mvc.ValidateInputAttribute";
         public const string SystemWebScriptSerializationJavaScriptSerializer = "System.Web.Script.Serialization.JavaScriptSerializer";
@@ -340,6 +352,7 @@ namespace Analyzer.Utilities
         public const string SystemWebUIWebControlsDetailsView = "System.Web.UI.WebControls.DetailsView";
         public const string SystemWebUIWebControlsDetailsViewInsertEventArgs = "System.Web.UI.WebControls.DetailsViewInsertEventArgs";
         public const string SystemWebUIWebControlsDetailsViewUpdateEventArgs = "System.Web.UI.WebControls.DetailsViewUpdateEventArgs";
+        public const string SystemWebUIWebControlsFileUpload = "System.Web.UI.WebControls.FileUpload";
         public const string SystemWebUIWebControlsFormView = "System.Web.UI.WebControls.FormView";
         public const string SystemWebUIWebControlsFormViewInsertEventArgs = "System.Web.UI.WebControls.FormViewInsertEventArgs";
         public const string SystemWebUIWebControlsFormViewUpdateEventArgs = "System.Web.UI.WebControls.FormViewUpdateEventArgs";
@@ -425,6 +438,7 @@ namespace Analyzer.Utilities
         public const string SystemXmlSchemaXmlSchemaCollection = "System.Xml.Schema.XmlSchemaCollection";
         public const string SystemXmlSchemaXmlSchemaXPath = "System.Xml.Schema.XmlSchemaXPath";
         public const string SystemXmlSerializationXmlSerializer = "System.Xml.Serialization.XmlSerializer";
+        public const string SystemXmlXPathExtensions = "System.Xml.XPath.Extensions";
         public const string SystemXmlXPathXPathDocument = "System.Xml.XPath.XPathDocument";
         public const string SystemXmlXPathXPathExpression = "System.Xml.XPath.XPathExpression";
         public const string SystemXmlXPathXPathNavigator = "System.Xml.XPath.XPathNavigator";

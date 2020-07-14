@@ -1190,7 +1190,7 @@ Behavior:
     ClassName: HyperLink
     Name: NavigateUrl
     Field:
-      Injectable: [SCS0029: UrlPathEncoded]
+      Injectable: [SCS0029: UrlEncoded]
 
   System.Web.UI.WebControls_Label_Text:
     Namespace: System.Web.UI.WebControls
@@ -1808,6 +1808,14 @@ Behavior:
       InjectableArguments: [SCS0035: 1]
 
  ## Microsoft.Practices.EnterpriseLibrary.Data
+
+  Database_GetSqlStringCommand:
+    Namespace: Microsoft.Practices.EnterpriseLibrary.Data
+    ClassName: Database
+    Name: GetSqlStringCommand
+    Method:
+      ArgTypes: (System.String)
+      InjectableArguments: [SCS0036: 0]
 
   Database_ExecuteDataSet_1:
     Namespace: Microsoft.Practices.EnterpriseLibrary.Data

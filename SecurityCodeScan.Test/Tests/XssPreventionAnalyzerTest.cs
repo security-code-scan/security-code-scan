@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
-using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
 using DiagnosticVerifier = SecurityCodeScan.Test.Helpers.DiagnosticVerifier;
@@ -21,9 +20,9 @@ namespace SecurityCodeScan.Test
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new TaintAnalyzerCSharp(new XssPreventionAnalyzerCSharp())) };
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new XssTaintAnalyzer()) };
             else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new TaintAnalyzerVisualBasic(new XssPreventionAnalyzerVisualBasic())) };
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new XssTaintAnalyzer()) };
         }
 
         private static readonly PortableExecutableReference[] References =
@@ -570,7 +569,8 @@ End Namespace
         [DataRow("new Page(); temp.Response.Write(\"constant\")", false)]
         [DataRow("new Page(); temp.Response.Write(\"constant\".ToCharArray(), 0, 1)", false)]
 
-        [DataRow("new HyperLink(); temp.NavigateUrl = Encoder.UrlPathEncode(input)", false)]
+        [DataRow("new HyperLink(); temp.NavigateUrl = Encoder.UrlEncode(input)", false)]
+        [DataRow("new HyperLink(); temp.NavigateUrl = Encoder.HtmlEncode(input)", false)]
         [DataRow("new Label(); temp.Text = new Page().Server.HtmlEncode(input)", false)]
         [DataRow("new Label(); var sw = new StringWriter(); var page = new Page(); page.Server.HtmlEncode(input, sw); temp.Text = sw.ToString()", false)]
 

@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
-using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Test.Audit;
 using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
@@ -20,9 +19,9 @@ namespace SecurityCodeScan.Test.Taint
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new TaintAnalyzerCSharp()) };
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new SqlInjectionTaintAnalyzer()) };
             else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new TaintAnalyzerVisualBasic()) };
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new SqlInjectionTaintAnalyzer()) };
         }
 
         private static readonly PortableExecutableReference[] References =
@@ -43,7 +42,7 @@ namespace SecurityCodeScan.Test.Taint
 
         private DiagnosticResult Expected = new DiagnosticResult
         {
-            Id       = "SCS0026",
+            Id       = "SCS0002",
             Severity = DiagnosticSeverity.Warning,
         };
 
@@ -101,7 +100,7 @@ Behavior:
     ClassName: Test
     Name: Injectable
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
   Encode:
     ClassName: Test
     Name: Encode
@@ -216,22 +215,22 @@ Behavior:
     ClassName: Test
     Name: Injectable
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
   InjectableOpt:
     ClassName: Test
     Name: InjectableOpt
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
   InjectableExtension:
     ClassName: TestExtensions
     Name: Injectable2
     Method:
-      InjectableArguments: [SCS0026: 1]
+      InjectableArguments: [SCS0002: 1]
   InjectableExtensionOpt:
     ClassName: TestExtensions
     Name: InjectableOpt2
     Method:
-      InjectableArguments: [SCS0026: 1]
+      InjectableArguments: [SCS0002: 1]
 TaintEntryPoints:
   Test:
     ClassName: TestInput
@@ -461,7 +460,7 @@ Behavior:
     ClassName: Test
     Name: Sink
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
 
   StringBuilder_Append:
     Namespace: System.Text
@@ -666,7 +665,7 @@ Behavior:
     ClassName: Test
     Name: Sink
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
 ";
 
             var testConfigWithBehavior = @"
@@ -682,7 +681,7 @@ Behavior:
     ClassName: Test
     Name: Sink
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
 
   SomeClass_SetValue:
     ClassName: SomeClass
@@ -768,7 +767,7 @@ Behavior:
 
         [TestCategory("Detect")]
         [DataTestMethod]
-        [DataRow("sql",       new[] { "SCS0026" }, new[] { "SCS0026" })]
+        [DataRow("sql",       new[] { "SCS0002" }, new[] { "SCS0002" })]
         [DataRow("xyz",       new[] { "CS0103" },  new[] { "BC30451" })]
         [DataRow("foo()",     new[] { "CS1503" },  new[] { "BC30311" })]
         [DataRow("foo2(xyz)", new[] { "CS0103" },  new[] { "BC30451" })]
@@ -913,14 +912,15 @@ AuditMode: true
         {
             var cSharpTest = @"
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
-    class Test
+    class Test : Controller
     {
         private string sql;
 
-        public Test(string s)
+        public void Run(string s)
         {
             sql = s;
         }
@@ -935,11 +935,14 @@ namespace sample
 
             var visualBasicTest = @"
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Class Test
+        Inherits Controller
+
         Private sql As String
-        Public Sub New(s As String)
+        Public Sub Run(s As String)
             sql = s
         End Sub
         Protected Overrides Sub Finalize()
@@ -950,13 +953,8 @@ Namespace sample
 End Namespace
 ";
 
-            var testConfig = @"
-AuditMode: true
-";
-
-            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
-            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -1059,7 +1057,6 @@ End Namespace
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
-        [Ignore("methods are not expanded yet")]
         public async Task VariableConcatenationMethod(string initializer, string accessor)
         {
             var cSharpTest = $@"
@@ -1247,7 +1244,7 @@ End Namespace
         [DataRow("\"\"",                      "stringConst")]
         [DataRow("\"\"",                      "MyFoo.stringConst")]
         [DataRow("\"\"",                      "sample.MyFoo.stringConst")]
-        // [DataRow("new System.String[1] { \"xxx\" }.Length.ToString()", "stringConst")] // todo
+        [DataRow("new System.String[] { \"xxx\" }.Length.ToString()", "stringConst")]
         [DataRow("String.Empty",              "stringConst")]
         [DataRow("String.Empty",              "MyFoo.stringConst")]
         [DataRow("String.Empty",              "sample.MyFoo.stringConst")]
@@ -1255,7 +1252,6 @@ End Namespace
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
-        [Ignore("readonly fields aren't assumed const because no check for assignments in constructors is implemented")]
         public async Task VariableConcatenationFieldReadonly(string initializer, string accessor)
         {
             var cSharpTest = $@"
@@ -1313,7 +1309,6 @@ End Namespace
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
-        [Ignore("readonly fields aren't assumed const because no check for assignments in constructors is implemented")]
         public async Task VariableConcatenationFieldReadonlyConstructor(string initializer, string accessor)
         {
             var cSharpTest = $@"
@@ -1513,7 +1508,6 @@ End Namespace
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
-        [Ignore("readonly fields aren't assumed const because no check for assignments in constructors is implemented")]
         public async Task VariableConcatenationPropertyReadonlyBackingField(string initializer, string accessor)
         {
             var cSharpTest = $@"
@@ -1580,7 +1574,6 @@ End Namespace
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
-        [Ignore("readonly fields aren't assumed const because no check for assignments in constructors is implemented")]
         public async Task VariableConcatenationPropertyReadonlyConstructorBackingField(string initializer, string accessor)
         {
             var cSharpTest = $@"
@@ -1658,7 +1651,6 @@ End Namespace
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
-        [Ignore("'property = {}' is not implemented")]
         public async Task VariableConcatenationPropertyGetWithInitializer(string initializer, string accessor)
         {
             var cSharpTest = $@"
@@ -1707,7 +1699,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
-        [TestCategory("Detect")]
+        [TestCategory("Safe")]
         [DataRow("\"\"",                      "stringConst")]
         [DataRow("\"\"",                      "MyFoo.stringConst")]
         [DataRow("\"\"",                      "sample.MyFoo.stringConst")]
@@ -1718,7 +1710,6 @@ End Namespace
         [DataRow("new String('x', 3)",        "stringConst")]
         [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
-        [Ignore("'property = {}' is not implemented")]
         public async Task VariableConcatenationPropertyGetPrivateSetWithInitializerCSharp(string initializer, string accessor)
         {
             var cSharpTest = $@"
@@ -1741,7 +1732,7 @@ namespace sample
     }}
 }}
 ";
-            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -2361,7 +2352,6 @@ End Namespace
         }
 
         [TestCategory("Detect")]
-        [Ignore("Copy structure state when assigned to new variable")]
         [TestMethod]
         public async Task StructReuseChangePropertyFromTaintedToSafe()
         {
@@ -2603,7 +2593,7 @@ Behavior:
     ClassName: Test
     Name: Sink
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -2672,7 +2662,7 @@ Behavior:
     ClassName: Test
     Name: Sink
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -2781,7 +2771,7 @@ Behavior:
     ClassName: MyController
     Name: Sink
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -2858,7 +2848,7 @@ Behavior:
     ClassName: MyController
     Name: Sink
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -2910,7 +2900,7 @@ Behavior:
     ClassName: MyClass
     Name: Sink
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -2952,7 +2942,7 @@ Behavior:
     ClassName: MyClass
     Name: Sink
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -2996,7 +2986,7 @@ Behavior:
     ClassName: MyClass
     Name: Sink
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -3036,7 +3026,7 @@ Behavior:
     ClassName: MyClass
     Name: Sink
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -3106,7 +3096,7 @@ Behavior:
     ClassName: MyPage
     Name: Sink
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -3279,7 +3269,7 @@ Behavior:
     ClassName: Test
     Name: Sink
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -3390,7 +3380,7 @@ Behavior:
     ClassName: Test
     Name: Sink
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -3465,7 +3455,7 @@ Behavior:
     ClassName: Test
     Name: Sink
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -3541,7 +3531,7 @@ Behavior:
     ClassName: Test
     Name: Sink
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -3615,7 +3605,7 @@ Behavior:
     ClassName: Test
     Name: Sink
     Method:
-      InjectableArguments: [SCS0026: 0]
+      InjectableArguments: [SCS0002: 0]
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
-using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Test.Helpers;
 
 namespace SecurityCodeScan.Test.Taint
@@ -15,9 +15,9 @@ namespace SecurityCodeScan.Test.Taint
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new TaintAnalyzerCSharp()) };
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new LdapTaintAnalyzer()) };
             else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new TaintAnalyzerVisualBasic()) };
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new LdapTaintAnalyzer()) };
         }
 
         private static readonly PortableExecutableReference[] References =
@@ -32,6 +32,7 @@ namespace SecurityCodeScan.Test.Taint
         [DataRow("new DirectorySearcher(\"constant\")", false)]
         [DataRow("new DirectorySearcher(input, null)", true)]
         [DataRow("new DirectorySearcher(\"constant\", propertiesToLoad)", true)]
+        [DataRow("new DirectorySearcher(input, propertiesToLoad)", true, 2)]
         [DataRow("new DirectorySearcher(\"constant\", null)", false)]
         [DataRow("new DirectorySearcher(entry, input)", true)]
         [DataRow("new DirectorySearcher(entry, \"constant\")", false)]
@@ -55,7 +56,7 @@ namespace SecurityCodeScan.Test.Taint
         [DataRow("new DirectoryEntry(); temp.Path = input", true)]
         [DataRow("new DirectoryEntry(); temp.Path = \"constant\"", false)]
         [DataTestMethod]
-        public async Task LdapInjection(string sink, bool warn)
+        public async Task LdapInjection(string sink, bool warn, int count = 1)
         {
             var cSharpTest = $@"
 #pragma warning disable 8019
@@ -98,8 +99,8 @@ End Namespace
 
             if (warn)
             {
-                await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+                await VerifyCSharpDiagnostic(cSharpTest, Enumerable.Repeat(expected, count).ToArray()).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, Enumerable.Repeat(expected, count).ToArray()).ConfigureAwait(false);
             }
             else
             {

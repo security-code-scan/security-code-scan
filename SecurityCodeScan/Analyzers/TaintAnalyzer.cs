@@ -21,11 +21,61 @@ namespace SecurityCodeScan.Analyzers
     using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
 
     [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class SqlInjectionTaintAnalyzer : TaintAnalyzer2
+    {
+        internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0002");
+
+        protected override SinkKind SinkKind { get { return SinkKind.Sql; } }
+
+        protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
+    }
+
+    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class PathTraversalTaintAnalyzer : TaintAnalyzer2
+    {
+        internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0018");
+
+        protected override SinkKind SinkKind { get { return SinkKind.FilePathInjection; } }
+
+        protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
+    }
+
+    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class XPathTaintAnalyzer : TaintAnalyzer2
+    {
+        internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0003");
+
+        protected override SinkKind SinkKind { get { return SinkKind.XPath; } }
+
+        protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
+    }
+
+    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class OpenRedirectTaintAnalyzer : TaintAnalyzer2
+    {
+        internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0027");
+
+        protected override SinkKind SinkKind { get { return SinkKind.Redirect; } }
+
+        protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
+    }
+
+    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal class LdapTaintAnalyzer : TaintAnalyzer2
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0031");
 
         protected override SinkKind SinkKind { get { return SinkKind.Ldap; } }
+
+        protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
+    }
+
+    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class XssTaintAnalyzer : TaintAnalyzer2
+    {
+        internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0029");
+
+        protected override SinkKind SinkKind { get { return SinkKind.Xss; } }
 
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }

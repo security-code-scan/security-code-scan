@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
-using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Test.Audit;
 using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
@@ -19,19 +18,20 @@ namespace SecurityCodeScan.Test.Taint
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new TaintAnalyzerCSharp()) };
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new PathTraversalTaintAnalyzer(), new SqlInjectionTaintAnalyzer()) };
             else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new TaintAnalyzerVisualBasic()) };
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new PathTraversalTaintAnalyzer(), new SqlInjectionTaintAnalyzer()) };
         }
 
         private static readonly PortableExecutableReference[] References =
         {
-            MetadataReference.CreateFromFile(typeof(System.Data.SqlClient.SqlCommand).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(System.Data.SqlClient.SqlCommand).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location),
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-        [TestCategory("Detect")]
+        [TestCategory("Safe")]
         [DataRow("static ")]
         [DataRow("")]
         [DataTestMethod]
@@ -68,20 +68,8 @@ Class PathTraversal
 End Class
 ";
 
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0018",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            var testConfig = @"
-AuditMode: true
-";
-
-            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
-            // Methods are not expanded and taint of 'this' doesn't affect a member call without arguments
-            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -91,6 +79,7 @@ AuditMode: true
         {
             var cSharpTest = @"
 using System.IO;
+using System.Web.Mvc;
 
 class Test
 {
@@ -107,14 +96,14 @@ class Test
     }
 }
 
-class PathTraversal
+class PathTraversal : Controller
 {
     public static void Run(byte[] bytes)
     {
         var stream = new MemoryStream();
         var t = new Test((byte[])(object)bytes);
         t.Foo((MemoryStream)(object)stream);
-        File.WriteAllBytes(""a.txt"", stream.ToArray());
+        System.IO.File.WriteAllBytes(""a.txt"", stream.ToArray());
     }
 }
 ";
@@ -376,10 +365,10 @@ End Namespace
 
         [TestCategory("Detect")]
         [DataTestMethod]
-        [DataRow("sql",       new[] { "SCS0026" },           new[] { "SCS0026" },            false)]
+        [DataRow("sql",       new[] { "SCS0002" },           new[] { "SCS0002" },            false)]
         [DataRow("xyz",       new[] { "CS0103" },            new[] { "BC30451" },            false)]
         [DataRow("foo()",     new[] { "CS0029" },            new[] { "BC30311" },            false)]
-        [DataRow("foo2(xyz)", new[] { "SCS0026", "CS0103" }, new[] { "SCS0026", "BC30451" }, true)]
+        [DataRow("foo2(xyz)", new[] { "SCS0002", "CS0103" }, new[] { "SCS0002", "BC30451" }, true)]
         public async Task TransferSqlInitializerUnSafe(string right, string[] csErrors, string[] vbErrors, bool audit)
         {
             var cSharpTest = $@"
@@ -684,7 +673,7 @@ End Class
 
             var expected = new DiagnosticResult
             {
-                Id       = "SCS0026",
+                Id       = "SCS0002",
                 Severity = DiagnosticSeverity.Warning,
             };
 
@@ -741,7 +730,7 @@ End Class
 
             var expected = new DiagnosticResult
             {
-                Id       = "SCS0026",
+                Id       = "SCS0002",
                 Severity = DiagnosticSeverity.Warning,
             };
 
@@ -808,11 +797,11 @@ class StaticTest
     }}
 }}
 
-class Test
+class TestInput
 {{
     public string Foo(string a, string b)
     {{
-        return null;
+        return a + b;
     }}
 
     public void Foo2(string a, string b) {{ }}
@@ -830,13 +819,16 @@ class Test
 
     public string Foo5(ref string x, params string[] a)
     {{
-        return null;
+        foreach(var str in a)
+            x += str;
+
+        return x;
     }}
 
     public void Run(string a, string b)
     {{
 #pragma warning disable CS0219
-        Test o = null;
+        TestInput o = null;
 #pragma warning restore CS0219
         {cs}
         new SqlCommand(query);
@@ -856,7 +848,7 @@ Class StaticTest
     End Function
 End Class
 
-Class Test
+Class TestInput
     Public Function Foo(ByVal a As String, ByVal b As String) As String
         Return Nothing
     End Function
@@ -874,11 +866,15 @@ Class Test
     End Function
 
     Public Function Foo5(ByRef x As String, ParamArray a As String()) As String
-        Return Nothing
+        For Each str In a
+            x += str
+        Next
+
+        Return x
     End Function
 
     Public Sub Run(ByVal a As String, ByVal b As String)
-        Dim o As Test = Nothing
+        Dim o As TestInput = Nothing
         {cs.CSharpReplaceToVBasic()}
         Dim temp = New SqlCommand(query)
     End Sub
@@ -887,14 +883,14 @@ End Class
 
             var expected = new DiagnosticResult
             {
-                Id       = "SCS0026",
+                Id       = "SCS0002",
                 Severity = DiagnosticSeverity.Warning,
             };
 
             var testConfig = @"
 TaintEntryPoints:
   AAA:
-    ClassName: Test
+    ClassName: TestInput
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -953,7 +949,7 @@ End Class
 
             var expected = new DiagnosticResult
             {
-                Id = "SCS0026",
+                Id = "SCS0002",
                 Severity = DiagnosticSeverity.Warning,
             };
 
@@ -1147,7 +1143,7 @@ End Class
 
             var expected = new DiagnosticResult
             {
-                Id = "SCS0026",
+                Id = "SCS0002",
                 Severity = DiagnosticSeverity.Warning,
             };
 
@@ -1232,7 +1228,7 @@ End Class
 
             var expected = new DiagnosticResult
             {
-                Id       = "SCS0026",
+                Id       = "SCS0002",
                 Severity = DiagnosticSeverity.Warning,
             };
 
@@ -1397,7 +1393,7 @@ End Namespace
 
             var expected = new DiagnosticResult
             {
-                Id       = "SCS0026",
+                Id       = "SCS0002",
                 Severity = DiagnosticSeverity.Warning,
             };
 
@@ -1459,7 +1455,7 @@ End Namespace
 
             var expected = new DiagnosticResult
             {
-                Id       = "SCS0026",
+                Id       = "SCS0002",
                 Severity = DiagnosticSeverity.Warning,
             };
 

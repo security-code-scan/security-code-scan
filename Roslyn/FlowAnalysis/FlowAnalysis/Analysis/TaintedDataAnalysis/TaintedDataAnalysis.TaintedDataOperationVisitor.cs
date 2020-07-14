@@ -412,7 +412,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 IEnumerable<SinkKind> sinkKinds,
                 IEnumerable<SymbolAccess> sources)
             {
-                SymbolAccess sink = new SymbolAccess(sinkSymbol, sinkLocation, this.OwningSymbol);
+                SymbolAccess sink = new SymbolAccess(sinkSymbol, sinkLocation, sinkSymbol.ContainingSymbol);
                 this.TrackTaintedDataEnteringSink(sink, sinkKinds, sources);
             }
 

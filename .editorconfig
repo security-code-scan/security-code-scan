@@ -151,12 +151,42 @@ csharp_space_between_square_brackets = false
 csharp_preserve_single_line_statements = false
 csharp_preserve_single_line_blocks = true
 
-# Naming
+# RS1019: Diagnostic Id is already used by analyzer
+dotnet_diagnostic.RS1019.severity = none
 
+# RS1024: Compare symbols correctly
+dotnet_diagnostic.RS1024.severity = none
+
+# RS2008: Enable analyzer release tracking
+dotnet_diagnostic.RS2008.severity = none
+
+# CS8600: Converting null literal or possible null value to non-nullable type.
+dotnet_diagnostic.CS8600.severity = none
+
+# CS8604: Possible null reference argument.
+dotnet_diagnostic.CS8604.severity = none
+
+# CS8620: Argument cannot be used for parameter due to differences in the nullability of reference types.
+dotnet_diagnostic.CS8620.severity = none
+
+# CS8602: Dereference of a possibly null reference.
+dotnet_diagnostic.CS8602.severity = none
+
+# CS8603: Possible null reference return.
+dotnet_diagnostic.CS8603.severity = none
+
+# CS8609: Nullability of reference types in return type doesn't match overridden member.
+dotnet_diagnostic.CS8609.severity = none
+
+# CS8625: Cannot convert null literal to non-nullable reference type.
+dotnet_diagnostic.CS8625.severity = none
+
+# Naming
+# 
 # ORDERING DOES MATTER!!!
 # Naming conventions should be ordered from most-specific to least-specific in the .editorconfig file.
 # The first rule encountered that can be applied is the only rule that is applied.
-
+#
 [*.{cs,vb}]
 dotnet_naming_symbols.interface_types.applicable_kinds            = interface
 dotnet_naming_symbols.interface_types.applicable_accessibilities  = *

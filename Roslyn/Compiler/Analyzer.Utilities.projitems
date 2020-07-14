@@ -19,7 +19,7 @@
 		 and building the test projects without the explict enable nullable below leads to following warnings:
 			"warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context" -->
     <Nullable>enable</Nullable>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
   <ItemGroup Condition="'$(HasIOperation)' == 'true'">
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImmutableHashSetExtensions.cs" />

@@ -122,6 +122,8 @@ namespace SecurityCodeScan.Analyzers
                             InterproceduralAnalysisConfiguration interproceduralAnalysisConfiguration = InterproceduralAnalysisConfiguration.Create(
                                                                     options,
                                                                     SupportedDiagnostics,
+                                                                    owningSymbol,
+                                                                    operationBlockStartContext.Compilation,
                                                                     defaultInterproceduralAnalysisKind: InterproceduralAnalysisKind.ContextSensitive,
                                                                     cancellationToken: cancellationToken);
                             Lazy<ControlFlowGraph?> controlFlowGraphFactory = new Lazy<ControlFlowGraph?>(

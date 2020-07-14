@@ -20,7 +20,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SecurityCodeScan.Vsix</RootNamespace>
-    <AssemblyName>SecurityCodeScan.VS2017.Vsix</AssemblyName>
+    <AssemblyName>SecurityCodeScan.VS2019.Vsix</AssemblyName>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
@@ -71,7 +71,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\SecurityCodeScan\bin\$(Configuration)\netstandard1.3\YamlDotNet.dll">
+    <Content Include="..\SecurityCodeScan\bin\$(Configuration)\netstandard2.0\YamlDotNet.dll">
       <Link>YamlDotNet.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

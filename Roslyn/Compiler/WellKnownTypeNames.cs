@@ -295,6 +295,7 @@ namespace Analyzer.Utilities
         public const string SystemTimeSpan = "System.TimeSpan";
         public const string SystemUri = "System.Uri";
         public const string SystemWebConfigurationHttpRuntimeSection = "System.Web.Configuration.HttpRuntimeSection";
+        public const string SystemWebHttpApiController = "System.Web.Http.ApiController";
         public const string SystemWebHttpApplication = "System.Web.HttpApplication";
         public const string SystemWebHttpCookie = "System.Web.HttpCookie";
         public const string SystemWebHttpRequest = "System.Web.HttpRequest";

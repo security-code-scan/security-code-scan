@@ -147,13 +147,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             if (containingSymbol.IsConstructor())
                 return false;
 
-            foreach (INamedTypeSymbol? baseType in containingSymbol.ContainingType.GetBaseTypes())
+            foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(containingSymbol.ContainingType))
             {
-                foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(baseType))
-                {
-                    if (sourceInfo.TaintPublicMethodParameters)
-                        return true;
-                }
+                if (sourceInfo.TaintPublicMethodParameters)
+                    return true;
             }
 
             return false;

@@ -97,6 +97,25 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkMethodParameters: new[] {
                     ( "ExecuteSqlCommand", new[] { "sql", } ),
                     ( "ExecuteSqlCommandAsync", new[]{ "sql", } ),
+                    ( "SqlQuery", new[] { "sql", } ),
+                });
+            sinkInfosBuilder.AddSinkInfo(
+                WellKnownTypeNames.SystemDataEntityDbSet,
+                SinkKind.Sql,
+                isInterface: false,
+                isAnyStringParameterInConstructorASink: false,
+                sinkProperties: null,
+                sinkMethodParameters: new[] {
+                    ( "SqlQuery", new[] { "sql", } ),
+                });
+            sinkInfosBuilder.AddSinkInfo(
+                WellKnownTypeNames.SystemDataEntityDbSetGenerics,
+                SinkKind.Sql,
+                isInterface: false,
+                isAnyStringParameterInConstructorASink: false,
+                sinkProperties: null,
+                sinkMethodParameters: new[] {
+                    ( "SqlQuery", new[] { "sql", } ),
                 });
             //sinkInfosBuilder.AddSinkInfo(
             //    WellKnownTypeNames.SystemDataSqlClientSqlDataAdapter,

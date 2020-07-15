@@ -136,6 +136,8 @@ namespace Analyzer.Utilities
         public const string SystemDataDataTable = "System.Data.DataTable";
         public const string SystemDataDataViewManager = "System.Data.DataViewManager";
         public const string SystemDataEntityDatabase = "System.Data.Entity.Database";
+        public const string SystemDataEntityDbSet = "System.Data.Entity.DbSet";
+        public const string SystemDataEntityDbSetGenerics = "System.Data.Entity.DbSet`1";
         public const string SystemDataEntityQueryableExtensions = "System.Data.Entity.QueryableExtensions";
         public const string SystemDataIDataAdapter = "System.Data.IDataAdapter";
         public const string SystemDataIDbCommand = "System.Data.IDbCommand";

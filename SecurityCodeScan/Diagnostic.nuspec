@@ -4,7 +4,7 @@
     <id>SecurityCodeScan.VS2019</id>
     <version>$version$</version>
     <title>Security Code Scan (for VS2019 and newer)</title>
-    <authors>Jaroslav Lobačevski, Philippe Arteau</authors>
+    <authors>Jaroslav Lobačevski</authors>
     <owners>Jaroslav Lobačevski</owners>
     <licenseUrl>https://opensource.org/licenses/lgpl-3.0.html</licenseUrl>
     <projectUrl>https://security-code-scan.github.io</projectUrl>

@@ -6,20 +6,18 @@
     <title>Security Code Scan (for VS2019 and newer)</title>
     <authors>Jaroslav Lobačevski</authors>
     <owners>Jaroslav Lobačevski</owners>
-    <licenseUrl>https://opensource.org/licenses/lgpl-3.0.html</licenseUrl>
+    <license type="expression">LGPL-3.0-or-later</license>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <projectUrl>https://security-code-scan.github.io</projectUrl>
     <iconUrl>https://security-code-scan.github.io/images/scs230.png</iconUrl>
-    <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>Security static code analyzer for .NET</description>
     <releaseNotes>https://security-code-scan.github.io/#ReleaseNotes</releaseNotes>
     <copyright>Security Code Scan</copyright>
-    <tags>SecurityCodeScan,Security.Code.Scan,Security Code Scan,Static Code Analysis,Security,Vulnerability,Analyzer,Analyzers,.NET,Roslyn,OWASP,Injection,XSS,CSRF,XXE,SQLi</tags>
+    <tags>SecurityCodeScan Security.Code.Scan Security Code Scan StaticAnalysis Vulnerability Analyzer .NET Roslyn OWASP Injection XSS CSRF XXE SQLi</tags>
     <developmentDependency>true</developmentDependency>
-    <frameworkAssemblies>
-      <frameworkAssembly assemblyName="System" targetFramework="" />
-    </frameworkAssemblies>
+    <repository type="git" url="https://github.com/security-code-scan/security-code-scan" commit="$repositoryCommit$" />
   </metadata>
-  <!-- The convention for analyzers is to put language agnostic dlls in analyzers\portable50 and language specific analyzers in either analyzers\portable50\cs or analyzers\portable50\vb -->
+  <!-- The convention for analyzers is to put language agnostic dlls in analyzers\dotnet and language specific analyzers in either analyzers\dotnet\cs or analyzers\dotnet\vb -->
   <files>
     <file src="SecurityCodeScan.VS2019.dll" target="analyzers\dotnet" />
     <file src="YamlDotNet.dll" target="analyzers\dotnet" />

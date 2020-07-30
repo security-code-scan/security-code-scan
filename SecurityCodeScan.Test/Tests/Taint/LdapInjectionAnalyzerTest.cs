@@ -15,9 +15,9 @@ namespace SecurityCodeScan.Test.Taint
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new LdapTaintAnalyzer()) };
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new LdapPathTaintAnalyzer(), new LdapFilterTaintAnalyzer()) };
             else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new LdapTaintAnalyzer()) };
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new LdapPathTaintAnalyzer(), new LdapFilterTaintAnalyzer()) };
         }
 
         private static readonly PortableExecutableReference[] References =

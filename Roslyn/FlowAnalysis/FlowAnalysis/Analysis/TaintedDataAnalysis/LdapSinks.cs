@@ -10,7 +10,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// <see cref="SinkInfo"/>s for tainted data LDAP injection sinks.
         /// </summary>
-        public static ImmutableHashSet<SinkInfo> SinkInfos { get; }
+        public static ImmutableHashSet<SinkInfo> PathSinkInfos { get; }
+
+        public static ImmutableHashSet<SinkInfo> FilterSinkInfos { get; }
 
         static LdapSinks()
         {
@@ -18,7 +20,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             builder.AddSinkInfo(
                 WellKnownTypeNames.SystemDirectoryServicesActiveDirectoryADSearcher,
-                SinkKind.Ldap,
+                SinkKind.LdapFilter,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: true,
                 sinkProperties: new[] {
@@ -27,7 +29,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
                 WellKnownTypeNames.SystemDirectoryServicesDirectorySearcher,
-                SinkKind.Ldap,
+                SinkKind.LdapFilter,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: true,
                 sinkProperties: new[] {
@@ -37,9 +39,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkMethodParameters: new[] {
                     (".ctor", new[] { "propertiesToLoad" } ),
                 });
+
+            FilterSinkInfos = builder.ToImmutableAndFree();
+
+            builder = PooledHashSet<SinkInfo>.GetInstance();
+
             builder.AddSinkInfo(
                 WellKnownTypeNames.SystemDirectoryDirectoryEntry,
-                SinkKind.Ldap,
+                SinkKind.LdapPath,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
                 sinkProperties: new[] {
@@ -49,7 +56,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     (".ctor", new[] { "path", "adsObject" } ),
                 });
 
-            SinkInfos = builder.ToImmutableAndFree();
+            PathSinkInfos = builder.ToImmutableAndFree();
         }
     }
 }

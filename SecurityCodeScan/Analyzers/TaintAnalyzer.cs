@@ -81,11 +81,21 @@ namespace SecurityCodeScan.Analyzers
     }
 
     [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class LdapTaintAnalyzer : TaintAnalyzer2
+    internal class LdapFilterTaintAnalyzer : TaintAnalyzer2
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0031");
 
-        protected override SinkKind SinkKind { get { return SinkKind.Ldap; } }
+        protected override SinkKind SinkKind { get { return SinkKind.LdapFilter; } }
+
+        protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
+    }
+
+    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class LdapPathTaintAnalyzer : TaintAnalyzer2
+    {
+        internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0031");
+
+        protected override SinkKind SinkKind { get { return SinkKind.LdapPath; } }
 
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }

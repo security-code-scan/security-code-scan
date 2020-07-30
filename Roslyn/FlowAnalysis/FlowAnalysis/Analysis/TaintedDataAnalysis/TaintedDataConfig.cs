@@ -189,7 +189,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.ProcessCommand:
                 case SinkKind.Xss:
                 case SinkKind.Regex:
-                case SinkKind.Ldap:
+                case SinkKind.LdapFilter:
+                case SinkKind.LdapPath:
                 case SinkKind.Redirect:
                 case SinkKind.XPath:
                 case SinkKind.Xml:
@@ -225,8 +226,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.Xss:
                     return XssSanitizers.SanitizerInfos;
 
-                case SinkKind.Ldap:
-                    return LdapSanitizers.SanitizerInfos;
+                case SinkKind.LdapPath:
+                    return LdapSanitizers.PathSanitizerInfos;
+
+                case SinkKind.LdapFilter:
+                return LdapSanitizers.FilterSanitizerInfos;
 
                 case SinkKind.Xml:
                     return PrimitiveTypeConverterSanitizers.SanitizerInfos.Union(XmlSanitizers.SanitizerInfos);
@@ -278,8 +282,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.Regex:
                     return RegexSinks.SinkInfos;
 
-                case SinkKind.Ldap:
-                    return LdapSinks.SinkInfos;
+                case SinkKind.LdapPath:
+                    return LdapSinks.PathSinkInfos;
+
+                case SinkKind.LdapFilter:
+                    return LdapSinks.FilterSinkInfos;
 
                 case SinkKind.Redirect:
                     return RedirectSinks.SinkInfos;

@@ -12,8 +12,8 @@ namespace SecurityCodeScan.Test.XXE
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new XxeDiagnosticAnalyzerCSharp(), new TaintAnalyzerCSharp()),
-                                              new VBasicAnalyzers(new XxeDiagnosticAnalyzerVisualBasic(), new TaintAnalyzerVisualBasic())};
+            return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new XxeDiagnosticAnalyzerCSharp(), new XmlInjectionTaintAnalyzer()),
+                                              new VBasicAnalyzers(new XxeDiagnosticAnalyzerVisualBasic(), new XmlInjectionTaintAnalyzer())};
         }
 
         [TestCategory("Safe")]
@@ -41,8 +41,8 @@ Imports System.Xml
 Class Xxe
     Public Shared Sub parseUpload(path As String)
         Dim xmlDoc As New XmlDocument()
-        Dim xmlDoc2 = xmlDoc;
-        xmlDoc2.XmlResolver = Nothing;
+        Dim xmlDoc2 = xmlDoc
+        xmlDoc2.XmlResolver = Nothing
         xmlDoc.Load(path)
     End Sub
 End Class

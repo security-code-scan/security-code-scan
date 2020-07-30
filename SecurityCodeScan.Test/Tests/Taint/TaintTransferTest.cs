@@ -365,11 +365,9 @@ End Namespace
 
         [TestCategory("Detect")]
         [DataTestMethod]
-        [DataRow("sql",       new[] { "SCS0002" },           new[] { "SCS0002" },            false)]
-        [DataRow("xyz",       new[] { "CS0103" },            new[] { "BC30451" },            false)]
-        [DataRow("foo()",     new[] { "CS0029" },            new[] { "BC30311" },            false)]
-        [DataRow("foo2(xyz)", new[] { "SCS0002", "CS0103" }, new[] { "SCS0002", "BC30451" }, true)]
-        public async Task TransferSqlInitializerUnSafe(string right, string[] csErrors, string[] vbErrors, bool audit)
+        [DataRow("sql",       new[] { "SCS0002" }, new[] { "SCS0002" }           )]
+        [DataRow("MyFoo2.foo2(sql)", new[] { "SCS0002" }, new[] { "SCS0002" })]
+        public async Task TransferSqlInitializerUnSafe(string right, string[] csErrors, string[] vbErrors)
         {
             var cSharpTest = $@"
 using System.Data.SqlClient;
@@ -382,15 +380,13 @@ namespace sample
         {{
             var sqlCommand = new SqlCommand {{CommandText = {right}}};
         }}
+    }}
 
-        static MyFoo foo()
+    class MyFoo2
+    {{
+        public static string foo2(string a)
         {{
-            return null;
-        }}
-
-        static string foo2(string a)
-        {{
-            return null;
+            return a;
         }}
     }}
 }}
@@ -404,21 +400,17 @@ Namespace sample
         Public Sub Run(sql As System.String)
             Dim com As New SqlCommand With {{.CommandText = {right}}}
         End Sub
+    End Class
 
-        Private Shared Function foo() As MyFoo
-            Return Nothing
-        End Function
-
-        Private Shared Function foo2(a As String) As String
-            Return Nothing
+    Class MyFoo2
+        Public Shared Function foo2(a As String) As String
+            Return a
         End Function
     End Class
 End Namespace
 ";
 
             var testConfig = $@"
-AuditMode: {audit}
-
 TaintEntryPoints:
   AAA:
     Namespace: sample
@@ -647,7 +639,7 @@ End Class
     using System.Data.SqlClient;
 #pragma warning restore 8019
 
-class SqlTransferTesting
+class TestInput
 {{
     public void Run(string input)
     {{
@@ -663,7 +655,7 @@ class SqlTransferTesting
     Imports System.Data.SqlClient
 #Enable Warning BC50001
 
-Class SqlTransferTesting
+Class TestInput
     Public Sub Run(input As String)
         {payload.CSharpReplaceToVBasic()}
         Dim com As New SqlCommand(query)
@@ -680,7 +672,7 @@ End Class
             var testConfig = @"
 TaintEntryPoints:
   AAA:
-    ClassName: SqlTransferTesting
+    ClassName: TestInput
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -707,7 +699,7 @@ TaintEntryPoints:
             var cSharpTest = $@"
 using System.Data.SqlClient;
 
-class SqlTransferTesting
+class TestInput
 {{
     public void Run(string input, string input2)
     {{
@@ -720,7 +712,7 @@ class SqlTransferTesting
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
 
-Class SqlTransferTesting
+Class TestInput
     Public Sub Run(ByVal input As String)
         {vb}
         Dim temp = New SqlCommand(query)
@@ -737,7 +729,7 @@ End Class
             var testConfig = @"
 TaintEntryPoints:
   AAA:
-    ClassName: SqlTransferTesting
+    ClassName: TestInput
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -746,21 +738,26 @@ TaintEntryPoints:
         }
 
         [DataTestMethod]
-        [DataRow("var query = Foo5(ref a, b, null);", true)]
+        [DataRow("var query = o.Foo5(ref a, b, null);", true)]
+        // todo: bug in microsoft taint tracker
+        //[DataRow("var query = o.Foo6(a);", true)]
+        //[DataRow("var query = o.Foo6(a, b);", true)]
+        //[DataRow("var query = o.Foo6(null, b);", true)]
+        [DataRow("var query = o.Foo6(null, null);", false)]
 
-        [DataRow("var query = Foo(a, b);",       true)]
-        [DataRow("var query = Foo(a, null);",    true)]
-        [DataRow("var query = Foo(null, b);",    true)]
-        [DataRow("var query = Foo(null, null);", false)]
+        [DataRow("var query = o.Foo(a, b);",       true, 2)]
+        [DataRow("var query = o.Foo(a, null);",    true)]
+        [DataRow("var query = o.Foo(null, b);",    true)]
+        [DataRow("var query = o.Foo(null, null);", false)]
 
         [DataRow("o.Foo(a, b); var query = o.ToString();",       false)]
         [DataRow("o.Foo(a, null); var query = o.ToString();",    false)]
         [DataRow("o.Foo(null, b); var query = o.ToString();",    false)]
         [DataRow("o.Foo(null, null); var query = o.ToString();", false)]
 
-        [DataRow("o.Foo2(a, b); var query = o.ToString();",       true)]
-        [DataRow("o.Foo2(a, null); var query = o.ToString();",    true)]
-        [DataRow("o.Foo2(null, b); var query = o.ToString();",    true)]
+        [DataRow("o.Foo2(a, b); var query = o.ToString();",       false)]
+        [DataRow("o.Foo2(a, null); var query = o.ToString();",    false)]
+        [DataRow("o.Foo2(null, b); var query = o.ToString();",    false)]
         [DataRow("o.Foo2(null, null); var query = o.ToString();", false)]
 
         [DataRow("var query = \"\"; o.Foo3(a, out query);",       true)]
@@ -780,7 +777,7 @@ TaintEntryPoints:
         [DataRow("StaticTest.Foo2(a, null); var query = StaticTest.Get();",    false)]
         [DataRow("StaticTest.Foo2(null, b); var query = StaticTest.Get();",    false)]
         [DataRow("StaticTest.Foo2(null, null); var query = StaticTest.Get();", false)]
-        public async Task TaintArgumentsTransfer(string cs, bool warn)
+        public async Task TaintArgumentsTransfer(string cs, bool warn, int count = 1)
         {
             var cSharpTest = $@"
 using System.Data.SqlClient;
@@ -797,7 +794,7 @@ class StaticTest
     }}
 }}
 
-class TestInput
+class MemberTest
 {{
     public string Foo(string a, string b)
     {{
@@ -808,13 +805,14 @@ class TestInput
 
     public string Foo3(string a, out string b)
     {{
-        b = null;
-        return null;
+        b = a;
+        return a;
     }}
 
     public string Foo4(string a, ref string b)
     {{
-        return null;
+        b = a;
+        return a;
     }}
 
     public string Foo5(ref string x, params string[] a)
@@ -825,10 +823,22 @@ class TestInput
         return x;
     }}
 
+    public string Foo6(params string[] a)
+    {{
+        string x = """";
+        foreach(var str in a)
+            x += str;
+
+        return x;
+    }}
+}}
+
+class TestInput
+{{
     public void Run(string a, string b)
     {{
 #pragma warning disable CS0219
-        TestInput o = null;
+        var o = new MemberTest();
 #pragma warning restore CS0219
         {cs}
         new SqlCommand(query);
@@ -848,21 +858,22 @@ Class StaticTest
     End Function
 End Class
 
-Class TestInput
+Class MemberTest
     Public Function Foo(ByVal a As String, ByVal b As String) As String
-        Return Nothing
+        Return a & b
     End Function
 
     Public Sub Foo2(ByVal a As String, ByVal b As String)
     End Sub
 
     Public Function Foo3(ByVal a As String, <System.Runtime.InteropServices.Out> ByRef b As String) As String
-        b = Nothing
-        Return Nothing
+        b = a
+        Return a
     End Function
 
     Public Function Foo4(ByVal a As String, ByRef b As String) As String
-        Return Nothing
+        b = a
+        Return a
     End Function
 
     Public Function Foo5(ByRef x As String, ParamArray a As String()) As String
@@ -873,8 +884,21 @@ Class TestInput
         Return x
     End Function
 
+    Public Function Foo6(ParamArray a As String()) As String
+        Dim x As String = ""
+        ""
+
+        For Each str In a
+            x += str
+        Next
+
+        Return x
+    End Function
+End Class
+
+Class TestInput
     Public Sub Run(ByVal a As String, ByVal b As String)
-        Dim o As TestInput = Nothing
+        Dim o = New MemberTest()
         {cs.CSharpReplaceToVBasic()}
         Dim temp = New SqlCommand(query)
     End Sub
@@ -896,8 +920,8 @@ TaintEntryPoints:
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             if (warn)
             {
-                await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyCSharpDiagnostic(cSharpTest, Enumerable.Repeat(expected, count).ToArray(), optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, Enumerable.Repeat(expected, count).ToArray(), optionsWithProjectConfig).ConfigureAwait(false);
             }
             else
             {
@@ -1185,7 +1209,7 @@ Behavior:
     using System.Data.SqlClient;
 #pragma warning restore 8019
 
-class SqlTransferTesting
+class TestInput
 {
     public void Run(string input)
     {
@@ -1210,7 +1234,7 @@ class SqlTransferTesting
     Imports System.Data.SqlClient
 #Enable Warning BC50001
 
-Friend Class SqlTransferTesting
+Friend Class TestInput
     Public Sub Run(ByVal input As String)
         Dim query = """"
         Dim bytes = Encoding.ASCII.GetBytes(input)
@@ -1235,7 +1259,7 @@ End Class
             var testConfig = @"
 TaintEntryPoints:
   AAA:
-    ClassName: SqlTransferTesting
+    ClassName: TestInput
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -1362,7 +1386,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class SqlConstant
+    class MyFoo
     {{
         public void Run(string input)
         {{
@@ -1382,7 +1406,7 @@ Imports System.Data.SqlClient
 #Enable Warning BC50001
 
 Namespace sample
-    Class SqlConstant
+    Class MyFoo
         Public Sub Run(input As String)
             Dim array As {dataType} = {{""aaa"", input, ""bbb""}}
             Dim com As New SqlCommand(String.Join("" "", array {additionalArguments}))
@@ -1401,7 +1425,7 @@ End Namespace
 TaintEntryPoints:
   AAA:
     Namespace: sample
-    ClassName: SqlConstant
+    ClassName: MyFoo
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -1424,7 +1448,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class SqlConstant
+    class MyFoo
     {{
         public void Run(string input)
         {{
@@ -1444,7 +1468,7 @@ Imports System.Data.SqlClient
 #Enable Warning BC50001
 
 Namespace sample
-    Class SqlConstant
+    Class MyFoo
         Public Sub Run(input As String)
             Dim array As IEnumerable(Of {dataType}) = {{""aaa"", input, ""bbb""}}
             Dim com As New SqlCommand(String.Join{(isMethodGeneric ? $"(Of {dataType})" : "")}("" "", array))
@@ -1463,7 +1487,7 @@ End Namespace
 TaintEntryPoints:
   AAA:
     Namespace: sample
-    ClassName: SqlConstant
+    ClassName: MyFoo
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

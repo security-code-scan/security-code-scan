@@ -5,6 +5,7 @@ namespace Analyzer.Utilities
     // IMPORTANT: Keep this file sorted alphabetically.
     internal static class WellKnownTypeNames
     {
+        public const string CassandraISession = "Cassandra.ISession";
         public const string MicrosoftAspNetCoreAntiforgeryIAntiforgery = "Microsoft.AspNetCore.Antiforgery.IAntiforgery";
         public const string MicrosoftAspNetCoreHttpCookieOptions = "Microsoft.AspNetCore.Http.CookieOptions";
         public const string MicrosoftAspNetCoreHttpInternalResponseCookies = "Microsoft.AspNetCore.Http.Internal.ResponseCookies";
@@ -53,8 +54,10 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisLocalizableString = "Microsoft.CodeAnalysis.LocalizableString";
         public const string MicrosoftCodeAnalysisSymbolKind = "Microsoft.CodeAnalysis.SymbolKind";
         public const string MicrosoftCodeAnalysisVisualBasicVisualBasicCompilation = "Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";
+        //public const string MicrosoftDataSqliteSqliteCommand = "Microsoft.Data.Sqlite.SqliteCommand";
         public const string MicrosoftEntityFrameworkCoreEntityFrameworkQueryableExtensions = "Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions";
-        //public const string MicrosoftEntityFrameworkCoreRelationalDatabaseFacadeExtensions = "Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions";
+        public const string MicrosoftEntityFrameworkCoreRelationalDatabaseFacadeExtensions = "Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions";
+        public const string MicrosoftEntityFrameworkCoreRelationalQueryableExtensions = "Microsoft.EntityFrameworkCore.RelationalQueryableExtensions";
         public const string MicrosoftPracticesEnterpriseLibraryDataDatabase = "Microsoft.Practices.EnterpriseLibrary.Data.Database";
         public const string MicrosoftSecurityApplicationAntiXss = "Microsoft.Security.Application.AntiXss";
         public const string MicrosoftSecurityApplicationAntiXssEncoder = "Microsoft.Security.Application.AntiXssEncoder";
@@ -75,6 +78,8 @@ namespace Analyzer.Utilities
         public const string NewtonsoftJsonJsonSerializer = "Newtonsoft.Json.JsonSerializer";
         public const string NewtonsoftJsonJsonSerializerSettings = "Newtonsoft.Json.JsonSerializerSettings";
         public const string NewtonsoftJsonTypeNameHandling = "Newtonsoft.Json.TypeNameHandling";
+        public const string NHibernateISession = "NHibernate.ISession";
+        public const string NpgsqlNpgsqlCommand = "Npgsql.NpgsqlCommand";
         public const string NUnitFrameworkAssert = "NUnit.Framework.Assert";
         public const string NUnitFrameworkOneTimeSetUpAttribute = "NUnit.Framework.OneTimeSetUpAttribute";
         public const string NUnitFrameworkOneTimeTearDownAttribute = "NUnit.Framework.OneTimeTearDownAttribute";
@@ -131,6 +136,7 @@ namespace Analyzer.Utilities
         public const string SystemConfigurationIConfigurationSectionHandler = "System.Configuration.IConfigurationSectionHandler";
         public const string SystemConsole = "System.Console";
         public const string SystemConvert = "System.Convert";
+        //public const string SystemDataCommonDbCommand = "System.Data.Common.DbCommand";
         public const string SystemDataDataRow = "System.Data.DataRow";
         public const string SystemDataDataSet = "System.Data.DataSet";
         public const string SystemDataDataTable = "System.Data.DataTable";
@@ -141,7 +147,9 @@ namespace Analyzer.Utilities
         public const string SystemDataEntityQueryableExtensions = "System.Data.Entity.QueryableExtensions";
         public const string SystemDataIDataAdapter = "System.Data.IDataAdapter";
         public const string SystemDataIDbCommand = "System.Data.IDbCommand";
+        public const string SystemDataLinqDataContext = "System.Data.Linq.DataContext";
         public const string SystemDataSqlClientSqlCommand = "System.Data.SqlClient.SqlCommand";
+        public const string SystemDataSQLiteSQLiteCommand = "System.Data.SQLite.SQLiteCommand";
         //public const string SystemDataSqlClientSqlDataAdapter = "System.Data.SqlClient.SqlDataAdapter";
         public const string SystemDateTime = "System.DateTime";
         public const string SystemDecimal = "System.Decimal";

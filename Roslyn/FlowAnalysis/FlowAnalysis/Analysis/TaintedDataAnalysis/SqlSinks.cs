@@ -76,18 +76,65 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkMethodParameters: new[] {
                     ( ".ctor", new[] { "selectCommand", } ),
                 });
-            //sinkInfosBuilder.AddSinkInfo(
-            //    WellKnownTypeNames.MicrosoftEntityFrameworkCoreRelationalDatabaseFacadeExtensions,
-            //    SinkKind.Sql,
-            //    isInterface: false,
-            //    isAnyStringParameterInConstructorASink: false,
-            //    sinkProperties: null,
-            //    sinkMethodParameters: new[] {
-            //        ( "ExecuteSqlCommand", new[] { "sql", } ),
-            //        ( "ExecuteSqlCommandAsync", new[]{ "sql", } ),
-            //        ( "ExecuteSqlRaw", new[] { "sql", } ),
-            //        ( "ExecuteSqlRawAsync", new[] { "sql", } ),
-            //    });
+            sinkInfosBuilder.AddSinkInfo(
+                WellKnownTypeNames.MicrosoftEntityFrameworkCoreRelationalDatabaseFacadeExtensions,
+                SinkKind.Sql,
+                isInterface: false,
+                isAnyStringParameterInConstructorASink: false,
+                sinkProperties: null,
+                sinkMethodParameters: new[] {
+                    ( "ExecuteSqlCommand", new[] { "sql", } ),
+                    ( "ExecuteSqlCommandAsync", new[]{ "sql", } ),
+                    ( "ExecuteSqlRaw", new[] { "sql", } ),
+                    ( "ExecuteSqlRawAsync", new[] { "sql", } ),
+                });
+            sinkInfosBuilder.AddSinkInfo(
+                WellKnownTypeNames.MicrosoftEntityFrameworkCoreRelationalQueryableExtensions,
+                SinkKind.Sql,
+                isInterface: false,
+                isAnyStringParameterInConstructorASink: false,
+                sinkProperties: null,
+                sinkMethodParameters: new[] {
+                    ( "FromSql", new[] { "sql", } ),
+                    ( "FromSqlRaw", new[]{ "sql", } ),
+                });
+            sinkInfosBuilder.AddSinkInfo(
+                WellKnownTypeNames.SystemDataLinqDataContext,
+                SinkKind.Sql,
+                isInterface: false,
+                isAnyStringParameterInConstructorASink: false,
+                sinkProperties: null,
+                sinkMethodParameters: new[] {
+                    ( "ExecuteQuery", new[] { "query", } ),
+                    ( "ExecuteCommand", new[]{ "command", } ),
+                });
+            sinkInfosBuilder.AddSinkInfo(
+                WellKnownTypeNames.CassandraISession,
+                SinkKind.Sql,
+                isInterface: true,
+                isAnyStringParameterInConstructorASink: false,
+                sinkProperties: null,
+                sinkMethodParameters: new[] {
+                    ( "Execute", new[] { "cqlQuery", } ),
+                });
+            sinkInfosBuilder.AddSinkInfo(
+                WellKnownTypeNames.NHibernateISession,
+                SinkKind.Sql,
+                isInterface: true,
+                isAnyStringParameterInConstructorASink: false,
+                sinkProperties: null,
+                sinkMethodParameters: new[] {
+                    ( "CreateSQLQuery", new[] { "queryString", } ),
+                });
+            sinkInfosBuilder.AddSinkInfo(
+                WellKnownTypeNames.NpgsqlNpgsqlCommand,
+                SinkKind.Sql,
+                isInterface: false,
+                isAnyStringParameterInConstructorASink: false,
+                sinkProperties: null,
+                sinkMethodParameters: new[] {
+                    ( ".ctor", new[] { "cmdText", } ),
+                });
             sinkInfosBuilder.AddSinkInfo(
                 WellKnownTypeNames.SystemDataEntityDatabase,
                 SinkKind.Sql,
@@ -143,6 +190,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkProperties: null,
                 sinkMethodParameters: new[] {
                     ( "GetSqlStringCommand", new[] { "query", } ),
+                    ( "ExecuteDataSet", new[] { "commandText", "storedProcedureName", } ),
+                    ( "ExecuteReader", new[] { "commandText", "storedProcedureName", } ),
+                    ( "ExecuteNonQuery", new[] { "commandText", "storedProcedureName", } ),
+                    ( "ExecuteScalar", new[] { "commandText", "storedProcedureName", } ),
+                });
+            sinkInfosBuilder.AddSinkInfo(
+                WellKnownTypeNames.SystemDataSQLiteSQLiteCommand,
+                SinkKind.Sql,
+                isInterface: false,
+                isAnyStringParameterInConstructorASink: false,
+                sinkProperties: null,
+                sinkMethodParameters: new[] {
+                    ( "Execute", new[] { "commandText", } ),
                 });
 
             SinkInfos = sinkInfosBuilder.ToImmutableAndFree();

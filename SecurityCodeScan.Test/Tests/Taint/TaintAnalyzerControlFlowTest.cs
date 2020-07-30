@@ -42,7 +42,9 @@ namespace SecurityCodeScan.Test.Taint
         [DataRow("string var1 = input; if (var1 == null) var1 = \"const\";",
                  "Dim var1 As String = input\r\nIf var1 Is Nothing Then var1 = \"const\"", true)]
         [DataRow("string var1 = \"const\"; if (var1 == null) var1 = input;",
-                 "Dim var1 As String = \"const\"\r\nIf var1 Is Nothing Then var1 = input", true)]
+                 "Dim var1 As String = \"const\"\r\nIf var1 Is Nothing Then var1 = input", false)]
+        [DataRow("string var1 = null; if (var1 == null) var1 = input;",
+                 "Dim var1 As String = Nothing\r\nIf var1 Is Nothing Then var1 = input", true)]
         [DataRow(@"string var1 = input;
                    if (var1 == null)
                        var1 = ""const1"";
@@ -172,7 +174,11 @@ namespace SecurityCodeScan.Test.Taint
         [DataRow(@"string var1 = ""const"";
                    var1 = var1 ?? input;",
                   @"Dim var1 As String = ""const""
-                    var1 = If(var1, input)", true)]
+                    var1 = If(var1, input)", false)]
+        [DataRow(@"string var1 = ""const"";
+                   var1 = var1 == ""const"" ? input : var1;",
+                  @"Dim var1 As String = ""const""
+                    var1 = If(var1 = ""const"", input, var1)", true)]
         [DataRow(@"string var1 = ""const1"";
                    var1 = var1 ?? ""const2"";",
                   @"Dim var1 As String = ""const1""

@@ -21,6 +21,16 @@ namespace SecurityCodeScan.Analyzers
     using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
 
     [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class CommandInjectionTaintAnalyzer : TaintAnalyzer2
+    {
+        internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0001");
+
+        protected override SinkKind SinkKind { get { return SinkKind.ProcessCommand; } }
+
+        protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
+    }
+
+    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal class SqlInjectionTaintAnalyzer : TaintAnalyzer2
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0002");
@@ -31,21 +41,31 @@ namespace SecurityCodeScan.Analyzers
     }
 
     [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class PathTraversalTaintAnalyzer : TaintAnalyzer2
-    {
-        internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0018");
-
-        protected override SinkKind SinkKind { get { return SinkKind.FilePathInjection; } }
-
-        protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
-    }
-
-    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal class XPathTaintAnalyzer : TaintAnalyzer2
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0003");
 
         protected override SinkKind SinkKind { get { return SinkKind.XPath; } }
+
+        protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
+    }
+
+    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class XmlInjectionTaintAnalyzer : TaintAnalyzer2
+    {
+        internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0007");
+
+        protected override SinkKind SinkKind { get { return SinkKind.Xml; } }
+
+        protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
+    }
+
+    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class PathTraversalTaintAnalyzer : TaintAnalyzer2
+    {
+        internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0018");
+
+        protected override SinkKind SinkKind { get { return SinkKind.FilePathInjection; } }
 
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }

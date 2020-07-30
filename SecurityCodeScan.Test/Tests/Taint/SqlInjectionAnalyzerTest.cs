@@ -606,9 +606,8 @@ End Namespace
             var testConfig = @"
 TaintEntryPoints:
   AAA:
-    Namespace: Foo
-    ClassName: SampleClass
-    Name: Execute
+    Namespace: sample
+    ClassName: MyFoo
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -616,9 +615,9 @@ TaintEntryPoints:
             var cSharpTest = $@"
 using NHibernate;
 
-namespace Foo
+namespace sample
 {{
-    public class SampleClass
+    public class MyFoo
     {{
         private ISession session = null;
 
@@ -633,8 +632,8 @@ namespace Foo
             var visualBasicTest = $@"
 Imports NHibernate
 
-Namespace Foo
-    Public Class SampleClass
+Namespace sample
+    Public Class MyFoo
         Private session As ISession = Nothing
 
         Public Sub Execute(ByVal username As String)
@@ -646,7 +645,7 @@ End Namespace
 
             var expected = new DiagnosticResult
             {
-                Id       = "SCS0037",
+                Id       = "SCS0002",
                 Severity = DiagnosticSeverity.Warning,
             };
 
@@ -675,9 +674,8 @@ End Namespace
             var testConfig = @"
 TaintEntryPoints:
   AAA:
-    Namespace: Foo
-    ClassName: SampleClass
-    Name: Execute
+    Namespace: sample
+    ClassName: MyFoo
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -685,9 +683,9 @@ TaintEntryPoints:
             var cSharpTest = $@"
 using Cassandra;
 
-namespace Foo
+namespace sample
 {{
-    public class SampleClass
+    public class MyFoo
     {{
         private ISession session = null;
 
@@ -702,8 +700,8 @@ namespace Foo
             var visualBasicTest = $@"
 Imports Cassandra
 
-Namespace Foo
-    Public Class SampleClass
+Namespace sample
+    Public Class MyFoo
         Private session As ISession = Nothing
 
         Public Sub Execute(ByVal username As String)
@@ -714,7 +712,7 @@ End Namespace
 ";
             var expected = new DiagnosticResult
             {
-                Id       = "SCS0038",
+                Id       = "SCS0002",
                 Severity = DiagnosticSeverity.Warning,
             };
 
@@ -745,9 +743,8 @@ End Namespace
             var testConfig = @"
 TaintEntryPoints:
   AAA:
-    Namespace: Foo
-    ClassName: SampleClass
-    Name: Execute
+    Namespace: sample
+    ClassName: MyFoo
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -755,9 +752,9 @@ TaintEntryPoints:
             var cSharpTest = $@"
 using Npgsql;
 
-namespace Foo
+namespace sample
 {{
-    public class SampleClass
+    public class MyFoo
     {{
         public void Execute(string username)
         {{
@@ -774,8 +771,8 @@ namespace Foo
             var visualBasicTest = $@"
 Imports Npgsql
 
-Namespace Foo
-    Public Class SampleClass
+Namespace sample
+    Public Class MyFoo
         Public Sub Execute(ByVal username As String)
             {sink}
         End Sub
@@ -784,7 +781,7 @@ End Namespace
 ";
             var expected = new DiagnosticResult
             {
-                Id       = "SCS0039",
+                Id       = "SCS0002",
                 Severity = DiagnosticSeverity.Warning,
             };
 

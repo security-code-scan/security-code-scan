@@ -245,13 +245,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     var taintedParameterNames = visitedArguments
                             .Where(s => this.GetCachedAbstractValue(s).Kind == TaintedDataAbstractValueKind.Tainted)
-                            .Select(s => s.Parameter.Name)
-                            .ToImmutableArray();
+                            .Select(s => s.Parameter.Name); // keep enumerable, don't cache it here
 
                     if (this.IsSanitizingMethod(
                         method,
                         visitedArguments,
-                        taintedParameterNames,
+                        taintedParameterNames.ToImmutableArray(),
                         out sanitizedParameterPairs))
                     {
                         isSanitizingMethod = true;
@@ -292,7 +291,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     if (this.DataFlowAnalysisContext.SourceInfos.IsSourceTransferMethod(
                         method,
                         visitedArguments,
-                        taintedParameterNames,
+                        taintedParameterNames.ToImmutableArray(),
                         out taintedParameterPairs))
                     {
                         foreach ((string ifTaintedParameter, string thenTaintedTarget) in taintedParameterPairs)

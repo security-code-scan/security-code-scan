@@ -65,8 +65,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypeNames.SystemWebHttpServerUtility,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingMethods: new[] {
-                    "HtmlEncode",
+                sanitizingMethods: new (MethodMatcher, (string taintedArgument, string sanitizedArgument)[])[] {
+                    (
+                        (methodName, arguments) => methodName == "HtmlEncode" && arguments.Length == 1,
+                        new[] { ("s", TaintedTargetValue.Return) }
+                    ),
+                    (
+                        (methodName, arguments) => methodName == "HtmlEncode" && arguments.Length == 2,
+                        new[] { ("s", "output") }
+                    ),
                 });
             builder.AddSanitizerInfo(
                 WellKnownTypeNames.SystemWebHttpServerUtilityBase,
@@ -86,9 +93,23 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypeNames.SystemWebHttpUtility,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingMethods: new[] {
-                    "HtmlAttributeEncode",
-                    "HtmlEncode",
+                sanitizingMethods: new (MethodMatcher, (string taintedArgument, string sanitizedArgument)[])[] {
+                    (
+                        (methodName, arguments) => methodName == "HtmlAttributeEncode" && arguments.Length == 1,
+                        new[] { ("s", TaintedTargetValue.Return) }
+                    ),
+                    (
+                        (methodName, arguments) => methodName == "HtmlAttributeEncode" && arguments.Length == 2,
+                        new[] { ("s", "output") }
+                    ),
+                    (
+                        (methodName, arguments) => methodName == "HtmlEncode" && arguments.Length == 1,
+                        new[] { ("value", TaintedTargetValue.Return), ("s", TaintedTargetValue.Return) }
+                    ),
+                    (
+                        (methodName, arguments) => methodName == "HtmlEncode" && arguments.Length == 2,
+                        new[] { ("s", "output") }
+                    ),
                 });
             builder.AddSanitizerInfo(
                 WellKnownTypeNames.SystemWebSecurityAntiXssAntiXssEncoder,
@@ -123,6 +144,20 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sanitizingMethods: new[] {
                     "HtmlAttributeEncode",
                     "HtmlEncode",
+                });
+            builder.AddSanitizerInfo(
+                WellKnownTypeNames.SystemTextEncodingsWebTextEncoder,
+                isInterface: false,
+                isConstructorSanitizing: false,
+                sanitizingMethods: new (MethodMatcher, (string taintedArgument, string sanitizedArgument)[])[] {
+                    (
+                        (methodName, arguments) => methodName == "Encode" && arguments.Length == 1,
+                        new[] { ("value", TaintedTargetValue.Return) }
+                    ),
+                    (
+                        (methodName, arguments) => methodName == "Encode" && (arguments.Length == 2 || arguments.Length == 4),
+                        new[] { ("value", "output") }
+                    ),
                 });
 
             builder.AddRange(PrimitiveTypeConverterSanitizers.SanitizerInfos);

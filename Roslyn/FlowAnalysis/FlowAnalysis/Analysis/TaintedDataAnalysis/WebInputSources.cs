@@ -19,6 +19,57 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             var sourceInfosBuilder = PooledHashSet<SourceInfo>.GetInstance();
 
+            sourceInfosBuilder.AddSourceInfoSpecifyingTaintedTargets(
+                WellKnownTypeNames.SystemWebHttpServerUtility,
+                isInterface: false,
+                taintedProperties: null,
+                taintedMethodsNeedsPointsToAnalysis: null,
+                taintedMethodsNeedsValueContentAnalysis: null,
+                transferMethods: new (MethodMatcher, (string, string)[])[]{
+                    (
+                        (methodName, arguments) =>
+                            methodName == "HtmlEncode" &&
+                            arguments.Count() == 2,
+                        new (string, string)[]{
+                            ("s", "output"),
+                        }
+                    )
+                });
+
+            sourceInfosBuilder.AddSourceInfoSpecifyingTaintedTargets(
+                WellKnownTypeNames.SystemWebHttpUtility,
+                isInterface: false,
+                taintedProperties: null,
+                taintedMethodsNeedsPointsToAnalysis: null,
+                taintedMethodsNeedsValueContentAnalysis: null,
+                transferMethods: new (MethodMatcher, (string, string)[])[]{
+                    (
+                        (methodName, arguments) =>
+                            methodName == "HtmlEncode" &&
+                            arguments.Count() == 2,
+                        new (string, string)[]{
+                            ("s", "output"),
+                        }
+                    )
+                });
+
+            sourceInfosBuilder.AddSourceInfoSpecifyingTaintedTargets(
+                WellKnownTypeNames.SystemTextEncodingsWebTextEncoder,
+                isInterface: false,
+                taintedProperties: null,
+                taintedMethodsNeedsPointsToAnalysis: null,
+                taintedMethodsNeedsValueContentAnalysis: null,
+                transferMethods: new (MethodMatcher, (string, string)[])[]{
+                    (
+                        (methodName, arguments) =>
+                            methodName == "Encode" &&
+                            arguments.Count() == 2 || arguments.Count() == 4,
+                        new (string, string)[]{
+                            ("value", "output"),
+                        }
+                    )
+                });
+
             sourceInfosBuilder.AddSourceInfo(
                 "PathTraversal",
                 isInterface: false,

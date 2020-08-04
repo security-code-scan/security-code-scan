@@ -295,6 +295,7 @@ namespace Analyzer.Utilities
         public const string SystemStringComparison = "System.StringComparison";
         public const string SystemSystemException = "System.SystemException";
         public const string SystemTextEncoding = "System.Text.Encoding";
+        public const string SystemTextEncodingsWebTextEncoder = "System.Text.Encodings.Web.TextEncoder";
         public const string SystemTextRegularExpressionsRegex = "System.Text.RegularExpressions.Regex";
         public const string SystemTextStringBuilder = "System.Text.StringBuilder";
         public const string SystemThreadingCancellationToken = "System.Threading.CancellationToken";

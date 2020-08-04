@@ -49,12 +49,15 @@ namespace SecurityCodeScan.Config
 
         private static readonly Version ConfigVersion = new Version(2,1);
 
-        private T DeserializeAndValidate<T>(StreamReader reader) where T : ConfigData
+        private T DeserializeAndValidate<T>(StreamReader reader, bool validate) where T : ConfigData
         {
-            var yaml = new YamlStream();
-            yaml.Load(reader); // throws if duplicates are found
+            if (validate)
+            {
+                var yaml = new YamlStream();
+                yaml.Load(reader); // throws if duplicates are found
+                reader.BaseStream.Seek(0, SeekOrigin.Begin);
+            }
 
-            reader.BaseStream.Seek(0, SeekOrigin.Begin);
             using (var reader2 = new StreamReader(reader.BaseStream))
             {
                 var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties()
@@ -72,7 +75,11 @@ namespace SecurityCodeScan.Config
             {
                 using (var reader = new StreamReader(stream))
                 {
-                    return DeserializeAndValidate<ConfigData>(reader);
+#if DEBUG
+                    return DeserializeAndValidate<ConfigData>(reader, validate: true);
+#else
+                    return DeserializeAndValidate<ConfigData>(reader, validate: false);
+#endif
                 }
             }
         }
@@ -85,7 +92,7 @@ namespace SecurityCodeScan.Config
 
             using (var reader = File.OpenText (filePath))
             {
-                return DeserializeAndValidate<ConfigData>(reader);
+                return DeserializeAndValidate<ConfigData>(reader, validate: true);
             }
         }
 
@@ -98,7 +105,7 @@ namespace SecurityCodeScan.Config
 
                 using (var reader = new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(file.GetText().ToString()))))
                 {
-                    var projectConfig = DeserializeAndValidate<ProjectConfigData>(reader);
+                    var projectConfig = DeserializeAndValidate<ProjectConfigData>(reader, validate: true);
 
                     Version projectConfigVersion;
                     try

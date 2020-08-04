@@ -916,11 +916,19 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class Test : Controller
+    class TestController : Controller
+    {
+        public void Run(string s)
+        {
+            new Test(s);
+        }
+    }
+
+    class Test
     {
         private string sql;
 
-        public void Run(string s)
+        public Test(string s)
         {
             sql = s;
         }
@@ -938,13 +946,22 @@ Imports System.Data.SqlClient
 Imports System.Web.Mvc
 
 Namespace sample
-    Class Test
+    Class TestController
         Inherits Controller
 
-        Private sql As String
         Public Sub Run(s As String)
+            Dim x As New Test(s)
+        End Sub
+
+    End Class
+
+    Class Test
+        Private sql As String
+
+        Public Sub New(s As String)
             sql = s
         End Sub
+
         Protected Overrides Sub Finalize()
             Dim com As New SqlCommand(sql)
         End Sub
@@ -953,8 +970,13 @@ Namespace sample
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+            var testConfig = @"
+AuditMode: true
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -1375,10 +1397,9 @@ End Namespace
         [DataRow("String.Empty",              "stringConst")]
         [DataRow("String.Empty",              "MyFoo.stringConst")]
         [DataRow("String.Empty",              "sample.MyFoo.stringConst")]
-        // isn't treated as const by new control flow implementation, but it is questionable if it is needed
-        //[DataRow("new string('x', 3)",        "stringConst")]
-        //[DataRow("new String('x', 3)",        "stringConst")]
-        //[DataRow("new System.String('x', 3)", "stringConst")]
+        [DataRow("new string('x', 3)",        "stringConst")]
+        [DataRow("new String('x', 3)",        "stringConst")]
+        [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
         public async Task VariableConcatenationProperty(string initializer, string accessor)
         {
@@ -1742,10 +1763,9 @@ namespace sample
         [DataRow("String.Empty",              "stringConst")]
         [DataRow("String.Empty",              "MyFoo.stringConst")]
         [DataRow("String.Empty",              "sample.MyFoo.stringConst")]
-        // isn't treated as const by new control flow implementation, but it is questionable if it is needed
-        //[DataRow("new string('x', 3)",        "stringConst")]
-        //[DataRow("new String('x', 3)",        "stringConst")]
-        //[DataRow("new System.String('x', 3)", "stringConst")]
+        [DataRow("new string('x', 3)",        "stringConst")]
+        [DataRow("new String('x', 3)",        "stringConst")]
+        [DataRow("new System.String('x', 3)", "stringConst")]
         [DataTestMethod]
         public async Task VariableConcatenationPropertyExpressionBodyCSharp(string initializer, string accessor)
         {

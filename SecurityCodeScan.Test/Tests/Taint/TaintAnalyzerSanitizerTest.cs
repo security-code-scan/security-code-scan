@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -12,12 +13,16 @@ namespace SecurityCodeScan.Test.Taint
     [TestClass]
     public class TaintAnalyzerSanitizerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _ /* language */)
         {
-            if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new OpenRedirectTaintAnalyzer(), new SqlInjectionTaintAnalyzer(), new LdapPathTaintAnalyzer(), new LdapFilterTaintAnalyzer()) };
-            else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new OpenRedirectTaintAnalyzer(), new SqlInjectionTaintAnalyzer(), new LdapPathTaintAnalyzer(), new LdapFilterTaintAnalyzer()) };
+            return new DiagnosticAnalyzer[]
+            {
+                new CSharpAnalyzers(new XssTaintAnalyzer(),
+                                    new OpenRedirectTaintAnalyzer(),
+                                    new SqlInjectionTaintAnalyzer(),
+                                    new LdapPathTaintAnalyzer(),
+                                    new LdapFilterTaintAnalyzer())
+            };
         }
 
         private static readonly PortableExecutableReference[] References =
@@ -343,7 +348,7 @@ End Namespace
         // sanitized with sanitized same type and different
         [DataRow(@"var enc = Encoder.HtmlEncode(input) + Encoder.HtmlEncode(input);
                    Response.Write(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0002")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002", 2)]
         [DataRow(@"var enc = Encoder.HtmlEncode(input) + Encoder.HtmlEncode(Encoder.LdapFilterEncode(input));
                    Response.Write(enc);
                    var d = new DirectorySearcher(enc);",                                        "SCS0031")]
@@ -353,12 +358,12 @@ End Namespace
         [DataRow(@"var enc = Encoder.HtmlEncode(Encoder.LdapFilterEncode(input)) + Encoder.HtmlEncode(Encoder.LdapFilterEncode(input));
                    Response.Write(enc);
                    var d = new DirectorySearcher(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0002")]
+                   var a = new SqlCommand(enc);",                                               "SCS0002", 2)]
         [DataRow(@"var enc = Encoder.HtmlEncode(input) + Encoder.LdapFilterEncode(input);
                    Response.Write(enc);",                                                       "SCS0029")]
         [DataRow(@"var enc = Encoder.LdapFilterEncode(input) + Encoder.HtmlEncode(input);
                    Response.Write(enc);",                                                       "SCS0029")]
-        public async Task Sanitizer(string payload, string warningId)
+        public async Task Sanitizer(string payload, string warningId, int count = 1)
         {
             var cSharpTest = $@"
 #pragma warning disable 8019
@@ -417,8 +422,8 @@ End Namespace
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Enumerable.Repeat(expected, count).ToArray()).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Enumerable.Repeat(expected, count).ToArray()).ConfigureAwait(false);
         }
     }
 }

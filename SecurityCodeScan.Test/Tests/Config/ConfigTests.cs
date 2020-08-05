@@ -16,7 +16,7 @@ namespace SecurityCodeScan.Test.Config
     {
         public ConfigTest()
         {
-            StartupConfiguration = new Configuration(ConfigurationManager.GetProjectConfiguration(ImmutableArray<AdditionalText>.Empty));
+            StartupConfiguration = new Configuration(ConfigurationManager.GetProjectConfiguration(ImmutableArray<AdditionalText>.Empty), null);
         }
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
@@ -30,7 +30,7 @@ namespace SecurityCodeScan.Test.Config
         public void EmptyUserConfig_NoChanges()
         {
             var options   = ConfigurationTest.CreateAnalyzersOptionsWithConfig("");
-            var newConfig = new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles));
+            var newConfig = new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles), null);
 
             //ensuring that field count matches count of properties tested below (test should fail and be updated if someone adds new field in Configuration)
             Assert.AreEqual(12, typeof(Configuration).GetProperties(BindingFlags.Instance | BindingFlags.Public).Length);
@@ -57,7 +57,7 @@ Unknown: false
 Behavior:
 ");
             // should not throw
-            new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles));
+            new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles), null);
         }
 
         [TestMethod]
@@ -77,14 +77,14 @@ Behavior:
         TaintFromArguments: [0]
 ");
             // should not throw
-            new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles));
+            new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles), null);
         }
 
         [TestMethod]
         public void MergingUserConfig_NoChanges()
         {
             var options   = ConfigurationTest.CreateAnalyzersOptionsWithConfig("Behavior:");
-            var newConfig = new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles));
+            var newConfig = new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles), null);
 
             // ensuring that field count matches count of properties tested below
             Assert.AreEqual(12, typeof(Configuration).GetProperties(BindingFlags.Instance | BindingFlags.Public).Length);
@@ -106,7 +106,7 @@ Behavior:
         public void DifferentConfigVersion_Exception()
         {
             var options   = ConfigurationTest.CreateAnalyzersOptionsWithConfig("MinimumPasswordValidatorProperties: 0", new Version(1,2));
-            Assert.ThrowsException<ArgumentException>(() => new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles)));
+            Assert.ThrowsException<ArgumentException>(() => new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles), null));
         }
 
         [DataTestMethod]
@@ -142,9 +142,9 @@ Behavior:
 ");
 
             if (shouldThrow)
-                Assert.ThrowsException<Exception>(() => new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles)));
+                Assert.ThrowsException<Exception>(() => new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles), null));
             else
-                new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles));
+                new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles), null);
         }
 
         [DataTestMethod]
@@ -160,9 +160,9 @@ Behavior:
 TaintTypes: {payload}");
 
             if (shouldThrow)
-                Assert.ThrowsException<Exception>(() => new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles)));
+                Assert.ThrowsException<Exception>(() => new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles), null));
             else
-                new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles));
+                new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles), null);
         }
     }
 }

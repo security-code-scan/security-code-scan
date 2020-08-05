@@ -46,7 +46,7 @@ namespace SecurityCodeScan.Analyzers
 
         private void OnCompilationStartAction(CompilationStartAnalysisContext context)
         {
-            ProjectConfiguration = new Configuration(ConfigurationManager.GetProjectConfiguration(context.Options.AdditionalFiles));
+            ProjectConfiguration = new Configuration(ConfigurationManager.GetProjectConfiguration(context.Options.AdditionalFiles), context.Compilation);
 
             foreach (var action in OnCompilationStartActions)
             {

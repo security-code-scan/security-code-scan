@@ -123,20 +123,19 @@ namespace SecurityCodeScan.Analyzers.Taint
             context.RegisterCompilationStartAction(
                 (CompilationStartAnalysisContext compilationContext, Configuration config) =>
                 {
-                    Compilation compilation = compilationContext.Compilation;
-                    TaintedDataConfig taintedDataConfig = TaintedDataConfig.GetOrCreate(compilation);
-                    TaintedDataSymbolMap<SourceInfo> sourceInfoSymbolMap = taintedDataConfig.GetSourceSymbolMap(this.SinkKind);
+                    TaintedDataSymbolMap<SourceInfo> sourceInfoSymbolMap = config.TaintConfiguration.GetSourceSymbolMap(this.SinkKind);
                     if (sourceInfoSymbolMap.IsEmpty)
                     {
                         return;
                     }
 
-                    TaintedDataSymbolMap<SinkInfo> sinkInfoSymbolMap = taintedDataConfig.GetSinkSymbolMap(this.SinkKind);
+                    TaintedDataSymbolMap<SinkInfo> sinkInfoSymbolMap = config.TaintConfiguration.GetSinkSymbolMap(this.SinkKind);
                     if (sinkInfoSymbolMap.IsEmpty)
                     {
                         return;
                     }
 
+                    Compilation compilation = compilationContext.Compilation;
                     compilationContext.RegisterOperationBlockStartAction(
                         operationBlockStartContext =>
                         {
@@ -245,23 +244,23 @@ namespace SecurityCodeScan.Analyzers.Taint
                                 },
                                 OperationKind.Invocation);
 
-                            if (TaintedDataConfig.HasTaintArraySource(SinkKind))
-                            {
-                                operationBlockStartContext.RegisterOperationAction(
-                                    operationAnalysisContext =>
-                                    {
-                                        IArrayInitializerOperation arrayInitializerOperation = (IArrayInitializerOperation)operationAnalysisContext.Operation;
-                                        if (arrayInitializerOperation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation)?.Type is IArrayTypeSymbol arrayTypeSymbol
-                                            && sourceInfoSymbolMap.IsSourceConstantArrayOfType(arrayTypeSymbol))
-                                        {
-                                            lock (rootOperationsNeedingAnalysis)
-                                            {
-                                                rootOperationsNeedingAnalysis.Add(operationAnalysisContext.Operation.GetRoot());
-                                            }
-                                        }
-                                    },
-                                    OperationKind.ArrayInitializer);
-                            }
+                            //if (TaintedDataConfig.HasTaintArraySource(SinkKind))
+                            //{
+                            //    operationBlockStartContext.RegisterOperationAction(
+                            //        operationAnalysisContext =>
+                            //        {
+                            //            IArrayInitializerOperation arrayInitializerOperation = (IArrayInitializerOperation)operationAnalysisContext.Operation;
+                            //            if (arrayInitializerOperation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation)?.Type is IArrayTypeSymbol arrayTypeSymbol
+                            //                && sourceInfoSymbolMap.IsSourceConstantArrayOfType(arrayTypeSymbol))
+                            //            {
+                            //                lock (rootOperationsNeedingAnalysis)
+                            //                {
+                            //                    rootOperationsNeedingAnalysis.Add(operationAnalysisContext.Operation.GetRoot());
+                            //                }
+                            //            }
+                            //        },
+                            //        OperationKind.ArrayInitializer);
+                            //}
 
                             operationBlockStartContext.RegisterOperationBlockEndAction(
                                 operationBlockAnalysisContext =>
@@ -289,7 +288,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                     operationBlockAnalysisContext.Options,
                                                     TaintedDataEnteringSinkDescriptor,
                                                     sourceInfoSymbolMap,
-                                                    taintedDataConfig.GetSanitizerSymbolMap(this.SinkKind),
+                                                    config.TaintConfiguration.GetSanitizerSymbolMap(this.SinkKind),
                                                     sinkInfoSymbolMap,
                                                     operationBlockAnalysisContext.CancellationToken);
                                                 if (taintedDataAnalysisResult == null)

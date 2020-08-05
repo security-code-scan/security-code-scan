@@ -2,19 +2,154 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
+using Analyzer.Utilities;
+using Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis;
+using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis;
 using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Analyzers.Utils;
 
 namespace SecurityCodeScan.Config
 {
+    internal class TaintConfiguration
+    {
+        private WellKnownTypeProvider WellKnownTypeProvider { get; set; }
+
+        private ImmutableDictionary<SinkKind, Lazy<TaintedDataSymbolMap<SourceInfo>>> SourceSymbolMap { get; set; }
+
+        private ImmutableDictionary<SinkKind, Lazy<TaintedDataSymbolMap<SanitizerInfo>>> SanitizerSymbolMap { get; set; }
+
+        private ImmutableDictionary<SinkKind, Lazy<TaintedDataSymbolMap<SinkInfo>>> SinkSymbolMap { get; set; }
+
+        public TaintedDataSymbolMap<SourceInfo> GetSourceSymbolMap(SinkKind sinkKind)
+        {
+            return this.GetFromMap<SourceInfo>(sinkKind, this.SourceSymbolMap);
+        }
+
+        public TaintedDataSymbolMap<SanitizerInfo> GetSanitizerSymbolMap(SinkKind sinkKind)
+        {
+            return this.GetFromMap<SanitizerInfo>(sinkKind, this.SanitizerSymbolMap);
+        }
+
+        public TaintedDataSymbolMap<SinkInfo> GetSinkSymbolMap(SinkKind sinkKind)
+        {
+            return this.GetFromMap<SinkInfo>(sinkKind, this.SinkSymbolMap);
+        }
+
+        private TaintedDataSymbolMap<T> GetFromMap<T>(SinkKind sinkKind, ImmutableDictionary<SinkKind, Lazy<TaintedDataSymbolMap<T>>> map)
+            where T : ITaintedDataInfo
+        {
+            if (map.TryGetValue(sinkKind, out Lazy<TaintedDataSymbolMap<T>> lazySourceSymbolMap))
+            {
+                return lazySourceSymbolMap.Value;
+            }
+            else
+            {
+                Debug.Fail($"SinkKind {sinkKind} entry missing from {typeof(T).Name} map");
+                return new TaintedDataSymbolMap<T>(this.WellKnownTypeProvider, Enumerable.Empty<T>());
+            }
+        }
+
+        public TaintConfiguration(Compilation compilation, ConfigData config)
+        {
+            WellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
+            using PooledDictionary<SinkKind, Lazy<TaintedDataSymbolMap<SourceInfo>>> sourceSymbolMapBuilder =
+                PooledDictionary<SinkKind, Lazy<TaintedDataSymbolMap<SourceInfo>>>.GetInstance();
+            using PooledDictionary<SinkKind, Lazy<TaintedDataSymbolMap<SanitizerInfo>>> sanitizerSymbolMapBuilder =
+                PooledDictionary<SinkKind, Lazy<TaintedDataSymbolMap<SanitizerInfo>>>.GetInstance();
+            using PooledDictionary<SinkKind, Lazy<TaintedDataSymbolMap<SinkInfo>>> sinkSymbolMapBuilder =
+                PooledDictionary<SinkKind, Lazy<TaintedDataSymbolMap<SinkInfo>>>.GetInstance();
+
+            // For tainted data rules with the same set of sources, we'll reuse the same TaintedDataSymbolMap<SourceInfo> instance.
+            // Same for sanitizers.
+            using PooledDictionary<ImmutableHashSet<SourceInfo>, Lazy<TaintedDataSymbolMap<SourceInfo>>> sourcesToSymbolMap =
+                PooledDictionary<ImmutableHashSet<SourceInfo>, Lazy<TaintedDataSymbolMap<SourceInfo>>>.GetInstance();
+            using PooledDictionary<ImmutableHashSet<SanitizerInfo>, Lazy<TaintedDataSymbolMap<SanitizerInfo>>> sanitizersToSymbolMap =
+                PooledDictionary<ImmutableHashSet<SanitizerInfo>, Lazy<TaintedDataSymbolMap<SanitizerInfo>>>.GetInstance();
+
+            // Build a mapping of (sourceSet, sanitizerSet) -> (sinkKinds, sinkSet), so we'll reuse the same TaintedDataSymbolMap<SinkInfo> instance.
+            using PooledDictionary<(ImmutableHashSet<SourceInfo> SourceInfos, ImmutableHashSet<SanitizerInfo> SanitizerInfos), (ImmutableHashSet<SinkKind>.Builder SinkKinds, ImmutableHashSet<SinkInfo>.Builder SinkInfos)> sourceSanitizersToSinks =
+                PooledDictionary<(ImmutableHashSet<SourceInfo> SourceInfos, ImmutableHashSet<SanitizerInfo> SanitizerInfos), (ImmutableHashSet<SinkKind>.Builder SinkKinds, ImmutableHashSet<SinkInfo>.Builder SinkInfos)>.GetInstance();
+
+            // Using LazyThreadSafetyMode.ExecutionAndPublication to avoid instantiating multiple times.
+            foreach (SinkKind sinkKind in Enum.GetValues(typeof(SinkKind)))
+            {
+                ImmutableHashSet<SourceInfo> sources = GetSourceInfos(sinkKind, config);
+                if (!sourcesToSymbolMap.TryGetValue(sources, out Lazy<TaintedDataSymbolMap<SourceInfo>> lazySourceSymbolMap))
+                {
+                    lazySourceSymbolMap = new Lazy<TaintedDataSymbolMap<SourceInfo>>(
+                        () => { return new TaintedDataSymbolMap<SourceInfo>(WellKnownTypeProvider, sources); },
+                        LazyThreadSafetyMode.ExecutionAndPublication);
+                    sourcesToSymbolMap.Add(sources, lazySourceSymbolMap);
+                }
+
+                sourceSymbolMapBuilder.Add(sinkKind, lazySourceSymbolMap);
+
+                ImmutableHashSet<SanitizerInfo> sanitizers = GetSanitizerInfos(sinkKind, config);
+                if (!sanitizersToSymbolMap.TryGetValue(sanitizers, out Lazy<TaintedDataSymbolMap<SanitizerInfo>> lazySanitizerSymbolMap))
+                {
+                    lazySanitizerSymbolMap = new Lazy<TaintedDataSymbolMap<SanitizerInfo>>(
+                        () => { return new TaintedDataSymbolMap<SanitizerInfo>(WellKnownTypeProvider, sanitizers); },
+                        LazyThreadSafetyMode.ExecutionAndPublication);
+                    sanitizersToSymbolMap.Add(sanitizers, lazySanitizerSymbolMap);
+                }
+
+                sanitizerSymbolMapBuilder.Add(sinkKind, lazySanitizerSymbolMap);
+
+                ImmutableHashSet<SinkInfo> sinks = GetSinkInfos(sinkKind, config);
+                if (!sourceSanitizersToSinks.TryGetValue((sources, sanitizers), out (ImmutableHashSet<SinkKind>.Builder SinkKinds, ImmutableHashSet<SinkInfo>.Builder SinkInfos) sinksPair))
+                {
+                    sinksPair = (ImmutableHashSet.CreateBuilder<SinkKind>(), ImmutableHashSet.CreateBuilder<SinkInfo>());
+                    sourceSanitizersToSinks.Add((sources, sanitizers), sinksPair);
+                }
+
+                sinksPair.SinkKinds.Add(sinkKind);
+                sinksPair.SinkInfos.UnionWith(sinks);
+            }
+
+            foreach (KeyValuePair<(ImmutableHashSet<SourceInfo> SourceInfos, ImmutableHashSet<SanitizerInfo> SanitizerInfos), (ImmutableHashSet<SinkKind>.Builder SinkKinds, ImmutableHashSet<SinkInfo>.Builder SinkInfos)> kvp in sourceSanitizersToSinks)
+            {
+                ImmutableHashSet<SinkInfo> sinks = kvp.Value.SinkInfos.ToImmutable();
+                Lazy<TaintedDataSymbolMap<SinkInfo>> lazySinkSymbolMap = new Lazy<TaintedDataSymbolMap<SinkInfo>>(
+                    () => { return new TaintedDataSymbolMap<SinkInfo>(WellKnownTypeProvider, sinks); },
+                    LazyThreadSafetyMode.ExecutionAndPublication);
+                foreach (SinkKind sinkKind in kvp.Value.SinkKinds)
+                {
+                    sinkSymbolMapBuilder.Add(sinkKind, lazySinkSymbolMap);
+                }
+            }
+
+            SourceSymbolMap = sourceSymbolMapBuilder.ToImmutableDictionary();
+            SanitizerSymbolMap = sanitizerSymbolMapBuilder.ToImmutableDictionary();
+            SinkSymbolMap = sinkSymbolMapBuilder.ToImmutableDictionary();
+        }
+
+        private ImmutableHashSet<SourceInfo> GetSourceInfos(SinkKind sinkKind, ConfigData config)
+        {
+            return null;
+        }
+
+        private ImmutableHashSet<SanitizerInfo> GetSanitizerInfos(SinkKind sinkKind, ConfigData config)
+        {
+            return null;
+        }
+
+        private ImmutableHashSet<SinkInfo> GetSinkInfos(SinkKind sinkKind, ConfigData config)
+        {
+            return null;
+        }
+    }
+
     /// <summary>
     /// Internal configuration optimized for queries
     /// </summary>
     internal class Configuration
     {
-        public Configuration()
+        private Configuration()
         {
             _PasswordValidatorRequiredProperties = new HashSet<string>();
             PasswordValidatorRequiredProperties = new ReadOnlyHashSet<string>(_PasswordValidatorRequiredProperties);
@@ -37,8 +172,13 @@ namespace SecurityCodeScan.Config
             _TaintTypeNameToBit = new Dictionary<string, ulong>(62);
         }
 
-        public Configuration(ConfigData configData) : this()
+        private readonly Lazy<TaintConfiguration> CachedTaintConfiguration;
+        public TaintConfiguration TaintConfiguration { get { return CachedTaintConfiguration.Value; } }
+
+        public Configuration(ConfigData configData, Compilation compilation) : this()
         {
+            CachedTaintConfiguration = new Lazy<TaintConfiguration>(() => new TaintConfiguration(compilation, configData));
+
             if (configData.TaintTypes != null)
                 RegisterTaintTypes(configData.TaintTypes);
 

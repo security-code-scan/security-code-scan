@@ -25,7 +25,7 @@ namespace SecurityCodeScan.Analyzers
 
         public CSharpAnalyzers()
         {
-            Workers = new Lazy<List<SecurityAnalyzer>>(() => InitWorkers<TaintAnalyzerExtensionCSharp>(LanguageNames.CSharp));
+            Workers = new Lazy<List<SecurityAnalyzer>>(() => InitWorkers<SecurityAnalyzer>(LanguageNames.CSharp));
         }
     }
 
@@ -42,7 +42,7 @@ namespace SecurityCodeScan.Analyzers
 
         public VBasicAnalyzers()
         {
-            Workers = new Lazy<List<SecurityAnalyzer>>(() => InitWorkers<TaintAnalyzerExtensionVisualBasic>(LanguageNames.VisualBasic));
+            Workers = new Lazy<List<SecurityAnalyzer>>(() => InitWorkers<SecurityAnalyzer>(LanguageNames.VisualBasic));
         }
     }
 
@@ -70,7 +70,7 @@ namespace SecurityCodeScan.Analyzers
             Diagnostics = new Lazy<ImmutableArray<DiagnosticDescriptor>>(InitDiagnostics);
         }
 
-        internal List<SecurityAnalyzer> InitWorkers<T>(string language) where T : TaintAnalyzerExtension
+        internal List<SecurityAnalyzer> InitWorkers<T>(string language)
         {
             var workers = new List<SecurityAnalyzer>();
             var taintExtensions = new List<T>();
@@ -94,14 +94,7 @@ namespace SecurityCodeScan.Analyzers
                 {
                     if (attribute.Languages.Contains(language))
                     {
-                        if (typeof(TaintAnalyzer<T>).GetTypeInfo().IsAssignableFrom(type))
-                        {
-                            workers.Add((SecurityAnalyzer)Activator.CreateInstance(type.AsType(), taintExtensions.ToArray()));
-                        }
-                        else
-                        {
-                            workers.Add((SecurityAnalyzer)Activator.CreateInstance(type.AsType()));
-                        }
+                        workers.Add((SecurityAnalyzer)Activator.CreateInstance(type.AsType()));
                         break;
                     }
                 }

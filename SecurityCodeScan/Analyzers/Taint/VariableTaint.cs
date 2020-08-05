@@ -25,6 +25,6 @@ namespace SecurityCodeScan.Analyzers.Taint
         /// <summary>
         /// Trusted value
         /// </summary>
-        Safe = UInt64.MaxValue & ~0b111ul, // set last three bits to zero, all other bits are used by sanitizers. Safe == bits of all possible sanitizers set.
+        Safe = int.MaxValue & ~0b111ul, // set last three bits to zero, all other bits are used by sanitizers. Safe == bits of all possible sanitizers set.
     }
 }

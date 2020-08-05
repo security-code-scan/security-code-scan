@@ -129,7 +129,7 @@ End Namespace
 ";
             var expected = new DiagnosticResult
             {
-                Id       = "SCS0035",
+                Id       = "SCS0002",
                 Severity = DiagnosticSeverity.Warning,
             };
 
@@ -140,7 +140,7 @@ Behavior:
     ClassName: MyFoo
     Name: Sink
     Method:
-      InjectableArguments: [SCS0035: 0]
+      InjectableArguments: [SCS0002: 0]
 
   db3:
     Namespace: Microsoft.EntityFrameworkCore

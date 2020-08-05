@@ -13,13 +13,13 @@ namespace SecurityCodeScan.Analyzers.Taint
 
     internal class PostCondition
     {
-        public PostCondition(ulong taint, ImmutableHashSet<int> taintFromArguments = null)
+        public PostCondition(int taint, ImmutableHashSet<int> taintFromArguments = null)
         {
             Taint              = taint;
             TaintFromArguments = taintFromArguments ?? ImmutableHashSet<int>.Empty;
         }
 
-        public ulong Taint { get; }
+        public int Taint { get; }
 
         public ImmutableHashSet<int> TaintFromArguments { get; }
     }
@@ -38,18 +38,18 @@ namespace SecurityCodeScan.Analyzers.Taint
 
     internal class InjectableArgument
     {
-        public InjectableArgument(ulong taint, string locale, bool not = false)
+        public InjectableArgument(int taint, string locale, bool not = false)
         {
             Locale            = locale;
             RequiredTaintBits = taint;
-            Not                = not;
+            Not               = not;
         }
 
         public bool   Not;
 
         public string Locale { get; }
 
-        public ulong RequiredTaintBits { get; }
+        public int    RequiredTaintBits { get; }
     }
 
     internal class MethodBehavior
@@ -60,7 +60,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         public IReadOnlyDictionary<int, PostCondition>      PostConditions      { get; }
         public InjectableArgument                           InjectableField     { get; }
 
-        private readonly InjectableArgument NotInjectableArgument = new InjectableArgument(0ul, null);
+        private readonly InjectableArgument NotInjectableArgument = new InjectableArgument(0, null);
 
         public MethodBehavior(IReadOnlyDictionary<object, object>          appliesUnderCondition,
                               IReadOnlyList<Condition>                     preConditions,

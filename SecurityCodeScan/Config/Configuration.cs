@@ -169,7 +169,7 @@ namespace SecurityCodeScan.Config
             _ConstantFields = new HashSet<string>();
             ConstantFields  = new ReadOnlyHashSet<string>(_ConstantFields);
 
-            _TaintTypeNameToBit = new Dictionary<string, ulong>(62);
+            _TaintTypeNameToBit = new Dictionary<string, int>();
         }
 
         private readonly Lazy<TaintConfiguration> CachedTaintConfiguration;
@@ -254,8 +254,8 @@ namespace SecurityCodeScan.Config
         private readonly HashSet<string>         _ConstantFields;
         public           ReadOnlyHashSet<string> ConstantFields { get; }
 
-        private Dictionary<string, ulong> _TaintTypeNameToBit;
-        public IReadOnlyDictionary<string, ulong> TaintTypeNameToBit => _TaintTypeNameToBit;
+        private Dictionary<string, int> _TaintTypeNameToBit;
+        public IReadOnlyDictionary<string, int> TaintTypeNameToBit => _TaintTypeNameToBit;
 
         // is needed to have allow merging by configuration Id
         private readonly Dictionary<string, KeyValuePair<string, MethodBehavior>> ConfigurationBehavior;
@@ -268,29 +268,15 @@ namespace SecurityCodeScan.Config
 
         private void RegisterTaintTypes(IEnumerable<string> typeNames)
         {
-            var availableBit = 1ul << 3;
-            foreach (var registeredBit in TaintTypeNameToBit.Values)
-            {
-                if (availableBit <= registeredBit)
-                    availableBit = registeredBit;
-            }
+            var values = Enum.GetValues(typeof(SinkKind));
+            int nexVal = (int)values.GetValue(values.Length - 1);
 
             foreach (var typeName in typeNames)
             {
-                if (typeName == "Tainted" || typeName == "Safe" || typeName == "Constant")
-                    throw new Exception("'Tainted', 'Safe', and 'Constant' are reserved taint types and cannot be used for custom taint");
-
-                if (typeName.StartsWith("~"))
-                    throw new Exception("Custom taint type cannot start from '~'");
-
                 if (TaintTypeNameToBit.ContainsKey(typeName))
                     throw new Exception("Duplicate taint type");
 
-                if (availableBit == 0ul)
-                    throw new Exception("Max number of taint types reached");
-
-                _TaintTypeNameToBit[typeName] = availableBit;
-                availableBit                  = availableBit << 1;
+                _TaintTypeNameToBit[typeName] = nexVal++;
             }
         }
 
@@ -334,9 +320,9 @@ namespace SecurityCodeScan.Config
             return new List<Condition> { new Condition(conditions, GetPostConditions(then, mainPostConditions)) };
         }
 
-        private ulong GetTaintBits(IEnumerable<object> taintTypes)
+        private int GetTaintBits(IEnumerable<object> taintTypes)
         {
-            ulong bits = 0ul;
+            int bits = 0;
             foreach (var type in taintTypes)
             {
                 var taintType = (string)type;
@@ -345,13 +331,13 @@ namespace SecurityCodeScan.Config
                     throw new Exception("Negation in arrays is not supported");
             }
 
-            if (bits == 0ul)
+            if (bits == 0)
                 throw new Exception("Unknown taint type");
 
             return bits;
         }
 
-        private ulong GetTaintBits(string taintType, out bool negate)
+        private int GetTaintBits(string taintType, out bool negate)
         {
             negate = false;
             if (taintType.StartsWith("~"))
@@ -360,17 +346,17 @@ namespace SecurityCodeScan.Config
                 taintType = taintType.Substring(1);
             }
 
-            ulong taintBits;
+            int taintBits;
             switch (taintType)
             {
                 case "Tainted":
-                    taintBits = (ulong)VariableTaint.Tainted;
+                    taintBits = (int)VariableTaint.Tainted;
                     break;
                 case "Safe":
-                    taintBits = (ulong)VariableTaint.Safe;
+                    taintBits = (int)VariableTaint.Safe;
                     break;
                 case "Constant":
-                    taintBits = (ulong)VariableTaint.Constant;
+                    taintBits = (int)VariableTaint.Constant;
                     break;
                 default:
                     taintBits = TaintTypeNameToBit[taintType];
@@ -380,12 +366,12 @@ namespace SecurityCodeScan.Config
             return taintBits;
         }
 
-        private IReadOnlyDictionary<int, ulong> GetArguments(IReadOnlyList<object> arguments)
+        private IReadOnlyDictionary<int, int> GetArguments(IReadOnlyList<object> arguments)
         {
             if (arguments == null || !arguments.Any())
                 return null;
 
-            var outArguments = new Dictionary<int, ulong>(arguments.Count);
+            var outArguments = new Dictionary<int, int>(arguments.Count);
             foreach (var argument in arguments)
             {
                 switch (argument)
@@ -406,7 +392,7 @@ namespace SecurityCodeScan.Config
                                 break;
                         }
 
-                        outArguments.Add(i, (ulong)VariableTaint.Safe);
+                        outArguments.Add(i, (int)VariableTaint.Safe);
                         break;
                     }
                     case Dictionary<object, object> d when d.Count == 1:
@@ -426,7 +412,7 @@ namespace SecurityCodeScan.Config
                             }
                             case List<object> taintTypes:
                             {
-                                ulong bits = GetTaintBits(taintTypes);
+                                int bits = GetTaintBits(taintTypes);
                                 outArguments.Add(int.Parse((string)indexToTaintType.Key), bits);
                                 break;
                             }
@@ -466,7 +452,7 @@ namespace SecurityCodeScan.Config
                                     if (idx < 0)
                                         throw new Exception("Argument index cannot be negative");
 
-                                    outArguments.Add(idx, new InjectableArgument((ulong)VariableTaint.Safe, ruleId));
+                                    outArguments.Add(idx, new InjectableArgument((int)VariableTaint.Safe, ruleId));
                                     break;
                                 }
                                 case List<object> indices:
@@ -480,7 +466,7 @@ namespace SecurityCodeScan.Config
                                                 if (idx < 0)
                                                     throw new Exception("Argument index cannot be negative");
 
-                                                outArguments.Add(idx, new InjectableArgument((ulong)VariableTaint.Safe, ruleId));
+                                                outArguments.Add(idx, new InjectableArgument((int)VariableTaint.Safe, ruleId));
                                                 break;
                                             }
                                             case Dictionary<object, object> idxToTaints when idxToTaints.Count == 1:
@@ -546,7 +532,7 @@ namespace SecurityCodeScan.Config
                         break;
                 }
 
-                ulong                 taintBit           = 0ul;
+                int                   taintBit           = 0;
                 ImmutableHashSet<int> taintFromArguments = null;
 
                 foreach (var condition in d)
@@ -576,7 +562,7 @@ namespace SecurityCodeScan.Config
                             }
 
                             var args = GetArguments(taintFrom);
-                            if (args.Values.Any(x => x != (ulong)VariableTaint.Safe))
+                            if (args.Values.Any(x => x != (int)VariableTaint.Safe))
                                 throw new Exception("'TaintFromArguments' supports only array of indices");
 
                             taintFromArguments = args.Keys.ToImmutableHashSet();
@@ -588,7 +574,7 @@ namespace SecurityCodeScan.Config
 
                 if (defaultPostConditions != null)
                 {
-                    if (taintBit == 0ul)
+                    if (taintBit == 0)
                         taintBit = defaultPostConditions[idx].Taint;
 
                     if (taintFromArguments == null)
@@ -609,7 +595,7 @@ namespace SecurityCodeScan.Config
             switch (value)
             {
                 case string s:
-                    return new InjectableArgument((ulong)VariableTaint.Safe, s);
+                    return new InjectableArgument((int)VariableTaint.Safe, s);
                 case List<object> taintTypes when taintTypes.Count == 1:
                 {
                     var types = (Dictionary<object, object>)taintTypes.First();

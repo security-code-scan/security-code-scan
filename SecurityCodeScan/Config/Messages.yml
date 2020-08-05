@@ -26,49 +26,6 @@ SCS0002:
   title: "Potential SQL injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'.'"
   description: The dynamic value passed in the SQL query should be validated.
 
-SCS0014:
-  title: "Possible SQL injection in {1} argument passed to '{0}'"
-  title_assignment: Possible SQL injection
-  description: The dynamic value passed in the SQL query should be validated.
-
-SCS0020:
-  title: "OleDb API: SQL injection possible in {1} argument passed to '{0}'"
-  description: The dynamic value passed in the SQL query should be validated.
-
-SCS0025:
-  title: "Odbc API: SQL injection possible in {1} argument passed to '{0}'"
-  description: The dynamic value passed in the SQL query should be validated.
-
-SCS0026:
-  title: "MsSQL Data Provider: SQL injection possible in {1} argument passed to '{0}'"
-  title_assignment: Possible SQL injection
-  description: The dynamic value passed in the SQL query should be validated.
-
-SCS0035:
-  title: "Possible SQL injection in {1} argument passed to '{0}'"
-  title_assignment: Possible SQL injection
-  description: The dynamic value passed in the SQL query should be validated.
-
-SCS0036:
-  title: "Possible SQL injection in {1} argument passed to '{0}'"
-  title_assignment: Possible SQL injection
-  description: The dynamic value passed in the SQL query should be validated.
-
-SCS0037:
-  title: "Possible nHibernate SQL injection in {1} argument passed to '{0}'"
-  title_assignment: Possible nHibernate SQL injection
-  description: The dynamic value passed in the nHibernate SQL query should be bound as a named parameter.
-
-SCS0038:
-  title: "Possible CQL injection in {1} argument passed to '{0}'"
-  title_assignment: Possible CQL injection
-  description: The dynamic value passed in the CQL query should be bound as a named parameter.
-
-SCS0039:
-  title: "Possible NPGSQL injection in {1} argument passed to '{0}'"
-  title_assignment: Possible NPGSQL injection
-  description: The dynamic value passed in the NPGSQL query should be bound as a named parameter.
-
 SCS0027:
   title: "Open redirect: possibly unvalidated input in {1} argument passed to '{0}'"
   title_assignment: Possible open redirect
@@ -84,6 +41,11 @@ SCS0028:
   title_javascriptserializer_analyzer: "Type information is used, it may lead to deserialization vulnerability"
   title_assignment: "Possibly unsafe deserialization setting enabled"
   description: Deserialization from untrusted source is unsafe.
+
+SCS0026:
+  title: "Potential LDAP injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
+  title_assignment: Possible LDAP injection
+  description: The dynamic value passed in the LDAP query should be validated.
 
 SCS0031:
   title: "Potential LDAP injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
@@ -179,7 +141,12 @@ SCS0024:
 SCS0029:
   title: Potential XSS vulnerability
   title_assignment: Potential XSS vulnerability
-  description: The endpoint returns a variable from the client input that has not been encoded.
+  description: The endpoint returns a variable from the client input that has not been html encoded.
+
+SCS0014:
+  title: Potential XSS vulnerability
+  title_assignment: Potential XSS vulnerability
+  description: The endpoint returns a variable from the client input that has not been url encoded.
 
 # Password Validator
 

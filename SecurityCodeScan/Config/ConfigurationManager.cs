@@ -131,36 +131,152 @@ namespace SecurityCodeScan.Config
         }
     }
 
-    internal class ConfigurationManager
+    internal static class ConfigurationManager
     {
         internal static ConfigurationReader Reader { get; set; } = new ConfigurationReader();
 
         private static readonly Lazy<ConfigData> CachedBuiltInConfiguration = new Lazy<ConfigData>(() => Reader.GetBuiltinConfiguration());
 
-        public Configuration GetBuiltInAndUserConfiguration()
+        public static ConfigData GetBuiltInAndUserConfiguration(ConfigData project = null)
         {
-            var configuration = new Configuration(CachedBuiltInConfiguration.Value);
+            var configuration = CachedBuiltInConfiguration.Value;
 
             var userConfig = Reader.GetUserConfiguration();
             if (userConfig != null)
-                configuration.MergeWith(userConfig);
+            {
+                var ret = new ConfigData();
+                ret.Merge(configuration);
+                ret.Merge(userConfig);
+                if (project != null)
+                    ret.Merge(project);
 
-            configuration.PrepareForQueries();
+                return ret;
+            }
+
+            if (project != null)
+            {
+                var ret = new ConfigData();
+                ret.Merge(configuration);
+                ret.Merge(project);
+                return ret;
+            }
+
             return configuration;
         }
 
-        public Configuration GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
+        public static ConfigData GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)
         {
             var projectConfig = Reader.GetProjectConfiguration(additionalFiles);
-            if (projectConfig == null)
+            return GetBuiltInAndUserConfiguration(projectConfig);
+        }
+    }
+
+    internal static class ConfigDataExtensions
+    {
+        public static void Merge(this ConfigData config1, ConfigData config2)
+        {
+            if (config2.TaintTypes != null)
             {
-                return GetBuiltInAndUserConfiguration();
+                foreach (var taintType in config2.TaintTypes)
+                {
+                    if (config1.TaintTypes == null)
+                        config1.TaintTypes = new List<string>();
+
+                    config1.TaintTypes.Add(taintType);
+                }
             }
 
-            var mergedConfig = new Configuration(GetBuiltInAndUserConfiguration());
-            mergedConfig.MergeWith(projectConfig);
-            mergedConfig.PrepareForQueries();
-            return mergedConfig;
+            if (config2.ReportAnalysisCompletion.HasValue)
+                config1.ReportAnalysisCompletion = config2.ReportAnalysisCompletion.Value;
+
+            if (config2.AuditMode.HasValue)
+                config1.AuditMode = config2.AuditMode.Value;
+
+            if (config2.MinimumPasswordValidatorProperties.HasValue)
+                config1.MinimumPasswordValidatorProperties = config2.MinimumPasswordValidatorProperties.Value;
+
+            if (config2.PasswordValidatorRequiredLength.HasValue)
+                config1.PasswordValidatorRequiredLength = config2.PasswordValidatorRequiredLength.Value;
+
+            if (config2.PasswordValidatorRequiredProperties != null)
+            {
+                foreach (var property in config2.PasswordValidatorRequiredProperties)
+                {
+                    if (config1.PasswordValidatorRequiredProperties == null)
+                        config1.PasswordValidatorRequiredProperties = new List<string>();
+
+                    config1.PasswordValidatorRequiredProperties.Add(property);
+                }
+            }
+
+            if (config2.Behavior != null)
+            {
+                foreach (var behavior in config2.Behavior)
+                {
+                    if (config1.Behavior == null)
+                        config1.Behavior = new Dictionary<string, object>();
+
+                    if (behavior.Value == default(MethodBehaviorData))
+                        config1.Behavior.Remove(behavior.Key);
+                    else
+                        config1.Behavior[behavior.Key] = behavior.Value;
+                }
+            }
+
+            if (config2.TaintEntryPoints != null)
+            {
+                foreach (var source in config2.TaintEntryPoints)
+                {
+                    if (config1.TaintEntryPoints == null)
+                        config1.TaintEntryPoints = new Dictionary<string, TaintEntryPointData>();
+
+                    if (source.Value == default(TaintEntryPointData))
+                        config1.TaintEntryPoints.Remove(source.Key);
+                    else
+                        config1.TaintEntryPoints[source.Key] = source.Value;
+                }
+            }
+
+            if (config2.CsrfProtection != null)
+            {
+                foreach (var data in config2.CsrfProtection)
+                {
+                    if (config1.CsrfProtection == null)
+                        config1.CsrfProtection = new Dictionary<string, CsrfProtectionData>();
+
+                    if (data.Value == default(CsrfProtectionData))
+                        config1.CsrfProtection.Remove(data.Key);
+                    else
+                        config1.CsrfProtection[data.Key] = data.Value;
+                }
+            }
+
+            if (config2.PasswordFields != null)
+            {
+                foreach (var field in config2.PasswordFields)
+                {
+                    if (config1.PasswordFields == null)
+                        config1.PasswordFields = new List<string>();
+
+                    config1.PasswordFields.Add(field);
+                }
+            }
+
+            if (config2.WebConfigFiles != null)
+            {
+                config1.WebConfigFiles = config2.WebConfigFiles;
+            }
+
+            if (config2.ConstantFields != null)
+            {
+                foreach (var field in config2.ConstantFields)
+                {
+                    if (config1.ConstantFields == null)
+                        config1.ConstantFields = new List<string>();
+
+                    config1.ConstantFields.Add(field);
+                }
+            }
         }
     }
 
@@ -181,7 +297,7 @@ namespace SecurityCodeScan.Config
         public List<string>                            PasswordValidatorRequiredProperties { get; set; }
         public Dictionary<string, object>              Behavior                            { get; set; }
         public Dictionary<string, TaintEntryPointData> TaintEntryPoints                    { get; set; }
-        public List<CsrfProtectionData>                CsrfProtection                      { get; set; }
+        public Dictionary<string, CsrfProtectionData>  CsrfProtection                      { get; set; }
         public List<string>                            PasswordFields                      { get; set; }
         public string                                  WebConfigFiles                      { get; set; }
         public List<string>                            ConstantFields                      { get; set; }

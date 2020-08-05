@@ -91,7 +91,8 @@ End Namespace
 
             var testConfig = @"
 CsrfProtection:
-  - Name: ASP.NET MVC
+  Test:
+    Name: ASP.NET MVC
     AntiCsrfAttributes:
       - Name: VulnerableApp.TestAttribute
 ";
@@ -162,7 +163,8 @@ End Namespace
 
             var testConfig = @"
 CsrfProtection:
-  - Name: ASP.NET Core MVC
+  Test:
+    Name: ASP.NET Core MVC
     AntiCsrfAttributes:
       - Name: VulnerableApp.TestAttribute
 ";
@@ -239,7 +241,8 @@ End Namespace
 
             var testConfig = @"
 CsrfProtection:
-  - Name: ASP.NET MVC
+  Test:
+    Name: ASP.NET MVC
     Method:
       Attributes:
         Include:

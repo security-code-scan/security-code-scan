@@ -37,42 +37,6 @@ namespace SecurityCodeScan.Config
             _TaintTypeNameToBit = new Dictionary<string, ulong>(62);
         }
 
-        public Configuration(Configuration config)
-        {
-            ReportAnalysisCompletion           = config.ReportAnalysisCompletion;
-            AuditMode                          = config.AuditMode;
-            PasswordValidatorRequiredLength    = config.PasswordValidatorRequiredLength;
-            MinimumPasswordValidatorProperties = config.MinimumPasswordValidatorProperties;
-
-            _PasswordValidatorRequiredProperties = new HashSet<string>(config.PasswordValidatorRequiredProperties);
-            PasswordValidatorRequiredProperties  = new ReadOnlyHashSet<string>(_PasswordValidatorRequiredProperties);
-
-            ConfigurationBehavior = new Dictionary<string, KeyValuePair<string, MethodBehavior>>(config.ConfigurationBehavior);
-            Behavior              = config.Behavior.ToDictionary();
-
-            _TaintEntryPoints = new HashSet<string>(config.TaintEntryPoints);
-            TaintEntryPoints  = new ReadOnlyHashSet<string>(_TaintEntryPoints);
-
-            _CsrfGroupsList = new LinkedList<CsrfNamedGroup>(config.CsrfGoups);
-            _CsrfGroups = new Dictionary<string, LinkedListNode<CsrfNamedGroup>>(config.CsrfGoups.Count);
-            var node = _CsrfGroupsList.First;
-            while (node != null)
-            {
-                _CsrfGroups.Add(node.Value.Name, node);
-                node = node.Next;
-            }
-
-            _PasswordFields = new HashSet<string>(config.PasswordFields);
-            PasswordFields  = new ReadOnlyHashSet<string>(_PasswordFields);
-
-            WebConfigFilesRegex = config.WebConfigFilesRegex;
-
-            _ConstantFields = new HashSet<string>(config.ConstantFields);
-            ConstantFields  = new ReadOnlyHashSet<string>(_ConstantFields);
-
-            _TaintTypeNameToBit = new Dictionary<string, ulong>(config._TaintTypeNameToBit);
-        }
-
         public Configuration(ConfigData configData) : this()
         {
             if (configData.TaintTypes != null)
@@ -109,7 +73,7 @@ namespace SecurityCodeScan.Config
 
             foreach (var data in configData.CsrfProtection)
             {
-                AddCsrfProtectionToConfiguration(data);
+                AddCsrfProtectionToConfiguration(data.Value);
             }
 
             if (configData.PasswordFields != null)
@@ -162,109 +126,7 @@ namespace SecurityCodeScan.Config
         private readonly Dictionary<string, LinkedListNode<CsrfNamedGroup>> _CsrfGroups;
         public IReadOnlyCollection<CsrfNamedGroup> CsrfGoups => _CsrfGroupsList;
 
-        public void MergeWith(ConfigData config)
-        {
-            if (config.TaintTypes != null)
-                RegisterTaintTypes(config.TaintTypes);
-
-            if (config.ReportAnalysisCompletion.HasValue)
-                ReportAnalysisCompletion = config.ReportAnalysisCompletion.Value;
-
-            if (config.AuditMode.HasValue)
-                AuditMode = config.AuditMode.Value;
-
-            if (config.MinimumPasswordValidatorProperties.HasValue)
-                MinimumPasswordValidatorProperties = config.MinimumPasswordValidatorProperties.Value;
-
-            if (config.PasswordValidatorRequiredLength.HasValue)
-                PasswordValidatorRequiredLength = config.PasswordValidatorRequiredLength.Value;
-
-            if (config.PasswordValidatorRequiredProperties != null)
-            {
-                foreach (var property in config.PasswordValidatorRequiredProperties)
-                {
-                    _PasswordValidatorRequiredProperties.Add(property);
-                }
-            }
-
-            if (config.Behavior != null)
-            {
-                foreach (var behavior in config.Behavior)
-                {
-                    if (behavior.Value == default(MethodBehaviorData))
-                        ConfigurationBehavior.Remove(behavior.Key);
-                    else
-                        ConfigurationBehavior[behavior.Key] = CreateBehavior(behavior.Value);
-                }
-            }
-
-            if (config.TaintEntryPoints != null)
-            {
-                foreach (var source in config.TaintEntryPoints)
-                {
-                    if (source.Value == default(TaintEntryPointData))
-                    {
-                        _TaintEntryPoints.Remove(source.Key);
-                    }
-                    else
-                    {
-                        if (source.Value?.Method?.ArgTypes != null)
-                            throw new Exception("Taint entry point ArgTypes are not supported.");
-
-                        _TaintEntryPoints.Add(MethodBehaviorHelper.GetMethodBehaviorKey(source.Value.Namespace,
-                                                                                        source.Value.ClassName,
-                                                                                        source.Value.Name,
-                                                                                        source.Value?.Method?.ArgTypes));
-                    }
-                }
-            }
-
-            if (config.CsrfProtection != null)
-            {
-                foreach (var data in config.CsrfProtection)
-                {
-                    if (data.Class == null && data.AntiCsrfAttributes == null && data.Method == null && data.Parameter == null)
-                    {
-                        if (_CsrfGroups.TryGetValue(data.Name, out var node))
-                        {
-                            _CsrfGroupsList.Remove(node);
-                            _CsrfGroups.Remove(data.Name);
-                        }
-                    }
-                    else
-                        AddCsrfProtectionToConfiguration(data);
-                }
-            }
-
-            if (config.PasswordFields != null)
-            {
-                foreach (var field in config.PasswordFields)
-                {
-                    _PasswordFields.Add(field.ToUpperInvariant());
-                }
-            }
-
-            if (config.WebConfigFiles != null)
-            {
-                WebConfigFilesRegex = new Regex(config.WebConfigFiles, RegexOptions.IgnoreCase | RegexOptions.Compiled);
-            }
-
-            if (config.ConstantFields != null)
-            {
-                foreach (var field in config.ConstantFields)
-                {
-                    _ConstantFields.Add(field);
-                }
-            }
-        }
-
-        public void PrepareForQueries()
-        {
-            // Build the Behavior optimized for queries after the merge.
-            Behavior = ConfigurationBehavior.Values.ToDictionary(pair => pair.Key, pair => pair.Value);
-        }
-
-        private void RegisterTaintTypes(List<string> typeNames)
+        private void RegisterTaintTypes(IEnumerable<string> typeNames)
         {
             var availableBit = 1ul << 3;
             foreach (var registeredBit in TaintTypeNameToBit.Values)

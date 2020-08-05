@@ -16,8 +16,7 @@ namespace SecurityCodeScan.Test.Config
     {
         public ConfigTest()
         {
-            Manager              = new ConfigurationManager();
-            StartupConfiguration = Manager.GetProjectConfiguration(ImmutableArray<AdditionalText>.Empty);
+            StartupConfiguration = new Configuration(ConfigurationManager.GetProjectConfiguration(ImmutableArray<AdditionalText>.Empty));
         }
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
@@ -25,14 +24,13 @@ namespace SecurityCodeScan.Test.Config
             return Enumerable.Empty<DiagnosticAnalyzer>();
         }
 
-        private readonly ConfigurationManager Manager;
-        private readonly Configuration        StartupConfiguration;
+        private readonly Configuration StartupConfiguration;
 
         [TestMethod]
         public void EmptyUserConfig_NoChanges()
         {
             var options   = ConfigurationTest.CreateAnalyzersOptionsWithConfig("");
-            var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
+            var newConfig = new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles));
 
             //ensuring that field count matches count of properties tested below (test should fail and be updated if someone adds new field in Configuration)
             Assert.AreEqual(12, typeof(Configuration).GetProperties(BindingFlags.Instance | BindingFlags.Public).Length);
@@ -59,7 +57,7 @@ Unknown: false
 Behavior:
 ");
             // should not throw
-            Manager.GetProjectConfiguration(options.AdditionalFiles);
+            new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles));
         }
 
         [TestMethod]
@@ -79,14 +77,14 @@ Behavior:
         TaintFromArguments: [0]
 ");
             // should not throw
-            Manager.GetProjectConfiguration(options.AdditionalFiles);
+            new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles));
         }
 
         [TestMethod]
         public void MergingUserConfig_NoChanges()
         {
             var options   = ConfigurationTest.CreateAnalyzersOptionsWithConfig("Behavior:");
-            var newConfig = Manager.GetProjectConfiguration(options.AdditionalFiles);
+            var newConfig = new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles));
 
             // ensuring that field count matches count of properties tested below
             Assert.AreEqual(12, typeof(Configuration).GetProperties(BindingFlags.Instance | BindingFlags.Public).Length);
@@ -108,7 +106,7 @@ Behavior:
         public void DifferentConfigVersion_Exception()
         {
             var options   = ConfigurationTest.CreateAnalyzersOptionsWithConfig("MinimumPasswordValidatorProperties: 0", new Version(1,2));
-            Assert.ThrowsException<ArgumentException>(() => Manager.GetProjectConfiguration(options.AdditionalFiles));
+            Assert.ThrowsException<ArgumentException>(() => new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles)));
         }
 
         [DataTestMethod]
@@ -144,9 +142,9 @@ Behavior:
 ");
 
             if (shouldThrow)
-                Assert.ThrowsException<Exception>(() => Manager.GetProjectConfiguration(options.AdditionalFiles));
+                Assert.ThrowsException<Exception>(() => new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles)));
             else
-                Manager.GetProjectConfiguration(options.AdditionalFiles);
+                new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles));
         }
 
         [DataTestMethod]
@@ -154,17 +152,17 @@ Behavior:
         [DataRow("[aaa,aaa]", true)]
         // The test checks if an exception is thrown when custom taint type limit is reached. Taint type names are represented as numbers
         // Remove a number if a new built-in taint type was added.
-        [DataRow("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56]", true)]
-        [DataRow("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55]",    false)]
+        [DataRow("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55]", true)]
+        [DataRow("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54]",    false)]
         public void SanitizerTypesValidation(string payload, bool shouldThrow)
         {
             var options = ConfigurationTest.CreateAnalyzersOptionsWithConfig($@"
 TaintTypes: {payload}");
 
             if (shouldThrow)
-                Assert.ThrowsException<Exception>(() => Manager.GetProjectConfiguration(options.AdditionalFiles));
+                Assert.ThrowsException<Exception>(() => new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles)));
             else
-                Manager.GetProjectConfiguration(options.AdditionalFiles);
+                new Configuration(ConfigurationManager.GetProjectConfiguration(options.AdditionalFiles));
         }
     }
 }

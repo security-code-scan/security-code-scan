@@ -132,7 +132,7 @@ namespace SecurityCodeScan.Analyzers
             if (!Debugger.IsAttached) // prefer single thread for debugging in development
                 analysisContext.EnableConcurrentExecution();
 
-            var config = new ConfigurationManager().GetBuiltInAndUserConfiguration();
+            var config = new Configuration(ConfigurationManager.GetBuiltInAndUserConfiguration());
             if (!config.AuditMode)
                 analysisContext.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 

@@ -85,7 +85,8 @@ WebConfigFiles: ^web\.config.*
 #   [My(null, 32, FirstProperty = "foo", SecondProperty = true)]
 
 CsrfProtection:
-  - Name: ASP.NET MVC
+  Mvc:
+    Name: ASP.NET MVC
     AntiCsrfAttributes:
       - Name: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
     Class:
@@ -105,7 +106,8 @@ CsrfProtection:
           - Name: System.Web.Mvc.NonActionAttribute
           - Name: System.Web.Mvc.AllowAnonymousAttribute
 
-  - Name: ASP.NET Core MVC
+  CoreMvc:
+    Name: ASP.NET Core MVC
     AntiCsrfAttributes:
       - Name: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
       - Name: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
@@ -133,7 +135,8 @@ CsrfProtection:
         Exclude:
           - Name: Microsoft.AspNetCore.Mvc.FromBodyAttribute
 
-  - Name: ASP.NET Core MVC ApiController
+  CoreMvcApiController:
+    Name: ASP.NET Core MVC ApiController
     AntiCsrfAttributes:
       - Name: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
       - Name: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute

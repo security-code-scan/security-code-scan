@@ -1545,7 +1545,8 @@ End Namespace
 
             var testConfig = @"
 CsrfProtection:
-  - Name: Stack Overflow Example Config
+  Test:
+    Name: Stack Overflow Example Config
     Class:
       Name:
         - VulnerableApp.CustomController
@@ -1692,7 +1693,8 @@ End Namespace
 
             var testConfig = @"
 CsrfProtection:
-  - Name: Test
+  Test:
+    Name: Test
     Method:
       Attributes:
         Include:

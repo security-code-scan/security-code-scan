@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
+using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Test.Helpers;
 
 namespace SecurityCodeScan.Test.Taint

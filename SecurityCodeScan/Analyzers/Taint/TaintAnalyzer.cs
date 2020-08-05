@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Operations;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Config;
 
-namespace SecurityCodeScan.Analyzers
+namespace SecurityCodeScan.Analyzers.Taint
 {
     using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
 

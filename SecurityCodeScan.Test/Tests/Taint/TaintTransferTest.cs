@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
+using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Test.Audit;
 using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;

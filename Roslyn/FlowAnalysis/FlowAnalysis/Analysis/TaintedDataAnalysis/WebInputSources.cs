@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -72,28 +74,64 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             sourceInfosBuilder.AddSourceInfo(
                 "PathTraversal",
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethods: null,
-                taintPublicMethodParameters: true);
+                 new ParameterMatcher[]{
+                    (parameter) => {
+                        ISymbol containingSymbol = parameter.ContainingSymbol;
+
+                        if (containingSymbol.DeclaredAccessibility != Accessibility.Public)
+                            return false;
+
+                        if (containingSymbol.IsConstructor())
+                            return false;
+
+                        return true;
+                    }
+                 });
             sourceInfosBuilder.AddSourceInfo(
                 "TestInput",
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethods: null,
-                taintPublicMethodParameters: true);
+                 new ParameterMatcher[]{
+                    (parameter) => {
+                        ISymbol containingSymbol = parameter.ContainingSymbol;
+
+                        if (containingSymbol.DeclaredAccessibility != Accessibility.Public)
+                            return false;
+
+                        if (containingSymbol.IsConstructor())
+                            return false;
+
+                        return true;
+                    }
+                 });
             sourceInfosBuilder.AddSourceInfo(
                 "sample.MyFoo",
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethods: null,
-                taintPublicMethodParameters: true);
+                 new ParameterMatcher[]{
+                    (parameter) => {
+                        ISymbol containingSymbol = parameter.ContainingSymbol;
+
+                        if (containingSymbol.DeclaredAccessibility != Accessibility.Public)
+                            return false;
+
+                        if (containingSymbol.IsConstructor())
+                            return false;
+
+                        return true;
+                    }
+                 });
             sourceInfosBuilder.AddSourceInfo(
                 "OpenRedirect",
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethods: null,
-                taintPublicMethodParameters: true);
+                 new ParameterMatcher[]{
+                    (parameter) => {
+                        ISymbol containingSymbol = parameter.ContainingSymbol;
+
+                        if (containingSymbol.DeclaredAccessibility != Accessibility.Public)
+                            return false;
+
+                        if (containingSymbol.IsConstructor())
+                            return false;
+
+                        return true;
+                    }
+                 });
             sourceInfosBuilder.AddSourceInfo(
                 "sample.Test",
                 isInterface: false,
@@ -109,25 +147,51 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "ExtensionMethod",
                 });
 
-
             sourceInfosBuilder.AddSourceInfo(
                 WellKnownTypeNames.SystemWebMvcControllerBase,
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethods: null,
-                taintPublicMethodParameters: true);
+                 new ParameterMatcher[]{
+                    (parameter) => {
+                        ISymbol containingSymbol = parameter.ContainingSymbol;
+
+                        if (containingSymbol.DeclaredAccessibility != Accessibility.Public)
+                            return false;
+
+                        if (containingSymbol.IsConstructor())
+                            return false;
+
+                        return true;
+                    }
+                 });
             sourceInfosBuilder.AddSourceInfo(
                 WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerBase,
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethods: null,
-                taintPublicMethodParameters: true);
+                 new ParameterMatcher[]{
+                    (parameter) => {
+                        ISymbol containingSymbol = parameter.ContainingSymbol;
+
+                        if (containingSymbol.DeclaredAccessibility != Accessibility.Public)
+                            return false;
+
+                        if (containingSymbol.IsConstructor())
+                            return false;
+
+                        return true;
+                    }
+                 });
             sourceInfosBuilder.AddSourceInfo(
                 WellKnownTypeNames.SystemWebHttpApiController,
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethods: null,
-                taintPublicMethodParameters: true);
+                 new ParameterMatcher[]{
+                    (parameter) => {
+                        ISymbol containingSymbol = parameter.ContainingSymbol;
+
+                        if (containingSymbol.DeclaredAccessibility != Accessibility.Public)
+                            return false;
+
+                        if (containingSymbol.IsConstructor())
+                            return false;
+
+                        return true;
+                    }
+                 });
             sourceInfosBuilder.AddSourceInfo(
                 WellKnownTypeNames.SystemWebHttpCookie,
                 isInterface: false,

@@ -54,20 +54,44 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             builder.Add(sinkInfo);
         }
 
+        public static void AddSourceInfo(
+            this PooledHashSet<SourceInfo> builder,
+            string fullTypeName,
+            IEnumerable<ParameterMatcher> taintedArguments)
+        {
+            SourceInfo metadata = new SourceInfo(
+                fullTypeName,
+                isInterface: false,
+                taintedProperties: ImmutableHashSet<string>.Empty,
+                taintedArguments:
+                    taintedArguments.ToImmutableHashSet(),
+                taintedMethods:
+                    ImmutableHashSet<(MethodMatcher, ImmutableHashSet<string>)>.Empty,
+                taintedMethodsNeedsPointsToAnalysis:
+                    ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)>.Empty,
+                taintedMethodsNeedsValueContentAnalysis:
+                    ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)>.Empty,
+                transferMethods:
+                    ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
+                taintConstantArray: false);
+            builder.Add(metadata);
+        }
+
         // Just to make hardcoding SourceInfos more convenient.
         public static void AddSourceInfo(
             this PooledHashSet<SourceInfo> builder,
             string fullTypeName,
             bool isInterface,
             string[]? taintedProperties,
-            IEnumerable<string>? taintedMethods,
-            bool taintPublicMethodParameters = false)
+            IEnumerable<string>? taintedMethods)
         {
             SourceInfo metadata = new SourceInfo(
                 fullTypeName,
                 isInterface: isInterface,
                 taintedProperties: taintedProperties?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty,
+                taintedArguments:
+                    ImmutableHashSet<ParameterMatcher>.Empty,
                 taintedMethods:
                     taintedMethods
                         ?.Select<string, (MethodMatcher, ImmutableHashSet<string>)>(o =>
@@ -83,8 +107,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)>.Empty,
                 transferMethods:
                     ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
-                taintConstantArray: false,
-                taintPublicMethodParameters: taintPublicMethodParameters);
+                taintConstantArray: false);
             builder.Add(metadata);
         }
 
@@ -106,14 +129,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             IEnumerable<(MethodMatcher methodMatcher, (PointsToCheck pointsToCheck, string taintedTarget)[] pointsToChecksAndTargets)>? taintedMethodsNeedsPointsToAnalysis,
             IEnumerable<(MethodMatcher methodMatcher, (ValueContentCheck valueContentCheck, string taintedTarget)[] valueContentChecksAndTargets)>? taintedMethodsNeedsValueContentAnalysis,
             IEnumerable<(MethodMatcher methodMatcher, (string str, string taintedTargets)[] valueContentChecksAndTargets)>? transferMethods,
-            bool taintConstantArray = false,
-            bool taintPublicMethodParameters = false)
+            bool taintConstantArray = false)
         {
             SourceInfo metadata = new SourceInfo(
                 fullTypeName,
                 isInterface: isInterface,
                 taintedProperties: taintedProperties?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty,
+                taintedArguments:
+                    ImmutableHashSet<ParameterMatcher>.Empty,
                 taintedMethods:
                     ImmutableHashSet<(MethodMatcher, ImmutableHashSet<string>)>.Empty,
                 taintedMethodsNeedsPointsToAnalysis:
@@ -144,8 +168,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                                 ?? ImmutableHashSet<(string, string)>.Empty))
                         ?.ToImmutableHashSet()
                     ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
-                taintConstantArray: taintConstantArray,
-                taintPublicMethodParameters: taintPublicMethodParameters);
+                taintConstantArray: taintConstantArray);
             builder.Add(metadata);
         }
 
@@ -159,14 +182,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             string[]? taintedProperties,
             IEnumerable<(MethodMatcher methodMatcher, PointsToCheck[] pointsToChecks)>? taintedMethodsNeedsPointsToAnalysis,
             IEnumerable<(MethodMatcher methodMatcher, ValueContentCheck[] valueContentChecks)>? taintedMethodsNeedsValueContentAnalysis,
-            bool taintConstantArray = false,
-            bool taintPublicMethodParameters = false)
+            bool taintConstantArray = false)
         {
             SourceInfo metadata = new SourceInfo(
                 fullTypeName,
                 isInterface: isInterface,
                 taintedProperties: taintedProperties?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty,
+                taintedArguments:
+                    ImmutableHashSet<ParameterMatcher>.Empty,
                 taintedMethods:
                     ImmutableHashSet<(MethodMatcher, ImmutableHashSet<string>)>.Empty,
                 taintedMethodsNeedsPointsToAnalysis:
@@ -193,8 +217,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)>.Empty,
                 transferMethods:
                     ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
-                taintConstantArray: taintConstantArray,
-                taintPublicMethodParameters: taintPublicMethodParameters);
+                taintConstantArray: taintConstantArray);
             builder.Add(metadata);
         }
 

@@ -140,16 +140,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         public static bool IsSourceParameter(this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap, IParameterSymbol parameterSymbol)
         {
             ISymbol containingSymbol = parameterSymbol.ContainingSymbol;
-
-            if (containingSymbol.DeclaredAccessibility != Accessibility.Public)
-                return false;
-
-            if (containingSymbol.IsConstructor())
-                return false;
-
             foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(containingSymbol.ContainingType))
             {
-                if (sourceInfo.TaintPublicMethodParameters)
+                if (sourceInfo.TaintedArguments.Any(match => match(parameterSymbol)))
                     return true;
             }
 

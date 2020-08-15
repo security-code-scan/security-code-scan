@@ -230,7 +230,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     return LdapSanitizers.PathSanitizerInfos;
 
                 case SinkKind.LdapFilter:
-                return LdapSanitizers.FilterSanitizerInfos;
+                    return LdapSanitizers.FilterSanitizerInfos;
 
                 case SinkKind.Xml:
                     return PrimitiveTypeConverterSanitizers.SanitizerInfos.Union(XmlSanitizers.SanitizerInfos);

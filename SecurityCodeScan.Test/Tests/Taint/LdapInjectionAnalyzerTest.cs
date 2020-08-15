@@ -29,35 +29,35 @@ namespace SecurityCodeScan.Test.Taint
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-        [DataRow("new DirectorySearcher(input)", true)]
-        [DataRow("new DirectorySearcher(\"constant\")", false)]
-        [DataRow("new DirectorySearcher(input, null)", true)]
-        [DataRow("new DirectorySearcher(\"constant\", propertiesToLoad)", true)]
-        [DataRow("new DirectorySearcher(input, propertiesToLoad)", true, 2)]
-        [DataRow("new DirectorySearcher(\"constant\", null)", false)]
-        [DataRow("new DirectorySearcher(entry, input)", true)]
-        [DataRow("new DirectorySearcher(entry, \"constant\")", false)]
-        [DataRow("new DirectorySearcher(entry, input, null)", true)]
-        [DataRow("new DirectorySearcher(entry, \"constant\", propertiesToLoad)", true)]
-        [DataRow("new DirectorySearcher(entry, \"constant\", null)", false)]
-        [DataRow("new DirectorySearcher(input, null, scope)", true)]
-        [DataRow("new DirectorySearcher(\"constant\", propertiesToLoad, scope)", true)]
-        [DataRow("new DirectorySearcher(\"constant\", null, scope)", false)]
-        [DataRow("new DirectorySearcher(entry, input, null, scope)", true)]
-        [DataRow("new DirectorySearcher(entry, \"constant\", propertiesToLoad, scope)", true)]
-        [DataRow("new DirectorySearcher(entry, \"constant\", null, scope)", false)]
-        [DataRow("new DirectorySearcher(); temp.Filter = input", true)]
-        [DataRow("new DirectorySearcher(); temp.Filter = \"constant\"", false)]
-        [DataRow("new DirectoryEntry(input)", true)]
-        [DataRow("new DirectoryEntry(\"constant\")", false)]
-        [DataRow("new DirectoryEntry(input, \"\", \"\")", true)]
-        [DataRow("new DirectoryEntry(\"constant\", \"\", \"\")", false)]
-        [DataRow("new DirectoryEntry(input, \"\", \"\", AuthenticationTypes.None)", true)]
-        [DataRow("new DirectoryEntry(\"constant\", \"username\", \"password\", AuthenticationTypes.None)", false)]
-        [DataRow("new DirectoryEntry(); temp.Path = input", true)]
-        [DataRow("new DirectoryEntry(); temp.Path = \"constant\"", false)]
+        [DataRow("new DirectorySearcher(input)", "SCS0031")]
+        [DataRow("new DirectorySearcher(\"constant\")")]
+        [DataRow("new DirectorySearcher(input, null)", "SCS0031")]
+        [DataRow("new DirectorySearcher(\"constant\", propertiesToLoad)")]
+        [DataRow("new DirectorySearcher(input, propertiesToLoad)", "SCS0031")]
+        [DataRow("new DirectorySearcher(\"constant\", null)")]
+        [DataRow("new DirectorySearcher(entry, input)", "SCS0031")]
+        [DataRow("new DirectorySearcher(entry, \"constant\")")]
+        [DataRow("new DirectorySearcher(entry, input, null)", "SCS0031")]
+        [DataRow("new DirectorySearcher(entry, \"constant\", propertiesToLoad)")]
+        [DataRow("new DirectorySearcher(entry, \"constant\", null)")]
+        [DataRow("new DirectorySearcher(input, null, scope)", "SCS0031")]
+        [DataRow("new DirectorySearcher(\"constant\", propertiesToLoad, scope)")]
+        [DataRow("new DirectorySearcher(\"constant\", null, scope)")]
+        [DataRow("new DirectorySearcher(entry, input, null, scope)", "SCS0031")]
+        [DataRow("new DirectorySearcher(entry, \"constant\", propertiesToLoad, scope)")]
+        [DataRow("new DirectorySearcher(entry, \"constant\", null, scope)")]
+        [DataRow("new DirectorySearcher(); temp.Filter = input", "SCS0031")]
+        [DataRow("new DirectorySearcher(); temp.Filter = \"constant\"")]
+        [DataRow("new DirectoryEntry(input)", "SCS0026")]
+        [DataRow("new DirectoryEntry(\"constant\")")]
+        [DataRow("new DirectoryEntry(input, \"\", \"\")", "SCS0026")]
+        [DataRow("new DirectoryEntry(\"constant\", \"\", \"\")")]
+        [DataRow("new DirectoryEntry(input, \"\", \"\", AuthenticationTypes.None)", "SCS0026")]
+        [DataRow("new DirectoryEntry(\"constant\", \"username\", \"password\", AuthenticationTypes.None)")]
+        [DataRow("new DirectoryEntry(); temp.Path = input", "SCS0026")]
+        [DataRow("new DirectoryEntry(); temp.Path = \"constant\"")]
         [DataTestMethod]
-        public async Task LdapInjection(string sink, bool warn, int count = 1)
+        public async Task LdapInjection(string sink, string warningId = null, int count = 1)
         {
             var cSharpTest = $@"
 #pragma warning disable 8019
@@ -92,14 +92,14 @@ Namespace sample
     End Class
 End Namespace
 ";
-            var expected = new DiagnosticResult
+            if (warningId != null)
             {
-                Id = "SCS0031",
-                Severity = DiagnosticSeverity.Warning,
-            };
+                var expected = new DiagnosticResult
+                {
+                    Id = warningId,
+                    Severity = DiagnosticSeverity.Warning,
+                };
 
-            if (warn)
-            {
                 await VerifyCSharpDiagnostic(cSharpTest, Enumerable.Repeat(expected, count).ToArray()).ConfigureAwait(false);
                 await VerifyVisualBasicDiagnostic(visualBasicTest, Enumerable.Repeat(expected, count).ToArray()).ConfigureAwait(false);
             }

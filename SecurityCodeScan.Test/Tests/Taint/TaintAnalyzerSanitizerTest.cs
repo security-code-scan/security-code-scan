@@ -14,16 +14,26 @@ namespace SecurityCodeScan.Test.Taint
     [TestClass]
     public class TaintAnalyzerSanitizerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _ /* language */)
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new DiagnosticAnalyzer[]
-            {
-                new CSharpAnalyzers(new XssTaintAnalyzer(),
-                                    new OpenRedirectTaintAnalyzer(),
-                                    new SqlInjectionTaintAnalyzer(),
-                                    new LdapPathTaintAnalyzer(),
-                                    new LdapFilterTaintAnalyzer())
-            };
+            if (language == LanguageNames.CSharp)
+                return new DiagnosticAnalyzer[]
+                {
+                    new CSharpAnalyzers(new XssTaintAnalyzer(),
+                                        new OpenRedirectTaintAnalyzer(),
+                                        new SqlInjectionTaintAnalyzer(),
+                                        new LdapPathTaintAnalyzer(),
+                                        new LdapFilterTaintAnalyzer())
+                };
+            else
+                return new DiagnosticAnalyzer[]
+                {
+                    new VBasicAnalyzers(new XssTaintAnalyzer(),
+                                        new OpenRedirectTaintAnalyzer(),
+                                        new SqlInjectionTaintAnalyzer(),
+                                        new LdapPathTaintAnalyzer(),
+                                        new LdapFilterTaintAnalyzer())
+                };
         }
 
         private static readonly PortableExecutableReference[] References =
@@ -51,6 +61,7 @@ namespace SecurityCodeScan.Test.Taint
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [DataTestMethod]
+        [Ignore("roslyn validator fix")]
         [DataRow("using System; using System.Web.Mvc;",           "!!Url.IsLocalUrl(input)",                                   "Redirect(input)",          false)]
         [DataRow("using System; using System.Web.Mvc;",           "Url.IsLocalUrl(input)",                                     "Redirect(input)",          false)]
         [DataRow("using System; using System.Web.Mvc;",           "Url.IsLocalUrl(inputModel.x)",                              "Redirect(inputModel.x)",   false)]
@@ -240,12 +251,12 @@ End Namespace
                 Redirect(r2);",                                                                 "SCS0002")]
 
         [DataRow(@"var d = new DirectoryEntry();
-                   d.Path = input;",                                                            "SCS0031")]
-        [DataRow(@"var d = new DirectoryEntry(input);",                                         "SCS0031")]
+                   d.Path = input;",                                                            "SCS0026")]
+        [DataRow(@"var d = new DirectoryEntry(input);",                                         "SCS0026")]
         [DataRow(@"var d = new DirectoryEntry();
                    var enc = Encoder.LdapFilterEncode(input);
-                   d.Path = enc;",                                                              "SCS0031")]
-        [DataRow(@"var d = new DirectoryEntry(Encoder.LdapFilterEncode(input));",               "SCS0031")]
+                   d.Path = enc;",                                                              "SCS0026")]
+        [DataRow(@"var d = new DirectoryEntry(Encoder.LdapFilterEncode(input));",               "SCS0026")]
         [DataRow(@"var d = new DirectoryEntry();
                    var enc = Encoder.LdapDistinguishedNameEncode(input);
                    d.Path = enc;
@@ -275,6 +286,9 @@ End Namespace
                    Response.Write(enc);
                    var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var enc = _HttpServerUtility.HtmlEncode(input);
+                   Response.Write(enc);
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
+        [DataRow(@"var enc = _HttpServerUtility.UrlEncode(input);
                    Response.Write(enc);
                    var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var enc = System.Text.Encodings.Web.HtmlEncoder.Default.Encode(input);

@@ -13,16 +13,18 @@
   
   <ItemGroup>
     <None Remove="Config\Main.yml" />
+    <None Remove="Config\MainBak.yml" />
     <None Remove="Config\Messages.yml" />
   </ItemGroup>
   
   <ItemGroup>
+    <EmbeddedResource Include="Config\MainBak.yml" />
     <EmbeddedResource Include="Config\Main.yml" />
     <EmbeddedResource Include="Config\Messages.yml" />
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

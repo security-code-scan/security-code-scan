@@ -287,6 +287,8 @@ End Namespace
         [DataRow("SQLiteCommand.Execute(\"select\", SQLiteExecuteType.Reader, CommandBehavior.Default, null)",       false, null)]
         [DataRow("SQLiteCommand.Execute(input, SQLiteExecuteType.Reader, null)",                                     true,  "SCS0002")]
         [DataRow("SQLiteCommand.Execute(\"select\", SQLiteExecuteType.Reader, null)",                                false, null)]
+        [DataRow("new SQLiteDataAdapter(\"\", \"\")",                                                                false, null)]
+        [DataRow("new SQLiteDataAdapter(input, \"\")",                                                               true,  "SCS0002")]
 
         // Tests below are covered by SCS0002
         [DataRow("new SqlDataAdapter(new SqlCommand(input))", true, "SCS0002")]
@@ -606,9 +608,9 @@ End Namespace
         {
             var testConfig = @"
 TaintEntryPoints:
-  AAA:
-    Namespace: sample
-    ClassName: MyFoo
+  sample.MyFoo:
+    Method:
+      Name: Execute
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -674,9 +676,9 @@ End Namespace
         {
             var testConfig = @"
 TaintEntryPoints:
-  AAA:
-    Namespace: sample
-    ClassName: MyFoo
+  sample.MyFoo:
+    Method:
+      Name: Execute
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -743,9 +745,9 @@ End Namespace
         {
             var testConfig = @"
 TaintEntryPoints:
-  AAA:
-    Namespace: sample
-    ClassName: MyFoo
+  sample.MyFoo:
+    Method:
+      Name: Execute
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

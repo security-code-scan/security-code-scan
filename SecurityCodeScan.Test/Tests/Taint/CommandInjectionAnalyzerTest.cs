@@ -109,30 +109,31 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
-        [TestCategory("Safe")]
-        [TestMethod]
-        public async Task CommandInjectionFalsePositive_GetEnvironment()
+        [DataTestMethod]
+        [DataRow("\"windir\"",  false)]
+        [DataRow("input",       true)]
+        public async Task CommandInjectionFalsePositive_GetEnvironment(string payload, bool warn)
         {
-            var cSharpTest = @"
+            var cSharpTest = $@"
 using System;
 using System.Diagnostics;
 using System.Web.Mvc;
 
 namespace VulnerableApp
-{
+{{
     class ProcessExec : Controller
-    {
+    {{
         public void TestCommandInject(string input)
-        {
-            String environmentVar = Environment.GetEnvironmentVariable(""windir"");
+        {{
+            String environmentVar = Environment.GetEnvironmentVariable({payload});
             ProcessStartInfo p = new ProcessStartInfo();
-            p.Arguments = String.Format(""{0}\\system32\\cmd.exe"", environmentVar);
-        }
-    }
-}
+            p.Arguments = String.Format(""{{0}}\\system32\\cmd.exe"", environmentVar);
+        }}
+    }}
+}}
 ";
 
-            var visualBasicTest = @"
+            var visualBasicTest = $@"
 Imports System
 Imports System.Diagnostics
 Imports System.Web.Mvc
@@ -142,16 +143,30 @@ Namespace VulnerableApp
         Inherits Controller
 
         Public Sub TestCommandInject(input As String)
-            Dim environmentVar = Environment.GetEnvironmentVariable(""windir"")
+            Dim environmentVar = Environment.GetEnvironmentVariable({payload})
             Dim p As New ProcessStartInfo()
-            p.Arguments = String.Format(""{0}\\system32\\cmd.exe"", environmentVar)
+            p.Arguments = String.Format(""{{0}}\\system32\\cmd.exe"", environmentVar)
         End Sub
     End Class
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            if (warn)
+            {
+                var expected = new DiagnosticResult
+                {
+                    Id       = "SCS0001",
+                    Severity = DiagnosticSeverity.Warning
+                };
+
+                await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            }
         }
 
         [TestCategory("Safe")]

@@ -7,7 +7,6 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Analyzers
@@ -73,15 +72,7 @@ namespace SecurityCodeScan.Analyzers
         internal List<SecurityAnalyzer> InitWorkers<T>(string language)
         {
             var workers = new List<SecurityAnalyzer>();
-            var taintExtensions = new List<T>();
-            var types           = GetType().GetTypeInfo().Assembly.DefinedTypes;
-            foreach (var type in types)
-            {
-                if (!type.IsAbstract && typeof(T).GetTypeInfo().IsAssignableFrom(type))
-                {
-                    taintExtensions.Add((T)Activator.CreateInstance(type.AsType()));
-                }
-            }
+            var types   = GetType().GetTypeInfo().Assembly.DefinedTypes;
 
             foreach (var type in types)
             {

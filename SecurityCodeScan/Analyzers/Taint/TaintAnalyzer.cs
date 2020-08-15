@@ -20,97 +20,110 @@ namespace SecurityCodeScan.Analyzers.Taint
 {
     using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
 
+    internal enum TaintType
+    {
+        SCS0001 = 100,
+        SCS0002,
+        SCS0003,
+        SCS0018,
+        SCS0026,
+        SCS0027,
+        SCS0028,
+        SCS0029,
+        SCS0031,
+    }
+
     [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class CommandInjectionTaintAnalyzer : TaintAnalyzer2
+    internal class CommandInjectionTaintAnalyzer : TaintAnalyzer
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0001");
 
-        protected override SinkKind SinkKind { get { return SinkKind.ProcessCommand; } }
+        protected override SinkKind SinkKind { get { return (SinkKind)(int)TaintType.SCS0001; } }
 
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }
 
     [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class SqlInjectionTaintAnalyzer : TaintAnalyzer2
+    internal class SqlInjectionTaintAnalyzer : TaintAnalyzer
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0002");
 
-        protected override SinkKind SinkKind { get { return SinkKind.Sql; } }
+        protected override SinkKind SinkKind { get { return (SinkKind)(int)TaintType.SCS0002; } }
 
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }
 
     [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class XPathTaintAnalyzer : TaintAnalyzer2
+    internal class XPathTaintAnalyzer : TaintAnalyzer
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0003");
 
-        protected override SinkKind SinkKind { get { return SinkKind.XPath; } }
+        protected override SinkKind SinkKind { get { return (SinkKind)(int)TaintType.SCS0003; } }
 
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }
 
     [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class XmlInjectionTaintAnalyzer : TaintAnalyzer2
-    {
-        internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0007");
-
-        protected override SinkKind SinkKind { get { return SinkKind.Xml; } }
-
-        protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
-    }
-
-    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class PathTraversalTaintAnalyzer : TaintAnalyzer2
+    internal class PathTraversalTaintAnalyzer : TaintAnalyzer
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0018");
 
-        protected override SinkKind SinkKind { get { return SinkKind.FilePathInjection; } }
+        protected override SinkKind SinkKind { get { return (SinkKind)(int)TaintType.SCS0018; } }
 
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }
 
     [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class OpenRedirectTaintAnalyzer : TaintAnalyzer2
+    internal class OpenRedirectTaintAnalyzer : TaintAnalyzer
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0027");
 
-        protected override SinkKind SinkKind { get { return SinkKind.Redirect; } }
+        protected override SinkKind SinkKind { get { return (SinkKind)(int)TaintType.SCS0027; } }
 
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }
 
     [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class LdapFilterTaintAnalyzer : TaintAnalyzer2
+    internal class DeserializationTaintAnalyzer : TaintAnalyzer
+    {
+        internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0028");
+
+        protected override SinkKind SinkKind { get { return (SinkKind)(int)TaintType.SCS0028; } }
+
+        protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
+    }
+
+    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class LdapFilterTaintAnalyzer : TaintAnalyzer
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0031");
 
-        protected override SinkKind SinkKind { get { return SinkKind.LdapFilter; } }
+        protected override SinkKind SinkKind { get { return (SinkKind)(int)TaintType.SCS0031; } }
 
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }
 
     [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class LdapPathTaintAnalyzer : TaintAnalyzer2
+    internal class LdapPathTaintAnalyzer : TaintAnalyzer
     {
-        internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0031");
+        internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0026");
 
-        protected override SinkKind SinkKind { get { return SinkKind.LdapPath; } }
+        protected override SinkKind SinkKind { get { return (SinkKind)(int)TaintType.SCS0026; } }
 
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }
 
     [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class XssTaintAnalyzer : TaintAnalyzer2
+    internal class XssTaintAnalyzer : TaintAnalyzer
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0029");
 
-        protected override SinkKind SinkKind { get { return SinkKind.Xss; } }
+        protected override SinkKind SinkKind { get { return (SinkKind)(int)TaintType.SCS0029; } }
 
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }
 
-    internal abstract class TaintAnalyzer2 : SecurityAnalyzer
+    internal abstract class TaintAnalyzer : SecurityAnalyzer
     {
         protected abstract DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get; }
 
@@ -149,51 +162,51 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                             WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
                             InterproceduralAnalysisConfiguration interproceduralAnalysisConfiguration = InterproceduralAnalysisConfiguration.Create(
-                                                                    options,
-                                                                    SupportedDiagnostics,
-                                                                    owningSymbol,
-                                                                    operationBlockStartContext.Compilation,
-                                                                    defaultInterproceduralAnalysisKind: InterproceduralAnalysisKind.ContextSensitive,
-                                                                    cancellationToken: cancellationToken);
+                                                                options,
+                                                                SupportedDiagnostics,
+                                                                owningSymbol,
+                                                                operationBlockStartContext.Compilation,
+                                                                defaultInterproceduralAnalysisKind: InterproceduralAnalysisKind.ContextSensitive,
+                                                                cancellationToken: cancellationToken);
                             Lazy<ControlFlowGraph?> controlFlowGraphFactory = new Lazy<ControlFlowGraph?>(
-                                () => operationBlockStartContext.OperationBlocks.GetControlFlowGraph());
+                            () => operationBlockStartContext.OperationBlocks.GetControlFlowGraph());
                             Lazy<PointsToAnalysisResult?> pointsToFactory = new Lazy<PointsToAnalysisResult?>(
-                                () =>
+                            () =>
+                            {
+                                if (controlFlowGraphFactory.Value == null)
                                 {
-                                    if (controlFlowGraphFactory.Value == null)
-                                    {
-                                        return null;
-                                    }
+                                    return null;
+                                }
 
-                                    return PointsToAnalysis.TryGetOrComputeResult(
+                                return PointsToAnalysis.TryGetOrComputeResult(
+                                                            controlFlowGraphFactory.Value,
+                                                            owningSymbol,
+                                                            options,
+                                                            wellKnownTypeProvider,
+                                                            PointsToAnalysisKind.Complete,
+                                                            interproceduralAnalysisConfiguration,
+                                                            interproceduralAnalysisPredicateOpt: null);
+                            });
+                            Lazy<(PointsToAnalysisResult?, ValueContentAnalysisResult?)> valueContentFactory = new Lazy<(PointsToAnalysisResult?, ValueContentAnalysisResult?)>(
+                            () =>
+                            {
+                                if (controlFlowGraphFactory.Value == null)
+                                {
+                                    return (null, null);
+                                }
+
+                                ValueContentAnalysisResult? valuecontentAnalysisResult = ValueContentAnalysis.TryGetOrComputeResult(
                                                                 controlFlowGraphFactory.Value,
                                                                 owningSymbol,
                                                                 options,
                                                                 wellKnownTypeProvider,
                                                                 PointsToAnalysisKind.Complete,
                                                                 interproceduralAnalysisConfiguration,
-                                                                interproceduralAnalysisPredicateOpt: null);
-                                });
-                            Lazy<(PointsToAnalysisResult?, ValueContentAnalysisResult?)> valueContentFactory = new Lazy<(PointsToAnalysisResult?, ValueContentAnalysisResult?)>(
-                                () =>
-                                {
-                                    if (controlFlowGraphFactory.Value == null)
-                                    {
-                                        return (null, null);
-                                    }
+                                                                out _,
+                                                                out PointsToAnalysisResult? p);
 
-                                    ValueContentAnalysisResult? valuecontentAnalysisResult = ValueContentAnalysis.TryGetOrComputeResult(
-                                                                    controlFlowGraphFactory.Value,
-                                                                    owningSymbol,
-                                                                    options,
-                                                                    wellKnownTypeProvider,
-                                                                    PointsToAnalysisKind.Complete,
-                                                                    interproceduralAnalysisConfiguration,
-                                                                    out _,
-                                                                    out PointsToAnalysisResult? p);
-
-                                    return (p, valuecontentAnalysisResult);
-                                });
+                                return (p, valuecontentAnalysisResult);
+                            });
 
                             PooledHashSet<IOperation> rootOperationsNeedingAnalysis = PooledHashSet<IOperation>.GetInstance();
 
@@ -244,25 +257,25 @@ namespace SecurityCodeScan.Analyzers.Taint
                                 },
                                 OperationKind.Invocation);
 
-                            //if (TaintedDataConfig.HasTaintArraySource(SinkKind))
-                            //{
-                            //    operationBlockStartContext.RegisterOperationAction(
-                            //        operationAnalysisContext =>
-                            //        {
-                            //            IArrayInitializerOperation arrayInitializerOperation = (IArrayInitializerOperation)operationAnalysisContext.Operation;
-                            //            if (arrayInitializerOperation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation)?.Type is IArrayTypeSymbol arrayTypeSymbol
-                            //                && sourceInfoSymbolMap.IsSourceConstantArrayOfType(arrayTypeSymbol))
-                            //            {
-                            //                lock (rootOperationsNeedingAnalysis)
-                            //                {
-                            //                    rootOperationsNeedingAnalysis.Add(operationAnalysisContext.Operation.GetRoot());
-                            //                }
-                            //            }
-                            //        },
-                            //        OperationKind.ArrayInitializer);
-                            //}
+                        //if (TaintedDataConfig.HasTaintArraySource(SinkKind))
+                        //{
+                        //    operationBlockStartContext.RegisterOperationAction(
+                        //        operationAnalysisContext =>
+                        //        {
+                        //            IArrayInitializerOperation arrayInitializerOperation = (IArrayInitializerOperation)operationAnalysisContext.Operation;
+                        //            if (arrayInitializerOperation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation)?.Type is IArrayTypeSymbol arrayTypeSymbol
+                        //                && sourceInfoSymbolMap.IsSourceConstantArrayOfType(arrayTypeSymbol))
+                        //            {
+                        //                lock (rootOperationsNeedingAnalysis)
+                        //                {
+                        //                    rootOperationsNeedingAnalysis.Add(operationAnalysisContext.Operation.GetRoot());
+                        //                }
+                        //            }
+                        //        },
+                        //        OperationKind.ArrayInitializer);
+                        //}
 
-                            operationBlockStartContext.RegisterOperationBlockEndAction(
+                        operationBlockStartContext.RegisterOperationBlockEndAction(
                                 operationBlockAnalysisContext =>
                                 {
                                     try
@@ -282,15 +295,15 @@ namespace SecurityCodeScan.Analyzers.Taint
                                             foreach (IOperation rootOperation in rootOperationsNeedingAnalysis)
                                             {
                                                 TaintedDataAnalysisResult? taintedDataAnalysisResult = TaintedDataAnalysis.TryGetOrComputeResult(
-                                                    controlFlowGraphFactory.Value,
-                                                    operationBlockAnalysisContext.Compilation,
-                                                    operationBlockAnalysisContext.OwningSymbol,
-                                                    operationBlockAnalysisContext.Options,
-                                                    TaintedDataEnteringSinkDescriptor,
-                                                    sourceInfoSymbolMap,
-                                                    config.TaintConfiguration.GetSanitizerSymbolMap(this.SinkKind),
-                                                    sinkInfoSymbolMap,
-                                                    operationBlockAnalysisContext.CancellationToken);
+                                                controlFlowGraphFactory.Value,
+                                                operationBlockAnalysisContext.Compilation,
+                                                operationBlockAnalysisContext.OwningSymbol,
+                                                operationBlockAnalysisContext.Options,
+                                                TaintedDataEnteringSinkDescriptor,
+                                                sourceInfoSymbolMap,
+                                                config.TaintConfiguration.GetSanitizerSymbolMap(this.SinkKind),
+                                                sinkInfoSymbolMap,
+                                                operationBlockAnalysisContext.CancellationToken);
                                                 if (taintedDataAnalysisResult == null)
                                                 {
                                                     return;
@@ -305,17 +318,17 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                                                     foreach (SymbolAccess sourceOrigin in sourceSink.SourceOrigins)
                                                     {
-                                                        // Something like:
-                                                        // CA3001: Potential SQL injection vulnerability was found where '{0}' in method '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'.
-                                                        Diagnostic diagnostic = Diagnostic.Create(
-                                                            this.TaintedDataEnteringSinkDescriptor,
-                                                            sourceSink.Sink.Location,
-                                                            additionalLocations: new Location[] { sourceOrigin.Location },
-                                                            messageArgs: new object[] {
-                                                        sourceSink.Sink.Symbol.Name,
-                                                        sourceSink.Sink.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
-                                                        sourceOrigin.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
-                                                        sourceOrigin.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)});
+                                                    // Something like:
+                                                    // CA3001: Potential SQL injection vulnerability was found where '{0}' in method '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'.
+                                                    Diagnostic diagnostic = Diagnostic.Create(
+                                                        this.TaintedDataEnteringSinkDescriptor,
+                                                        sourceSink.Sink.Location,
+                                                        additionalLocations: new Location[] { sourceOrigin.Location },
+                                                        messageArgs: new object[] {
+                                                    sourceSink.Sink.Symbol.Name,
+                                                    sourceSink.Sink.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
+                                                    sourceOrigin.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
+                                                    sourceOrigin.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)});
                                                         operationBlockAnalysisContext.ReportDiagnostic(diagnostic);
                                                     }
                                                 }

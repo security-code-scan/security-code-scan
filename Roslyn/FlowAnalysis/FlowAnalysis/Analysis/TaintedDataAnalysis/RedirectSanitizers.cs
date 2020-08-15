@@ -20,15 +20,31 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypeNames.SystemWebMvcUrlHelper,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingMethods: new[] {
-                    "RouteUrl",
+                sanitizingMethods: new (MethodMatcher, (string taintedArgument, string sanitizedArgument)[])[] {
+                    (
+                        (methodName, arguments) => methodName == "RouteUrl",
+                        new[] { ("routeContext", TaintedTargetValue.Return) }
+                    ),
                 });
             builder.AddSanitizerInfo(
                 WellKnownTypeNames.MicrosoftAspNetCoreMvcUrlHelperExtensions,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingMethods: new[] {
-                    "RouteUrl",
+                sanitizingMethods: new (MethodMatcher, (string taintedArgument, string sanitizedArgument)[])[] {
+                    (
+                        (methodName, arguments) => methodName == "RouteUrl",
+                        new[] { ("routeContext", TaintedTargetValue.Return) }
+                    ),
+                });
+            builder.AddSanitizerInfo(
+                "Microsoft.AspNetCore.Mvc.IUrlHelper",
+                isInterface: true,
+                isConstructorSanitizing: false,
+                sanitizingMethods: new (MethodMatcher, (string taintedArgument, string sanitizedArgument)[])[] {
+                    (
+                        (methodName, arguments) => methodName == "IsLocalUrl",
+                        new[] { ("url", "url") }
+                    ),
                 });
 
             SanitizerInfos = builder.ToImmutableAndFree();

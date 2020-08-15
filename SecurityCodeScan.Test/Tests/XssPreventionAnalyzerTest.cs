@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
-using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
 using DiagnosticVerifier = SecurityCodeScan.Test.Helpers.DiagnosticVerifier;
 
@@ -38,12 +37,7 @@ namespace SecurityCodeScan.Test
             MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
                                                      .Location),
             MetadataReference.CreateFromFile(typeof(HttpResponse).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.DbContext).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.Security.Application.Encoder).Assembly.Location),
-            MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
-                                                     .Location),
-            MetadataReference.CreateFromFile(Assembly.Load("Microsoft.Bcl.AsyncInterfaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
-                                                     .Location),
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
@@ -74,100 +68,11 @@ class Vulnerable
             await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(10, 23)).ConfigureAwait(false);
         }
 
-        [DataRow("Sink((from x in new SampleContext().TestProp where x == \"aaa\" select x).SingleOrDefault())", true)]
-        [DataRow("Sink((from x in new SampleContext().TestField where x == \"aaa\" select x).SingleOrDefault())", true)]
-        [DataTestMethod]
-        public async Task XssFromEntityFrameworkCore(string sink, bool warn)
-        {
-            var cSharpTest = $@"
-using Microsoft.EntityFrameworkCore;
-using System.Linq;
-
-namespace sample
-{{
-    public class SampleContext : DbContext
-    {{
-        public DbSet<string> TestProp {{ get; set; }}
-        public DbSet<string> TestField;
-    }}
-
-    class MyFoo
-    {{
-        private void Sink(string s) {{}}
-
-        public void Run()
-        {{
-            {sink};
-        }}
-    }}
-}}
-";
-
-            sink = sink.CSharpReplaceToVBasic().Replace("==", "Is");
-
-            var visualBasicTest = $@"
-Imports Microsoft.EntityFrameworkCore
-Imports System.Linq
-
-Namespace sample
-    Public Class SampleContext
-        Inherits DbContext
-
-        Public Property TestProp As DbSet(Of String)
-        Public          TestField As DbSet(Of String)
-    End Class
-
-    Class MyFoo
-        Private Sub Sink(s As String)
-        End Sub
-
-        Public Sub Run()
-            {sink}
-        End Sub
-    End Class
-End Namespace
-";
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0002",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            var testConfig = @"
-Behavior:
-  MyKey:
-    Namespace: sample
-    ClassName: MyFoo
-    Name: Sink
-    Method:
-      InjectableArguments: [SCS0002: 0]
-
-  db3:
-    Namespace: Microsoft.EntityFrameworkCore
-    ClassName: DbSet
-    Method:
-      Returns:
-        Taint: Tainted
-";
-            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
-
-            if (warn)
-            {
-                await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
-            }
-            else
-            {
-                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
-            }
-        }
-
         [TestCategory("Detect")]
-        [DataRow("System.Web", "Request.Params[0]",            "",              "Response.Write(userInput)")]
-        [DataRow("System.Web", "Request.Params[0]",            "System.String", "Response.Write(userInput)")]
-        [DataRow("System.Web", "Request.Params[0].ToString()", "System.String", "Response.Write(userInput)")]
-        //[DataRow("System.Web", "(System.Char[])Request.Params[0]", "Response.Write(userInput, x, y)")]
+        [DataRow("System.Web", "Request.Params[0]",               "",              "Response.Write(userInput)")]
+        [DataRow("System.Web", "Request.Params[0]",               "System.String", "Response.Write(userInput)")]
+        [DataRow("System.Web", "Request.Params[0].ToString()",    "System.String", "Response.Write(userInput)")]
+        [DataRow("System.Web", "Request.Params[0].ToCharArray()", "",              "Response.Write(userInput, 1, 1)")]
         [DataTestMethod]
         public async Task HttpResponseWrite(string @namespace, string inputType, string cast, string sink)
         {
@@ -216,6 +121,7 @@ End Class
         [DataRow("Microsoft.AspNetCore.Mvc",                       "Microsoft.AspNetCore.Mvc.Controller",     "HttpGet")]
         [DataRow("HG = Microsoft.AspNetCore.Mvc.HttpGetAttribute", "Microsoft.AspNetCore.Mvc.Controller",     "HG")]
         [DataRow("Microsoft.AspNetCore.Mvc",                       "Microsoft.AspNetCore.Mvc.ControllerBase", "HttpGet")]
+        [Ignore]
         // todo: how to define sink on return?
         // maybe isInterface: true and special handling for return
         public async Task UnencodedInputData(string alias, string controller, string attributeName)
@@ -256,6 +162,7 @@ End Namespace
 
         [TestCategory("Detect")]
         [TestMethod]
+        [Ignore("todo: sink on return")]
         public async Task UnencodedInputDataExpression()
         {
             const string cSharpTest = @"
@@ -276,6 +183,7 @@ namespace VulnerableApp
 
         [TestCategory("Detect")]
         [TestMethod]
+        [Ignore("todo: sink on return")]
         public async Task UnencodedInputData2()
         {
             const string cSharpTest = @"
@@ -489,6 +397,7 @@ End Namespace
 
         [TestCategory("Detect")]
         [TestMethod]
+        [Ignore("todo: sink on return")]
         public async Task UnencodedInputDataCorrectReturnLine()
         {
             const string cSharpTest = @"
@@ -572,6 +481,7 @@ End Namespace
         [DataRow("new Page(); temp.Response.Write(\"constant\")", false)]
         [DataRow("new Page(); temp.Response.Write(\"constant\".ToCharArray(), 0, 1)", false)]
 
+        [DataRow("new HyperLink(); temp.NavigateUrl = Encoder.UrlPathEncode(input)", false)]
         [DataRow("new HyperLink(); temp.NavigateUrl = Encoder.UrlEncode(input)", false)]
         [DataRow("new HyperLink(); temp.NavigateUrl = Encoder.HtmlEncode(input)", false)]
         [DataRow("new Label(); temp.Text = new Page().Server.HtmlEncode(input)", false)]

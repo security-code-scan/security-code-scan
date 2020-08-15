@@ -38,6 +38,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     )
                 });
 
+            //sourceInfosBuilder.AddSourceInfoSpecifyingTaintedTargets(
+            //    WellKnownTypeNames.SystemWebMvcUrlHelper,
+            //    isInterface: false,
+            //    taintedProperties: null,
+            //    taintedMethodsNeedsPointsToAnalysis: null,
+            //    taintedMethodsNeedsValueContentAnalysis: null,
+            //    transferMethods: new (MethodMatcher, (string, string)[])[]{
+            //        (
+            //            (methodName, arguments) =>
+            //                methodName == "IsLocalUrl",
+            //            new (string, string)[]{
+            //                ("url", "url"),
+            //            }
+            //        )
+            //    });
+
             sourceInfosBuilder.AddSourceInfoSpecifyingTaintedTargets(
                 WellKnownTypeNames.SystemWebHttpUtility,
                 isInterface: false,

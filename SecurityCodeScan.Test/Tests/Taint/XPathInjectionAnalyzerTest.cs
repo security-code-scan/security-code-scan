@@ -132,9 +132,9 @@ End Namespace
 
             var testConfig = @"
 TaintEntryPoints:
-  AAA:
-    Namespace: sample
-    ClassName: MyFoo
+  sample.MyFoo:
+    Method:
+      Name: Run
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

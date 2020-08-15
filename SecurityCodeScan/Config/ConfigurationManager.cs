@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
+using SecurityCodeScan.Analyzers.Taint;
 
 namespace SecurityCodeScan.Config
 {
@@ -47,7 +48,7 @@ namespace SecurityCodeScan.Config
                                  return Path.Combine(path, UserConfigName);
                              });
 
-        private static readonly Version ConfigVersion = new Version(2,1);
+        private static readonly Version ConfigVersion = new Version(3,0);
 
         private T DeserializeAndValidate<T>(StreamReader reader, bool validate) where T : ConfigData
         {
@@ -61,6 +62,7 @@ namespace SecurityCodeScan.Config
             using (var reader2 = new StreamReader(reader.BaseStream))
             {
                 var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties()
+                                                            .WithNodeDeserializer(new ValueTupleNodeDeserializer())
                                                             .Build();
                 var data = deserializer.Deserialize<T>(reader2);
                 return data;
@@ -175,17 +177,6 @@ namespace SecurityCodeScan.Config
     {
         public static void Merge(this ConfigData config1, ConfigData config2)
         {
-            if (config2.TaintTypes != null)
-            {
-                foreach (var taintType in config2.TaintTypes)
-                {
-                    if (config1.TaintTypes == null)
-                        config1.TaintTypes = new List<string>();
-
-                    config1.TaintTypes.Add(taintType);
-                }
-            }
-
             if (config2.ReportAnalysisCompletion.HasValue)
                 config1.ReportAnalysisCompletion = config2.ReportAnalysisCompletion.Value;
 
@@ -209,20 +200,6 @@ namespace SecurityCodeScan.Config
                 }
             }
 
-            if (config2.Behavior != null)
-            {
-                foreach (var behavior in config2.Behavior)
-                {
-                    if (config1.Behavior == null)
-                        config1.Behavior = new Dictionary<string, object>();
-
-                    if (behavior.Value == default(MethodBehaviorData))
-                        config1.Behavior.Remove(behavior.Key);
-                    else
-                        config1.Behavior[behavior.Key] = behavior.Value;
-                }
-            }
-
             if (config2.TaintEntryPoints != null)
             {
                 foreach (var source in config2.TaintEntryPoints)
@@ -234,6 +211,50 @@ namespace SecurityCodeScan.Config
                         config1.TaintEntryPoints.Remove(source.Key);
                     else
                         config1.TaintEntryPoints[source.Key] = source.Value;
+                }
+            }
+
+            if (config2.Sinks != null)
+            {
+                foreach (var source in config2.Sinks)
+                {
+                    if (config1.Sinks == null)
+                        config1.Sinks = new List<Sink>();
+
+                    config1.Sinks.Add(source);
+                }
+            }
+
+            if (config2.Sanitizers != null)
+            {
+                foreach (var sanitizer in config2.Sanitizers)
+                {
+                    if (config1.Sanitizers == null)
+                        config1.Sanitizers = new List<Sanitizer>();
+
+                    config1.Sanitizers.Add(sanitizer);
+                }
+            }
+
+            if (config2.Transfers != null)
+            {
+                foreach (var transfer in config2.Transfers)
+                {
+                    if (config1.Transfers == null)
+                        config1.Transfers = new List<Transfer>();
+
+                    config1.Transfers.Add(transfer);
+                }
+            }
+
+            if (config2.TaintSources != null)
+            {
+                foreach (var source in config2.TaintSources)
+                {
+                    if (config1.TaintSources == null)
+                        config1.TaintSources = new List<TaintSource>();
+
+                    config1.TaintSources.Add(source);
                 }
             }
 
@@ -251,31 +272,9 @@ namespace SecurityCodeScan.Config
                 }
             }
 
-            if (config2.PasswordFields != null)
-            {
-                foreach (var field in config2.PasswordFields)
-                {
-                    if (config1.PasswordFields == null)
-                        config1.PasswordFields = new List<string>();
-
-                    config1.PasswordFields.Add(field);
-                }
-            }
-
             if (config2.WebConfigFiles != null)
             {
                 config1.WebConfigFiles = config2.WebConfigFiles;
-            }
-
-            if (config2.ConstantFields != null)
-            {
-                foreach (var field in config2.ConstantFields)
-                {
-                    if (config1.ConstantFields == null)
-                        config1.ConstantFields = new List<string>();
-
-                    config1.ConstantFields.Add(field);
-                }
             }
         }
     }
@@ -295,48 +294,101 @@ namespace SecurityCodeScan.Config
         public int?                                    PasswordValidatorRequiredLength     { get; set; }
         public int?                                    MinimumPasswordValidatorProperties  { get; set; }
         public List<string>                            PasswordValidatorRequiredProperties { get; set; }
-        public Dictionary<string, object>              Behavior                            { get; set; }
         public Dictionary<string, TaintEntryPointData> TaintEntryPoints                    { get; set; }
+        public List<TaintSource>                       TaintSources                        { get; set; }
+        public List<Sink>                              Sinks                               { get; set; }
+        public List<Sanitizer>                         Sanitizers                          { get; set; }
+        public List<Transfer>                          Transfers                           { get; set; }
         public Dictionary<string, CsrfProtectionData>  CsrfProtection                      { get; set; }
-        public List<string>                            PasswordFields                      { get; set; }
         public string                                  WebConfigFiles                      { get; set; }
-        public List<string>                            ConstantFields                      { get; set; }
-        public List<string>                            TaintTypes                          { get; set; }
     }
 
-    internal class Signature
+    internal class Transfer
     {
-        public string     Namespace { get; set; }
-        public string     ClassName { get; set; }
-        public string     Name      { get; set; }
-        public MethodData Method    { get; set; }
-        public FieldData  Field     { get; set; }
+        public string Type { get; set; }
+
+        public bool? IsInterface { get; set; }
+
+        public List<TransferInfo> Methods { get; set; }
     }
 
-    internal class MethodData
+    internal class Sanitizer
     {
-        public string        ArgTypes            { get; set; }
-        public object[]      InjectableArguments { get; set; }
-        public ConditionData If                  { get; set; }
+        public string Type { get; set; }
+
+        public List<TaintType> TaintTypes { get; set; }
+
+        public bool? IsInterface { get; set; }
+
+        public List<TransferInfo> Methods { get; set; }
     }
 
-    internal class ConditionData
+    internal class TransferInfo
     {
-        public Dictionary<object, object> Condition { get; set; }
-        public Dictionary<object, object> Then      { get; set; }
+        public string Name { get; set; }
+
+        public int? ArgumentCount { get; set; }
+
+        public (string inArgumentName, string outArgumentName)[] InOut { get; set; }
+
+        public bool? CleansInstance { get; set; }
     }
 
-    internal class FieldData
+    internal class Sink
     {
-        public object Injectable { get; set; }
+        public string Type { get; set; }
+
+        public List<TaintType> TaintTypes { get; set; }
+
+        public bool? IsAnyStringParameterInConstructorASink { get; set; }
+
+        public bool? IsInterface { get; set; }
+
+        public List<string> Properties { get; set; }
+
+        public Dictionary<string, string[]> Methods { get; set; }
     }
 
-    internal class TaintEntryPointData : Signature
+    internal class Method
     {
+        public string Name { get; set; }
+
+        public List<Accessibility> Accessibility { get; set; }
+
+        public bool? IncludeConstructor { get; set; }
+
+        public bool? Static { get; set; }
+
+        public List<string> ExcludeAttributes { get; set; }
     }
 
-    internal class MethodBehaviorData : Signature
+    internal class Class
     {
+        public List<Accessibility> Accessibility { get; set; }
+
+        public bool? IncludeConstructor { get; set; }
+
+        public bool? Static { get; set; }
+
+        public List<string> ExcludeAttributes { get; set; }
+    }
+
+    internal class TaintEntryPointData
+    {
+        public Class Class { get; set; }
+
+        public Method Method { get; set; }
+    }
+
+    internal class TaintSource
+    {
+        public string Type { get; set; }
+
+        public bool? IsInterface { get; set; }
+
+        public string[] Properties { get; set; }
+
+        public string[] Methods { get; set; }
     }
 
     internal class CsrfProtectionData

@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
-using SecurityCodeScan.Analyzers.Taint;
 
 namespace SecurityCodeScan.Test.XXE
 {
@@ -12,8 +12,16 @@ namespace SecurityCodeScan.Test.XXE
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
-            return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new XxeDiagnosticAnalyzerCSharp(), new XmlInjectionTaintAnalyzer()),
-                                              new VBasicAnalyzers(new XxeDiagnosticAnalyzerVisualBasic(), new XmlInjectionTaintAnalyzer())};
+            if (language == LanguageNames.CSharp)
+                return new DiagnosticAnalyzer[]
+                {
+                    new CSharpAnalyzers(new XxeDiagnosticAnalyzerCSharp())
+                };
+            else
+                return new DiagnosticAnalyzer[]
+                {
+                    new VBasicAnalyzers(new XxeDiagnosticAnalyzerCSharp())
+                };
         }
 
         [TestCategory("Safe")]

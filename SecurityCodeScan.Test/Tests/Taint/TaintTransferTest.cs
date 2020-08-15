@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -28,9 +29,153 @@ namespace SecurityCodeScan.Test.Taint
         {
             MetadataReference.CreateFromFile(typeof(System.Data.SqlClient.SqlCommand).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.DbContext).Assembly.Location),
+            MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
+                                                     .Location),
+            MetadataReference.CreateFromFile(Assembly.Load("Microsoft.Bcl.AsyncInterfaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
+                                                     .Location),
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
+
+        [DataRow("Sink((from x in new SampleContext().TestProp  where x == \"aaa\" select x).SingleOrDefault())", true)]
+        //[DataRow("Sink((from x in new SampleContext().TestField where x == \"aaa\" select x).SingleOrDefault())", true)] todo: fields are not treated as taint source
+        [DataTestMethod]
+        public async Task EntityFrameworkCore(string sink, bool warn)
+        {
+            var cSharpTest = $@"
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+
+namespace sample
+{{
+    public class SampleContext : DbContext
+    {{
+        public DbSet<string> TestProp {{ get; set; }}
+        public DbSet<string> TestField;
+    }}
+
+    class MyFoo
+    {{
+        private void Sink(string s) {{}}
+
+        public void Run()
+        {{
+            {sink};
+        }}
+    }}
+}}
+";
+
+            sink = sink.CSharpReplaceToVBasic().Replace("==", "Is");
+
+            var visualBasicTest = $@"
+Imports Microsoft.EntityFrameworkCore
+Imports System.Linq
+
+Namespace sample
+    Public Class SampleContext
+        Inherits DbContext
+
+        Public Property TestProp As DbSet(Of String)
+        Public          TestField As DbSet(Of String)
+    End Class
+
+    Class MyFoo
+        Private Sub Sink(s As String)
+        End Sub
+
+        Public Sub Run()
+            {sink}
+        End Sub
+    End Class
+End Namespace
+";
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0018",
+                Severity = DiagnosticSeverity.Warning,
+            };
+
+            var testConfig = @"
+Sinks:
+  - Type: sample.MyFoo
+    TaintTypes:
+      - SCS0018
+    Methods:
+      Sink:
+        - s
+
+TaintSources:
+  - Type: sample.SampleContext
+    Properties:
+      - TestProp
+      - TestField
+";
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+        }
+
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task DynamicArgument()
+        {
+            var cSharpTest = @"
+class Test
+{
+    public void Action(string foo)
+    {
+        Method(foo);
+    }
+
+    private void Method(dynamic d)
+    {
+
+    }
+}
+";
+
+
+            var testConfig = @"
+Sinks:
+  - Type: Test
+    TaintTypes:
+      - SCS0018
+    Methods:
+      Method:
+        - d
+
+TaintEntryPoints:
+  Test:
+    Method:
+      Name: Action
+";
+
+            var options = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            var cSharpExpected =
+                new[]
+                {
+                    new DiagnosticResult
+                    {
+                        Id       = "SCS0018",
+                        Severity = DiagnosticSeverity.Warning,
+                    }.WithLocation(6, 16)
+                };
+
+            await VerifyCSharpDiagnostic(cSharpTest, cSharpExpected, options).ConfigureAwait(false);
+            // there's not really an equivalent to dynamic in VB.NET, so no test for it
+        }
 
         [TestCategory("Safe")]
         [DataRow("static ")]
@@ -369,9 +514,9 @@ End Namespace
 
             var testConfig = $@"
 TaintEntryPoints:
-  AAA:
-    Namespace: sample
-    ClassName: MyFoo
+  sample.MyFoo:
+    Method:
+      Name: Run
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -514,8 +659,9 @@ End Class
 
             var testConfig = @"
 TaintEntryPoints:
-  AAA:
-    ClassName: PathTraversal
+  PathTraversal:
+    Method:
+      Name: Run
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -630,8 +776,9 @@ End Class
 
             var testConfig = @"
 TaintEntryPoints:
-  AAA:
-    ClassName: TestInput
+  TestInput:
+    Method:
+      Name: Run
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -687,8 +834,9 @@ End Class
 
             var testConfig = @"
 TaintEntryPoints:
-  AAA:
-    ClassName: TestInput
+  TestInput:
+    Method:
+      Name: Run
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -872,8 +1020,9 @@ End Class
 
             var testConfig = @"
 TaintEntryPoints:
-  AAA:
-    ClassName: TestInput
+  TestInput:
+    Method:
+      Name: Run
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -1220,8 +1369,9 @@ End Class
 
             var testConfig = @"
 TaintEntryPoints:
-  AAA:
-    ClassName: TestInput
+  TestInput:
+    Method:
+      Name: Run
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -1385,9 +1535,9 @@ End Namespace
 
             var testConfig = @"
 TaintEntryPoints:
-  AAA:
-    Namespace: sample
-    ClassName: MyFoo
+  sample.MyFoo:
+    Method:
+      Name: Run
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -1447,9 +1597,9 @@ End Namespace
 
             var testConfig = @"
 TaintEntryPoints:
-  AAA:
-    Namespace: sample
-    ClassName: MyFoo
+  sample.MyFoo:
+    Method:
+      Name: Run
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

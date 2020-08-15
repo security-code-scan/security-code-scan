@@ -21,15 +21,15 @@ namespace SecurityCodeScan.Test
         }
 
         [TestCategory("Detect")]
-        [DataRow("CipherMode.ECB", "SCS0012")]
+        [DataRow("CipherMode.ECB", "SCS0013")]
         [DataRow("CipherMode.OFB", "SCS0013")]
-        [DataRow("CipherMode.CBC", "SCS0011")]
-        [DataRow("ECB",            "SCS0012")]
+        [DataRow("CipherMode.CBC", "SCS0013")]
+        [DataRow("ECB",            "SCS0013")]
         [DataRow("OFB",            "SCS0013")]
-        [DataRow("CBC",            "SCS0011")]
-        [DataRow("CM.ECB",         "SCS0012")]
+        [DataRow("CBC",            "SCS0013")]
+        [DataRow("CM.ECB",         "SCS0013")]
         [DataRow("CM.OFB",         "SCS0013")]
-        [DataRow("CM.CBC",         "SCS0011")]
+        [DataRow("CM.CBC",         "SCS0013")]
         [DataTestMethod]
         public async Task WeakCipherMode(string name, string id)
         {
@@ -136,7 +136,7 @@ End Class
 
             var expected = new DiagnosticResult
             {
-                Id       = "SCS0012",
+                Id       = "SCS0013",
                 Severity = DiagnosticSeverity.Warning,
             };
 
@@ -306,7 +306,7 @@ End Class
 
             var expected = new DiagnosticResult
             {
-                Id       = "SCS0011",
+                Id       = "SCS0013",
                 Severity = DiagnosticSeverity.Warning,
             };
 

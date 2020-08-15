@@ -39,13 +39,9 @@ namespace SecurityCodeScan.Analyzers
 
     internal abstract class WeakCipherModeAnalyzer : SecurityAnalyzer
     {
-        private static readonly DiagnosticDescriptor RuleCBC     = LocaleUtil.GetDescriptor("SCS0011");
-        private static readonly DiagnosticDescriptor RuleECB     = LocaleUtil.GetDescriptor("SCS0012");
         private static readonly DiagnosticDescriptor RuleGeneric = LocaleUtil.GetDescriptor("SCS0013");
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(RuleECB,
-                                                                                                           RuleCBC,
-                                                                                                           RuleGeneric);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(RuleGeneric);
 
         protected static void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx)
         {
@@ -57,22 +53,12 @@ namespace SecurityCodeScan.Analyzers
             switch (type)
             {
                 case "System.Security.Cryptography.CipherMode.ECB":
-                {
-                    var diagnostic = Diagnostic.Create(RuleECB, ctx.Node.GetLocation(), "ECB");
-                    ctx.ReportDiagnostic(diagnostic);
-                    break;
-                }
                 case "System.Security.Cryptography.CipherMode.CBC":
-                {
-                    var diagnostic = Diagnostic.Create(RuleCBC, ctx.Node.GetLocation(), "CBC");
-                    ctx.ReportDiagnostic(diagnostic);
-                    break;
-                }
                 case "System.Security.Cryptography.CipherMode.OFB":
                 case "System.Security.Cryptography.CipherMode.CFB":
                 case "System.Security.Cryptography.CipherMode.CTS":
                 {
-                    var diagnostic = Diagnostic.Create(RuleGeneric, ctx.Node.GetLocation(), "OFB");
+                    var diagnostic = Diagnostic.Create(RuleGeneric, ctx.Node.GetLocation());
                     ctx.ReportDiagnostic(diagnostic);
                     break;
                 }

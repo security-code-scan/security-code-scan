@@ -18,151 +18,142 @@ SCS0000:
 # Injections
 
 SCS0001:
-  title: "Command injection possible in {1} argument passed to '{0}'"
-  title_assignment: Possible command injection
-  description: The dynamic value passed to the command execution should be validated.
+  title: "Potential Command Injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
+  title_assignment: Potential Command Injection vulnerability.
+  description: The untrusted value passed to the command execution should be validated.
 
 SCS0002:
-  title: "Potential SQL injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'.'"
-  description: The dynamic value passed in the SQL query should be validated.
+  title: "Potential SQL injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
+  description: The untrusted value passed to the SQL query should be validated.
 
 SCS0027:
-  title: "Open redirect: possibly unvalidated input in {1} argument passed to '{0}'"
-  title_assignment: Possible open redirect
-  description: The dynamic value passed to the redirect should be validated
+  title: "Potential Open Redirect vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
+  title_assignment: Potential Open Redirect vulnerability.
+  description: The untrusted value passed to the redirect should be validated.
 
 SCS0003:
-  title: "XPath injection possible in {1} argument passed to '{0}'"
-  description: The dynamic value passed to the XPath query should be validated
+  title: "Potential XPath injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
+  description: The untrusted value passed to the XPath query should be validated.
 
 SCS0028:
-  title: "Possibly unsafe deserialization"
-  title_typenamehandling_analyzer: "TypeNameHandling is set to other value than 'None' that may lead to deserialization vulnerability"
-  title_javascriptserializer_analyzer: "Type information is used, it may lead to deserialization vulnerability"
-  title_assignment: "Possibly unsafe deserialization setting enabled"
-  description: Deserialization from untrusted source is unsafe.
+  title: "Potential unsafe deserialization vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
+  title_typenamehandling_analyzer: "TypeNameHandling is set to the other value than 'None'. It may lead to deserialization vulnerability."
+  title_javascriptserializer_analyzer: "Type information is used. It may lead to deserialization vulnerability"
+  title_assignment: "Potential unsafe deserialization setting used."
+  description: Deserialization of untrusted data is unsafe.
 
 SCS0026:
   title: "Potential LDAP injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
-  title_assignment: Possible LDAP injection
-  description: The dynamic value passed in the LDAP query should be validated.
+  title_assignment: Potential LDAP injection vulnerability.
+  description: The untrusted value passed to the LDAP query should be validated.
 
 SCS0031:
   title: "Potential LDAP injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
-  title_assignment: Possible LDAP injection
-  description: The dynamic value passed in the LDAP query should be validated.
+  title_assignment: Possible LDAP injection vulnerability.
+  description: The untrusted value passed in the LDAP query should be validated.
 
 # Various
 
 SCS0004:
-  title: Certificate Validation has been disabled
-  description: Certificate Validation has been disabled. The communication could be intercepted.
+  title: Certificate Validation has been disabled.
+  description: Disabled certificate validation may lead to Person in the Middle attack.
 
 SCS0007:
-  title: XML parsing vulnerable to XXE
-  description: The XML parser is configured incorrectly. The operation could be vulnerable to XML eXternal Entity (XXE) processing.
+  title: Potential XML eXternal Entity (XXE) vulnerability.
+  description: Unsafe configuration of the XML parser may lead to XML eXternal Entity (XXE) processing vulnerability.
 
 SCS0008:
-  title: The cookie is missing security flag Secure
-  description: It is recommended to specify the Secure flag to new cookie.
+  title: The cookie is missing 'Secure' flag.
+  description: Cookies without 'Secure' flag may be transmitted over unencrypted connection.
 
 SCS0009:
-  title: The cookie is missing security flag HttpOnly
-  description: It is recommended to specify the HttpOnly flag to new cookie.
+  title: The cookie is missing 'HttpOnly' flag.
+  description: Cookies without 'HttpOnly' may be stolen in case of JavaScript injection (XSS).
 
 # Crypto
 
 SCS0005:
-  title: Weak random generator
-  description: The random numbers generated could be predicted.
+  title: Weak random number generator.
+  description: It is possible to predict next numbers of pseudo random generator. Use cryptographically strong generators for security sensitive purposes.
 
 SCS0006:
-  title: Weak hashing function
+  title: Weak hashing function.
   description: "{0} is no longer considered a strong hashing algorithm."
-  title2: Possibly weak hashing function
+  title2: Possibly weak hashing function.
   description_unknown: "Unable to determine hashing algorithm statically. Review if it is strong enough (SHA256 for example)."
 
 SCS0010:
-  title: Weak cipher algorithm
-  description: "{0} is not considered a strong cipher for modern applications. Currently, NIST recommends the usage of AES block ciphers instead of {0}."
-
-SCS0011:
-  title: CBC mode is weak
-  description: This specific mode of CBC with PKCS5Padding is susceptible to padding oracle attacks. An adversary could potentially decrypt the message if the system exposed the difference between plaintext with invalid padding or valid padding.
-
-SCS0012:
-  title: ECB mode is weak
-  description: "ECB mode will produce the same result for identical blocks (i.e.: 16 bytes for AES). An attacker could be able to guess the encrypted message. The use of AES in CBC mode with a HMAC is recommended guaranteeing integrity and confidentiality."
+  title: Weak cipher algorithm.
+  description: "{0} is not considered as a strong modern cipher."
 
 SCS0013:
-  title: Weak cipher mode
-  description: The ciphertext produced is susceptible to alteration by an adversary. This mean that the cipher provides no way to detect that the data has been tampered with. If the ciphertext can be controlled by an attacker, it could be altered without detection. The use of AES in CBC mode with a HMAC is recommended guaranteeing integrity and confidentiality.
+  title: Potential usage of weak AES mode.
+  description: This specific mode is susceptible to a cryptographic attack.
 
 SCS0016:
-  title: Controller method is vulnerable to CSRF
+  title: Controller method is vulnerable to Cross Site Request Forgery (CSRF).
   description: The annotation [ValidateAntiForgeryToken] is missing. It can be ignored/suppressed if .NET Core AutoValidateAntiforgeryToken is set up globally.
 
 SCS0017:
-  title: Request validation is disabled
-  title_base: Request validation disabled in base class
+  title: Request validation is disabled.
+  title_base: Request validation disabled in base class.
   description: Request validation is disabled. Request validation allows the filtering of some XSS patterns submitted to the application.
 
 SCS0018:
-  title: "Path traversal: injection possible in {1} argument passed to '{0}'"
-  description: The file path passed to this API is susceptible to Path traversal attacks. With a malicious relative path, an attacker could reach a secret file.
+  title: "Potential Path Traversal vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
+  description: The untrusted value passed to the redirect should be validated.
 
 SCS0019:
-  title: OutputCache annotation is disabling authorization checks
+  title: OutputCache annotation is disabling authorization checks.
   description: Having the annotation [OutputCache] will disable the annotation [Authorize] for the requests following the first one.
 
 # Configuration issues
 
 SCS0021:
-  title: "Request validation has been disabled in {0}({1}): {2}"
+  title: "Request validation has been disabled in {0}({1}): {2}."
   description: Request validation, which provides additional protection against Cross-Site Scripting (XSS), has been disabled.
 
 SCS0030:
-  title: "Request validation is enabled only for pages, not for all HTTP requests. {0}({1}): {2}"
+  title: "Request validation is enabled only for pages, not for all HTTP requests. {0}({1}): {2}."
   description: The RequestValidationMode property specifies which ASP.NET approach to validation will be used.
 
 SCS0022:
-  title: "Event validation is disabled in {0}({1}): {2}"
+  title: "Event validation is disabled in {0}({1}): {2}."
   description: Event validation is disabled. The integrity of client-side control will not be validated on postback.
 
 SCS0023:
-  title: "View state is not encrypted in {0}({1}): {2}"
+  title: "View state is not encrypted in {0}({1}): {2}."
   description: View state is not encrypted. Controls may leak sensitive data that could be read client-side.
   
 SCS0024:
-  title: "View state mac is disabled in {0}({1}): {2}"
-  description: View state mac is disabled. The view state could be altered by an attacker. (This feature cannot be disabled in the recent version of ASP.net)
+  title: "View state mac is disabled in {0}({1}): {2}."
+  description: View state mac is disabled. The view state could be altered by an attacker. (This feature cannot be disabled in the recent version of ASP.net).
 
 # XSS
 SCS0029:
-  title: Potential XSS vulnerability
-  title_assignment: Potential XSS vulnerability
-  description: The endpoint returns a variable from the client input that has not been html encoded.
+  title: "Potential Cross-Site Scripting (XSS) vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
+  title_assignment: Potential Cross-Site Scripting (XSS) vulnerability.
+  description: The untrusted value used to create a HTML should be validated or properly encoded.
 
 SCS0014:
-  title: Potential XSS vulnerability
-  title_assignment: Potential XSS vulnerability
+  title: Potential Cross-Site Scripting (XSS) vulnerability.
   description: The endpoint returns a variable from the client input that has not been url encoded.
 
 # Password Validator
 
 SCS0015:
-  title: "Hardcoded password in {1} argument passed to '{0}'"
-  title_assignment: Hardcoded password
+  title: "Hardcoded password in {1} argument passed to '{0}'."
+  title_assignment: Hardcoded password.
   description: The password configuration to this API appears to be hardcoded. Consider moving the password to externalized configuration to avoid leakage of secret information.
 
 SCS0032:
-  title: "The RequiredLength property of PasswordValidator should be set to at least {0}"
+  title: "The RequiredLength property of PasswordValidator should be set to at least {0}."
   description: "The minimal length of a passwords is too short."
 
 SCS0033:
-  title: "Less than {0} properties set in PasswordValidator declaration"
+  title: "Less than {0} properties set in PasswordValidator declaration."
   description: Password requirements are weak. PasswordValidator should have more properties set (RequiredLength, RequireDigit, RequireLowercase, RequireUppercase and/or RequireNonLetterOrDigit).
 
 SCS0034:
-  title: "The {0} property must be set"
+  title: "The {0} property must be set."
   description: This property must be set to increase password requirements strength.

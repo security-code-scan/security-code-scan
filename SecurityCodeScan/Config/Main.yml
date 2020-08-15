@@ -1105,6 +1105,13 @@ Sinks:
     Properties:
       - Text
       - NavigateUrl
+      - ImageUrl
+
+  - Type: System.Web.UI.WebControls.Image
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - ImageUrl
 
   - Type: System.Web.UI.WebControls.Label
     TaintTypes:

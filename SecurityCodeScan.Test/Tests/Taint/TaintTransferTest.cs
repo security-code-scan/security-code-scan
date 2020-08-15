@@ -1040,7 +1040,7 @@ TaintEntryPoints:
 
         [DataTestMethod]
         [DataRow("var query = Foo(a, \"\");", "Test", "Foo", "Returns", "TaintFromArguments: [0]", true)]
-        [Ignore("Implement configuration conversion")]
+        [Ignore("todo: conditionals")]
         public async Task MergePostConditions(string cs, string className, string name, string outParam, string taintFromArguments, bool warn)
         {
             var cSharpTest = $@"
@@ -1119,78 +1119,77 @@ Behavior:
         }
 
         [DataTestMethod]
-        [DataRow("var query = Foo(a, b);", "Test", "Foo", "Returns", "TaintFromArguments: [0]", true)]
-        [DataRow("var query = Foo(a, null);", "Test", "Foo", "Returns", "TaintFromArguments: [0]", true)]
-        [DataRow("var query = Foo(null, b);", "Test", "Foo", "Returns", "TaintFromArguments: [0]", false)]
-        [DataRow("var query = Foo(null, null);", "Test", "Foo", "Returns", "TaintFromArguments: [0]", false)]
+        [DataRow("var query = Foo(a, b);", null, null, null, null, false)]
+        [DataRow("var query = Foo(a, null);", null, null, null, null, false)]
+        [DataRow("var query = Foo(null, b);", null, null, null, null, false)]
+        [DataRow("var query = Foo(null, null);", null, null, null, null, false)]
 
-        [DataRow("var query = Foo(a, b);", "Test", "Foo", "1", "TaintFromArguments: [0]", true)]
-        [DataRow("var query = Foo(a, null);", "Test", "Foo", "1", "TaintFromArguments: [0]", true)]
-        [DataRow("var query = Foo(null, b);", "Test", "Foo", "1", "TaintFromArguments: [0]", true)]
-        [DataRow("var query = Foo(null, null);", "Test", "Foo", "1", "TaintFromArguments: [0]", false)]
+        [DataRow("var query = Foo(a, b);", "Test", "Foo", "a", "b", false)]
+        [DataRow("var query = Foo(a, null);", "Test", "Foo", "a", "b", false)]
+        [DataRow("var query = Foo(null, b);", "Test", "Foo", "a", "b", false)]
+        [DataRow("var query = Foo(null, null);", "Test", "Foo", "a", "b", false)]
 
-        [DataRow("var query = Foo(a, b);", "Test", "Foo", "0", "TaintFromArguments: [1]", true)]
-        [DataRow("var query = Foo(a, null);", "Test", "Foo", "0", "TaintFromArguments: [1]", true)]
-        [DataRow("var query = Foo(null, b);", "Test", "Foo", "0", "TaintFromArguments: [1]", true)]
-        [DataRow("var query = Foo(null, null);", "Test", "Foo", "0", "TaintFromArguments: [1]", false)]
+        [DataRow("var query = Foo(a, b);", "Test", "Foo", "b", "a", false)]
+        [DataRow("var query = Foo(a, null);", "Test", "Foo", "b", "a", false)]
+        [DataRow("var query = Foo(null, b);", "Test", "Foo", "b", "a", false)]
+        [DataRow("var query = Foo(null, null);", "Test", "Foo", "b", "a", false)]
 
-        [DataRow("o.Foo(a, b); var query = o.ToString();", "Test", "Foo", "Returns", "TaintFromArguments: [0]", false)]
-        [DataRow("o.Foo(a, null); var query = o.ToString();", "Test", "Foo", "Returns", "TaintFromArguments: [0]", false)]
-        [DataRow("o.Foo(null, b); var query = o.ToString();", "Test", "Foo", "Returns", "TaintFromArguments: [0]", false)]
-        [DataRow("o.Foo(null, null); var query = o.ToString();", "Test", "Foo", "Returns", "TaintFromArguments: [0]", false)]
+        [DataRow("o.Foo(a, b); var query = o.ToString();", null, null, null, null, false)]
+        [DataRow("o.Foo(a, null); var query = o.ToString();", null, null, null, null, false)]
+        [DataRow("o.Foo(null, b); var query = o.ToString();", null, null, null, null, false)]
+        [DataRow("o.Foo(null, null); var query = o.ToString();", null, null, null, null, false)]
 
-        [DataRow("o.Foo2(a, b); var query = o.ToString();", "Test", "Foo2", "Returns", "TaintFromArguments: [0]", true)]
-        [DataRow("o.Foo2(a, null); var query = o.ToString();", "Test", "Foo2", "Returns", "TaintFromArguments: [0]", true)]
-        [DataRow("o.Foo2(null, b); var query = o.ToString();", "Test", "Foo2", "Returns", "TaintFromArguments: [0]", false)]
-        [DataRow("o.Foo2(null, null); var query = o.ToString();", "Test", "Foo2", "Returns", "TaintFromArguments: [0]", false)]
+        [DataRow("o.Foo2(a, b); var query = o.ToString();", null, null, null, null, false)]
+        [DataRow("o.Foo2(a, null); var query = o.ToString();", null, null, null, null, false)]
+        [DataRow("o.Foo2(null, b); var query = o.ToString();", null, null, null, null, false)]
+        [DataRow("o.Foo2(null, null); var query = o.ToString();", null, null, null, null, false)]
 
-        [DataRow("var query = \"\"; o.Foo3(a, out query);", "Test", "Foo3", "Returns", "TaintFromArguments: [0]", true)]
-        [DataRow("var query = \"\"; o.Foo3(query, out a);", "Test", "Foo3", "Returns", "TaintFromArguments: [0]", false)]
-        [DataRow("var query = \"\"; o.Foo3(null, out a);", "Test", "Foo3", "Returns", "TaintFromArguments: [0]", false)]
-        [DataRow("var query = \"\"; o.Foo3(null, out query);", "Test", "Foo3", "Returns", "TaintFromArguments: [0]", false)]
+        [DataRow("var query = \"\"; o.Foo3(a, out query);", null, null, null, null, false)]
+        [DataRow("var query = \"\"; o.Foo3(query, out a);", null, null, null, null, false)]
+        [DataRow("var query = \"\"; o.Foo3(null, out a);", null, null, null, null, false)]
+        [DataRow("var query = \"\"; o.Foo3(null, out query);", null, null, null, null, false)]
 
-        [DataRow("var query = \"\"; o.Foo3(a, out query);", "Test", "Foo3", "1", "TaintFromArguments: [0]", true)]
-        [DataRow("var query = \"\"; o.Foo3(query, out a);", "Test", "Foo3", "1", "TaintFromArguments: [0]", false)]
-        [DataRow("var query = \"\"; o.Foo3(null, out a);", "Test", "Foo3", "1", "TaintFromArguments: [0]", false)]
-        [DataRow("var query = \"\"; o.Foo3(null, out query);", "Test", "Foo3", "1", "TaintFromArguments: [0]", false)]
+        [DataRow("var query = \"\"; o.Foo3(a, out query);", "Test", "Foo3", "a", "b", true)]
+        [DataRow("var query = \"\"; o.Foo3(query, out a);", "Test", "Foo3", "a", "b", false)]
+        [DataRow("var query = \"\"; o.Foo3(null, out a);", "Test", "Foo3", "a", "b", false)]
+        [DataRow("var query = \"\"; o.Foo3(null, out query);", "Test", "Foo3", "a", "b", false)]
 
-        [DataRow("var query = \"\"; o.Foo3(a, out query);", "Test", "Foo3", "0", "TaintFromArguments: [1]", true)]
-        [DataRow("var query = \"\"; o.Foo3(query, out a);", "Test", "Foo3", "0", "TaintFromArguments: [1]", true)]
-        [DataRow("var query = \"\"; o.Foo3(null, out a);", "Test", "Foo3", "0", "TaintFromArguments: [1]", false)]
-        [DataRow("var query = \"\"; o.Foo3(null, out query);", "Test", "Foo3", "0", "TaintFromArguments: [1]", false)]
+        [DataRow("var query = \"\"; o.Foo3(a, out query);", "Test", "Foo3", "b", "a", false)]
+        [DataRow("var query = \"\"; o.Foo3(query, out a);", "Test", "Foo3", "b", "a", true)]
+        [DataRow("var query = \"\"; o.Foo3(null, out a);", "Test", "Foo3", "b", "a", false)]
+        [DataRow("var query = \"\"; o.Foo3(null, out query);", "Test", "Foo3", "b", "a", false)]
 
-        [DataRow("var query = \"\"; o.Foo4(a, ref query);", "Test", "Foo4", "Returns", "TaintFromArguments: [0]", true)]
-        [DataRow("var query = \"\"; o.Foo4(query, ref a);", "Test", "Foo4", "Returns", "TaintFromArguments: [0]", false)]
-        [DataRow("var query = \"\"; o.Foo4(null, ref a);", "Test", "Foo4", "Returns", "TaintFromArguments: [0]", false)]
-        [DataRow("var query = \"\"; o.Foo4(null, ref query);", "Test", "Foo4", "Returns", "TaintFromArguments: [0]", false)]
+        [DataRow("var query = \"\"; o.Foo4(a, ref query);", null, null, null, null, false)]
+        [DataRow("var query = \"\"; o.Foo4(query, ref a);", null, null, null, null, false)]
+        [DataRow("var query = \"\"; o.Foo4(null, ref a);", null, null, null, null, false)]
+        [DataRow("var query = \"\"; o.Foo4(null, ref query);", null, null, null, null, false)]
 
-        [DataRow("var query = \"\"; o.Foo4(a, ref query);", "Test", "Foo4", "1", "Taint: Safe", false)]
-        [DataRow("var query = \"\"; o.Foo4(a, ref query);", "Test", "Foo4", "1", "Taint: Tainted", true)]
-        [DataRow("var query = \"\"; o.Foo4(null, ref query);", "Test", "Foo4", "1", "Taint: Tainted", true)]
+        [DataRow("var query = \"\"; o.Foo4(a, ref query);", null, null, null, null, false)]
+        [DataRow("var query = \"\"; o.Foo4(a, ref query);", null, null, null, null, false)]
+        [DataRow("var query = \"\"; o.Foo4(null, ref query);", null, null, null, null, false)]
 
-        [DataRow("var query = \"\"; o.Foo4(a, ref query);", "Test", "Foo4", "1", "TaintFromArguments: [0]", true)]
-        [DataRow("var query = \"\"; o.Foo4(query, ref a);", "Test", "Foo4", "1", "TaintFromArguments: [0]", false)]
-        [DataRow("var query = \"\"; o.Foo4(null, ref a);", "Test", "Foo4", "1", "TaintFromArguments: [0]", false)]
-        [DataRow("var query = \"\"; o.Foo4(null, ref query);", "Test", "Foo4", "1", "TaintFromArguments: [0]", false)]
+        [DataRow("var query = \"\"; o.Foo4(a, ref query);", "Test", "Foo4", "a", "b", true)]
+        [DataRow("var query = \"\"; o.Foo4(query, ref a);", "Test", "Foo4", "a", "b", false)]
+        [DataRow("var query = \"\"; o.Foo4(null, ref a);", "Test", "Foo4", "a", "b", false)]
+        [DataRow("var query = \"\"; o.Foo4(null, ref query);", "Test", "Foo4", "a", "b", false)]
 
-        [DataRow("var query = \"\"; o.Foo4(a, ref query);", "Test", "Foo4", "0", "TaintFromArguments: [1]", true)]
-        [DataRow("var query = \"\"; o.Foo4(query, ref a);", "Test", "Foo4", "0", "TaintFromArguments: [1]", true)]
-        [DataRow("var query = \"\"; o.Foo4(null, ref a);", "Test", "Foo4", "0", "TaintFromArguments: [1]", false)]
-        [DataRow("var query = \"\"; o.Foo4(null, ref query);", "Test", "Foo4", "0", "TaintFromArguments: [1]", false)]
+        [DataRow("var query = \"\"; o.Foo4(a, ref query);", "Test", "Foo4", "b", "a", false)]
+        [DataRow("var query = \"\"; o.Foo4(query, ref a);", "Test", "Foo4", "b", "a", true)]
+        [DataRow("var query = \"\"; o.Foo4(null, ref a);", "Test", "Foo4", "b", "a", false)]
+        [DataRow("var query = \"\"; o.Foo4(null, ref query);", "Test", "Foo4", "b", "a", false)]
 
-        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(a, query);", "Test", "Foo2", "Returns", "TaintFromArguments: [0]", false)]
-        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(query, b);", "Test", "Foo2", "Returns", "TaintFromArguments: [0]", false)]
-        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(a, query);", "Test", "Foo2", "1", "TaintFromArguments: [0]", true)]
-        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(query, b);", "Test", "Foo2", "1", "TaintFromArguments: [0]", false)]
-        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(a, query);", "Test", "Foo2", "0", "TaintFromArguments: [1]", false)]
-        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(query, b);", "Test", "Foo2", "0", "TaintFromArguments: [1]", true)]
+        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(a, query);", null, null, null, null, false)]
+        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(query, b);", null, null, null, null, false)]
+        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(a, query);", "Test", "Foo2", "a", "b", true)]
+        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(query, b);", "Test", "Foo2", "a", "b", false)]
+        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(a, query);", "Test", "Foo2", "b", "a", false)]
+        [DataRow("o.Foo2(a, b); var query = \"\"; o.Foo2(query, b);", "Test", "Foo2", "b", "a", true)]
 
-        [DataRow("StaticTest.Foo2(a, b); var query = StaticTest.Get();", "StaticTest", "Get", "Returns", "TaintFromArguments: [0]", false)]
-        [DataRow("StaticTest.Foo2(a, null); var query = StaticTest.Get();", "StaticTest", "Get", "Returns", "TaintFromArguments: [0]", false)]
-        [DataRow("StaticTest.Foo2(null, b); var query = StaticTest.Get();", "StaticTest", "Get", "Returns", "TaintFromArguments: [0]", false)]
-        [DataRow("StaticTest.Foo2(null, null); var query = StaticTest.Get();", "StaticTest", "Get", "Returns", "TaintFromArguments: [0]", false)]
-        [Ignore("Implement configuration conversion")]
-        public async Task TaintFromArguments(string cs, string className, string name, string outParam, string taintFromArguments, bool warn)
+        [DataRow("StaticTest.Foo2(a, b); var query = StaticTest.Get();", null, null, null, null, false)]
+        [DataRow("StaticTest.Foo2(a, null); var query = StaticTest.Get();", null, null, null, null, false)]
+        [DataRow("StaticTest.Foo2(null, b); var query = StaticTest.Get();", null, null, null, null, false)]
+        [DataRow("StaticTest.Foo2(null, null); var query = StaticTest.Get();", null, null, null, null, false)]
+        public async Task TaintFromArguments(string cs, string className, string name, string taintFromArguments, string outParam, bool warn)
         {
             var cSharpTest = $@"
 using System.Data.SqlClient;
@@ -1281,19 +1280,23 @@ End Class
                 Severity = DiagnosticSeverity.Warning,
             };
 
-            var testConfig = $@"
+            var testConfig = @"
 TaintEntryPoints:
-  AAA:
-    ClassName: Test
-
-Behavior:
-  BBB:
-    ClassName: {className}
-    Name: {name}
+  Test:
     Method:
-      {outParam}:
-        {taintFromArguments}
+      Name: Run
 ";
+
+            if (className != null)
+            {
+                testConfig += $@"
+Transfers:
+  - Type: {className}
+    Methods:
+      - Name: {name}
+        InOut: [{{""{taintFromArguments}"": ""{outParam}""}}]
+";
+            }
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             if (warn)

@@ -50,7 +50,6 @@ namespace SecurityCodeScan.Test.Taint
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [TestMethod]
-        [Ignore("Taint transfer rules are needed")]
         public async Task NamedArgumentsPostCondition()
         {
             var cSharpTest = @"
@@ -58,8 +57,7 @@ class Test
 {
     public void Encode(string input, int x = 0, System.Text.StringBuilder output = null)
     {
-        if (output == null)
-            return;
+        output.Append(input);
     }
     public void Injectable(string input)
     {
@@ -81,7 +79,7 @@ class TestInput
             var vbTest = $@"
 Class Test
     Public Sub Encode(ByVal input As String, ByVal Optional x As Integer = 0, ByVal Optional output As System.Text.StringBuilder = Nothing)
-        If output Is Nothing Then Return
+        output.Append(input)
     End Sub
     Public Sub Injectable(ByVal input As String)
     End Sub
@@ -109,12 +107,18 @@ TaintEntryPoints:
   TestInput:
     Method:
       Name: Input
+
+Transfers:
+  - Type: Test
+    Methods:
+      - Name: Encode
+        InOut: [{""input"": ""output""}]
 ";
 
             var testConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(config);
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(21), testConfig).ConfigureAwait(false);
-            //await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(14), testConfig).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected.WithLocation(20), testConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(14), testConfig).ConfigureAwait(false);
         }
 
         [DataTestMethod]
@@ -409,7 +413,7 @@ End Namespace
         //[DataRow("st.AppendJoin(id, new [] {\"\", \"\"});")] todo: .net core
         //[DataRow("st.AppendJoin(\"\", new [] {id}):")]
         [DataRow("st.AppendLine(id);")]
-        [DataRow("st.Append(id); st.CopyTo(0, arr, 0, 10)", true, "arr.ToString()")]
+        [DataRow("st.Append(id); st.CopyTo(0, arr, 0, 10)", true, "new System.String(arr)")]
         [DataRow("st.Insert(0, id);")]
         [DataRow("st.Replace(\"\", id);")]
         [DataRow("st.Append(id); st.Clear()", false)]
@@ -767,7 +771,7 @@ TaintSources:
 
         [TestCategory("Detect")]
         [TestMethod]
-        [Ignore("Rewrite for taint tracking or keep the audit mode?")]
+        [Ignore("roslyn bug")]
         public async Task Property()
         {
             var cSharpTest = @"
@@ -775,6 +779,15 @@ using System.Data.SqlClient;
 
 namespace sample
 {
+    class TestInput
+    {
+        public void Run(string input)
+        {
+            Test a = new Test(input);
+            SqlCommand c = a.Command;
+        }
+    }
+
     class Test
     {
         private string sql;
@@ -799,6 +812,13 @@ namespace sample
 Imports System.Data.SqlClient
 
 Namespace sample
+    Class TestInput
+        Public Sub Run(ByVal input As String)
+            Dim a As Test = New Test(input)
+            Dim c As SqlCommand = a.Command
+        End Sub
+    End Class
+
     Class Test
         Private sql As String
         Public Sub New(s As String)
@@ -814,7 +834,10 @@ End Namespace
 ";
 
             var testConfig = @"
-AuditMode: true
+TaintEntryPoints:
+  sample.TestInput:
+    Method:
+      Name: Run
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

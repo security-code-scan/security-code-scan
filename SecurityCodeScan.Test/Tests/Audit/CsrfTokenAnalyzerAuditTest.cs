@@ -10,7 +10,7 @@ namespace SecurityCodeScan.Test.Audit
     {
         public CoreCsrfTokenAnalyzerAuditTest()
         {
-            Expected.Message = "Controller method is vulnerable to CSRF";
+            Expected.Message = "Controller method is vulnerable to Cross Site Request Forgery (CSRF).";
         }
 
         [ClassInitialize]

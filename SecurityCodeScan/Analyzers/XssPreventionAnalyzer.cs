@@ -151,7 +151,7 @@
 
 //    internal static class XssPreventionAnalyzer
 //    {
-//        public const              string            DiagnosticId = "SCS0029";
+//        public const              string            DiagnosticId = "SCS0014";
 //        public static readonly DiagnosticDescriptor Rule         = LocaleUtil.GetDescriptor(DiagnosticId);
 
 //        public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);

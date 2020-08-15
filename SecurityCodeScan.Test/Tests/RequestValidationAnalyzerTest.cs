@@ -40,14 +40,14 @@ namespace SecurityCodeScan.Test
         {
             Id       = "SCS0017",
             Severity = DiagnosticSeverity.Warning,
-            Message  = "Request validation is disabled"
+            Message  = "Request validation is disabled."
         };
 
         private DiagnosticResult ExpectedWithMessage_ValidationIsDisabledInBaseClass = new DiagnosticResult
         {
             Id       = "SCS0017",
             Severity = DiagnosticSeverity.Warning,
-            Message  = "Request validation disabled in base class"
+            Message  = "Request validation disabled in base class."
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;

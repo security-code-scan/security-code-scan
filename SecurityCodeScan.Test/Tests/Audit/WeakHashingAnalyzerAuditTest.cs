@@ -51,7 +51,7 @@ End Class
             {
                 Id       = "SCS0006",
                 Severity = DiagnosticSeverity.Warning,
-                Message  = "Possibly weak hashing function"
+                Message  = "Possibly weak hashing function."
             };
 
             var testConfig = $@"

@@ -41,6 +41,11 @@ namespace SecurityCodeScan.Config
             return this.GetFromMap<SinkInfo>(sinkKind, this.SinkSymbolMap);
         }
 
+        public bool HasTaintArraySource(SinkKind sinkKind, Configuration config)
+        {
+            return GetSourceInfos(sinkKind, config).Any(o => o.TaintConstantArray);
+        }
+
         private TaintedDataSymbolMap<T> GetFromMap<T>(SinkKind sinkKind, ImmutableDictionary<SinkKind, Lazy<TaintedDataSymbolMap<T>>> map)
             where T : ITaintedDataInfo
         {
@@ -129,119 +134,190 @@ namespace SecurityCodeScan.Config
             SinkSymbolMap = sinkSymbolMapBuilder.ToImmutableDictionary();
         }
 
+        private class AggregatedSource
+        {
+            public TaintEntryPointData entryPoint;
+            public TaintSource source;
+            public Sanitizer sanitizer;
+            public Transfer transfer;
+        }
+
         private ImmutableHashSet<SourceInfo> GetSourceInfos(SinkKind sinkKind, Configuration config)
         {
-            var sourceInfosBuilder = PooledHashSet<SourceInfo>.GetInstance();
+            var typeToInfos = new Dictionary<string, AggregatedSource>();
 
             foreach (var entryPoint in config.TaintEntryPoints)
             {
-                sourceInfosBuilder.AddSourceInfo(
-                    entryPoint.Key,
-                    new ParameterMatcher[]{
-                        (parameter) => {
-                            ISymbol containingSymbol = parameter.ContainingSymbol;
+                if (!typeToInfos.TryGetValue(entryPoint.Key, out var value))
+                {
+                    value = new AggregatedSource();
+                    typeToInfos.Add(entryPoint.Key, value);
+                }
 
-                            if (entryPoint.Value.Class != null)
-                            {
-                                ITypeSymbol classSymbol = containingSymbol.ContainingSymbol as ITypeSymbol;
-                                if (classSymbol != null)
-                                {
-                                    if (classSymbol.HasDerivedClassAttribute(x => entryPoint.Value.Class.ExcludeAttributes.Contains(x.AttributeClass.ToString())))
-                                        return false;
-                                }
-                            }
+                if (value.entryPoint != null)
+                    throw new ArgumentException($"Duplicate entrypoint for type '{entryPoint.Key}'");
 
-                            if (entryPoint.Value.Method != null)
-                            {
-                                if (entryPoint.Value.Method.Static.HasValue && entryPoint.Value.Method.Static != containingSymbol.IsStatic)
-                                    return false;
-
-                                if (entryPoint.Value.Method.Name != null)
-                                    return entryPoint.Value.Method.Name == containingSymbol.Name;
-
-                                if (entryPoint.Value.Method.IncludeConstructor.HasValue && entryPoint.Value.Method.IncludeConstructor != containingSymbol.IsConstructor())
-                                    return false;
-
-                                if (entryPoint.Value.Method.Accessibility.All(a => a != containingSymbol.DeclaredAccessibility))
-                                    return false;
-
-                                IMethodSymbol methodSymbol = containingSymbol as IMethodSymbol;
-                                if (methodSymbol != null)
-                                {
-                                    if (methodSymbol.HasDerivedMethodAttribute(x => entryPoint.Value.Method.ExcludeAttributes.Contains(x.AttributeClass.ToString())))
-                                        return false;
-                                }
-                            }
-
-                            return true;
-                        }
-                });
+                value.entryPoint = entryPoint.Value;
             }
 
             foreach (var source in config.TaintSources)
             {
-                sourceInfosBuilder.AddSourceInfo(
-                    source.Type,
-                    isInterface: source.IsInterface ?? false,
-                    taintedProperties: source.Properties ?? null,
-                    taintedMethods: source.Methods ?? null);
+                if (!typeToInfos.TryGetValue(source.Type, out var value))
+                {
+                    value = new AggregatedSource();
+                    typeToInfos.Add(source.Type, value);
+                }
+
+                if (value.source != null)
+                    throw new ArgumentException($"Duplicate taint source for type '{source.Type}'");
+
+                value.source = source;
             }
 
             foreach (var sanitizer in config.Sanitizers)
             {
-                var methods = sanitizer.Methods.Where(x => x.ArgumentCount.HasValue || (x.InOut != null && x.InOut.Any(io => io.outArgumentName != TaintedTargetValue.Return)));
+                var methods = sanitizer.Methods.Where(x => x.InOut != null && x.InOut.Any(io => io.outArgumentName != TaintedTargetValue.Return));
                 if (!methods.Any())
                     continue;
 
-                sourceInfosBuilder.AddSourceInfoSpecifyingTaintedTargets(
-                    sanitizer.Type,
-                    isInterface: sanitizer.IsInterface ?? false,
-                    taintedProperties: null,
-                    taintedMethodsNeedsPointsToAnalysis: null,
-                    taintedMethodsNeedsValueContentAnalysis: null,
-                    transferMethods: methods.Where(method => method.InOut.Any(io => io.outArgumentName != TaintedTargetValue.Return))
-                                            .Select(method => new ValueTuple<MethodMatcher, (string, string)[]>
-                            (
-                                (methodName, arguments) =>
-                                {
-                                    if (methodName != method.Name)
-                                        return false;
+                if (!typeToInfos.TryGetValue(sanitizer.Type, out var value))
+                {
+                    value = new AggregatedSource();
+                    typeToInfos.Add(sanitizer.Type, value);
+                }
 
-                                    if (method.ArgumentCount.HasValue && arguments.Length != method.ArgumentCount)
-                                        return false;
+                if (value.sanitizer != null)
+                    throw new ArgumentException($"Duplicate sanitizer for type '{sanitizer.Type}'");
 
-                                    return true;
-                                },
-                                method.InOut
-                            )
-                        )
-                    );
+                value.sanitizer = sanitizer;
             }
 
             foreach (var transfer in config.Transfers)
             {
-                sourceInfosBuilder.AddSourceInfoSpecifyingTaintedTargets(
-                    transfer.Type,
-                    isInterface: transfer.IsInterface ?? false,
-                    taintedProperties: null,
-                    taintedMethodsNeedsPointsToAnalysis: null,
-                    taintedMethodsNeedsValueContentAnalysis: null,
-                    transferMethods: transfer.Methods.Select(method => new ValueTuple<MethodMatcher, (string, string)[]>
-                            (
-                                (methodName, arguments) =>
+                if (!typeToInfos.TryGetValue(transfer.Type, out var value))
+                {
+                    value = new AggregatedSource();
+                    typeToInfos.Add(transfer.Type, value);
+                }
+
+                if (value.transfer != null)
+                    throw new ArgumentException($"Duplicate taint source for type '{transfer.Type}'");
+
+                value.transfer = transfer;
+            }
+
+            var sourceInfosBuilder = PooledHashSet<SourceInfo>.GetInstance();
+
+            foreach(var type in typeToInfos)
+            {
+                bool? isIterface = null;
+
+                if (type.Value.sanitizer?.IsInterface != null )
+                    if (isIterface.HasValue && isIterface != type.Value.sanitizer.IsInterface)
+                        throw new ArgumentException($"Inconsistent 'IsInterface' for type '{type.Key}'");
+                    else
+                        isIterface = type.Value.sanitizer.IsInterface;
+
+                if (type.Value.source?.IsInterface != null)
+                    if (isIterface.HasValue && isIterface != type.Value.sanitizer.IsInterface)
+                        throw new ArgumentException($"Inconsistent 'IsInterface' for type '{type.Key}'");
+                    else
+                        isIterface = type.Value.source.IsInterface;
+
+                if (type.Value.transfer?.IsInterface != null)
+                    if (isIterface.HasValue && isIterface != type.Value.transfer.IsInterface)
+                        throw new ArgumentException($"Inconsistent 'IsInterface' for type '{type.Key}'");
+                    else
+                        isIterface = type.Value.sanitizer.IsInterface;
+
+                SourceInfo metadata = new SourceInfo(
+                    type.Key,
+                    isInterface: isIterface ?? false,
+                    taintedProperties: type.Value.source?.Properties?.ToImmutableHashSet(StringComparer.Ordinal)
+                        ?? ImmutableHashSet<string>.Empty,
+                    taintedArguments: type.Value.entryPoint != null ?
+                        new ParameterMatcher[]{
+                            (parameter) => {
+                                ISymbol containingSymbol = parameter.ContainingSymbol;
+
+                                if (type.Value.entryPoint.Class != null)
                                 {
-                                    if (methodName != method.Name)
+                                    ITypeSymbol classSymbol = containingSymbol.ContainingSymbol as ITypeSymbol;
+                                    if (classSymbol != null)
+                                    {
+                                        if (classSymbol.HasDerivedClassAttribute(x => type.Value.entryPoint.Class.ExcludeAttributes.Contains(x.AttributeClass.ToString())))
+                                            return false;
+                                    }
+                                }
+
+                                if (type.Value.entryPoint.Method != null)
+                                {
+                                    if (type.Value.entryPoint.Method.Static.HasValue && type.Value.entryPoint.Method.Static != containingSymbol.IsStatic)
                                         return false;
 
-                                    if (method.ArgumentCount.HasValue && arguments.Length != method.ArgumentCount)
+                                    if (type.Value.entryPoint.Method.Name != null)
+                                        return type.Value.entryPoint.Method.Name == containingSymbol.Name;
+
+                                    if (type.Value.entryPoint.Method.IncludeConstructor.HasValue && type.Value.entryPoint.Method.IncludeConstructor != containingSymbol.IsConstructor())
                                         return false;
 
-                                    return true;
-                                },
-                                method.InOut
-                            )
-                        )
-                    );
+                                    if (type.Value.entryPoint.Method.Accessibility.All(a => a != containingSymbol.DeclaredAccessibility))
+                                        return false;
+
+                                    IMethodSymbol methodSymbol = containingSymbol as IMethodSymbol;
+                                    if (methodSymbol != null)
+                                    {
+                                        if (methodSymbol.HasDerivedMethodAttribute(x => type.Value.entryPoint.Method.ExcludeAttributes.Contains(x.AttributeClass.ToString())))
+                                            return false;
+                                    }
+                                }
+
+                                return true;
+                            }
+                    }.ToImmutableHashSet() : ImmutableHashSet<ParameterMatcher>.Empty,
+                    taintedMethods:
+                        type.Value.source?.Methods
+                            ?.Select<string, (MethodMatcher, ImmutableHashSet<string>)>(o =>
+                                (
+                                    (methodName, arguments) => methodName == o,
+                                    ImmutableHashSet<string>.Empty.Add(TaintedTargetValue.Return)
+                                ))
+                            ?.ToImmutableHashSet()
+                        ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<string>)>.Empty,
+                    taintedMethodsNeedsPointsToAnalysis:
+                        ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)>.Empty,
+                    taintedMethodsNeedsValueContentAnalysis:
+                        ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)>.Empty,
+                    transferMethods:
+                        (type.Value.sanitizer?.Methods != null || type.Value.transfer?.Methods != null)
+                            ? (type.Value.sanitizer?.Methods ?? Enumerable.Empty<TransferInfo>())
+                                .Where(method => method.InOut != null && method.InOut.Any(io => io.outArgumentName != TaintedTargetValue.Return))
+                                .Concat(type.Value.transfer?.Methods ?? Enumerable.Empty<TransferInfo>())
+                                .Select(method => new ValueTuple<MethodMatcher, (string, string)[]>
+                                (
+                                    (methodName, arguments) =>
+                                    {
+                                        if (methodName != method.Name)
+                                            return false;
+
+                                        if (method.ArgumentCount.HasValue && arguments.Length != method.ArgumentCount)
+                                            return false;
+
+                                        return true;
+                                    },
+                                    method.InOut.Where(pair => pair.outArgumentName != TaintedTargetValue.Return).ToArray()
+                                )
+                            )?.Select(o =>
+                                (
+                                    o.Item1,
+                                    o.Item2
+                                        ?.ToImmutableHashSet()
+                                    ?? ImmutableHashSet<(string, string)>.Empty))
+                            ?.ToImmutableHashSet()
+                        ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty : ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
+                    taintConstantArray: false);
+
+                    sourceInfosBuilder.Add(metadata);
             }
 
             return sourceInfosBuilder.ToImmutableAndFree();

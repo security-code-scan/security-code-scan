@@ -13,12 +13,10 @@
   
   <ItemGroup>
     <None Remove="Config\Main.yml" />
-    <None Remove="Config\MainBak.yml" />
     <None Remove="Config\Messages.yml" />
   </ItemGroup>
   
   <ItemGroup>
-    <EmbeddedResource Include="Config\MainBak.yml" />
     <EmbeddedResource Include="Config\Main.yml" />
     <EmbeddedResource Include="Config\Messages.yml" />
   </ItemGroup>

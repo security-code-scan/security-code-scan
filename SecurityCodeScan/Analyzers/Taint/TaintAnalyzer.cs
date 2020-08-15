@@ -257,25 +257,25 @@ namespace SecurityCodeScan.Analyzers.Taint
                                 },
                                 OperationKind.Invocation);
 
-                        //if (TaintedDataConfig.HasTaintArraySource(SinkKind))
-                        //{
-                        //    operationBlockStartContext.RegisterOperationAction(
-                        //        operationAnalysisContext =>
-                        //        {
-                        //            IArrayInitializerOperation arrayInitializerOperation = (IArrayInitializerOperation)operationAnalysisContext.Operation;
-                        //            if (arrayInitializerOperation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation)?.Type is IArrayTypeSymbol arrayTypeSymbol
-                        //                && sourceInfoSymbolMap.IsSourceConstantArrayOfType(arrayTypeSymbol))
-                        //            {
-                        //                lock (rootOperationsNeedingAnalysis)
-                        //                {
-                        //                    rootOperationsNeedingAnalysis.Add(operationAnalysisContext.Operation.GetRoot());
-                        //                }
-                        //            }
-                        //        },
-                        //        OperationKind.ArrayInitializer);
-                        //}
+                            if (config.TaintConfiguration.HasTaintArraySource(SinkKind, config))
+                            {
+                                operationBlockStartContext.RegisterOperationAction(
+                                    operationAnalysisContext =>
+                                    {
+                                        IArrayInitializerOperation arrayInitializerOperation = (IArrayInitializerOperation)operationAnalysisContext.Operation;
+                                        if (arrayInitializerOperation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation)?.Type is IArrayTypeSymbol arrayTypeSymbol
+                                            && sourceInfoSymbolMap.IsSourceConstantArrayOfType(arrayTypeSymbol))
+                                        {
+                                            lock (rootOperationsNeedingAnalysis)
+                                            {
+                                                rootOperationsNeedingAnalysis.Add(operationAnalysisContext.Operation.GetRoot());
+                                            }
+                                        }
+                                    },
+                                    OperationKind.ArrayInitializer);
+                            }
 
-                        operationBlockStartContext.RegisterOperationBlockEndAction(
+                            operationBlockStartContext.RegisterOperationBlockEndAction(
                                 operationBlockAnalysisContext =>
                                 {
                                     try

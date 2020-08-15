@@ -731,7 +731,7 @@ End Namespace
     [TestClass]
     public class CoreCsrfTokenAnalyzerTest : CoreCsrfTokenAnalyzerBaseTest
     {
-        private const string ExpectedMessage = "Controller method is vulnerable to CSRF";
+        private const string ExpectedMessage = "Controller method is vulnerable to Cross Site Request Forgery (CSRF).";
 
         [TestMethod]
         public async Task CsrfValidateAntiForgeryTokenApiControllerDefault()

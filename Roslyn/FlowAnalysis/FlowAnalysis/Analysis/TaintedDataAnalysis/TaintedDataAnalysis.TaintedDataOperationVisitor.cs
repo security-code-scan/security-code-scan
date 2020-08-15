@@ -247,6 +247,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                             .Where(s => this.GetCachedAbstractValue(s).Kind == TaintedDataAbstractValueKind.Tainted)
                             .Select(s => s.Parameter.Name); // keep enumerable, don't cache it here
 
+                    if (visitedInstance != null && this.GetCachedAbstractValue(visitedInstance).Kind == TaintedDataAbstractValueKind.Tainted)
+                    {
+                        taintedParameterNames = taintedParameterNames.Concat(TaintedTargetValue.This);
+                    }
+
                     if (this.IsSanitizingMethod(
                         method,
                         visitedArguments,
@@ -296,13 +301,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     {
                         foreach ((string ifTaintedParameter, string thenTaintedTarget) in taintedParameterPairs)
                         {
-                            IArgumentOperation thenTaintedTargetOperation = visitedArguments.FirstOrDefault(o => o.Parameter.Name == thenTaintedTarget);
+                            IOperation thenTaintedTargetOperation = thenTaintedTarget == TaintedTargetValue.This
+                                                                                            ? visitedInstance
+                                                                                            : visitedArguments.FirstOrDefault(o => o.Parameter.Name == thenTaintedTarget);
                             if (thenTaintedTargetOperation != null)
                             {
                                 SetTaintedForEntity(
                                     thenTaintedTargetOperation,
                                     this.GetCachedAbstractValue(
-                                        visitedArguments.FirstOrDefault(o => o.Parameter.Name == ifTaintedParameter)));
+                                        ifTaintedParameter == TaintedTargetValue.This ? visitedInstance : visitedArguments.FirstOrDefault(o => o.Parameter.Name == ifTaintedParameter)));
                             }
                             else
                             {
@@ -318,6 +325,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                             // it was either sanitizing constructor or
                             // the short form or registering sanitizer method by just the name
                             result = TaintedDataAbstractValue.NotTainted;
+
+                            if (visitedInstance != null && this.IsSanitizingInstanceMethod(method))
+                            {
+                                SetTaintedForEntity(visitedInstance, result);
+                            }
                         }
                         else
                         {

@@ -67,7 +67,7 @@ namespace SecurityCodeScan.Test.Taint
 
 namespace sample
 {{
-    class MyFoo : Controller
+    public class MyFooController : Controller
     {{
         public void Run(string input, string[] propertiesToLoad, DirectoryEntry entry, SearchScope scope)
         {{
@@ -84,7 +84,7 @@ namespace sample
 #Enable Warning BC50001
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFooController
         Inherits Controller
         Public Sub Run(input As System.String, propertiesToLoad() As System.String, entry As DirectoryEntry, scope As SearchScope )
             Dim temp = {sink.CSharpReplaceToVBasic()}

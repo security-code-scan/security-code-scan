@@ -40,7 +40,7 @@ using System.Security.Cryptography;
     using CM = System.Security.Cryptography.CipherMode;
 #pragma warning restore 8019
 
-class WeakCipherMode
+public class WeakCipherMode
 {{
     private static void enc(CipherMode mode)
     {{
@@ -59,7 +59,7 @@ Imports System.Security.Cryptography
     Imports CM = System.Security.Cryptography.CipherMode
 #Enable Warning BC50001
 
-Class WeakCipherMode
+Public Class WeakCipherMode
     Public Shared Sub enc(mode As CipherMode)
     End Sub
     Public Shared Sub Foo()
@@ -88,7 +88,7 @@ using System.Security.Cryptography;
 using static System.Security.Cryptography.CipherMode;
 using System.Text;
 
-class WeakCipherMode
+public class WeakCipherMode
 {
     public static string EncryptECB(string decryptedString)
     {
@@ -116,7 +116,7 @@ Imports System.Security.Cryptography
 Imports System.Security.Cryptography.CipherMode
 Imports System.Text
 
-Class WeakCipherMode
+Public Class WeakCipherMode
     Public Shared Function EncryptECB(decryptedString As String) As String
         Dim desProvider As New DESCryptoServiceProvider()
         desProvider.Mode = ECB
@@ -154,7 +154,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
-class WeakCipherMode
+public class WeakCipherMode
 {
     public static string EncryptOFB(string decryptedString)
     {
@@ -180,7 +180,7 @@ Imports System.IO
 Imports System.Security.Cryptography
 Imports System.Text
 
-Class WeakCipherMode
+Public Class WeakCipherMode
     Public Shared Function EncryptECB(decryptedString As String) As String
         Dim desProvider As New DESCryptoServiceProvider()
         desProvider.Mode = CipherMode.OFB
@@ -217,7 +217,7 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 
-class WeakCipherMode
+public class WeakCipherMode
 {
     public static byte[] EncryptStringToBytes_Aes(string plainText, byte[] Key, byte[] IV)
     {
@@ -266,7 +266,7 @@ Imports System
 Imports System.IO
 Imports System.Security.Cryptography
 
-Class WeakCipherMode
+Public Class WeakCipherMode
     Public Shared Function EncryptStringToBytes_Aes(plainText As String, Key As Byte(), IV As Byte()) As Byte()
         ' Check arguments.
         If plainText Is Nothing OrElse plainText.Length <= 0 Then

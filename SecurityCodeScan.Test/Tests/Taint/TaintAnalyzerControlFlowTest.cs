@@ -199,19 +199,19 @@ using System.Web.Mvc;
 
 namespace sample
 {{
-    class B
+    public class B
     {{
         public string x = null;
     }}
 
-    enum ABC
+    public enum ABC
     {{
         A,
         B,
         C
     }}
 
-    class SqlConstant : Controller
+    public class SqlConstantController : Controller
     {{
         public void Run(string input, ABC abc)
         {{
@@ -231,17 +231,17 @@ Imports System.Data.SqlClient
 Imports System.Web.Mvc
 
 Namespace sample
-    Class B
+    Public Class B
         Public x As String = Nothing
     End Class
 
-    Enum ABC
+    Public Enum ABC
         A
         B
         C
     End Enum
 
-    Class SqlConstant
+    Public Class SqlConstantController
         Inherits Controller
 
         Public Sub Run(ByVal input As String, ByVal abc As ABC)
@@ -274,7 +274,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant : Controller
+    public class SqlConstantController : Controller
     {
         public void Run(string input)
         {
@@ -295,7 +295,7 @@ Imports System.Data.SqlClient
 Imports System.Web.Mvc
 
 Namespace sample
-    Class SqlConstant
+    Public Class SqlConstantController
         Inherits Controller
 
         Public Sub Run(input As String)
@@ -325,7 +325,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant : Controller
+    public class SqlConstantController : Controller
     {
         public void Run(string input)
         {
@@ -346,7 +346,7 @@ Imports System.Data.SqlClient
 Imports System.Web.Mvc
 
 Namespace sample
-    Class SqlConstant
+    Public Class SqlConstantController
         Inherits Controller
 
         Public Sub Run(input As String)
@@ -374,7 +374,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant : Controller
+    public class SqlConstantController : Controller
     {
         public void Run()
         {
@@ -394,7 +394,7 @@ namespace sample
 Imports System.Web.Mvc
 
 Namespace sample
-    Class SqlConstant
+    Public Class SqlConstantController
         Inherits Controller
 
         Public Sub Run()
@@ -422,7 +422,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant : Controller
+    public class SqlConstantController : Controller
     {
         public void Run(string input)
         {
@@ -443,7 +443,7 @@ Imports System.Data.SqlClient
 Imports System.Web.Mvc
 
 Namespace sample
-    Class SqlConstant
+    Public Class SqlConstantController
         Inherits Controller
 
         Public Sub Run(input As String)
@@ -473,7 +473,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant : Controller
+    public class SqlConstantController : Controller
     {
         public void Run(string input)
         {
@@ -493,7 +493,7 @@ Imports System.Data.SqlClient
 Imports System.Web.Mvc
 
 Namespace sample
-    Class SqlConstant
+    Public Class SqlConstantController
         Inherits Controller
 
         Public Sub Run(input As String)
@@ -524,7 +524,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class Test : Controller
+    public class TestController : Controller
     {
         public void Foo(object o)
         {
@@ -549,7 +549,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class Test : Controller
+    public class TestController : Controller
     {
         public void Foo(object o)
         {
@@ -578,7 +578,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class Test : Controller
+    public class TestController : Controller
     {
         public void Foo(object o)
         {
@@ -609,7 +609,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class Test : Controller
+    public class TestController : Controller
     {
         public void Foo()
         {
@@ -634,7 +634,7 @@ Imports System.Data.SqlClient
 Imports System.Web.Mvc
 
 Namespace sample
-    Class Test
+    Public Class Test
         Inherits Controller
 
         Public Sub Foo()

@@ -69,7 +69,7 @@ namespace SecurityCodeScan.Test.Taint
 
 namespace sample
 {{
-    class MyFoo : Controller
+    public class MyFooController : Controller
     {{
         public void Run(string sql)
         {{
@@ -107,7 +107,7 @@ namespace sample
 #Enable Warning BC50001
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFooController
         Inherits Controller
 
         Public Sub Run(sql As System.String)

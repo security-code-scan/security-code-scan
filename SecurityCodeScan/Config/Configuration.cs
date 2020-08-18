@@ -1,5 +1,6 @@
 ﻿#nullable disable
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
@@ -142,6 +144,12 @@ namespace SecurityCodeScan.Config
             public Transfer transfer;
         }
 
+        /// <summary>
+        /// Cached information if the specified symbol is a Asp.Net Core Controller: (compilation) -> ((class symbol) -> (is Controller))
+        /// </summary>
+        private static readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>> s_classIsControllerByCompilation =
+            new BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>>();
+
         private ImmutableHashSet<SourceInfo> GetSourceInfos(SinkKind sinkKind, Configuration config)
         {
             var typeToInfos = new Dictionary<string, AggregatedSource>();
@@ -235,46 +243,113 @@ namespace SecurityCodeScan.Config
                     isInterface: isIterface ?? false,
                     taintedProperties: type.Value.source?.Properties?.ToImmutableHashSet(StringComparer.Ordinal)
                         ?? ImmutableHashSet<string>.Empty,
+                    dependencyFullTypeNames:
+                        type.Value.entryPoint?.Dependency?.ToImmutableArray(),
                     taintedArguments: type.Value.entryPoint != null ?
                         new ParameterMatcher[]{
-                            (parameter) => {
-                                ISymbol containingSymbol = parameter.ContainingSymbol;
+                    (parameter, wellKnownTypeProvider) => {
+                        if (!(parameter.ContainingSymbol is IMethodSymbol methodSymbol))
+                        {
+                            return false;
+                        }
 
-                                if (type.Value.entryPoint.Class != null)
+                        if (type.Value.entryPoint.Class != null)
+                        {
+                            if (!(methodSymbol.ContainingSymbol is INamedTypeSymbol typeSymbol))
+                                return false;
+
+                            var classCache = s_classIsControllerByCompilation.GetOrCreateValue(wellKnownTypeProvider.Compilation, (compilation) => new ConcurrentDictionary<INamedTypeSymbol, bool>());
+                            if (!classCache.TryGetValue(typeSymbol, out bool isTaintEntryClass))
+                            {
+                                isTaintEntryClass = false;
+
+                                bool IsTaintEntryClass()
                                 {
-                                    ITypeSymbol classSymbol = containingSymbol.ContainingSymbol as ITypeSymbol;
-                                    if (classSymbol != null)
+                                    if (typeSymbol.Name.EndsWith(type.Value.entryPoint.Class.Suffix.Text, StringComparison.Ordinal))
                                     {
-                                        if (classSymbol.HasDerivedClassAttribute(x => type.Value.entryPoint.Class.ExcludeAttributes.Contains(x.AttributeClass.ToString())))
-                                            return false;
+                                        return true;
+                                    }
+                                    else if (type.Value.entryPoint.Class.Suffix.IncludeParent &&
+                                             typeSymbol.GetBaseTypes().Any(x => x.Name.EndsWith(type.Value.entryPoint.Class.Suffix.Text, StringComparison.Ordinal)))
+                                    {
+                                        return true;
+                                    }
+                                    else
+                                    {
+                                        return false;
                                     }
                                 }
 
-                                if (type.Value.entryPoint.Method != null)
+                                if (type.Value.entryPoint.Class.Accessibility != null &&
+                                    type.Value.entryPoint.Class.Accessibility.All(a => a != typeSymbol.DeclaredAccessibility))
                                 {
-                                    if (type.Value.entryPoint.Method.Static.HasValue && type.Value.entryPoint.Method.Static != containingSymbol.IsStatic)
-                                        return false;
-
-                                    if (type.Value.entryPoint.Method.Name != null)
-                                        return type.Value.entryPoint.Method.Name == containingSymbol.Name;
-
-                                    if (type.Value.entryPoint.Method.IncludeConstructor.HasValue && type.Value.entryPoint.Method.IncludeConstructor != containingSymbol.IsConstructor())
-                                        return false;
-
-                                    if (type.Value.entryPoint.Method.Accessibility.All(a => a != containingSymbol.DeclaredAccessibility))
-                                        return false;
-
-                                    IMethodSymbol methodSymbol = containingSymbol as IMethodSymbol;
-                                    if (methodSymbol != null)
+                                    isTaintEntryClass = false;
+                                }
+                                else
+                                {
+                                    if (type.Value.entryPoint.Class.Suffix != null &&
+                                             type.Value.entryPoint.Class.Parent == null)
                                     {
-                                        if (methodSymbol.HasDerivedMethodAttribute(x => type.Value.entryPoint.Method.ExcludeAttributes.Contains(x.AttributeClass.ToString())))
-                                            return false;
+                                        isTaintEntryClass = IsTaintEntryClass();
+                                    }
+                                    else if (type.Value.entryPoint.Class.Suffix != null &&
+                                             type.Value.entryPoint.Class.Parent != null &&
+                                             typeSymbol.GetBaseTypesAndThis().Any(x => x == wellKnownTypeProvider.GetOrCreateTypeByMetadataName(type.Value.entryPoint.Class.Parent)))
+                                    {
+                                        isTaintEntryClass = IsTaintEntryClass();
+                                    }
+
+                                    if (type.Value.entryPoint.Class.ExcludeAttributes != null &&
+                                        type.Value.entryPoint.Class.ExcludeAttributes.Any(x => typeSymbol.HasDerivedTypeAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(x))))
+                                    {
+                                        isTaintEntryClass = false;
+                                    }
+                                    else if (type.Value.entryPoint.Class.IncludeAttributes != null &&
+                                             type.Value.entryPoint.Class.IncludeAttributes.Any(x => typeSymbol.HasDerivedTypeAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(x))))
+                                    {
+                                        isTaintEntryClass = true;
                                     }
                                 }
 
-                                return true;
+                                classCache.TryAdd(typeSymbol, isTaintEntryClass);
                             }
-                    }.ToImmutableHashSet() : ImmutableHashSet<ParameterMatcher>.Empty,
+
+                            if (!isTaintEntryClass)
+                            {
+                                return false;
+                            }
+                        }
+
+                        if (type.Value.entryPoint.Method != null)
+                        {
+                            if (type.Value.entryPoint.Method.Static.HasValue && type.Value.entryPoint.Method.Static != methodSymbol.IsStatic)
+                                return false;
+
+                            if (type.Value.entryPoint.Method.Name != null)
+                                return type.Value.entryPoint.Method.Name == methodSymbol.Name;
+
+                            if (type.Value.entryPoint.Method.IncludeConstructor.HasValue && type.Value.entryPoint.Method.IncludeConstructor != methodSymbol.IsConstructor())
+                                return false;
+
+                            if (type.Value.entryPoint.Method.Accessibility.All(a => a != methodSymbol.DeclaredAccessibility))
+                                return false;
+
+                            if (type.Value.entryPoint.Method.ExcludeAttributes != null &&
+                                type.Value.entryPoint.Method.ExcludeAttributes.Any(x => methodSymbol.HasDerivedMethodAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(x))))
+                            {
+                                return false;
+                            }
+                        }
+
+                        if (type.Value.entryPoint.Parameter?.ExcludeAttributes != null &&
+                            type.Value.entryPoint.Parameter.ExcludeAttributes.Any(x => parameter.HasAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(x))))
+                        {
+                            return false;
+                        }
+
+                        return true;
+                    }
+                 }.ToImmutableHashSet() : ImmutableHashSet<ParameterMatcher>.Empty,
                     taintedMethods:
                         type.Value.source?.Methods
                             ?.Select<string, (MethodMatcher, ImmutableHashSet<string>)>(o =>

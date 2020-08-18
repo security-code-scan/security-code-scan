@@ -75,12 +75,12 @@ namespace SecurityCodeScan.Test.Taint
 
 namespace sample
 {{
-    class Model
+    public class Model
     {{
         public string x {{ get; set; }}
     }}
 
-    class MyController : Controller
+    public class MyController : Controller
     {{
         public object Run(string input, Model inputModel)
         {{
@@ -102,11 +102,11 @@ namespace sample
 {usingNamespace.CSharpReplaceToVBasic()}
 
 Namespace sample
-    Class Model
+    Public Class Model
         Public Property x As String
     End Class
 
-    Class MyController
+    Public Class MyController
         Inherits Controller
 
         Public Function Run(ByVal input As String, ByVal inputModel As Model) As Object
@@ -151,7 +151,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class MyController : Controller
+    public class MyController : Controller
     {
         public object Run(string input)
         {
@@ -196,7 +196,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class MyController : Controller
+    public class MyController : Controller
     {
         public object Run(string input)
         {
@@ -363,7 +363,7 @@ End Namespace
         // sanitized with sanitized same type and different
         [DataRow(@"var enc = Encoder.HtmlEncode(input) + Encoder.HtmlEncode(input);
                    Response.Write(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0002", 2)]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var enc = Encoder.HtmlEncode(input) + Encoder.HtmlEncode(Encoder.LdapFilterEncode(input));
                    Response.Write(enc);
                    var d = new DirectorySearcher(enc);",                                        "SCS0031")]
@@ -373,7 +373,7 @@ End Namespace
         [DataRow(@"var enc = Encoder.HtmlEncode(Encoder.LdapFilterEncode(input)) + Encoder.HtmlEncode(Encoder.LdapFilterEncode(input));
                    Response.Write(enc);
                    var d = new DirectorySearcher(enc);
-                   var a = new SqlCommand(enc);",                                               "SCS0002", 2)]
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var enc = Encoder.HtmlEncode(input) + Encoder.LdapFilterEncode(input);
                    Response.Write(enc);",                                                       "SCS0029")]
         [DataRow(@"var enc = Encoder.LdapFilterEncode(input) + Encoder.HtmlEncode(input);
@@ -392,7 +392,7 @@ End Namespace
 
 namespace sample
 {{
-    class MyController : Controller
+    public class MyController : Controller
     {{
 #pragma warning disable CS0414
         private HttpServerUtility _HttpServerUtility = null;

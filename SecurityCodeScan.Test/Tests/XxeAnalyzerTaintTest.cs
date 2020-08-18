@@ -32,7 +32,7 @@ namespace SecurityCodeScan.Test.XXE
             const string cSharpTest = @"
 using System.Xml;
 
-class Xxe
+public class Xxe
 {
     public static void parseUpload(string path)
     {
@@ -46,7 +46,7 @@ class Xxe
             const string visualBasicTest = @"
 Imports System.Xml
 
-Class Xxe
+Public Class Xxe
     Public Shared Sub parseUpload(path As String)
         Dim xmlDoc As New XmlDocument()
         Dim xmlDoc2 = xmlDoc
@@ -69,7 +69,7 @@ End Class
 using System.IO;
 using System.Xml;
 
-class PathTraversal
+public class PathTraversal
 {
     public static void Run(string strText)
     {
@@ -86,7 +86,7 @@ class PathTraversal
 Imports System.IO
 Imports System.Xml
 
-Class PathTraversal
+Public Class PathTraversal
     Public Shared Sub Run(strText As String)
         Dim reader = XmlReader.Create(New StringReader(strText))
         Using reader

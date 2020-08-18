@@ -53,7 +53,7 @@ namespace SecurityCodeScan.Test.Taint
         public async Task NamedArgumentsPostCondition()
         {
             var cSharpTest = @"
-class Test
+public class Test
 {
     public void Encode(string input, int x = 0, System.Text.StringBuilder output = null)
     {
@@ -64,7 +64,7 @@ class Test
         // pretend it does something
     }
 }
-class TestInput
+public class TestInput
 {
     public void Input(string userProvided)
     {
@@ -77,14 +77,14 @@ class TestInput
 ";
 
             var vbTest = $@"
-Class Test
+Public Class Test
     Public Sub Encode(ByVal input As String, ByVal Optional x As Integer = 0, ByVal Optional output As System.Text.StringBuilder = Nothing)
         output.Append(input)
     End Sub
     Public Sub Injectable(ByVal input As String)
     End Sub
 End Class
-Class TestInput
+Public Class TestInput
     Public Sub Input(ByVal userProvided As String)
         Dim t = New Test()
         Dim encoded = New System.Text.StringBuilder()
@@ -154,7 +154,7 @@ Transfers:
         public async Task NamedArguments(string function, string payload, bool warn)
         {
             var cSharpTest = $@"
-class Test
+public class Test
 {{
     public void Injectable(string dangerous, string safe)
     {{
@@ -176,7 +176,7 @@ static class TestExtensions
         // pretend it does something
     }}
 }}
-class TestInput
+public class TestInput
 {{
     public void Input(string userProvided)
     {{
@@ -190,7 +190,7 @@ class TestInput
 
             var vbTest = $@"
 Imports System.Runtime.CompilerServices
-Class Test
+Public Class Test
     Public Sub Injectable(ByVal dangerous As String, ByVal safe As String)
     End Sub
     Public Sub InjectableOpt(ByVal Optional dangerous As String = ""foo"", ByVal Optional safe As String = ""bar"")
@@ -204,7 +204,7 @@ Module TestExtensions
     Public Sub InjectableOpt2(ByVal self As Test, ByVal Optional dangerous As String = ""foo"", ByVal Optional safe As String = ""bar"")
     End Sub
 End Module
-Class TestInput
+Public Class TestInput
     Public Sub Input(ByVal userProvided As String)
         Dim a As New Test()
         a.{function}({payload})
@@ -279,7 +279,7 @@ End Namespace
             var cSharpTest = @"
 namespace sample
 {
-    class Foo
+    public class Foo
     {
         public static void Run()
         {
@@ -291,7 +291,7 @@ namespace sample
 
             var visualBasicTest = @"
 Namespace sample
-    Friend Class Foo
+    Public Class Foo
         Public Shared Sub Run()
             Return
         End Sub
@@ -310,7 +310,7 @@ End Namespace
             var cSharpTest = @"
 namespace sample
 {
-    class Foo
+    public class Foo
     {
         public static void Run()
         {
@@ -331,7 +331,7 @@ namespace sample
 
             var visualBasicTest = @"
 Namespace sample
-    Friend Class Foo
+    Public Class Foo
         Public Shared Sub Run()
             For Each str As String In System.IO.Directory.GetFiles("""", """")
                 Dim s As String = str
@@ -364,7 +364,7 @@ End Namespace
             var cSharpTest = @"
 namespace sample
 {
-    class Foo
+    public class Foo
     {
         public static void Run()
         {
@@ -384,7 +384,7 @@ namespace sample
 
             var visualBasicTest = @"
 Namespace sample
-    Friend Class Foo
+    Public Class Foo
         Public Shared Sub Run()
             Dim array As String() = Nothing
             Dim num As Integer = array.Length
@@ -422,7 +422,7 @@ End Namespace
             var cSharpTest = $@"
 using System.Text;
 
-class Test
+public class Test
 {{
     string GetUntrusted()
     {{
@@ -447,7 +447,7 @@ class Test
             var visualBasicTest = $@"
 Imports System.Text
 
-Class Test
+Public Class Test
     Private Function GetUntrusted() As String
         Return Nothing
     End Function
@@ -513,7 +513,7 @@ Sinks:
         public async Task This2(string functionName1, string functionName2, bool detect)
         {
             var cSharpTest = $@"
-class Test
+public class Test
 {{
     string GetUntrusted()
     {{
@@ -536,7 +536,7 @@ class Test
     }}
 }}
 
-class SomeClass
+public class SomeClass
 {{
     private string _value;
 
@@ -594,7 +594,7 @@ class SomeClass
 ";
 
             var visualBasicTest = $@"
-Class Test
+Public Class Test
     Private Function GetUntrusted() As String
         Return Nothing
     End Function
@@ -613,7 +613,7 @@ Class Test
     End Sub
 End Class
 
-Class SomeClass
+Public Class SomeClass
     Private _value As String
 
     Public Sub SetValue(ByVal value As String)
@@ -701,7 +701,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class Test
+    public class Test
     {{
         static string GetUntrusted()
         {{
@@ -731,7 +731,7 @@ namespace sample
 Imports System.Data.SqlClient
 
 Namespace sample
-    Class Test
+    Public Class Test
         Private Shared Function GetUntrusted() As String
             Return Nothing
         End Function
@@ -779,7 +779,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {
-    class TestInput
+    public class TestInput
     {
         public void Run(string input)
         {
@@ -788,7 +788,7 @@ namespace sample
         }
     }
 
-    class Test
+    public class Test
     {
         private string sql;
 
@@ -812,14 +812,14 @@ namespace sample
 Imports System.Data.SqlClient
 
 Namespace sample
-    Class TestInput
+    Public Class TestInput
         Public Sub Run(ByVal input As String)
             Dim a As Test = New Test(input)
             Dim c As SqlCommand = a.Command
         End Sub
     End Class
 
-    Class Test
+    Public Class Test
         Private sql As String
         Public Sub New(s As String)
             sql = s
@@ -856,7 +856,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class TestController : Controller
+    public class TestController : Controller
     {
         public void Run(string s)
         {
@@ -864,7 +864,7 @@ namespace sample
         }
     }
 
-    class Test
+    public class Test
     {
         private string sql;
 
@@ -886,7 +886,7 @@ Imports System.Data.SqlClient
 Imports System.Web.Mvc
 
 Namespace sample
-    Class TestController
+    Public Class TestController
         Inherits Controller
 
         Public Sub Run(s As String)
@@ -895,7 +895,7 @@ Namespace sample
 
     End Class
 
-    Class Test
+    Public Class Test
         Private sql As String
 
         Public Sub New(s As String)
@@ -928,7 +928,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {
-    class SqlConstant
+    public class SqlConstantController
     {
         public static void Run()
         {
@@ -946,7 +946,7 @@ namespace sample
 Imports System.Data.SqlClient
 
 Namespace sample
-    Class SqlConstant
+    Public Class SqlConstantController
         Public Shared Sub Run()
             Dim username As String = ""Hello Friend..""
             Dim variable1 = username
@@ -975,7 +975,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {
-    class SqlConstant
+    public class SqlConstantController
     {
         public static void Run()
         {
@@ -991,7 +991,7 @@ namespace sample
 Imports System.Data.SqlClient
 
 Namespace sample
-    Class SqlConstant
+    Public Class SqlConstantController
         Public Shared Sub Run()
             Dim username As String = ""Shall we play a game?""
 
@@ -1029,7 +1029,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class MyFoo
+    public class MyFoo
     {{
         public static string stringConst()
         {{
@@ -1051,7 +1051,7 @@ namespace sample
 Imports System.Data.SqlClient
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFoo
         Public Shared Function stringConst()
             return """"
         End Function
@@ -1077,7 +1077,7 @@ End Namespace
             var cSharpTest = @"
 namespace sample
 {
-    class MyFoo
+    public class MyFoo
     {
         private static readonly string stringConst = Foo(); // See if it doesn't go into the loop
 
@@ -1091,7 +1091,7 @@ namespace sample
 
             var visualBasicTest = @"
 Namespace sample
-    Class MyFoo
+    Public Class MyFoo
         Private Shared ReadOnly stringConst As String = Foo()
         Private Shared Function Foo() As String
             return stringConst
@@ -1114,7 +1114,7 @@ End Namespace
             var cSharpTest = @"
 namespace sample
 {
-    class MyFoo
+    public class MyFoo
     {
         private static string stringConst2 { get { return stringConst; } }
         private static string stringConst { get { return stringConst2; } } // See if it doesn't go into the loop
@@ -1129,7 +1129,7 @@ namespace sample
 
             var visualBasicTest = @"
 Namespace sample
-    Class MyFoo
+    Public Class MyFoo
         Public Shared ReadOnly Property stringConst2() As String
             Get
                 Return stringConst
@@ -1166,7 +1166,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class MyFoo
+    public class MyFoo
     {{
         private const string stringConst = {initializer};
 
@@ -1184,7 +1184,7 @@ namespace sample
 Imports System.Data.SqlClient
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFoo
         Private Const stringConst As String = {initializer}
         Private Sub Foo()
             Dim s As String = ""select * from Products""
@@ -1224,7 +1224,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class MyFoo
+    public class MyFoo
     {{
         private static readonly string stringConst = {initializer};
 
@@ -1245,7 +1245,7 @@ Imports System.Data.SqlClient
 #Enable Warning BC50001
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFoo
         Private Shared ReadOnly stringConst As String = {initializer}
         Private Sub Foo()
             Dim s As String = ""select * from Products""
@@ -1281,7 +1281,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class MyFoo
+    public class MyFoo
     {{
         readonly string stringConst = {initializer};
 
@@ -1308,7 +1308,7 @@ Imports System.Data.SqlClient
 #Enable Warning BC50001
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFoo
         Private ReadOnly stringConst As String = {initializer}
         Public Sub New(ByVal x as String)
             stringConst = x
@@ -1351,7 +1351,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class MyFoo
+    public class MyFoo
     {{
         public static string stringConst
         {{
@@ -1375,7 +1375,7 @@ Imports System.Data.SqlClient
 #Enable Warning BC50001
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFoo
         Public Shared ReadOnly Property stringConst() As String
             Get
                 Return {initializer}
@@ -1411,7 +1411,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class MyFoo
+    public class MyFoo
     {{
         private const string StringConst = {initializer};
         public static string stringConst
@@ -1436,7 +1436,7 @@ Imports System.Data.SqlClient
 #Enable Warning BC50001
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFoo
         Private Const StringConstField As String = {initializer}
         Public Shared ReadOnly Property stringConst() As String
             Get
@@ -1479,7 +1479,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class MyFoo
+    public class MyFoo
     {{
         private static readonly string StringConst = {initializer};
         public static string stringConst
@@ -1504,7 +1504,7 @@ Imports System.Data.SqlClient
 #Enable Warning BC50001
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFoo
         Private Shared ReadOnly StringConstField As String = {initializer}
         Public Shared ReadOnly Property stringConst() As String
             Get
@@ -1545,7 +1545,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class MyFoo
+    public class MyFoo
     {{
         private readonly string StringConst = {initializer};
         public string stringConst
@@ -1576,7 +1576,7 @@ Imports System.Data.SqlClient
 #Enable Warning BC50001
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFoo
         Private ReadOnly StringConstField As String = {initializer}
         Public ReadOnly Property stringConst() As String
             Get
@@ -1622,7 +1622,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class MyFoo
+    public class MyFoo
     {{
         public static string stringConst {{ get; }} = {initializer};
 
@@ -1643,7 +1643,7 @@ Imports System.Data.SqlClient
 #Enable Warning BC50001
 
 Namespace sample
-    Friend Class MyFoo
+    Public Class MyFoo
         Public Shared Property stringConst As String = {initializer}
         Public Sub Foo()
             Dim s As String = ""select * from Products""
@@ -1681,7 +1681,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class MyFoo
+    public class MyFoo
     {{
         public static string stringConst {{ get; private set; }} = {initializer};
 
@@ -1717,7 +1717,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class MyFoo
+    public class MyFoo
     {{
         public static string stringConst => {initializer};
 
@@ -1755,7 +1755,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class MyFoo
+    public class MyFoo
     {{
         public static string stringConst
         {{
@@ -1786,7 +1786,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {
-    class SqlConstant
+    public class SqlConstantController
     {
         public static void Run()
         {
@@ -1804,7 +1804,7 @@ namespace sample
 Imports System.Data.SqlClient
 
 Namespace sample
-    Class SqlConstant
+    Public Class SqlConstantController
         Public Shared Sub Run()
             Dim username As String = ""Hello Friend..""
             Dim variable1 = username
@@ -1834,7 +1834,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant : Controller
+    public class SqlConstantController : Controller
     {
         public void Run(string input)
         {
@@ -1853,7 +1853,7 @@ Imports System.Data.SqlClient
 Imports System.Web.Mvc
 
 Namespace sample
-    Class SqlConstant
+    Public Class SqlConstantController
         Inherits Controller
 
         Public Sub Run(input As String)
@@ -1882,7 +1882,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant : Controller
+    public class SqlConstantController : Controller
     {
         public void Run(string input)
         {
@@ -1897,7 +1897,7 @@ Imports System.Data.SqlClient
 Imports System.Web.Mvc
 
 Namespace sample
-    Class SqlConstant
+    Public Class SqlConstantController
         Inherits Controller
 
         Public Sub Run(input As String)
@@ -1921,7 +1921,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant : Controller
+    public class SqlConstantController : Controller
     {
         public void Run(string input)
         {
@@ -1944,7 +1944,7 @@ Imports System.Data.SqlClient
 Imports System.Web.Mvc
 
 Namespace sample
-    Class SqlConstant
+    Public Class SqlConstantController
         Inherits Controller
 
         Public Sub Run(input As String)
@@ -1974,7 +1974,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant : Controller
+    public class SqlConstantController : Controller
     {
         public void Run(string input)
         {
@@ -1993,7 +1993,7 @@ Imports System.Data.SqlClient
 Imports System.Web.Mvc
 
 Namespace sample
-    Class SqlConstant
+    Public Class SqlConstantController
         Inherits Controller
 
         Public Sub Run(input As String)
@@ -2021,7 +2021,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant : Controller
+    public class SqlConstantController : Controller
     {
         public void Run(string input)
         {
@@ -2040,7 +2040,7 @@ Imports System.Data.SqlClient
 Imports System.Web.Mvc
 
 Namespace sample
-    Class SqlConstant
+    Public Class SqlConstantController
         Inherits Controller
 
         Public Sub Run(input As String)
@@ -2068,12 +2068,12 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class QueryDataClass
+    public class QueryDataClass
     {
         public string query { get; set; }
     }
 
-    class SqlConstant : Controller
+    public class SqlConstantController : Controller
     {
         public void Run(string input)
         {
@@ -2095,11 +2095,11 @@ Imports System.Data.SqlClient
 Imports System.Web.Mvc
 
 Namespace sample
-    Class QueryDataClass
+    Public Class QueryDataClass
         Public Property query As String
     End Class
 
-    Class SqlConstant
+    Public Class SqlConstantController
         Inherits Controller
 
         Public Sub Run(input As String)
@@ -2130,12 +2130,12 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class QueryDataClass
+    public class QueryDataClass
     {
         public string query { get; set; }
     }
 
-    class SqlConstant : Controller
+    public class SqlConstantController : Controller
     {
         public static QueryDataClass GetQueryDataClass(string input)
         {
@@ -2162,11 +2162,11 @@ Imports System.Data.SqlClient
 Imports System.Web.Mvc
 
 Namespace sample
-    Class QueryDataClass
+    Public Class QueryDataClass
         Public Property query As String
     End Class
 
-    Class SqlConstant
+    Public Class SqlConstantController
         Inherits Controller
 
         Public Shared Function GetQueryDataClass(ByVal input As String) As QueryDataClass
@@ -2189,7 +2189,7 @@ End Namespace
 
             var testConfig = @"
 TaintSources:
-  - Type: sample.SqlConstant
+  - Type: sample.SqlConstantController
     Methods:
       - GetQueryDataClass
 ";
@@ -2209,7 +2209,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class SqlConstant : Controller
+    public class SqlConstantController : Controller
     {
         public void Run(string input)
         {
@@ -2228,7 +2228,7 @@ Imports System.Data.SqlClient
 Imports System.Web.Mvc
 
 Namespace sample
-    Class SqlConstant
+    Public Class SqlConstantController
         Inherits Controller
 
         Public Sub Run(input As String)
@@ -2255,12 +2255,12 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class QueryDataClass
+    public class QueryDataClass
     {
         public string query { get; set; }
     }
 
-    class SqlConstant : Controller
+    public class SqlConstantController : Controller
     {
         public void Run(string input)
         {
@@ -2283,11 +2283,11 @@ Imports System.Data.SqlClient
 Imports System.Web.Mvc
 
 Namespace sample
-    Class QueryDataClass
+    Public Class QueryDataClass
         Public Property query As String
     End Class
 
-    Class SqlConstant
+    Public Class SqlConstantController
         Inherits Controller
 
         Public Sub Run(ByVal input As String)
@@ -2322,7 +2322,7 @@ namespace sample
         public string query { get; set; }
     }
 
-    class SqlConstant : Controller
+    public class SqlConstantController : Controller
     {
         public void Run(string input)
         {
@@ -2351,7 +2351,7 @@ Namespace sample
         Public Property query As String
     End Structure
 
-Class SqlConstant
+Public Class SqlConstantController
     Inherits Controller
 
     Public Sub Run(ByVal input As String)
@@ -2385,12 +2385,12 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class QueryDataClass
+    public class QueryDataClass
     {
         public string query { get; set; }
     }
 
-    class SqlConstant : Controller
+    public class SqlConstantController : Controller
     {
         public void Run(string input)
         {
@@ -2415,11 +2415,11 @@ Imports System.Data.SqlClient
 Imports System.Web.Mvc
 
 Namespace sample
-    Class QueryDataClass
+    Public Class QueryDataClass
         Public Property query As String
     End Class
 
-Class SqlConstant
+Public Class SqlConstantController
     Inherits Controller
 
     Public Sub Run(ByVal input As String)
@@ -2450,17 +2450,17 @@ End Namespace
             var cSharpTest = @"
 namespace sample
 {
-    class EventArgs
+    public class EventArgs
     {
         public Items Item = null;
     }
 
-    class Items
+    public class Items
     {
         public bool Checked = false;
     }
 
-    class SqlConstant
+    public class SqlConstantController
     {
         protected void OnDrawItem (EventArgs e)
         {
@@ -2473,15 +2473,15 @@ namespace sample
 
             var visualBasicTest = @"
 Namespace sample
-    Friend Class EventArgs
+    Public Class EventArgs
         Public Item As Items = Nothing
     End Class
 
-    Friend Class Items
+    Public Class Items
         Public Checked As Boolean = False
     End Class
 
-    Friend Class SqlConstant
+    Public Class SqlConstantController
         Protected Sub OnDrawItem(ByVal e As EventArgs)
             e.Item.Checked = True
             e.Item.Checked = False
@@ -2508,7 +2508,7 @@ End Namespace
         public async Task TaintSourceClass(string @public, string @static, bool warn)
         {
             var cSharpTest = $@"
-class Test
+public class Test
 {{
     public Test(string input)
     {{
@@ -2525,7 +2525,7 @@ class Test
 ";
 
             var visualBasicTest = $@"
-Class Test
+Public Class Test
     Public Sub New(ByVal input As String)
         Sink(input)
     End Sub
@@ -2580,7 +2580,7 @@ Sinks:
         public async Task TaintSourceMethod(string @public, string @static, bool warn)
         {
             var cSharpTest = $@"
-class Test
+public class Test
 {{
     public Test(string input)
     {{
@@ -2597,7 +2597,7 @@ class Test
 ";
 
             var visualBasicTest = $@"
-Class Test
+Public Class Test
     Public Sub New(ByVal input As String)
         Sink(input)
     End Sub
@@ -2640,199 +2640,11 @@ Sinks:
             }
         }
 
-        [DataTestMethod]
-        [DataRow("input",                                             true)]
-        [DataRow("Request.ToString()",                                false)]
-        [DataRow("Request.AcceptTypes[0]",                            true)]
-        [DataRow("Request.AnonymousID",                               true)]
-        [DataRow("Request.ApplicationPath",                           false)]
-        [DataRow("Request.AppRelativeCurrentExecutionFilePath",       false)]
-        [DataRow("Request.Browser.ToString()",                        true)]
-        [DataRow("Request.ClientCertificate.Issuer",                  true)]
-        [DataRow("Request.ContentEncoding.ToString()",                false)]
-        [DataRow("Request.ContentLength.ToString()",                  false)]
-        [DataRow("Request.ContentType.ToString()",                    true)]
-        [DataRow("Request.Cookies[\"auth\"].Value",                   true)]
-        [DataRow("Request.CurrentExecutionFilePath",                  false)]
-        [DataRow("Request.CurrentExecutionFilePathExtension",         false)]
-        [DataRow("Request.FilePath",                                  false)]
-        [DataRow("Request.Files[0].FileName",                         true)]
-        [DataRow("Request.Filter.ToString()",                         false)]
-        [DataRow("Request.Form[\"id\"]",                              true)]
-        [DataRow("Request.Headers[0]",                                true)]
-        [DataRow("Request.HttpChannelBinding.ToString()",             false)]
-        [DataRow("Request.HttpMethod",                                true)]
-        [DataRow("Request.InputStream.ToString()",                    true)]
-        [DataRow("Request.IsAuthenticated.ToString()",                false)]
-        [DataRow("Request.IsLocal.ToString()",                        false)]
-        [DataRow("Request.IsSecureConnection.ToString()",             false)]
-        [DataRow("Request[\"id\"]",                                   true)]
-        [DataRow("Request.LogonUserIdentity.ToString()",              false)]
-        [DataRow("Request.Params[\"id\"]",                            true)]
-        [DataRow("Request.Path",                                      true)]
-        [DataRow("Request.PathInfo",                                  true)]
-        [DataRow("Request.PhysicalApplicationPath",                   false)]
-        [DataRow("Request.PhysicalPath",                              false)]
-        [DataRow("Request.QueryString[\"id\"]",                       true)]
-        [DataRow("Request.RawUrl",                                    true)]
-        [DataRow("Request.ReadEntityBodyMode.ToString()",             false)]
-        [DataRow("Request.RequestContext.HttpContext.ToString()",     true)]
-        [DataRow("Request.RequestType",                               true)]
-        [DataRow("Request.ServerVariables[\"ALL_HTTP\"]",             true)]
-        [DataRow("Request.TimedOutToken.ToString()",                  false)]
-        [DataRow("Request.TlsTokenBindingInfo.ToString()",            false)]
-        [DataRow("Request.TotalBytes.ToString()",                     false)]
-        [DataRow("Request.Unvalidated.ToString()",                    true)]
-        [DataRow("Request.Url.ToString()",                            true)]
-        [DataRow("Request.UrlReferrer.ToString()",                    true)]
-        [DataRow("Request.UserAgent",                                 true)]
-        [DataRow("Request.UserHostAddress",                           true)]
-        [DataRow("Request.UserHostName",                              true)]
-        [DataRow("Request.UserLanguages[0]",                          true)]
-        [DataRow("Request.BinaryRead(100).ToString()",                true)]
-        [DataRow("Request.GetBufferedInputStream().ToString()",       true)]
-        [DataRow("Request.GetBufferlessInputStream(true).ToString()", true)]
-        [DataRow("Request.GetBufferlessInputStream().ToString()",     true)]
-        public async Task TaintSourceController(string payload, bool warn)
-        {
-            var cSharpTest = $@"
-using System.Web.Mvc;
-
-class MyController : Controller
-{{
-    public void Run(string input)
-    {{
-        Sink({payload});
-    }}
-
-    private void Sink(string input) {{}}
-}}
-";
-
-            payload = payload.CSharpReplaceToVBasic();
-            var visualBasicTest = $@"
-Imports System.Web.Mvc
-
-Friend Class MyController
-    Inherits Controller
-
-    Public Sub Run(ByVal input As String)
-        Sink({payload})
-    End Sub
-
-    Private Sub Sink(ByVal input As String)
-    End Sub
-End Class
-
-";
-
-            var testConfig = @"
-Sinks:
-  - Type: MyController
-    TaintTypes:
-      - SCS0002
-    Methods:
-      Sink:
-        - input
-";
-
-            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
-
-            if (warn)
-            {
-                await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
-            }
-            else
-            {
-                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
-            }
-        }
-
-        [DataTestMethod]
-        [DataRow("input",                                                                     true)]
-        [DataRow("Request.ToString()",                                                        false)]
-        [DataRow("Request.Body.ToString()",                                                   true)]
-        [DataRow("Request.ContentLength.ToString()",                                          false)]
-        [DataRow("Request.ContentType.ToString()",                                            true)]
-        [DataRow("Request.Cookies[\"auth\"]",                                                 true)]
-        [DataRow("Request.Form[\"id\"]",                                                      true)]
-        [DataRow("Request.HasFormContentType.ToString()",                                     false)]
-        [DataRow("Request.Headers[\"x\"]",                                                    true)]
-        [DataRow("Request.Host.Host",                                                         true)]
-        [DataRow("Request.HttpContext.Items[0].ToString()",                                   true)]
-        [DataRow("Request.IsHttps.ToString()",                                                false)]
-        [DataRow("Request.Method",                                                            true)]
-        [DataRow("Request.Path",                                                              true)]
-        [DataRow("Request.PathBase",                                                          true)]
-        [DataRow("Request.Protocol",                                                          true)]
-        [DataRow("Request.Query[\"id\"]",                                                     true)]
-        [DataRow("Request.QueryString.Value",                                                 true)]
-        [DataRow("Request.Scheme",                                                            true)]
-        [DataRow("Request.ReadFormAsync(System.Threading.CancellationToken.None).ToString()", true)]
-        public async Task TaintSourceControllerCore(string payload, bool warn)
-        {
-            var cSharpTest = $@"
-using Microsoft.AspNetCore.Mvc;
-
-class MyController : Controller
-{{
-    public void Run(string input)
-    {{
-        Sink({payload});
-    }}
-
-    private void Sink(string input) {{}}
-}}
-";
-
-            payload = payload.CSharpReplaceToVBasic();
-            var visualBasicTest = $@"
-Imports Microsoft.AspNetCore.Mvc
-
-Friend Class MyController
-    Inherits Controller
-
-    Public Sub Run(ByVal input As String)
-        Sink({payload})
-    End Sub
-
-    Private Sub Sink(ByVal input As String)
-    End Sub
-End Class
-
-";
-
-            var testConfig = @"
-Sinks:
-  - Type: MyController
-    TaintTypes:
-      - SCS0002
-    Methods:
-      Sink:
-        - input
-";
-
-            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
-
-            if (warn)
-            {
-                await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
-            }
-            else
-            {
-                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
-            }
-        }
-
         [TestMethod]
         public async Task TaintInitializer()
         {
             var cSharpTest = @"
-class MyClass
+public class MyClass
 {
     private void Foo(string input)
     {
@@ -2844,7 +2656,7 @@ class MyClass
 ";
 
             var visualBasicTest = $@"
-Class [MyClass]
+Public Class [MyClass]
     Private Sub Foo(ByVal input As String)
         Dim x = New With {{ .Data = Sink(input) }}
     End Sub
@@ -2879,7 +2691,7 @@ Sinks:
         public async Task TaintNameof()
         {
             var cSharpTest = @"
-class MyClass
+public class MyClass
 {
     private void Foo(string input)
     {
@@ -2891,7 +2703,7 @@ class MyClass
 ";
 
             var visualBasicTest = $@"
-Class [MyClass]
+Public Class [MyClass]
     Private Sub Foo(ByVal input As String)
         Sink(NameOf(input))
     End Sub
@@ -2927,7 +2739,7 @@ Sinks:
             var cSharpTest = @"
 using System;
 
-class MyClass
+public class MyClass
 {
     private void Foo()
     {
@@ -2941,7 +2753,7 @@ class MyClass
             var visualBasicTest = $@"
 Imports System
 
-Class [MyClass]
+Public Class [MyClass]
     Private Sub Foo()
         Sink(Console.ReadLine())
     End Sub
@@ -2970,7 +2782,7 @@ Sinks:
         public async Task TaintSourceMain()
         {
             var cSharpTest = @"
-class MyClass
+public class MyClass
 {
     private static void Main(string[] args)
     {
@@ -2982,7 +2794,7 @@ class MyClass
 ";
 
             var visualBasicTest = $@"
-Class [MyClass]
+Public Class [MyClass]
     Private Shared Sub Main(ByVal args As String())
         Sink(args(1))
     End Sub
@@ -3033,7 +2845,7 @@ Sinks:
     using System.Web.UI;
 #pragma warning restore 8019
 
-class MyPage : Page
+public class MyPage : Page
 {{
     private {type} m_control = new {type}();
 
@@ -3054,7 +2866,7 @@ class MyPage : Page
     Imports System.Web.UI
 #Enable Warning BC50001
 
-Friend Class MyPage
+Public Class MyPage
     Inherits Page
 
     Private m_control As {type} = New {type}()
@@ -3098,22 +2910,22 @@ Sinks:
             var cSharpTest = @"
 namespace sample
 {
-    class Parameters
+    public class Parameters
     {
         public string[] Params { get; }
     }
 
-    class HttpRequest
+    public class HttpRequest
     {
         public Parameters GetParams() { return null; }
     }
 
-    class HttpResponse
+    public class HttpResponse
     {
         public void Write(string x) {}
     }
 
-    class Test
+    public class Test
     {
         private static HttpRequest  Request  = null;
         private static HttpResponse Response = null;
@@ -3129,22 +2941,22 @@ namespace sample
 
 var visualBasicTest = @"
 Namespace sample
-    Class Parameters
+    Public Class Parameters
         Public ReadOnly Property Params As String()
     End Class
 
-    Class HttpRequest
+    Public Class HttpRequest
         Public Function GetParams() As Parameters
             Return Nothing
         End Function
     End Class
 
-    Class HttpResponse
+    Public Class HttpResponse
         Public Sub Write(ByVal x As String)
         End Sub
     End Class
 
-    Class Test
+    Public Class Test
         Private Shared Request  As HttpRequest  = Nothing
         Private Shared Response As HttpResponse = Nothing
 
@@ -3185,7 +2997,7 @@ Sinks:
         public async Task EnumTaint()
         {
             var cSharpTest = @"
-class Test
+public class Test
 {
     private enum MyEnum
     {
@@ -3202,7 +3014,7 @@ class Test
 ";
 
             var visualBasicTest = @"
-Friend Class Test
+Public Class Test
     Private Enum MyEnum
         Val = 1
     End Enum
@@ -3238,7 +3050,7 @@ Sinks:
         public async Task ExtensionMethodWithRef()
         {
             var cSharpTest = @"
-class Test
+public class Test
 {
     public void Foo(string bar)
     {
@@ -3267,7 +3079,7 @@ static class Exts
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 
-Class Test
+Public Class Test
     Public Sub Foo(ByVal bar As String)
         Dim c As Integer = 1
         bar.ExtensionMethodRef(c)
@@ -3298,7 +3110,7 @@ End Module
         public async Task UsingDiscards()
         {
             var cSharpTest = @"
-class Test
+public class Test
 {
     public void Foo(string userInput)
     {
@@ -3342,7 +3154,7 @@ Sinks:
         public async Task ExtensionMethodWithPostCondition()
         {
             var cSharpTest = @"
-class Test
+public class Test
 {
     public void Foo(string userInput)
     {
@@ -3419,7 +3231,7 @@ Sinks:
         public async Task ExtensionMethodWithPostCondition2()
         {
             var cSharpTest = @"
-class Test
+public class Test
 {
     public void Foo(string userInput)
     {
@@ -3496,7 +3308,7 @@ Sinks:
         public async Task ExtensionMethodWithParams()
         {
             var cSharpTest = @"
-class Test
+public class Test
 {
     public void Foo(string userInput)
     {

@@ -56,7 +56,7 @@ namespace SecurityCodeScan.Test
             const string cSharpTest = @"
 using System.Web;
 
-class Vulnerable
+public class Vulnerable
 {
     public static HttpResponse Response = null;
     public static HttpRequest  Request  = null;
@@ -80,7 +80,7 @@ class Vulnerable
             var cSharpTest = $@"
 using {@namespace};
 
-class Vulnerable
+public class Vulnerable
 {{
     public static HttpResponse Response = null;
     public static HttpRequest  Request  = null;
@@ -99,7 +99,7 @@ class Vulnerable
             var visualBasicTest = $@"
 Imports {@namespace}
 
-Class Vulnerable
+Public Class Vulnerable
     Public Shared Response As HttpResponse
     Public Shared Request  As HttpRequest
 
@@ -501,7 +501,7 @@ End Namespace
     using Encoder = Microsoft.Security.Application.Encoder;
 #pragma warning restore 8019
 
-class Vulnerable
+public class Vulnerable
 {{
     public static HttpRequest Request = null;
 
@@ -530,7 +530,7 @@ class Vulnerable
     Imports Encoder = Microsoft.Security.Application.Encoder
 #Enable Warning BC50001
 
-Class Vulnerable
+Public Class Vulnerable
     Public Shared Request As HttpRequest
     Public Shared Page As Page
 

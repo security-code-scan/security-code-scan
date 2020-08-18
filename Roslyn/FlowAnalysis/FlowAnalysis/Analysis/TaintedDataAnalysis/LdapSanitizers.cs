@@ -10,9 +10,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// <see cref="SanitizerInfo"/>s for LDAP injection sanitizers.
         /// </summary>
-        public static ImmutableHashSet<SanitizerInfo> PathSanitizerInfos { get; }
-
-        public static ImmutableHashSet<SanitizerInfo> FilterSanitizerInfos { get; }
+        public static ImmutableHashSet<SanitizerInfo> SanitizerInfos { get; }
 
         static LdapSanitizers()
         {
@@ -24,22 +22,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 isConstructorSanitizing: false,
                 sanitizingMethods: new[] {
                     "LdapDistinguishedNameEncode",
-                });
-
-            PathSanitizerInfos = builder.ToImmutableAndFree();
-
-            builder = PooledHashSet<SanitizerInfo>.GetInstance();
-
-            builder.AddSanitizerInfo(
-                WellKnownTypeNames.MicrosoftSecurityApplicationEncoder,
-                isInterface: false,
-                isConstructorSanitizing: false,
-                sanitizingMethods: new[] {
                     "LdapEncode",
                     "LdapFilterEncode",
                 });
 
-            FilterSanitizerInfos = builder.ToImmutableAndFree();
+            SanitizerInfos = builder.ToImmutableAndFree();
         }
     }
 }

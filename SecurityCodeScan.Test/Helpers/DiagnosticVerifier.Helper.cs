@@ -272,12 +272,13 @@ namespace SecurityCodeScan.Test.Helpers
             }
 
             var newProject = solution.GetProject(projectId);
+            return newProject;
 
-            var parseOptions = newProject.ParseOptions.WithFeatures(
-                    newProject.ParseOptions.Features.Concat(
-                        new[] { new KeyValuePair<string, string>("flow-analysis", "true") }));
+            //var parseOptions = newProject.ParseOptions.WithFeatures(
+            //        newProject.ParseOptions.Features.Concat(
+            //            new[] { new KeyValuePair<string, string>("flow-analysis", "true") }));
 
-            return newProject.WithParseOptions(parseOptions);
+            //return newProject.WithParseOptions(parseOptions);
         }
 
         #endregion

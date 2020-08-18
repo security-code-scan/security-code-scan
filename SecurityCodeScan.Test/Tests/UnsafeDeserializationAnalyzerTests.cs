@@ -42,7 +42,7 @@ using System.Web.Script.Serialization;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         private JavaScriptSerializer serializer = new JavaScriptSerializer(new SimpleTypeResolver());
     }
@@ -53,7 +53,7 @@ namespace VulnerableApp
 Imports System.Web.Script.Serialization
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Private Dim serializer = new JavaScriptSerializer(new SimpleTypeResolver())
     End Class
 End Namespace
@@ -78,7 +78,7 @@ using System.Web.Script.Serialization;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         private static SimpleTypeResolver resolver = new SimpleTypeResolver();
         private static JavaScriptSerializer serializer = new JavaScriptSerializer(resolver);
@@ -90,7 +90,7 @@ namespace VulnerableApp
 Imports System.Web.Script.Serialization
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Private Shared Dim resolver = new SimpleTypeResolver()
         Private Shared Dim serializer = new JavaScriptSerializer(resolver)
     End Class
@@ -116,7 +116,7 @@ using System.Web.Script.Serialization;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         private static JavaScriptSerializer serializer = new JavaScriptSerializer(resolver);
     }
@@ -127,7 +127,7 @@ namespace VulnerableApp
 Imports System.Web.Script.Serialization
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Private Shared Dim serializer = new JavaScriptSerializer(resolver)
     End Class
 End Namespace
@@ -146,7 +146,7 @@ using System.Web.Script.Serialization;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         private JavaScriptSerializer serializer = new JavaScriptSerializer();
     }
@@ -157,7 +157,7 @@ namespace VulnerableApp
 Imports System.Web.Script.Serialization
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Private Dim serializer = new JavaScriptSerializer()
     End Class
 End Namespace
@@ -180,7 +180,7 @@ using Newtonsoft.Json;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         [JsonProperty(TypeNameHandling = TypeNameHandling.{property})]
         private string Property {{ get; set; }}
@@ -192,7 +192,7 @@ namespace VulnerableApp
 Imports Newtonsoft.Json
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         <JsonProperty(TypeNameHandling := TypeNameHandling.{property})>
         Public Property TestProperty As String
             Get
@@ -224,7 +224,7 @@ using Newtonsoft.Json;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         [JsonProperty(TypeNameHandling = TypeNameHandling.None)]
         private string Property { get; set; }
@@ -236,7 +236,7 @@ namespace VulnerableApp
 Imports Newtonsoft.Json
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         <JsonProperty(TypeNameHandling := TypeNameHandling.None)>
         Public Property TestProperty As String
             Get
@@ -263,7 +263,7 @@ using Newtonsoft.Json;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         public T DeepClone<T>(T source)
         {
@@ -291,7 +291,7 @@ using Newtonsoft.Json;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         static void TestDeserialization()
         {{
@@ -308,7 +308,7 @@ namespace VulnerableApp
 Imports Newtonsoft.Json
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Private Sub TestDeserialization()
             Dim settings = New JsonSerializerSettings With _
                 {{
@@ -336,7 +336,7 @@ End Namespace
             var cSharpTest = @"
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         static void TestDeserialization()
         {
@@ -351,7 +351,7 @@ namespace VulnerableApp
 
             var visualBasicTest = @"
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Private Sub TestDeserialization()
             Dim settings = New Newtonsoft.Json.JsonSerializerSettings With _
                 {
@@ -382,7 +382,7 @@ using Newtonsoft.Json;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         static void TestDeserialization()
         {
@@ -399,7 +399,7 @@ namespace VulnerableApp
 Imports Newtonsoft.Json
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Private Sub TestDeserialization()
             Dim settings = New JsonSerializerSettings With
                 {
@@ -429,7 +429,7 @@ using Newtonsoft.Json;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         static void TestDeserialization()
         {
@@ -444,7 +444,7 @@ namespace VulnerableApp
 Imports Newtonsoft.Json
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Private Sub TestDeserialization()
             Dim settings = New JsonSerializerSettings()
              settings.TypeNameHandling = TypeNameHandling.All
@@ -473,7 +473,7 @@ using System.Web.Mvc;
 
 namespace VulnerableApp
 {
-    class Test : Controller
+    public class TestController : Controller
     {
         public void TestDeserialization(TypeNameHandling param)
         {
@@ -491,7 +491,7 @@ Imports Newtonsoft.Json
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
-    Class Test
+    Public Class TestController
         Inherits Controller
 
         Public Sub TestDeserialization(param As TypeNameHandling)
@@ -522,7 +522,7 @@ using Newtonsoft.Json;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         static void TestDeserialization()
         {
@@ -539,7 +539,7 @@ namespace VulnerableApp
 Imports Newtonsoft.Json
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Private Sub TestDeserialization()
             Dim settings = New JsonSerializerSettings With _
                 {
@@ -564,7 +564,7 @@ using Newtonsoft.Json;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         static void TestDeserialization()
         {{
@@ -591,7 +591,7 @@ namespace VulnerableApp
 Imports Newtonsoft.Json
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Private Sub TestDeserialization()
             Dim settings = New JsonSerializerSettings With _
                 {{
@@ -634,7 +634,7 @@ using Newtonsoft.Json;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         static void TestDeserialization()
         {
@@ -651,7 +651,7 @@ namespace VulnerableApp
 Imports Newtonsoft.Json
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Private Sub TestDeserialization()
             Dim settings = New JsonSerializerSettings With _
                 {
@@ -675,7 +675,7 @@ using Newtonsoft.Json;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         static void TestDeserialization()
         {
@@ -692,7 +692,7 @@ namespace VulnerableApp
 Imports Newtonsoft.Json
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Private Sub TestDeserialization()
             Dim settings = New JsonSerializerSettings With _
                 {
@@ -717,7 +717,7 @@ using JSS = System.Web.Script.Serialization.JavaScriptSerializer;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         private JSS serializer = new JSS(new SimpleTypeResolver());
     }
@@ -728,7 +728,7 @@ Imports System.Web.Script.Serialization
 Imports JSS = System.Web.Script.Serialization.JavaScriptSerializer
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Private Dim serializer = new JSS(new SimpleTypeResolver())
     End Class
 End Namespace

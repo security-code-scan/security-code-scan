@@ -24,14 +24,14 @@ namespace SecurityCodeScan.Test
         public async Task NotSHA1Create()
         {
             var cSharpTest = @"
-class SHA1
+public class SHA1
 {
     public static void Create()
     {
     }
 }
 
-class WeakHashing
+public class WeakHashing
 {
     static void generateWeakHashingSHA1()
     {
@@ -41,12 +41,12 @@ class WeakHashing
 ";
 
             var visualBasicTest = @"
-Class SHA1
+Public Class SHA1
     Public Shared Sub Create()
     End Sub
 End Class
 
-Class WeakHashing
+Public Class WeakHashing
     Private Shared Sub generateWeakHashingSHA1()
         SHA1.Create()
     End Sub
@@ -66,7 +66,7 @@ End Class
             var cSharpTest = $@"
 using System.Security.Cryptography;
 
-class WeakHashing
+public class WeakHashing
 {{
     public delegate {type} Del();
 
@@ -81,7 +81,7 @@ class WeakHashing
             var visualBasicTest = $@"
 Imports System.Security.Cryptography
 
-Class WeakHashing
+Public Class WeakHashing
     Public Delegate Function Del() As {type}
     Private Shared Sub foo()
         Dim a As Del = AddressOf {create}
@@ -109,7 +109,7 @@ End Class
 using System;
 using System.Security.Cryptography;
 
-class WeakHashing
+public class WeakHashing
 {{
     static void foo()
     {{
@@ -123,7 +123,7 @@ class WeakHashing
 Imports System
 Imports System.Security.Cryptography
 
-Class WeakHashing
+Public Class WeakHashing
     Private Shared Sub foo()
         Dim func As Func(Of {type}) =
             AddressOf {create}
@@ -173,7 +173,7 @@ End Class
             var cSharpTest = $@"
 using System.Security.Cryptography;
 
-class WeakHashing
+public class WeakHashing
 {{
     static void f({type} a, {type} b)
     {{
@@ -189,7 +189,7 @@ class WeakHashing
             var visualBasicTest = $@"
 Imports System.Security.Cryptography
 
-Class WeakHashing
+Public Class WeakHashing
     Private Shared Sub f(a As {type}, b As {type})
     End Sub
     Private Shared Sub foo()
@@ -218,7 +218,7 @@ End Class
 using System;
 using System.Security.Cryptography;
 
-class WeakHashing
+public class WeakHashing
 {{
     static void foo()
     {{
@@ -231,7 +231,7 @@ class WeakHashing
 Imports System
 Imports System.Security.Cryptography
 
-Class WeakHashing
+Public Class WeakHashing
     Private Shared Sub foo()
         Dim a = New Lazy(Of {type}) (AddressOf {create}).Value
     End Sub
@@ -261,7 +261,7 @@ End Class
             var cSharpTest = $@"
 using System.Security.Cryptography;
 
-class WeakHashing
+public class WeakHashing
 {{
     static {type} GetHash()
     {{
@@ -277,7 +277,7 @@ class WeakHashing
             var visualBasicTest = $@"
 Imports System.Security.Cryptography
 
-Class WeakHashing
+Public Class WeakHashing
     Private Shared Function GetHash() As {type}
         return Nothing
     End Function
@@ -323,7 +323,7 @@ End Class
             var cSharpTest = $@"
 using System.Security.Cryptography;
 
-class WeakHashing
+public class WeakHashing
 {{
     static void Foo()
     {{
@@ -335,7 +335,7 @@ class WeakHashing
             var visualBasicTest = $@"
 Imports System.Security.Cryptography
 
-Class WeakHashing
+Public Class WeakHashing
     Private Shared Sub Foo()
         Dim hash As System.Object = {create}
     End Sub
@@ -364,7 +364,7 @@ End Class
             var cSharpTest = $@"
 using System.Security.Cryptography;
 
-class WeakHashing
+public class WeakHashing
 {{
     static string Sha256Name {{ get {{ return ""System.Security.Cryptography.SHA256""; }} }}
     static string Sha1Name   {{ get {{ return ""System.Security.Cryptography.SHA1""; }} }}
@@ -379,7 +379,7 @@ class WeakHashing
             var visualBasicTest = $@"
 Imports System.Security.Cryptography
 
-Class WeakHashing
+Public Class WeakHashing
     Private Shared ReadOnly Property Sha256Name() As String
         Get
             Return ""System.Security.Cryptography.SHA256""
@@ -410,7 +410,7 @@ using SH = System.Security.Cryptography.SHA1CryptoServiceProvider;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         static void Foo()
         {
@@ -423,7 +423,7 @@ namespace VulnerableApp
             var visualBasicTest = $@"
 Imports SH = System.Security.Cryptography.SHA1CryptoServiceProvider
 
-Class WeakHashing
+Public Class WeakHashing
     Private Shared Sub foo()
         Dim sha As New SH()
     End Sub

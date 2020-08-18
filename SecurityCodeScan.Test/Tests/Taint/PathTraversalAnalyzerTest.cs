@@ -102,7 +102,7 @@ namespace SecurityCodeScan.Test.Taint
     using System.Web.Mvc;
 #pragma warning restore 8019
 
-class PathTraversal : Controller
+public class PathTraversalController : Controller
 {{
     public void Run(string path, IEnumerable<String> contents, bool flag,
                     FileMode fileMode, FileAccess access, FileShare share, byte[] bytes,
@@ -125,7 +125,7 @@ class PathTraversal : Controller
     Imports System.Web.Mvc
 #Enable Warning BC50001
 
-Class PathTraversal
+Public Class PathTraversalController
     Inherits Controller
 
     Public Sub Run(path As String, contents As IEnumerable(Of String), flag As Boolean, fileMode As FileMode,
@@ -215,7 +215,7 @@ End Class
     using System.Web.Mvc;
 #pragma warning restore 8019
 
-class PathTraversal : Controller
+public class PathTraversalController : Controller
 {{
     public void Run(string path, IEnumerable<String> contents, bool flag,
                     FileMode fileMode, FileAccess access, FileShare share, byte[] bytes,
@@ -238,7 +238,7 @@ class PathTraversal : Controller
     Imports System.Web.Mvc
 #Enable Warning BC50001
 
-Class PathTraversal
+Public Class PathTraversalController
     Inherits Controller
 
     Public Sub Run(path As String, contents As IEnumerable(Of String), flag As Boolean, fileMode As FileMode,
@@ -262,7 +262,7 @@ End Class
 using FS = System.IO.File;
 using System.Web.UI;
 
-class MyPage : Page
+public class MyPage : Page
 {{
     public void Run()
     {{
@@ -276,7 +276,7 @@ class MyPage : Page
 Imports FS = System.IO.File
 Imports System.Web.UI
 
-Friend Class MyPage
+Public Class MyPage
     Inherits Page
 
     Public Sub Run()
@@ -320,7 +320,7 @@ using Microsoft.Win32.SafeHandles;
 using System.Security.AccessControl;
 using System.Web.Mvc;
 
-class PathTraversal : Controller
+public class PathTraversalController : Controller
 {{
     public void Run(string input, FileMode fileMode, IntPtr handle, FileAccess access, SafeFileHandle safeHandle,
                     FileShare fileShare, FileOptions fileOptions, FileSystemRights fileSystemRights,
@@ -341,7 +341,7 @@ Imports Microsoft.Win32.SafeHandles
 Imports System.Security.AccessControl
 Imports System.Web.Mvc
 
-Class PathTraversal
+Public Class PathTraversalController
     Inherits Controller
 
     Public Sub Run(input As String, fileMode As FileMode, handle As IntPtr, access As FileAccess,
@@ -418,7 +418,7 @@ End Class
     using System.Web.Mvc;
 #pragma warning restore 8019
 
-class PathTraversal : Controller
+public class PathTraversalController : Controller
 {{
     public void Run(string input, FileMode fileMode, IntPtr handle, FileAccess access, SafeFileHandle safeHandle,
                     FileShare fileShare, FileOptions fileOptions, FileSystemRights fileSystemRights,
@@ -440,7 +440,7 @@ class PathTraversal : Controller
     Imports System.Web.Mvc
 #Enable Warning BC50001
 
-Class PathTraversal
+Public Class PathTraversalController
     Inherits Controller
 
     Public Sub Run(input As String, fileMode As FileMode, handle As IntPtr, access As FileAccess,
@@ -481,7 +481,7 @@ End Class
     using System.Web.Mvc;
 #pragma warning restore 8019
 
-class PathTraversal : Controller
+public class PathTraversalController : Controller
 {{
     public void Run(XmlReaderSettings settings, XmlParserContext context)
     {{
@@ -498,7 +498,7 @@ class PathTraversal : Controller
     Imports System.Web.Mvc
 #Enable Warning BC50001
 
-Class PathTraversal
+Public Class PathTraversalController
     Inherits Controller
 
     Public Shared Sub Run(settings As XmlReaderSettings, context As XmlParserContext)
@@ -523,7 +523,7 @@ End Class
     using System.Web.UI.WebControls;
 #pragma warning restore 8019
 
-class PathTraversal : Controller
+public class PathTraversalController : Controller
 {{
     public void Run(string path)
     {{
@@ -541,7 +541,7 @@ class PathTraversal : Controller
     Imports System.Web.UI.WebControls
 #Enable Warning BC50001
 
-Class PathTraversal
+Public Class PathTraversalController
     Inherits Controller
 
     Public Sub Run(path As String)
@@ -573,7 +573,7 @@ End Class
     using System.Web.UI.WebControls;
 #pragma warning restore 8019
 
-class PathTraversal : Controller
+public class PathTraversalController: Controller
 {{
     public void Run()
     {{
@@ -590,7 +590,7 @@ class PathTraversal : Controller
     Imports System.Web.UI.WebControls
 #Enable Warning BC50001
 
-Class PathTraversal
+Public Class PathTraversalController
     Inherits Controller
 
     Public Sub Run()

@@ -162,51 +162,51 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                             WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
                             InterproceduralAnalysisConfiguration interproceduralAnalysisConfiguration = InterproceduralAnalysisConfiguration.Create(
-                                                                options,
-                                                                SupportedDiagnostics,
-                                                                owningSymbol,
-                                                                operationBlockStartContext.Compilation,
-                                                                defaultInterproceduralAnalysisKind: InterproceduralAnalysisKind.ContextSensitive,
-                                                                cancellationToken: cancellationToken);
+                                                                    options,
+                                                                    SupportedDiagnostics,
+                                                                    owningSymbol,
+                                                                    operationBlockStartContext.Compilation,
+                                                                    defaultInterproceduralAnalysisKind: InterproceduralAnalysisKind.ContextSensitive,
+                                                                    cancellationToken: cancellationToken);
                             Lazy<ControlFlowGraph?> controlFlowGraphFactory = new Lazy<ControlFlowGraph?>(
-                            () => operationBlockStartContext.OperationBlocks.GetControlFlowGraph());
+                                () => operationBlockStartContext.OperationBlocks.GetControlFlowGraph());
                             Lazy<PointsToAnalysisResult?> pointsToFactory = new Lazy<PointsToAnalysisResult?>(
-                            () =>
-                            {
-                                if (controlFlowGraphFactory.Value == null)
+                                () =>
                                 {
-                                    return null;
-                                }
+                                    if (controlFlowGraphFactory.Value == null)
+                                    {
+                                        return null;
+                                    }
 
-                                return PointsToAnalysis.TryGetOrComputeResult(
-                                                            controlFlowGraphFactory.Value,
-                                                            owningSymbol,
-                                                            options,
-                                                            wellKnownTypeProvider,
-                                                            PointsToAnalysisKind.Complete,
-                                                            interproceduralAnalysisConfiguration,
-                                                            interproceduralAnalysisPredicateOpt: null);
-                            });
-                            Lazy<(PointsToAnalysisResult?, ValueContentAnalysisResult?)> valueContentFactory = new Lazy<(PointsToAnalysisResult?, ValueContentAnalysisResult?)>(
-                            () =>
-                            {
-                                if (controlFlowGraphFactory.Value == null)
-                                {
-                                    return (null, null);
-                                }
-
-                                ValueContentAnalysisResult? valuecontentAnalysisResult = ValueContentAnalysis.TryGetOrComputeResult(
+                                    return PointsToAnalysis.TryGetOrComputeResult(
                                                                 controlFlowGraphFactory.Value,
                                                                 owningSymbol,
                                                                 options,
                                                                 wellKnownTypeProvider,
                                                                 PointsToAnalysisKind.Complete,
                                                                 interproceduralAnalysisConfiguration,
-                                                                out _,
-                                                                out PointsToAnalysisResult? p);
+                                                                interproceduralAnalysisPredicate: null);
+                                });
+                            Lazy<(PointsToAnalysisResult?, ValueContentAnalysisResult?)> valueContentFactory = new Lazy<(PointsToAnalysisResult?, ValueContentAnalysisResult?)>(
+                                () =>
+                                {
+                                    if (controlFlowGraphFactory.Value == null)
+                                    {
+                                        return (null, null);
+                                    }
 
-                                return (p, valuecontentAnalysisResult);
-                            });
+                                    ValueContentAnalysisResult? valuecontentAnalysisResult = ValueContentAnalysis.TryGetOrComputeResult(
+                                                                    controlFlowGraphFactory.Value,
+                                                                    owningSymbol,
+                                                                    options,
+                                                                    wellKnownTypeProvider,
+                                                                    PointsToAnalysisKind.Complete,
+                                                                    interproceduralAnalysisConfiguration,
+                                                                    out _,
+                                                                    out PointsToAnalysisResult? p);
+
+                                    return (p, valuecontentAnalysisResult);
+                                });
 
                             PooledHashSet<IOperation> rootOperationsNeedingAnalysis = PooledHashSet<IOperation>.GetInstance();
 
@@ -224,19 +224,22 @@ namespace SecurityCodeScan.Analyzers.Taint
                                 },
                                 OperationKind.PropertyReference);
 
-                            operationBlockStartContext.RegisterOperationAction(
-                                operationAnalysisContext =>
-                                {
-                                    IParameterReferenceOperation parameterReferenceOperation = (IParameterReferenceOperation)operationAnalysisContext.Operation;
-                                    if (sourceInfoSymbolMap.IsSourceParameter(parameterReferenceOperation.Parameter))
+                            if (sourceInfoSymbolMap.RequiresParameterReferenceAnalysis)
+                            {
+                                operationBlockStartContext.RegisterOperationAction(
+                                    operationAnalysisContext =>
                                     {
-                                        lock (rootOperationsNeedingAnalysis)
+                                        IParameterReferenceOperation parameterReferenceOperation = (IParameterReferenceOperation)operationAnalysisContext.Operation;
+                                        if (sourceInfoSymbolMap.IsSourceParameter(parameterReferenceOperation.Parameter, wellKnownTypeProvider))
                                         {
-                                            rootOperationsNeedingAnalysis.Add(parameterReferenceOperation.GetRoot());
+                                            lock (rootOperationsNeedingAnalysis)
+                                            {
+                                                rootOperationsNeedingAnalysis.Add(parameterReferenceOperation.GetRoot());
+                                            }
                                         }
-                                    }
-                                },
-                                OperationKind.ParameterReference);
+                                    },
+                                    OperationKind.ParameterReference);
+                            }
 
                             operationBlockStartContext.RegisterOperationAction(
                                 operationAnalysisContext =>
@@ -295,15 +298,15 @@ namespace SecurityCodeScan.Analyzers.Taint
                                             foreach (IOperation rootOperation in rootOperationsNeedingAnalysis)
                                             {
                                                 TaintedDataAnalysisResult? taintedDataAnalysisResult = TaintedDataAnalysis.TryGetOrComputeResult(
-                                                controlFlowGraphFactory.Value,
-                                                operationBlockAnalysisContext.Compilation,
-                                                operationBlockAnalysisContext.OwningSymbol,
-                                                operationBlockAnalysisContext.Options,
-                                                TaintedDataEnteringSinkDescriptor,
-                                                sourceInfoSymbolMap,
-                                                config.TaintConfiguration.GetSanitizerSymbolMap(this.SinkKind),
-                                                sinkInfoSymbolMap,
-                                                operationBlockAnalysisContext.CancellationToken);
+                                                    controlFlowGraphFactory.Value,
+                                                    operationBlockAnalysisContext.Compilation,
+                                                    operationBlockAnalysisContext.OwningSymbol,
+                                                    operationBlockAnalysisContext.Options,
+                                                    TaintedDataEnteringSinkDescriptor,
+                                                    sourceInfoSymbolMap,
+                                                    config.TaintConfiguration.GetSanitizerSymbolMap(this.SinkKind),
+                                                    sinkInfoSymbolMap,
+                                                    operationBlockAnalysisContext.CancellationToken);
                                                 if (taintedDataAnalysisResult == null)
                                                 {
                                                     return;
@@ -318,17 +321,17 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                                                     foreach (SymbolAccess sourceOrigin in sourceSink.SourceOrigins)
                                                     {
-                                                    // Something like:
-                                                    // CA3001: Potential SQL injection vulnerability was found where '{0}' in method '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'.
-                                                    Diagnostic diagnostic = Diagnostic.Create(
-                                                        this.TaintedDataEnteringSinkDescriptor,
-                                                        sourceSink.Sink.Location,
-                                                        additionalLocations: new Location[] { sourceOrigin.Location },
-                                                        messageArgs: new object[] {
-                                                    sourceSink.Sink.Symbol.Name,
-                                                    sourceSink.Sink.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
-                                                    sourceOrigin.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
-                                                    sourceOrigin.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)});
+                                                        // Something like:
+                                                        // CA3001: Potential SQL injection vulnerability was found where '{0}' in method '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'.
+                                                        Diagnostic diagnostic = Diagnostic.Create(
+                                                            this.TaintedDataEnteringSinkDescriptor,
+                                                            sourceSink.Sink.Location,
+                                                            additionalLocations: new Location[] { sourceOrigin.Location },
+                                                            messageArgs: new object[] {
+                                                        sourceSink.Sink.Symbol.Name,
+                                                        sourceSink.Sink.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
+                                                        sourceOrigin.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
+                                                        sourceOrigin.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)});
                                                         operationBlockAnalysisContext.ReportDiagnostic(diagnostic);
                                                     }
                                                 }

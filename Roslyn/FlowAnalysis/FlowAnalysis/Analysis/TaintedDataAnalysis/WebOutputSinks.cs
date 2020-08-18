@@ -229,7 +229,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 isAnyStringParameterInConstructorASink: false,
                 sinkProperties: new[] {
                     "Text",
-                    "NavigateUrl",
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
@@ -559,53 +558,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "Text",
                 },
                 sinkMethodParameters: null);
-            builder.AddSinkInfo(
-                WellKnownTypeNames.SystemWebUIControl,
-                sinkKinds,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: new[] {
-                    "ID",
-                },
-                sinkMethodParameters: null);
-            builder.AddSinkInfo(
-                WellKnownTypeNames.SystemWebUIWebControlsRadioButton,
-                sinkKinds,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: new[] {
-                    "GroupName",
-                },
-                sinkMethodParameters: null);
-            builder.AddSinkInfo(
-                WellKnownTypeNames.SystemWebUIWebControlsPanel,
-                sinkKinds,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: new[] {
-                    "GroupingText",
-                },
-                sinkMethodParameters: null);
-            builder.AddSinkInfo(
-                WellKnownTypeNames.SystemWebUIPage,
-                sinkKinds,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: null,
-                sinkMethodParameters: new[] {
-                    ("RegisterClientScriptBlock", new[] { "script" } ),
-                    ("RegisterStartupScript", new[] { "script" } ),
-                });
-            builder.AddSinkInfo(
-                WellKnownTypeNames.SystemWebUIClientScriptManager,
-                sinkKinds,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: null,
-                sinkMethodParameters: new[] {
-                    ("RegisterClientScriptBlock", new[] { "script" } ),
-                    ("RegisterStartupScript", new[] { "script" } ),
-                });
 
             SinkInfos = builder.ToImmutableAndFree();
         }

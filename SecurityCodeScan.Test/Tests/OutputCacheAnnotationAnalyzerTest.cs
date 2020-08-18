@@ -675,11 +675,11 @@ End Class
 using System;
 using System.Web.Mvc;
 
-class AuthorizeAttribute : Attribute
+public class AuthorizeAttribute : Attribute
 {
 }
 
-class OutputCacheAttribute : Attribute
+public class OutputCacheAttribute : Attribute
 {
 }
 
@@ -698,11 +698,11 @@ public class HomeController : Controller
 Imports System
 Imports System.Web.Mvc
 
-Class AuthorizeAttribute
+Public Class AuthorizeAttribute
     Inherits Attribute
 End Class
 
-Class OutputCacheAttribute
+Public Class OutputCacheAttribute
     Inherits Attribute
 End Class
 

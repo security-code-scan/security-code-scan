@@ -67,9 +67,9 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class MyFoo : Controller
+    public class MyFooController : Controller
     {
-        public MyFoo()
+        public MyFooController()
         {
             m_db = new SqlDatabase("""");
         }
@@ -96,7 +96,7 @@ Imports Microsoft.Practices.EnterpriseLibrary.Data.Sql
 Imports System.Web.Mvc
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFooController
         Inherits Controller
 
         Public Sub New()
@@ -133,9 +133,9 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class MyFoo : Controller
+    public class MyFooController : Controller
     {
-        public MyFoo()
+        public MyFooController()
         {
             m_db = new SqlDatabase("""");
         }
@@ -160,7 +160,7 @@ Imports Microsoft.Practices.EnterpriseLibrary.Data.Sql
 Imports System.Web.Mvc
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFooController
         Inherits Controller
 
         Public Sub New()
@@ -320,7 +320,7 @@ End Namespace
 
 namespace sample
 {{
-    class MyFoo : Controller
+    public class MyFooController : Controller
     {{
         public void Run(string input, params object[] parameters)
         {{
@@ -347,7 +347,7 @@ namespace sample
 #Enable Warning BC50001
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFooController
         Inherits Controller
 
         Public Sub Run(input As System.String, ParamArray parameters() As Object)
@@ -402,7 +402,7 @@ End Namespace
 
 namespace sample
 {{
-    class MyFoo : Controller
+    public class MyFooController : Controller
     {{
         public async Task Run(string input, params object[] parameters)
         {{
@@ -429,7 +429,7 @@ namespace sample
 #Enable Warning BC50001
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFooController
         Inherits Controller
 
         Public Async Sub Run(input As System.String, ParamArray parameters() As Object)
@@ -483,7 +483,7 @@ namespace sample
         public DbSet<string> Test {{ get; set; }}
     }}
 
-    class MyFoo : Controller
+    public class MyFooController : Controller
     {{
         public void Run(string input, params object[] parameters)
         {{
@@ -508,7 +508,7 @@ Namespace sample
         Public Property Test As DbSet(Of String)
     End Class
 
-    Class MyFoo
+    Public Class MyFooController
         Inherits Controller
 
         Public Sub Run(input As System.String, ParamArray parameters() As Object)
@@ -557,7 +557,7 @@ using System.Web.Mvc;
 
 namespace sample
 {{
-    class MyFoo : Controller
+    public class MyFooController : Controller
     {{
         public void Run(string input, params object[] parameters)
         {{
@@ -574,7 +574,7 @@ Imports Microsoft.Data.Sqlite
 Imports System.Web.Mvc
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFooController
         Inherits Controller
 
         Public Sub Run(input As System.String, ParamArray parameters() As Object)

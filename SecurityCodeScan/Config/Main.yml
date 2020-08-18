@@ -173,8 +173,23 @@ PasswordValidatorRequiredProperties: [RequiredLength]
 
 TaintEntryPoints:
 
-  Microsoft.AspNetCore.Mvc.ControllerBase:
+  System.Object:
+    Dependency:
+      - Microsoft.AspNetCore.Mvc.ControllerBase
+      - Microsoft.AspNetCore.Mvc.ApiControllerAttribute
+      - Microsoft.AspNetCore.Mvc.ControllerAttribute
+      - Microsoft.AspNetCore.Mvc.NonControllerAttribute
+      - Microsoft.AspNetCore.Mvc.NonActionAttribute
+      - Microsoft.AspNetCore.Mvc.FromServicesAttribute
     Class:
+      Accessibility:
+        - public
+      Suffix:
+        Text: Controller
+        IncludeParent: true
+      IncludeAttributes:
+        - Microsoft.AspNetCore.Mvc.ControllerAttribute
+        - Microsoft.AspNetCore.Mvc.ApiControllerAttribute
       ExcludeAttributes:
         - Microsoft.AspNetCore.Mvc.NonControllerAttribute
     Method:
@@ -184,8 +199,18 @@ TaintEntryPoints:
       Static: false
       ExcludeAttributes:
         - Microsoft.AspNetCore.Mvc.NonActionAttribute
+    Parameter:
+      ExcludeAttributes:
+        - Microsoft.AspNetCore.Mvc.FromServicesAttribute
 
   System.Web.Mvc.ControllerBase:
+    Class:
+      Accessibility:
+        - public
+      Parent: System.Web.Mvc.ControllerBase
+      Suffix:
+        Text: Controller
+        IncludeParent: false
     Method:
       Accessibility:
         - public
@@ -195,11 +220,20 @@ TaintEntryPoints:
         - System.Web.Mvc.NonActionAttribute
 
   System.Web.Http.ApiController:
+    Class:
+      Accessibility:
+        - public
+      Parent: System.Web.Http.ApiController
+      Suffix:
+        Text: Controller
+        IncludeParent: false
     Method:
       Accessibility:
         - public
       IncludeConstructor: false
       Static: false
+      ExcludeAttributes:
+        - System.Web.Http.NonActionAttribute
 
 TaintSources:
 

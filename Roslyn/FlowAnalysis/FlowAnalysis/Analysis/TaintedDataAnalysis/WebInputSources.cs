@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
@@ -15,10 +17,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         public static ImmutableHashSet<SourceInfo> SourceInfos { get; }
 
         /// <summary>
+        /// Cached information if the specified symbol is a Asp.Net Core Controller: (compilation) -> ((class symbol) -> (is Controller))
+        /// </summary>
+        private static readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>> s_classIsControllerByCompilation =
+            new BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>>();
+
+        /// <summary>
         /// Statically constructs.
         /// </summary>
         static WebInputSources()
         {
+            var dependencyFullTypeNames = ImmutableArray.Create(WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerBase,
+                                                                WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerAttribute,
+                                                                WellKnownTypeNames.MicrosoftAspNetCoreMvcNonControllerAttribute,
+                                                                WellKnownTypeNames.MicrosoftAspNetCoreMvcNonActionAttribute,
+                                                                WellKnownTypeNames.MicrosoftAspNetCoreMvcFromServicesAttribute);
+
             var sourceInfosBuilder = PooledHashSet<SourceInfo>.GetInstance();
 
             sourceInfosBuilder.AddSourceInfoSpecifyingTaintedTargets(
@@ -31,179 +45,59 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     (
                         (methodName, arguments) =>
                             methodName == "HtmlEncode" &&
-                            arguments.Count() == 2,
+                            arguments.Length == 2,
                         new (string, string)[]{
                             ("s", "output"),
                         }
                     )
                 });
 
-            //sourceInfosBuilder.AddSourceInfoSpecifyingTaintedTargets(
-            //    WellKnownTypeNames.SystemWebMvcUrlHelper,
-            //    isInterface: false,
-            //    taintedProperties: null,
-            //    taintedMethodsNeedsPointsToAnalysis: null,
-            //    taintedMethodsNeedsValueContentAnalysis: null,
-            //    transferMethods: new (MethodMatcher, (string, string)[])[]{
-            //        (
-            //            (methodName, arguments) =>
-            //                methodName == "IsLocalUrl",
-            //            new (string, string)[]{
-            //                ("url", "url"),
-            //            }
-            //        )
-            //    });
-
-            sourceInfosBuilder.AddSourceInfoSpecifyingTaintedTargets(
-                WellKnownTypeNames.SystemWebHttpUtility,
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethodsNeedsPointsToAnalysis: null,
-                taintedMethodsNeedsValueContentAnalysis: null,
-                transferMethods: new (MethodMatcher, (string, string)[])[]{
-                    (
-                        (methodName, arguments) =>
-                            methodName == "HtmlEncode" &&
-                            arguments.Count() == 2,
-                        new (string, string)[]{
-                            ("s", "output"),
+            sourceInfosBuilder.AddSourceInfo(
+                // checking all System.Object derived types is expensive, so it first checks if MicrosoftAspNetCoreMvcControllerBase is resolvable
+                dependencyFullTypeNames,
+                WellKnownTypeNames.SystemObject,
+                 new ParameterMatcher[]{
+                    (parameter, wellKnownTypeProvider) => {
+                        if (!(parameter.ContainingSymbol is IMethodSymbol methodSymbol)
+                            || !(methodSymbol.ContainingSymbol is INamedTypeSymbol typeSymbol))
+                        {
+                            return false;
                         }
-                    )
-                });
 
-            sourceInfosBuilder.AddSourceInfoSpecifyingTaintedTargets(
-                WellKnownTypeNames.SystemTextEncodingsWebTextEncoder,
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethodsNeedsPointsToAnalysis: null,
-                taintedMethodsNeedsValueContentAnalysis: null,
-                transferMethods: new (MethodMatcher, (string, string)[])[]{
-                    (
-                        (methodName, arguments) =>
-                            methodName == "Encode" &&
-                            arguments.Count() == 2 || arguments.Count() == 4,
-                        new (string, string)[]{
-                            ("value", "output"),
+                        var classCache = s_classIsControllerByCompilation.GetOrCreateValue(wellKnownTypeProvider.Compilation, (compilation) => new ConcurrentDictionary<INamedTypeSymbol, bool>());
+                        if (!classCache.TryGetValue(typeSymbol, out bool isController))
+                        {
+                            if ((!typeSymbol.GetBaseTypesAndThis().Any(x => x.Name.EndsWith("Controller", System.StringComparison.Ordinal))
+                                && (!typeSymbol.HasDerivedTypeAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerAttribute))))
+                                || typeSymbol.HasDerivedTypeAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonControllerAttribute)))
+                            {
+                                isController = false;
+                            }
+                            else
+                            {
+                                isController = true;
+                            }
+
+                            classCache.TryAdd(typeSymbol, isController);
                         }
-                    )
-                });
 
-            sourceInfosBuilder.AddSourceInfo(
-                "PathTraversal",
-                 new ParameterMatcher[]{
-                    (parameter) => {
-                        ISymbol containingSymbol = parameter.ContainingSymbol;
-
-                        if (containingSymbol.DeclaredAccessibility != Accessibility.Public)
+                        if (!isController)
+                        {
                             return false;
+                        }
 
-                        if (containingSymbol.IsConstructor())
+                        if (methodSymbol.DeclaredAccessibility != Accessibility.Public
+                            || methodSymbol.IsConstructor()
+                            || methodSymbol.IsStatic
+                            || methodSymbol.HasDerivedMethodAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonActionAttribute)))
+                        {
                             return false;
+                        }
 
-                        return true;
-                    }
-                 });
-            sourceInfosBuilder.AddSourceInfo(
-                "TestInput",
-                 new ParameterMatcher[]{
-                    (parameter) => {
-                        ISymbol containingSymbol = parameter.ContainingSymbol;
-
-                        if (containingSymbol.DeclaredAccessibility != Accessibility.Public)
+                        if (parameter.HasAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcFromServicesAttribute)))
+                        {
                             return false;
-
-                        if (containingSymbol.IsConstructor())
-                            return false;
-
-                        return true;
-                    }
-                 });
-            sourceInfosBuilder.AddSourceInfo(
-                "sample.MyFoo",
-                 new ParameterMatcher[]{
-                    (parameter) => {
-                        ISymbol containingSymbol = parameter.ContainingSymbol;
-
-                        if (containingSymbol.DeclaredAccessibility != Accessibility.Public)
-                            return false;
-
-                        if (containingSymbol.IsConstructor())
-                            return false;
-
-                        return true;
-                    }
-                 });
-            sourceInfosBuilder.AddSourceInfo(
-                "OpenRedirect",
-                 new ParameterMatcher[]{
-                    (parameter) => {
-                        ISymbol containingSymbol = parameter.ContainingSymbol;
-
-                        if (containingSymbol.DeclaredAccessibility != Accessibility.Public)
-                            return false;
-
-                        if (containingSymbol.IsConstructor())
-                            return false;
-
-                        return true;
-                    }
-                 });
-            sourceInfosBuilder.AddSourceInfo(
-                "sample.Test",
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethods: new string[] {
-                    "GetUntrusted",
-                });
-            sourceInfosBuilder.AddSourceInfo(
-                "Exts",
-                isInterface: false,
-                taintedProperties: null,
-                taintedMethods: new string[] {
-                    "ExtensionMethod",
-                });
-
-            sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypeNames.SystemWebMvcControllerBase,
-                 new ParameterMatcher[]{
-                    (parameter) => {
-                        ISymbol containingSymbol = parameter.ContainingSymbol;
-
-                        if (containingSymbol.DeclaredAccessibility != Accessibility.Public)
-                            return false;
-
-                        if (containingSymbol.IsConstructor())
-                            return false;
-
-                        return true;
-                    }
-                 });
-            sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerBase,
-                 new ParameterMatcher[]{
-                    (parameter) => {
-                        ISymbol containingSymbol = parameter.ContainingSymbol;
-
-                        if (containingSymbol.DeclaredAccessibility != Accessibility.Public)
-                            return false;
-
-                        if (containingSymbol.IsConstructor())
-                            return false;
-
-                        return true;
-                    }
-                 });
-            sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypeNames.SystemWebHttpApiController,
-                 new ParameterMatcher[]{
-                    (parameter) => {
-                        ISymbol containingSymbol = parameter.ContainingSymbol;
-
-                        if (containingSymbol.DeclaredAccessibility != Accessibility.Public)
-                            return false;
-
-                        if (containingSymbol.IsConstructor())
-                            return false;
+                        }
 
                         return true;
                     }

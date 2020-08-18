@@ -219,10 +219,10 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// Gets the first ancestor of this operation with:
         ///  1. Specified OperationKind
-        ///  2. If <paramref name="predicateOpt"/> is non-null, it succeeds for the ancestor.
+        ///  2. If <paramref name="predicate"/> is non-null, it succeeds for the ancestor.
         /// Returns null if there is no such ancestor.
         /// </summary>
-        public static TOperation? GetAncestor<TOperation>(this IOperation root, OperationKind ancestorKind, Func<TOperation, bool>? predicateOpt = null)
+        public static TOperation? GetAncestor<TOperation>(this IOperation root, OperationKind ancestorKind, Func<TOperation, bool>? predicate = null)
             where TOperation : class, IOperation
         {
             if (root == null)
@@ -238,9 +238,9 @@ namespace Analyzer.Utilities.Extensions
 
             if (ancestor != null)
             {
-                if (predicateOpt != null && !predicateOpt((TOperation)ancestor))
+                if (predicate != null && !predicate((TOperation)ancestor))
                 {
-                    return GetAncestor(ancestor, ancestorKind, predicateOpt);
+                    return GetAncestor(ancestor, ancestorKind, predicate);
                 }
                 return (TOperation)ancestor;
             }
@@ -679,6 +679,38 @@ namespace Analyzer.Utilities.Extensions
             return thrownObject?.Type;
         }
 
+        /// <summary>
+        /// Determines if the one of the invocation's arguments' values is an argument of the specified type, and if so, find
+        /// the first one.
+        /// </summary>
+        /// <param name="invocationOperation">Invocation operation whose arguments to look through.</param>
+        /// <param name="firstFoundArgument">First found IArgumentOperation.Value of the specified type, order by the method's
+        /// signature's parameters (as opposed to how arguments are specified when invoked).</param>
+        /// <returns>True if one is found, false otherwise.</returns>
+        /// <remarks>
+        /// IInvocationOperation.Arguments are ordered by how they are specified, which may differ from the order in the method
+        /// signature if the caller specifies arguments by name. This will find the first typeof operation ordered by the
+        /// method signature's parameters.
+        /// </remarks>
+        public static bool HasArgument<TOperation>(
+            this IInvocationOperation invocationOperation,
+            [NotNullWhen(returnValue: true)] out TOperation? firstFoundArgument)
+            where TOperation : class, IOperation
+        {
+            firstFoundArgument = null;
+            int minOrdinal = int.MaxValue;
+            foreach (IArgumentOperation argumentOperation in invocationOperation.Arguments)
+            {
+                if (argumentOperation.Parameter.Ordinal < minOrdinal && argumentOperation.Value is TOperation to)
+                {
+                    minOrdinal = argumentOperation.Parameter.Ordinal;
+                    firstFoundArgument = to;
+                }
+            }
+
+            return firstFoundArgument != null;
+        }
+
         public static bool HasAnyExplicitDescendant(this IOperation operation, Func<IOperation, bool>? descendIntoOperation = null)
         {
             var stack = ArrayBuilder<IEnumerator<IOperation>>.GetInstance();
@@ -731,6 +763,24 @@ namespace Analyzer.Utilities.Extensions
                 IAssignmentOperation { Target: var target } when target == potentialLeftSide => true,
                 _ => false,
             };
+        }
+
+        public static IArgumentOperation GetArgumentForParameterAtIndex(
+            this ImmutableArray<IArgumentOperation> arguments,
+            int parameterIndex)
+        {
+            Debug.Assert(parameterIndex >= 0);
+            Debug.Assert(parameterIndex < arguments.Length);
+
+            foreach (var argument in arguments)
+            {
+                if (argument.Parameter.Ordinal == parameterIndex)
+                {
+                    return argument;
+                }
+            }
+
+            throw new InvalidOperationException();
         }
     }
 }

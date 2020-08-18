@@ -28,7 +28,7 @@ namespace SecurityCodeScan.Test
 using System;
 using System.Security.Cryptography;
 
-class WeakRandom
+public class WeakRandom
 {
     static String generateSecureToken()
     {
@@ -46,7 +46,7 @@ class WeakRandom
 Imports System
 Imports System.Security.Cryptography
 
-Class WeakRandom
+Public Class WeakRandom
     Private Shared Function generateSecureToken() As String
         Dim rnd As RandomNumberGenerator = RandomNumberGenerator.Create()
         Dim buffer As Byte() = New Byte(15) {}
@@ -70,7 +70,7 @@ End Class
             var cSharpTest = $@"
 using {alias};
 
-class WeakRandom
+public class WeakRandom
 {{
     static string generateWeakToken()
     {{
@@ -83,7 +83,7 @@ class WeakRandom
             var visualBasicTest = $@"
 Imports {alias}
 
-Class WeakRandom
+Public Class WeakRandom
     Private Shared Function generateWeakToken() As String
         Dim rnd As New {name}()
         Return rnd.Next().ToString()

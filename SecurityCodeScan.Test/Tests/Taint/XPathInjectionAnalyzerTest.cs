@@ -99,7 +99,7 @@ namespace SecurityCodeScan.Test.Taint
 
 namespace sample
 {{
-    class MyFoo
+    public class MyFoo
     {{
         public void Run(XmlDocument doc, XPathNavigator nav, XNode element, string input)
         {{
@@ -117,7 +117,7 @@ namespace sample
 #Enable Warning BC50001
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFoo
         Public Sub Run(doc As XmlDocument, nav As XPathNavigator, element As XNode, input As System.String)
             {sink}
         End Sub

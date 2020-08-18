@@ -362,8 +362,19 @@ namespace SecurityCodeScan.Config
         public List<string> ExcludeAttributes { get; set; }
     }
 
+    internal class Suffix
+    {
+        public string Text { get; set; }
+
+        public bool IncludeParent { get; set; }
+    }
+
     internal class Class
     {
+        public Suffix Suffix { get; set; }
+
+        public string Parent { get; set; }
+
         public List<Accessibility> Accessibility { get; set; }
 
         public bool? IncludeConstructor { get; set; }
@@ -371,13 +382,22 @@ namespace SecurityCodeScan.Config
         public bool? Static { get; set; }
 
         public List<string> ExcludeAttributes { get; set; }
+        public List<string> IncludeAttributes { get; set; }
+    }
+
+    internal class Parameter
+    {
+        public List<string> ExcludeAttributes { get; set; }
     }
 
     internal class TaintEntryPointData
     {
+        public List<string> Dependency { get; set; }
         public Class Class { get; set; }
 
         public Method Method { get; set; }
+
+        public Parameter Parameter { get; set; }
     }
 
     internal class TaintSource

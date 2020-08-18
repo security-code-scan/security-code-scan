@@ -38,7 +38,7 @@ using System.Web.Mvc;
 
 namespace VulnerableApp
 {
-    class ProcessExec : Controller
+    public class ProcessExecController : Controller
     {
         public void TestCommandInject(string input)
         {
@@ -53,7 +53,7 @@ Imports System.Diagnostics
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
-    Class ProcessExec
+    Public Class ProcessExecController
         Inherits Controller
 
         Public Sub TestCommandInject(input As String)
@@ -78,7 +78,7 @@ using System.Web.Mvc;
 
 namespace VulnerableApp
 {
-    class ProcessExec : Controller
+    public class ProcessExecController : Controller
     {
         public void TestCommandInject(string input)
         {
@@ -94,7 +94,7 @@ Imports System.Diagnostics
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
-    Class ProcessExec
+    Public Class ProcessExecController
         Inherits Controller
 
         Public Sub TestCommandInject(input As String)
@@ -121,7 +121,7 @@ using System.Web.Mvc;
 
 namespace VulnerableApp
 {{
-    class ProcessExec : Controller
+    public class ProcessExecController : Controller
     {{
         public void TestCommandInject(string input)
         {{
@@ -139,7 +139,7 @@ Imports System.Diagnostics
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
-    Class ProcessExec
+    Public Class ProcessExecController
         Inherits Controller
 
         Public Sub TestCommandInject(input As String)
@@ -179,7 +179,7 @@ using System.Web.Mvc;
 
 namespace VulnerableApp
 {
-    class ProcessExec : Controller
+    public class ProcessExecController : Controller
     {
         public void TestCommandInject(string input)
         {
@@ -195,7 +195,7 @@ Imports System.Diagnostics
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
-    Class ProcessExec
+    Public Class ProcessExecController
         Inherits Controller
 
         Public Sub TestCommandInject(input As String)
@@ -220,7 +220,7 @@ using System.Web.Mvc;
 
 namespace VulnerableApp
 {
-    class ProcessExec : Controller
+    public class ProcessExecController : Controller
     {
         public void TestCommandInject(string input)
         {
@@ -235,7 +235,7 @@ Imports System.Diagnostics
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
-    Class ProcessExec
+    Public Class ProcessExecController
         Inherits Controller
 
         Public Sub TestCommandInject(input As String)
@@ -265,7 +265,7 @@ using System.Web.Mvc;
 
 namespace VulnerableApp
 {
-    class ProcessExec : Controller
+    public class ProcessExecController : Controller
     {
         public void TestCommandInject(string input)
         {
@@ -281,7 +281,7 @@ Imports System.Diagnostics
 Imports System.Web.Mvc
 
 Namespace VulnerableApp
-    Class ProcessExec
+    Public Class ProcessExecController
         Inherits Controller
 
         Public Sub TestCommandInject(input As String)

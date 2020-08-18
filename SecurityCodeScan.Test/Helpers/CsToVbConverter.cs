@@ -29,6 +29,9 @@ namespace SecurityCodeScan.Test.Helpers
             vb.Replace("[", "(");
             vb.Replace("]", ")");
 
+            vb.Replace("public ",   "Public ");
+            vb.Replace("internal ", "Friend ");
+
             vbString = vb.ToString();
             return vbString;
         }

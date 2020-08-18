@@ -48,7 +48,7 @@ namespace SecurityCodeScan.Test.Taint
 
 namespace VulnerableApp
 {{
-    public class LyncInjectionTP : Controller
+    public class LyncInjectionTPController : Controller
     {{
         public int Run(DataContext ctx, string input) {{
             {sink};
@@ -66,7 +66,7 @@ namespace VulnerableApp
 #Enable Warning BC50001
 
 Namespace VulnerableApp
-    Public Class LyncInjectionTP
+    Public Class LyncInjectionTPController
         Inherits Controller
 
         Public Function Run(ctx As DataContext, input As String) As Integer

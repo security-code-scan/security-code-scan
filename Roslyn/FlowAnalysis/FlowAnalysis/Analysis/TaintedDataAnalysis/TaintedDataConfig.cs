@@ -189,8 +189,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.ProcessCommand:
                 case SinkKind.Xss:
                 case SinkKind.Regex:
-                case SinkKind.LdapFilter:
-                case SinkKind.LdapPath:
+                case SinkKind.Ldap:
                 case SinkKind.Redirect:
                 case SinkKind.XPath:
                 case SinkKind.Xml:
@@ -226,29 +225,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.Xss:
                     return XssSanitizers.SanitizerInfos;
 
-                case SinkKind.LdapPath:
-                    return LdapSanitizers.PathSanitizerInfos;
-
-                case SinkKind.LdapFilter:
-                    return LdapSanitizers.FilterSanitizerInfos;
+                case SinkKind.Ldap:
+                    return LdapSanitizers.SanitizerInfos;
 
                 case SinkKind.Xml:
                     return PrimitiveTypeConverterSanitizers.SanitizerInfos.Union(XmlSanitizers.SanitizerInfos);
 
                 case SinkKind.Dll:
                 case SinkKind.InformationDisclosure:
+                case SinkKind.FilePathInjection:
                 case SinkKind.ProcessCommand:
                 case SinkKind.Regex:
+                case SinkKind.Redirect:
                 case SinkKind.Xaml:
                 case SinkKind.HardcodedEncryptionKey:
                 case SinkKind.HardcodedCertificate:
                     return ImmutableHashSet<SanitizerInfo>.Empty;
-
-                case SinkKind.FilePathInjection:
-                    return FilePathInjectionSanitizers.SanitizerInfos;
-
-                case SinkKind.Redirect:
-                    return RedirectSanitizers.SanitizerInfos;
 
                 case SinkKind.ZipSlip:
                     return ZipSlipSanitizers.SanitizerInfos;
@@ -282,11 +274,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.Regex:
                     return RegexSinks.SinkInfos;
 
-                case SinkKind.LdapPath:
-                    return LdapSinks.PathSinkInfos;
-
-                case SinkKind.LdapFilter:
-                    return LdapSinks.FilterSinkInfos;
+                case SinkKind.Ldap:
+                    return LdapSinks.SinkInfos;
 
                 case SinkKind.Redirect:
                     return RedirectSinks.SinkInfos;

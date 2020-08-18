@@ -111,7 +111,7 @@
 //    using System.Web.Mvc;
 //#pragma warning restore 8019
 
-//class MyController : Controller
+//public class MyController : Controller
 //{{
 //    public void Run(string path, IEnumerable<String> contents, bool flag,
 //                    FileMode fileMode, FileAccess access, FileShare share, byte[] bytes,
@@ -138,7 +138,7 @@
 //    Imports System.Web.Mvc
 //#Enable Warning BC50001
 
-//Class MyController
+//Public Class MyController
 //    Inherits Controller
 
 //    Public Sub Run(path As String, contents As IEnumerable(Of String), flag As Boolean, fileMode As FileMode,
@@ -249,7 +249,7 @@
 //    using System.Web.Mvc;
 //#pragma warning restore 8019
 
-//class MyController : Controller
+//public class MyController : Controller
 //{{
 //    public void Run(string path, IEnumerable<String> contents, bool flag,
 //                    FileMode fileMode, FileAccess access, FileShare share, byte[] bytes,
@@ -276,7 +276,7 @@
 //    Imports System.Web.Mvc
 //#Enable Warning BC50001
 
-//Class MyController
+//Public Class MyController
 //    Inherits Controller
 
 //    Public Sub Run(path As String, contents As IEnumerable(Of String), flag As Boolean, fileMode As FileMode,
@@ -306,7 +306,7 @@
 //    using System.Web.Mvc;
 //#pragma warning restore 8019
 
-//class MyController : Controller
+//public class MyController : Controller
 //{{
 //    public void Run(string textInput, Stream streamInput, TextReader textReaderInput, XmlReader xmlReaderInput)
 //    {{
@@ -322,7 +322,7 @@
 //    Imports System.Web.Mvc
 //#Enable Warning BC50001
 
-//Class MyController
+//Public Class MyController
 //    Inherits Controller
 
 //    Public Sub Run(textInput As String, streamInput As Stream, textReaderInput As TextReader, xmlReaderInput As XmlReader)

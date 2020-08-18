@@ -63,7 +63,7 @@ namespace SecurityCodeScan.Test.Taint
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 
-class A
+public class A
 {
     public T DeepClone<T>(T obj)
     {
@@ -83,7 +83,7 @@ class A
 Imports System.Runtime.Serialization.Formatters.Binary
 Imports System.IO
 
-Class A
+Public Class A
 
     Public Function DeepClone(Of T)(ByVal obj As T) As T
         Using ms = New MemoryStream()
@@ -122,7 +122,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         public void TestDeserialization(Stream input)
         {{
@@ -140,7 +140,7 @@ Imports System.IO
 Imports System.Runtime.Serialization.Formatters.Binary
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(input As Stream)
             Dim formatter = New BinaryFormatter()
             formatter.{method}(input{vbAdditionalParams})
@@ -170,7 +170,7 @@ using System.Messaging;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         public void TestDeserialization(Message input)
         {
@@ -185,7 +185,7 @@ namespace VulnerableApp
 Imports System.Messaging
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(input As Message)
             Dim formatter = New BinaryMessageFormatter()
             formatter.Read(input)
@@ -218,7 +218,7 @@ using System.Runtime.Serialization.Formatters.Soap;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         public void TestDeserialization(Stream input)
         {{
@@ -236,7 +236,7 @@ Imports System.IO
 Imports System.Runtime.Serialization.Formatters.Soap
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(input As Stream)
             Dim formatter = New SoapFormatter()
             formatter.Deserialize(input{vbAdditionalParams})
@@ -268,7 +268,7 @@ using System.Web.UI;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         public void TestDeserialization({inputType} input)
         {{
@@ -283,7 +283,7 @@ namespace VulnerableApp
 Imports System.Web.UI
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(input As {inputType})
             Dim formatter = New ObjectStateFormatter()
             formatter.Deserialize(input)
@@ -319,7 +319,7 @@ using System.Runtime.Serialization;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         public void TestDeserialization({inputType} input)
         {{
@@ -334,7 +334,7 @@ namespace VulnerableApp
 Imports System.Runtime.Serialization
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(input As {inputType})
             Dim formatter = New NetDataContractSerializer()
             formatter.{methodName}(input{additionalParams})
@@ -369,7 +369,7 @@ using System.Runtime.Serialization;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         public void TestDeserialization({inputType} input)
         {{
@@ -384,7 +384,7 @@ namespace VulnerableApp
 Imports System.Runtime.Serialization
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(input As {inputType})
             Dim formatter = New DataContractSerializer(GetType(Test))
             formatter.ReadObject(input{additionalParams})
@@ -415,7 +415,7 @@ using System.Runtime.Serialization;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         public void TestDeserialization(Type objectType)
         {
@@ -430,7 +430,7 @@ Imports System
 Imports System.Runtime.Serialization
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(objectType as Type)
             Dim formatter = New DataContractSerializer(objectType)
         End Sub
@@ -464,7 +464,7 @@ using System.Runtime.Serialization.Json;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         public void TestDeserialization({inputType} input)
         {{
@@ -479,7 +479,7 @@ namespace VulnerableApp
 Imports System.Runtime.Serialization.Json
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(input As {inputType})
             Dim formatter = New DataContractJsonSerializer(GetType(Test))
             formatter.ReadObject(input{additionalParams})
@@ -510,7 +510,7 @@ using System.Runtime.Serialization.Json;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         public void TestDeserialization(Type objectType)
         {
@@ -525,7 +525,7 @@ Imports System
 Imports System.Runtime.Serialization.Json
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(objectType as Type)
             Dim formatter = New DataContractJsonSerializer(objectType)
         End Sub
@@ -560,7 +560,7 @@ using System.Xml.Serialization;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         public void TestDeserialization({inputType} input)
         {{
@@ -575,7 +575,7 @@ namespace VulnerableApp
 Imports System.Xml.Serialization
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(input As {inputType})
             Dim formatter = New XmlSerializer(GetType(Test))
             formatter.Deserialize(input{additionalParams})
@@ -606,7 +606,7 @@ using System.Xml.Serialization;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         public void TestDeserialization(Type objectType)
         {
@@ -621,7 +621,7 @@ Imports System
 Imports System.Xml.Serialization
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(objectType as Type)
             Dim formatter = New XmlSerializer(objectType)
         End Sub
@@ -650,7 +650,7 @@ using System.Messaging;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         public void TestDeserialization(Message input)
         {
@@ -665,7 +665,7 @@ namespace VulnerableApp
 Imports System.Messaging
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(input As Message)
             Dim formatter = New XmlMessageFormatter()
             formatter.Read(input)
@@ -698,7 +698,7 @@ using System.Web.UI;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         public void TestDeserialization({inputType} input)
         {{
@@ -713,7 +713,7 @@ namespace VulnerableApp
 Imports System.Web.UI
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(input As {inputType})
             Dim formatter = New LosFormatter()
             formatter.Deserialize(input)
@@ -743,7 +743,7 @@ using fastJSON;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         public void TestDeserialization(string input)
         {
@@ -757,7 +757,7 @@ namespace VulnerableApp
 Imports fastJSON
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(input As String)
             JSON.ToObject(input)
         End Sub
@@ -786,7 +786,7 @@ using fastJSON;
 
 namespace VulnerableApp
 {
-    class Test
+    public class Test
     {
         public void TestDeserialization(string input)
         {
@@ -800,7 +800,7 @@ namespace VulnerableApp
 Imports fastJSON
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(input As String)
             JSON.ToObject(Of Test)(input)
         End Sub
@@ -832,7 +832,7 @@ using ServiceStack.Text;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         public void TestDeserialization({firstParam} param1, {secondParam} param2)
         {{
@@ -846,7 +846,7 @@ namespace VulnerableApp
 Imports ServiceStack.Text
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(param1 As {firstParam}, param2 as {secondParam})
             JsonSerializer.{method}(param1, param2)
         End Sub
@@ -881,7 +881,7 @@ using ServiceStack.Text;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         public void TestDeserialization({inputType} input)
         {{
@@ -895,7 +895,7 @@ namespace VulnerableApp
 Imports ServiceStack.Text
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(input As {inputType})
             JsonSerializer.{visualBasicMethod}(input)
         End Sub
@@ -927,7 +927,7 @@ using ServiceStack.Text;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         public void TestDeserialization({firstParam} param1, {secondParam} param2)
         {{
@@ -941,7 +941,7 @@ namespace VulnerableApp
 Imports ServiceStack.Text
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(param1 As {firstParam}, param2 as {secondParam})
             TypeSerializer.{method}(param1, param2)
         End Sub
@@ -976,7 +976,7 @@ using ServiceStack.Text;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         public void TestDeserialization({inputType} input)
         {{
@@ -990,7 +990,7 @@ namespace VulnerableApp
 Imports ServiceStack.Text
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(input As {inputType})
             TypeSerializer.{visualBasicMethod}(input)
         End Sub
@@ -1022,7 +1022,7 @@ using ServiceStack.Text;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         public void TestDeserialization({inputType} input, Type type)
         {{
@@ -1037,7 +1037,7 @@ Imports System
 Imports ServiceStack.Text
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(input As {inputType}, type as Type)
             CsvSerializer.{method}(type, input)
         End Sub
@@ -1072,7 +1072,7 @@ using ServiceStack.Text;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         public void TestDeserialization({inputType} input)
         {{
@@ -1086,7 +1086,7 @@ namespace VulnerableApp
 Imports ServiceStack.Text
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(input As {inputType})
             CsvSerializer.{visualBasicMethod}(input)
         End Sub
@@ -1117,7 +1117,7 @@ using ServiceStack.Text;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         public void TestDeserialization({firstParam} param1, {secondParam} param2)
         {{
@@ -1131,7 +1131,7 @@ namespace VulnerableApp
 Imports ServiceStack.Text
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(param1 As {firstParam}, param2 as {secondParam})
             XmlSerializer.{method}(param1, param2)
         End Sub
@@ -1166,7 +1166,7 @@ using ServiceStack.Text;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         public void TestDeserialization({inputType} input)
         {{
@@ -1180,7 +1180,7 @@ namespace VulnerableApp
 Imports ServiceStack.Text
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(input As {inputType})
             XmlSerializer.{visualBasicMethod}(input)
         End Sub
@@ -1211,7 +1211,7 @@ using System.Resources;
 
 namespace VulnerableApp
 {{
-    class Test
+    public class Test
     {{
         public void TestDeserialization({inputType} input)
         {{
@@ -1225,7 +1225,7 @@ namespace VulnerableApp
 Imports System.Resources
 
 Namespace VulnerableApp
-    Class Test
+    Public Class Test
         Public Sub TestDeserialization(input As {inputType})
             Dim formatter = New ResourceReader(input)
         End Sub

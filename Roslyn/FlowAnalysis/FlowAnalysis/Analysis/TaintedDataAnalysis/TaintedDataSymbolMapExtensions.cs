@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
@@ -137,13 +136,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <param name="sourceSymbolMap"></param>
         /// <param name="parameterSymbol"></param>
         /// <returns></returns>
-        public static bool IsSourceParameter(this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap, IParameterSymbol parameterSymbol)
+        public static bool IsSourceParameter(this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap, IParameterSymbol parameterSymbol, WellKnownTypeProvider wellKnownTypeProvider)
         {
             ISymbol containingSymbol = parameterSymbol.ContainingSymbol;
             foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(containingSymbol.ContainingType))
             {
-                if (sourceInfo.TaintedArguments.Any(match => match(parameterSymbol)))
+                if (sourceInfo.TaintedArguments.Any(match => match(parameterSymbol, wellKnownTypeProvider)))
+                {
                     return true;
+                }
             }
 
             return false;
@@ -183,7 +184,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap,
             IMethodSymbol method,
             ImmutableArray<IArgumentOperation> arguments,
-            ImmutableArray<string> taintedParameterNames,
+            ISet<string> taintedParameterNames,
             [NotNullWhen(returnValue: true)] out PooledHashSet<(string, string)>? taintedParameterPairs)
         {
             taintedParameterPairs = null;

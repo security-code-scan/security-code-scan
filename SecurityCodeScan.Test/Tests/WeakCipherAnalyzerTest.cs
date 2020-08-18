@@ -34,7 +34,7 @@ namespace SecurityCodeScan.Test
 using System.IO;
 using System.Security.Cryptography;
 
-class WeakCipherAlgorithm
+public class WeakCipherAlgorithm
     {
     static void EncryptTextToFileTripleDES(string Data, string FileName, byte[] Key, byte[] IV)
         {
@@ -70,7 +70,7 @@ class WeakCipherAlgorithm
 Imports System.IO
 Imports System.Security.Cryptography
 
-Class WeakCipherAlgorithm
+Public Class WeakCipherAlgorithm
     Private Shared Sub EncryptTextToFileTripleDES(Data As String, FileName As String, Key As Byte(), IV As Byte())
         ' Create or open the specified file.
         Dim fStream As FileStream = File.Open(FileName, FileMode.OpenOrCreate)
@@ -110,7 +110,7 @@ End Class
 using System.IO;
 using System.Security.Cryptography;
 
-class WeakCipherAlgorithm
+public class WeakCipherAlgorithm
 {
 
         private static byte[] EncryptDataDES(string inName, string outName, byte[] desKey, byte[] desIV, string Data)
@@ -149,7 +149,7 @@ class WeakCipherAlgorithm
 Imports System.IO
 Imports System.Security.Cryptography
 
-Class WeakCipherAlgorithm
+Public Class WeakCipherAlgorithm
 
     Private Shared Function EncryptDataDES(inName As String, outName As String, desKey As Byte(), desIV As Byte(), Data As String) As Byte()
         Dim zeroIV As Byte() = New Byte() {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
@@ -190,7 +190,7 @@ End Class
 using System.IO;
 using System.Security.Cryptography;
 
-class WeakCipherAlgorithm
+public class WeakCipherAlgorithm
 {
 
         private static byte[] EncryptDataRC2(string inName, string outName, byte[] desKey, byte[] desIV, string Data)
@@ -229,7 +229,7 @@ class WeakCipherAlgorithm
 Imports System.IO
 Imports System.Security.Cryptography
 
-Class WeakCipherAlgorithm
+Public Class WeakCipherAlgorithm
 
     Private Shared Function EncryptDataRC2(inName As String, outName As String, desKey As Byte(), desIV As Byte(), Data As String) As Byte()
         Dim zeroIV As Byte() = New Byte() {0, 0, 0, 0, 0, 0, _
@@ -275,7 +275,7 @@ End Class
 using System.IO;
 using System.Security.Cryptography;
 
-class WeakCipherAlgorithm
+public class WeakCipherAlgorithm
 {
     private static void EncryptData(string inName, string outName, byte[] desKey, byte[] desIV)
     {
@@ -313,7 +313,7 @@ class WeakCipherAlgorithm
 Imports System.IO
 Imports System.Security.Cryptography
 
-Class WeakCipherAlgorithm
+Public Class WeakCipherAlgorithm
     Private Shared Sub EncryptData(inName As String, outName As String, desKey As Byte(), desIV As Byte())
         'Create the file streams to handle the input and output files.
         Dim fin As New FileStream(inName, FileMode.Open, FileAccess.Read)
@@ -359,7 +359,7 @@ End Class
 using System.IO;
 using System.Security.Cryptography;
 
-class WeakCipherAlgorithm
+public class WeakCipherAlgorithm
 {
     private static void EncryptData(string inName, string outName, byte[] rc2Key, byte[] rc2IV)
     {
@@ -397,7 +397,7 @@ class WeakCipherAlgorithm
 Imports System.IO
 Imports System.Security.Cryptography
 
-Class WeakCipherAlgorithm
+Public Class WeakCipherAlgorithm
     Private Shared Sub EncryptData(inName As String, outName As String, rc2Key As Byte(), rc2IV As Byte())
         'Create the file streams to handle the input and output files.
         Dim fin As New FileStream(inName, FileMode.Open, FileAccess.Read)
@@ -444,7 +444,7 @@ using System.IO;
 using System.Security.Cryptography;
 using CS = System.Security.Cryptography.CryptoStream;
 
-class WeakCipherAlgorithm
+public class WeakCipherAlgorithm
 {
     private static void EncryptData(string inName, string outName, byte[] desKey, byte[] desIV)
     {
@@ -483,7 +483,7 @@ Imports System.IO
 Imports System.Security.Cryptography
 Imports CS = System.Security.Cryptography.CryptoStream
 
-Class WeakCipherAlgorithm
+Public Class WeakCipherAlgorithm
     Private Shared Sub EncryptData(inName As String, outName As String, desKey As Byte(), desIV As Byte())
         'Create the file streams to handle the input and output files.
         Dim fin As New FileStream(inName, FileMode.Open, FileAccess.Read)

@@ -75,11 +75,6 @@ namespace SecurityCodeScan.Analyzers.Utils
             return symbol is ITypeSymbol typeSymbol && typeSymbol.TypeKind == TypeKind.Error;
         }
 
-        public static bool IsConstructor(this ISymbol symbol)
-        {
-            return (symbol as IMethodSymbol)?.MethodKind == MethodKind.Constructor;
-        }
-
         public static bool IsDestructor(this ISymbol symbol)
         {
             return (symbol as IMethodSymbol)?.MethodKind == MethodKind.Destructor;

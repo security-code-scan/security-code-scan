@@ -64,7 +64,7 @@ namespace SecurityCodeScan.Test
     using System.Net.Http;
 #pragma warning restore 8019
 
-class WeakCert
+public class WeakCert
 {{
     private bool Unknown;
 
@@ -114,7 +114,7 @@ class WeakCert
     using System.Net.Http;
 #pragma warning restore 8019
 
-class WeakCert
+public class WeakCert
 {{
     private bool Unknown;
 
@@ -193,7 +193,7 @@ AuditMode: true
     using System.Net.Http;
 #pragma warning restore 8019
 
-class WeakCert
+public class WeakCert
 {{
     public void DoGetRequest()
     {{
@@ -245,7 +245,7 @@ class WeakCert
     Imports System.Net.Http
 #Enable Warning BC50001
 
-Class OkCert
+Public Class OkCert
     Public Sub DoGetRequest()
         {factory}
         {payload}

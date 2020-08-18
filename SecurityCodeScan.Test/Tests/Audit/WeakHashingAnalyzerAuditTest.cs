@@ -28,7 +28,7 @@ namespace SecurityCodeScan.Test.Audit
             var cSharpTest = $@"
 using System.Security.Cryptography;
 
-class WeakHashing
+public class WeakHashing
 {{
     static void Foo(string name)
     {{
@@ -40,7 +40,7 @@ class WeakHashing
             var visualBasicTest = $@"
 Imports System.Security.Cryptography
 
-Class WeakHashing
+Public Class WeakHashing
     Private Shared Sub Foo(name As System.String)
         Dim sha As HashAlgorithm = {create}
     End Sub

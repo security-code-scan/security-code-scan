@@ -55,7 +55,7 @@ namespace sample
         public DbSet<string> TestField;
     }}
 
-    class MyFoo
+    public class MyFoo
     {{
         private void Sink(string s) {{}}
 
@@ -81,7 +81,7 @@ Namespace sample
         Public          TestField As DbSet(Of String)
     End Class
 
-    Class MyFoo
+    Public Class MyFoo
         Private Sub Sink(s As String)
         End Sub
 
@@ -131,7 +131,7 @@ TaintSources:
         public async Task DynamicArgument()
         {
             var cSharpTest = @"
-class Test
+public class Test
 {
     public void Action(string foo)
     {
@@ -186,7 +186,7 @@ TaintEntryPoints:
             var cSharpTest = $@"
 using System.IO;
 
-class PathTraversal
+public class PathTraversal
 {{
     private {modifier}string GetPath()
     {{
@@ -204,7 +204,7 @@ class PathTraversal
             var visualBasicTest = $@"
 Imports System.IO
 
-Class PathTraversal
+Public Class PathTraversal
     Private {modifier}Function GetPath() As System.String
         return Nothing
     End Function
@@ -225,7 +225,7 @@ End Class
             var cSharpTest = @"
 namespace sample
 {
-    class MyFoo
+    public class MyFoo
     {
         int x = 1;
 
@@ -249,7 +249,7 @@ namespace sample
 
             var visualBasicTest = @"
 Namespace sample
-    Friend Class MyFoo
+    Public Class MyFoo
         Private x As Integer = 1
         Private y As Integer = 0
 
@@ -281,12 +281,12 @@ End Namespace
             var cSharpTest = @"
 namespace sample
 {
-    class B
+    public class B
     {
         public A z = null;
     }
 
-    class A
+    public class A
     {
         public B y = null;
 
@@ -303,7 +303,7 @@ namespace sample
 
             var visualBasicTest = @"
 Namespace sample
-    Friend Class MyFoo
+    Public Class MyFoo
         Private x As Integer = 1
         Private y As Integer = 0
 
@@ -335,7 +335,7 @@ End Namespace
             var cSharpTest = @"
 namespace sample
 {
-    class A
+    public class A
     {
         public A y = null;
 
@@ -350,7 +350,7 @@ namespace sample
 
             var visualBasicTest = @"
 Namespace sample
-    Class A
+    Public Class A
         Public y As A = Nothing
 
         Public Shared Sub Run()
@@ -377,7 +377,7 @@ End Namespace
             var cSharpTest = @"
 namespace sample
 {
-    class TestClass
+    public class TestClass
     {
         public TestClass child;
 
@@ -398,7 +398,7 @@ namespace sample
 
             var visualBasicTest = @"
 Namespace sample
-    Friend Class TestClass
+    Public Class TestClass
         Public child As TestClass
 
         Public Function foo() As TestClass
@@ -436,7 +436,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {
-    class MyFoo
+    public class MyFoo
     {
         public static void Run()
         {
@@ -450,7 +450,7 @@ namespace sample
 Imports System.Data.SqlClient
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFoo
         Public Shared Sub Run()
             Dim com As New SqlCommand With {.CommandText = ""select * from Products""}
         End Sub
@@ -476,7 +476,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class MyFoo
+    public class MyFoo
     {{
         public void Run(string sql)
         {{
@@ -484,7 +484,7 @@ namespace sample
         }}
     }}
 
-    class MyFoo2
+    public class MyFoo2
     {{
         public static string foo2(string a)
         {{
@@ -498,13 +498,13 @@ namespace sample
 Imports System.Data.SqlClient
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFoo
         Public Sub Run(sql As System.String)
             Dim com As New SqlCommand With {{.CommandText = {right}}}
         End Sub
     End Class
 
-    Class MyFoo2
+    Public Class MyFoo2
         Public Shared Function foo2(a As String) As String
             Return a
         End Function
@@ -536,7 +536,7 @@ TaintEntryPoints:
             var cSharpTest = @"
 using System.IO;
 
-class PathTraversal
+public class PathTraversal
 {
     public static void Run()
     {
@@ -548,7 +548,7 @@ class PathTraversal
             var visualBasicTest = @"
 Imports System.IO
 
-Class PathTraversal
+Public Class PathTraversal
     Public Shared Sub Run()
         File.WriteAllBytes(""a.txt"", new MemoryStream With {.Capacity = 10}.ToArray())
     End Sub
@@ -595,7 +595,7 @@ End Class
             var cSharpTest = $@"
 using System.IO;
 
-class PathTraversal
+public class PathTraversal
 {{
     public static void Run()
     {{
@@ -609,7 +609,7 @@ class PathTraversal
             var visualBasicTest = $@"
 Imports System.IO
 
-Class PathTraversal
+Public Class PathTraversal
     Public Shared Sub Run()
 #Disable Warning BC40000
         {method}
@@ -632,7 +632,7 @@ End Class
             var cSharpTest = @"
 using System.IO;
 
-class PathTraversal
+public class PathTraversal
 {
     public void Run(string input)
     {
@@ -644,7 +644,7 @@ class PathTraversal
             var visualBasicTest = @"
 Imports System.IO
 
-Class PathTraversal
+Public Class PathTraversal
     Public Sub Run(input As System.String)
         File.OpenRead(input.ToString())
     End Sub
@@ -677,7 +677,7 @@ TaintEntryPoints:
             var cSharpTest = @"
 using System.Data.SqlClient;
 
-class SqlTransferTesting
+public class SqlTransferTesting
 {
     public static void Run()
     {
@@ -690,7 +690,7 @@ class SqlTransferTesting
             var visualBasicTest = @"
 Imports System.Data.SqlClient
 
-Class SqlTransferTesting
+Public Class SqlTransferTesting
     Public Shared Sub Run()
         Dim chars1 = {""t""c, ""e""c}
         Dim safeQuery As String = New String(chars1)
@@ -744,7 +744,7 @@ End Class
     using System.Data.SqlClient;
 #pragma warning restore 8019
 
-class TestInput
+public class TestInput
 {{
     public void Run(string input)
     {{
@@ -760,7 +760,7 @@ class TestInput
     Imports System.Data.SqlClient
 #Enable Warning BC50001
 
-Class TestInput
+Public Class TestInput
     Public Sub Run(input As String)
         {payload.CSharpReplaceToVBasic()}
         Dim com As New SqlCommand(query)
@@ -805,7 +805,7 @@ TaintEntryPoints:
             var cSharpTest = $@"
 using System.Data.SqlClient;
 
-class TestInput
+public class TestInput
 {{
     public void Run(string input, string input2)
     {{
@@ -818,7 +818,7 @@ class TestInput
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
 
-Class TestInput
+Public Class TestInput
     Public Sub Run(ByVal input As String)
         {vb}
         Dim temp = New SqlCommand(query)
@@ -889,7 +889,7 @@ TaintEntryPoints:
             var cSharpTest = $@"
 using System.Data.SqlClient;
 
-class StaticTest
+public class StaticTest
 {{
     public static void Foo2(string a, string b)
     {{
@@ -901,7 +901,7 @@ class StaticTest
     }}
 }}
 
-class MemberTest
+public class MemberTest
 {{
     public string Foo(string a, string b)
     {{
@@ -940,7 +940,7 @@ class MemberTest
     }}
 }}
 
-class TestInput
+public class TestInput
 {{
     public void Run(string a, string b)
     {{
@@ -956,7 +956,7 @@ class TestInput
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
 
-Class StaticTest
+Public Class StaticTest
     Public Shared Sub Foo2(ByVal a As String, ByVal b As String)
     End Sub
 
@@ -965,7 +965,7 @@ Class StaticTest
     End Function
 End Class
 
-Class MemberTest
+Public Class MemberTest
     Public Function Foo(ByVal a As String, ByVal b As String) As String
         Return a & b
     End Function
@@ -1003,7 +1003,7 @@ Class MemberTest
     End Function
 End Class
 
-Class TestInput
+Public Class TestInput
     Public Sub Run(ByVal a As String, ByVal b As String)
         Dim o = New MemberTest()
         {cs.CSharpReplaceToVBasic()}
@@ -1046,7 +1046,7 @@ TaintEntryPoints:
             var cSharpTest = $@"
 using System.Data.SqlClient;
 
-class Test
+public class Test
 {{
     public string Foo(string a, string b)
     {{
@@ -1067,7 +1067,7 @@ class Test
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
 
-Class Test
+Public Class Test
     Public Function Foo(ByVal a As String, ByVal b As String) As String
         Return Nothing
     End Function
@@ -1194,7 +1194,7 @@ Behavior:
             var cSharpTest = $@"
 using System.Data.SqlClient;
 
-class StaticTest
+public class StaticTest
 {{
     public static void Foo2(string a, string b)
     {{
@@ -1206,7 +1206,7 @@ class StaticTest
     }}
 }}
 
-class Test
+public class Test
 {{
     public string Foo(string a, string b)
     {{
@@ -1240,7 +1240,7 @@ class Test
             var visualBasicTest = $@"
 Imports System.Data.SqlClient
 
-Class StaticTest
+Public Class StaticTest
     Public Shared Sub Foo2(ByVal a As String, ByVal b As String)
     End Sub
 
@@ -1249,7 +1249,7 @@ Class StaticTest
     End Function
 End Class
 
-Class Test
+Public Class Test
     Public Function Foo(ByVal a As String, ByVal b As String) As String
         Return Nothing
     End Function
@@ -1323,7 +1323,7 @@ Transfers:
     using System.Data.SqlClient;
 #pragma warning restore 8019
 
-class TestInput
+public class TestInput
 {
     public void Run(string input)
     {
@@ -1348,7 +1348,7 @@ class TestInput
     Imports System.Data.SqlClient
 #Enable Warning BC50001
 
-Friend Class TestInput
+Public Class TestInput
     Public Sub Run(ByVal input As String)
         Dim query = """"
         Dim bytes = Encoding.ASCII.GetBytes(input)
@@ -1398,7 +1398,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class SqlConstant
+    public class SqlConstant
     {{
         public static void Run()
         {{
@@ -1418,7 +1418,7 @@ Imports System.Data.SqlClient
 #Enable Warning BC50001
 
 Namespace sample
-    Class SqlConstant
+    Public Class SqlConstant
         Public Shared Sub Run()
             Dim array As {dataType} = {{""aaa"", ""bbb""}}
             Dim com As New SqlCommand(String.Join("" "", array {additionalArguments}))
@@ -1449,7 +1449,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class SqlConstant
+    public class SqlConstant
     {{
         public static void Run()
         {{
@@ -1469,7 +1469,7 @@ Imports System.Data.SqlClient
 #Enable Warning BC50001
 
 Namespace sample
-    Class SqlConstant
+    Public Class SqlConstant
         Public Shared Sub Run()
             Dim array As IEnumerable(Of {dataType}) = {{""aaa"", ""bbb""}}
             Dim com As New SqlCommand(String.Join{(isMethodGeneric ? $"(Of {dataType})" : "")}("" "", array))
@@ -1501,7 +1501,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class MyFoo
+    public class MyFoo
     {{
         public void Run(string input)
         {{
@@ -1521,7 +1521,7 @@ Imports System.Data.SqlClient
 #Enable Warning BC50001
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFoo
         Public Sub Run(input As String)
             Dim array As {dataType} = {{""aaa"", input, ""bbb""}}
             Dim com As New SqlCommand(String.Join("" "", array {additionalArguments}))
@@ -1563,7 +1563,7 @@ using System.Data.SqlClient;
 
 namespace sample
 {{
-    class MyFoo
+    public class MyFoo
     {{
         public void Run(string input)
         {{
@@ -1583,7 +1583,7 @@ Imports System.Data.SqlClient
 #Enable Warning BC50001
 
 Namespace sample
-    Class MyFoo
+    Public Class MyFoo
         Public Sub Run(input As String)
             Dim array As IEnumerable(Of {dataType}) = {{""aaa"", input, ""bbb""}}
             Dim com As New SqlCommand(String.Join{(isMethodGeneric ? $"(Of {dataType})" : "")}("" "", array))

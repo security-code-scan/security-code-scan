@@ -36,7 +36,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class Test : Controller
+    public class TestController : Controller
     {
         public void Vulnerable(string param)
         {
@@ -54,7 +54,7 @@ namespace sample
 Imports System.Web.Mvc
 
 Namespace sample
-    Class Test
+    Public Class TestController
         Inherits Controller
 
         Public Sub Vulnerable(param As String)
@@ -73,7 +73,7 @@ End Namespace
 
             var testConfig = @"
 Sinks:
-  - Type: sample.Test
+  - Type: sample.TestController
     TaintTypes:
       - SCS0002
     Methods:
@@ -101,7 +101,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class Test : Controller
+    public class TestController : Controller
     {
         public string Tainted ()
         {
@@ -121,7 +121,7 @@ Imports System.Web.Mvc
 Imports System.Data.SqlClient
 
 Namespace sample
-    Class Test
+    Public Class TestController
         Inherits Controller
 
         Public Function Tainted() As String
@@ -146,7 +146,7 @@ End Namespace
 
             var testConfig = @"
 TaintSources:
-  - Type: sample.Test
+  - Type: sample.TestController
     TaintTypes:
       - SCS0002
     Methods:
@@ -167,7 +167,7 @@ using System.Web.Mvc;
 
 namespace sample
 {
-    class Test : Controller
+    public class TestController : Controller
     {
         public static string Safe (string param)
         {
@@ -191,7 +191,7 @@ namespace sample
 Imports System.Web.Mvc
 
 Namespace sample
-    Class Test
+    Public Class TestController
         Inherits Controller
 
         Public Shared Function Safe(param As String) As String
@@ -213,9 +213,10 @@ End Namespace
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
 
+            // todo: review the test, why this is unused?
             var testConfig = @"
 Sinks:
-  - Type: sample.Test
+  - Type: sample.TestController
     TaintTypes:
       - SCS0002
     Methods:
@@ -228,7 +229,7 @@ Sinks:
 
             testConfig = @"
 Sinks:
-  - Type: sample.Test
+  - Type: sample.TestController
     TaintTypes:
       - SCS0002
     Methods:
@@ -236,7 +237,7 @@ Sinks:
         - param
 
 TaintSources:
-  - Type: sample.Test
+  - Type: sample.TestController
     TaintTypes:
       - SCS0002
     Methods:

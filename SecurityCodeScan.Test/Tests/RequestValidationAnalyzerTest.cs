@@ -782,7 +782,7 @@ Imports System.Web.Mvc
 
 Namespace VulnerableApp
     Public Class TestController
-        Class Test
+        Public Class Test
             Public Shared Sub Unvalidated()
             End Sub
         End Class

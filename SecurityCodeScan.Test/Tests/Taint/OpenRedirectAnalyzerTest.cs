@@ -56,7 +56,7 @@ namespace SecurityCodeScan.Test.Taint
             var cSharpTest = $@"
 using {@namespace};
 
-class OpenRedirect
+public class OpenRedirect
 {{
     public static HttpResponse Response = null;
 
@@ -70,7 +70,7 @@ class OpenRedirect
             var visualBasicTest = $@"
 Imports {@namespace}
 
-Class OpenRedirect
+Public Class OpenRedirect
     Public Shared Response As HttpResponse
 
     Public Sub Run(input As String)
@@ -104,7 +104,7 @@ TaintEntryPoints:
             var cSharpTest = $@"
 using {@namespace};
 
-class OpenRedirect
+public class OpenRedirect
 {{
     public static HttpResponse Response = null;
 
@@ -118,7 +118,7 @@ class OpenRedirect
             var visualBasicTest = $@"
 Imports {@namespace}
 
-Class OpenRedirect
+Public Class OpenRedirect
     Public Shared Response As HttpResponse
 
     Public Sub Run(flag As Boolean)
@@ -157,7 +157,7 @@ TaintEntryPoints:
             var cSharpTest = $@"
 using {@namespace};
 
-class OpenRedirect : Controller
+public class OpenRedirectController : Controller
 {{
     public ActionResult Run(string input)
     {{
@@ -169,7 +169,7 @@ class OpenRedirect : Controller
             var visualBasicTest = $@"
 Imports {@namespace}
 
-Public Class OpenRedirect
+Public Class OpenRedirectController
     Inherits Controller
 
     Public Function Run(input As String) as ActionResult
@@ -201,7 +201,7 @@ End Class
             var cSharpTest = $@"
 using {@namespace};
 
-class OpenRedirect : Controller
+public class OpenRedirectController : Controller
 {{
     public ActionResult Run(bool flag, string input)
     {{
@@ -214,7 +214,7 @@ class OpenRedirect : Controller
             var visualBasicTest = $@"
 Imports {@namespace}
 
-Public Class OpenRedirect
+Public Class OpenRedirectController
     Inherits Controller
 
     Public Function Run(flag As Boolean, input As System.String) as ActionResult
@@ -235,7 +235,7 @@ End Class
             var cSharpTest1 = $@"
 using {@namespace};
 
-class OpenRedirect : Controller
+public class OpenRedirectController : Controller
 {{
     public ActionResult Run(string input)
     {{
@@ -249,7 +249,7 @@ class OpenRedirect : Controller
             var cSharpTest2 = $@"
 using {@namespace};
 
-class OpenRedirect : Controller
+public class OpenRedirectController : Controller
 {{
     public ActionResult Run(string input)
     {{
@@ -261,7 +261,7 @@ class OpenRedirect : Controller
             var visualBasicTest = $@"
 Imports {@namespace}
 
-Public Class OpenRedirect
+Public Class OpenRedirectController
     Inherits Controller
 
     Public Function Run(input As String) as ActionResult
@@ -286,7 +286,7 @@ End Class
             var cSharpTest1 = $@"
 using {@namespace};
 
-class OpenRedirect : Controller
+public class OpenRedirectController : Controller
 {{
     public ActionResult Run(string input)
     {{
@@ -300,7 +300,7 @@ class OpenRedirect : Controller
             var cSharpTest2 = $@"
 using {@namespace};
 
-class OpenRedirect : Controller
+public class OpenRedirectController : Controller
 {{
     public ActionResult Run(string input)
     {{
@@ -312,7 +312,7 @@ class OpenRedirect : Controller
             var visualBasicTest = $@"
 Imports {@namespace}
 
-Public Class OpenRedirect
+Public Class OpenRedirectController
     Inherits Controller
 
     Public Function Run(input As String) as ActionResult
@@ -341,7 +341,7 @@ End Class
             var cSharpTest = $@"
 using Microsoft.AspNetCore.Mvc;
 
-class OpenRedirect : Controller
+public class OpenRedirectController : Controller
 {{
     public ActionResult Foo({arguments})
     {{
@@ -349,7 +349,7 @@ class OpenRedirect : Controller
     }}
 }}
 
-class ConditionallyScaryRedirect : ActionResult
+public class ConditionallyScaryRedirect : ActionResult
 {{
     public ConditionallyScaryRedirect(string maybeTainted = null, bool injectable = {injectableByDefault}) : base()
     {{
@@ -384,12 +384,6 @@ Behavior:
                     Expected.WithLocation(8)
                 };
 
-                var expectedVB =
-                new[]
-                {
-                    Expected.WithLocation(8)
-                };
-
                 await VerifyCSharpDiagnostic(cSharpTest, expectedCSharp, options: config).ConfigureAwait(false);
             }
             else
@@ -411,7 +405,7 @@ Behavior:
             var vbTest = $@"
 Imports Microsoft.AspNetCore.Mvc
 
-Class OpenRedirect
+Public Class OpenRedirect
     Inherits Controller
 
     Public Function Foo({arguments}) As ActionResult
@@ -419,7 +413,7 @@ Class OpenRedirect
     End Function
 End Class
 
-Class ConditionallyScaryRedirect
+Public Class ConditionallyScaryRedirect
     Inherits ActionResult
 
     Public Sub New(ByVal Optional maybeTainted As String = Nothing, ByVal Optional injectable As Boolean = {injectableByDefault})
@@ -474,7 +468,7 @@ Behavior:
             var cSharpTest1 = @"
 using Microsoft.AspNetCore.Mvc;
 
-class OpenRedirect : Controller
+public class OpenRedirectController : Controller
 {
     public ActionResult Vulnerable(string scary)
     {
@@ -496,7 +490,7 @@ class OpenRedirect : Controller
             var cSharpTest2 = @"
 using Microsoft.AspNetCore.Mvc;
 
-class OpenRedirect : Controller
+public class OpenRedirectController : Controller
 {
     public ActionResult Vulnerable(string scary1)
     {
@@ -534,7 +528,7 @@ class OpenRedirect : Controller
             var vbTest1 = @"
 Imports Microsoft.AspNetCore.Mvc
 
-Class OpenRedirect
+Public Class OpenRedirectController
     Inherits Controller
 
     Public Function Vulnerable(ByVal scary As String) As ActionResult
@@ -554,7 +548,7 @@ End Class
             var vbTest2 = @"
 Imports Microsoft.AspNetCore.Mvc
 
-Class OpenRedirect
+Public Class OpenRedirectController
     Inherits Controller
 
     Public Function Vulnerable(ByVal scary1 As String) As ActionResult
@@ -589,7 +583,7 @@ End Class
 Behavior:
 
   Conditional:
-    ClassName: OpenRedirect
+    ClassName: OpenRedirectController
     Name: ConditionalRedirect
     Method:
       Condition: {1: { Value: False } }

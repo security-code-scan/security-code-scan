@@ -594,7 +594,6 @@ namespace Analyzer.Utilities.Extensions
                    method.Parameters[0].Type.SpecialType == SpecialType.System_Object;
         }
 
-
         public static bool IsInterlockedExchangeMethod(this IMethodSymbol method, INamedTypeSymbol? systemThreadingInterlocked)
         {
             Debug.Assert(method.ContainingType.OriginalDefinition.Equals(systemThreadingInterlocked));
@@ -673,5 +672,13 @@ namespace Analyzer.Utilities.Extensions
 
             return false;
         }
+
+        /// <summary>
+        /// Check if a method is an auto-property accessor.
+        /// </summary>
+        public static bool IsAutoPropertyAccessor(this IMethodSymbol methodSymbol)
+            => methodSymbol.IsPropertyAccessor()
+            && methodSymbol.AssociatedSymbol is IPropertySymbol propertySymbol
+            && propertySymbol.IsAutoProperty();
     }
 }

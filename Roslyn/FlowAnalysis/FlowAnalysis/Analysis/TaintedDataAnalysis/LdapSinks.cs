@@ -10,9 +10,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// <see cref="SinkInfo"/>s for tainted data LDAP injection sinks.
         /// </summary>
-        public static ImmutableHashSet<SinkInfo> PathSinkInfos { get; }
-
-        public static ImmutableHashSet<SinkInfo> FilterSinkInfos { get; }
+        public static ImmutableHashSet<SinkInfo> SinkInfos { get; }
 
         static LdapSinks()
         {
@@ -20,7 +18,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             builder.AddSinkInfo(
                 WellKnownTypeNames.SystemDirectoryServicesActiveDirectoryADSearcher,
-                SinkKind.LdapFilter,
+                SinkKind.Ldap,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: true,
                 sinkProperties: new[] {
@@ -29,34 +27,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
                 WellKnownTypeNames.SystemDirectoryServicesDirectorySearcher,
-                SinkKind.LdapFilter,
+                SinkKind.Ldap,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: true,
                 sinkProperties: new[] {
-                    "PropertiesToLoad",
-                    "Filter"
+                    "Filter",
                 },
-                sinkMethodParameters: new[] {
-                    (".ctor", new[] { "propertiesToLoad" } ),
-                });
-
-            FilterSinkInfos = builder.ToImmutableAndFree();
-
-            builder = PooledHashSet<SinkInfo>.GetInstance();
-
+                sinkMethodParameters: null);
             builder.AddSinkInfo(
                 WellKnownTypeNames.SystemDirectoryDirectoryEntry,
-                SinkKind.LdapPath,
+                SinkKind.Ldap,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
-                sinkProperties: new[] {
-                    "Path",
-                },
+                sinkProperties: null,
                 sinkMethodParameters: new[] {
                     (".ctor", new[] { "path", "adsObject" } ),
                 });
 
-            PathSinkInfos = builder.ToImmutableAndFree();
+            SinkInfos = builder.ToImmutableAndFree();
         }
     }
 }

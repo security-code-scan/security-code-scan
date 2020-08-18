@@ -130,7 +130,14 @@ namespace SecurityCodeScan.Analyzers.Utils
             SyntaxKind kind = node.Kind();
             if (kind == SyntaxKind.SimpleMemberAccessExpression)
             {
-                return ((MemberAccessExpressionSyntax)node).Expression;
+                var memberAccessExpr = ((MemberAccessExpressionSyntax)node).Expression;
+                if (memberAccessExpr != null)
+                    return memberAccessExpr;
+
+                if (node?.Parent?.Parent.Kind() == SyntaxKind.ConditionalAccessExpression)
+                {
+                    return ((ConditionalAccessExpressionSyntax)node.Parent.Parent).Expression;
+                }
             }
 
             return null;

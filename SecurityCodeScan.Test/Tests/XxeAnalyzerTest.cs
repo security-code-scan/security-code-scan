@@ -256,20 +256,21 @@ End Class
         }
 
         [TestCategory("Detect")]
-        [DataRow("XmlDocument",         "Load(text)",      Warnings.OnFramework)]
-        [DataRow("XmlDocument",         "LoadXml(text)",   Warnings.OnFramework)]
-        [DataRow("XmlDocument",         "InnerXml = text", Warnings.OnFramework)]
+        [DataRow("XmlDocument",         "?.Load(text)",     Warnings.OnFramework)]
+        [DataRow("XmlDocument",         ".Load(text)",      Warnings.OnFramework)]
+        [DataRow("XmlDocument",         ".LoadXml(text)",   Warnings.OnFramework)]
+        [DataRow("XmlDocument",         ".InnerXml = text", Warnings.OnFramework)]
         // Special case: Load is overridden and resolver is set to null in all versions
-        [DataRow("ConfigXmlDocument",   "Load(text)",      Warnings.None)]
-        [DataRow("ConfigXmlDocument",   "LoadXml(text)",   Warnings.OnFramework)]
-        [DataRow("XmlDataDocument",     "Load(text)",      Warnings.OnFramework)]
+        [DataRow("ConfigXmlDocument",   ".Load(text)",      Warnings.None)]
+        [DataRow("ConfigXmlDocument",   ".LoadXml(text)",   Warnings.OnFramework)]
+        [DataRow("XmlDataDocument",     ".Load(text)",      Warnings.OnFramework)]
         // Special case XmlDataDocument.LoadXml throws NotSupportedException
-        [DataRow("XmlDataDocument",     "LoadXml(text)",   Warnings.None)]
-        [DataRow("DerivedXmlDocument",  "Load(text)",      Warnings.None)] // safe design is assumed
-        [DataRow("DerivedXmlDocument",  "LoadXml(text)",   Warnings.None)] // safe design is assumed
-        [DataRow("XmlDocument",         "InnerXml = text", Warnings.OnFramework)]
-        [DataRow("XmlFileInfoDocument", "Load(text)",      Warnings.OnFramework)]
-        [DataRow("XmlTransformableDocument", "Load(text)", Warnings.OnFramework)]
+        [DataRow("XmlDataDocument",     ".LoadXml(text)",   Warnings.None)]
+        [DataRow("DerivedXmlDocument",  ".Load(text)",      Warnings.None)] // safe design is assumed
+        [DataRow("DerivedXmlDocument",  ".LoadXml(text)",   Warnings.None)] // safe design is assumed
+        [DataRow("XmlDocument",         ".InnerXml = text", Warnings.OnFramework)]
+        [DataRow("XmlFileInfoDocument", ".Load(text)",      Warnings.OnFramework)]
+        [DataRow("XmlTransformableDocument", ".Load(text)", Warnings.OnFramework)]
         [DataTestMethod]
         public async Task XmlDocumentDefaults(string className, string sink, Warnings expectWarnings)
         {
@@ -288,7 +289,7 @@ public class Xxe
     {{
 #pragma warning disable 618
         var xmlDoc = new {className}();
-        xmlDoc.{sink};
+        xmlDoc{sink};
 #pragma warning restore 618
     }}
 }}";
@@ -308,7 +309,7 @@ Public Class Xxe
     Public Shared Sub parseUpload(text As String)
 #Disable Warning BC40000
         Dim xmlDoc As New {className}()
-        xmlDoc.{sink}
+        xmlDoc{sink}
 #Enable Warning BC40000
     End Sub
 End Class
@@ -330,7 +331,7 @@ public class Xxe2
     public static void parseUpload(string text)
     {{
 #pragma warning disable 618
-        new {className}().{sink};
+        new {className}(){sink};
 #pragma warning restore 618
     }}
 }}";
@@ -349,7 +350,7 @@ End Class
 Public Class Xxe2
     Public Shared Sub parseUpload(text As String)
 #Disable Warning BC40000
-        Call New {className}().{sink}
+        Call New {className}(){sink}
 #Enable Warning BC40000
     End Sub
 End Class

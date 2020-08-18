@@ -107,6 +107,11 @@ namespace SecurityCodeScan.Analyzers.Utils
             {
                 return ((MemberAccessExpressionSyntax)node).Expression;
             }
+            else if (kind == SyntaxKind.MemberBindingExpression &&
+                     node?.Parent?.Parent.Kind() == SyntaxKind.ConditionalAccessExpression)
+            {
+                return ((ConditionalAccessExpressionSyntax)node.Parent.Parent).Expression;
+            }
 
             return null;
         }

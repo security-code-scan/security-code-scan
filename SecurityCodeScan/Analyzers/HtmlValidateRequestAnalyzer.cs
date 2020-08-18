@@ -30,7 +30,13 @@ namespace SecurityCodeScan.Analyzers
                                                .Where(file =>
                                                       {
                                                           var ext = Path.GetExtension(file.Path);
-                                                          return 0 == String.Compare(ext, ".aspx", StringComparison.OrdinalIgnoreCase);
+                                                          if (0 != String.Compare(ext, ".aspx", StringComparison.OrdinalIgnoreCase))
+                                                              return false;
+
+                                                          if (!File.Exists(file.Path))
+                                                              return false; // happens... let's avoid the AD0001 exception
+
+                                                          return true;
                                                       }))
             {
                 AnalyzeFile(file, ctx);

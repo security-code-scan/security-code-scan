@@ -53,6 +53,9 @@ namespace SecurityCodeScan.Analyzers
                 if (!Config.WebConfigFilesRegex.IsMatch(fileName))
                     continue;
 
+                if (!File.Exists(file.Path))
+                    continue; // happens... let's avoid the AD0001 exception
+
                 AnalyzeFile(file, ctx);
             }
         }

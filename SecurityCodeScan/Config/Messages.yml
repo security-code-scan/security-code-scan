@@ -74,11 +74,11 @@ SCS0009:
 
 SCS0005:
   title: Weak random number generator.
-  description: It is possible to predict next numbers of pseudo random generator. Use cryptographically strong generators for security sensitive purposes.
+  description: It is possible to predict the next numbers of a pseudo random generator. Use a cryptographically strong generator for security sensitive purposes.
 
 SCS0006:
   title: Weak hashing function.
-  description: "{0} is no longer considered a strong hashing algorithm."
+  description: "{0} is no longer considered as a strong hashing algorithm."
   title2: Possibly weak hashing function.
   description_unknown: "Unable to determine hashing algorithm statically. Review if it is strong enough (SHA256 for example)."
 
@@ -92,7 +92,7 @@ SCS0013:
 
 SCS0016:
   title: Controller method is vulnerable to Cross Site Request Forgery (CSRF).
-  description: The annotation [ValidateAntiForgeryToken] is missing. It can be ignored/suppressed if .NET Core AutoValidateAntiforgeryToken is set up globally.
+  description: The annotation [ValidateAntiForgeryToken] is missing. The warning may be ignored/suppressed if .NET Core AutoValidateAntiforgeryToken is set up globally.
 
 SCS0017:
   title: Request validation is disabled.

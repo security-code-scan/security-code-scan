@@ -31,10 +31,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
             TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
             TaintedDataSymbolMap<SinkInfo> taintedSinkInfos,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            uint defaultMaxInterproceduralMethodCallChain,
+            uint defaultMaxInterproceduralLambdaOrLocalFunctionCallChain)
         {
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
-                analyzerOptions, rule, containingMethod, compilation, InterproceduralAnalysisKind.ContextSensitive, cancellationToken);
+                analyzerOptions, rule, containingMethod, compilation, InterproceduralAnalysisKind.ContextSensitive, cancellationToken, defaultMaxInterproceduralMethodCallChain, defaultMaxInterproceduralLambdaOrLocalFunctionCallChain);
             return TryGetOrComputeResult(cfg, compilation, containingMethod, analyzerOptions, taintedSourceInfos,
                 taintedSanitizerInfos, taintedSinkInfos, interproceduralAnalysisConfig);
         }

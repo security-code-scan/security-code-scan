@@ -186,6 +186,12 @@ namespace SecurityCodeScan.Config
             if (config2.MinimumPasswordValidatorProperties.HasValue)
                 config1.MinimumPasswordValidatorProperties = config2.MinimumPasswordValidatorProperties.Value;
 
+            if (config2.MaxInterproceduralMethodCallChain.HasValue)
+                config1.MaxInterproceduralMethodCallChain = config2.MaxInterproceduralMethodCallChain.Value;
+
+            if (config2.MaxInterproceduralLambdaOrLocalFunctionCallChain.HasValue)
+                config1.MaxInterproceduralLambdaOrLocalFunctionCallChain = config2.MaxInterproceduralLambdaOrLocalFunctionCallChain.Value;
+
             if (config2.PasswordValidatorRequiredLength.HasValue)
                 config1.PasswordValidatorRequiredLength = config2.PasswordValidatorRequiredLength.Value;
 
@@ -289,6 +295,8 @@ namespace SecurityCodeScan.Config
     /// </summary>
     internal class ConfigData
     {
+        public uint?                                   MaxInterproceduralMethodCallChain                { get; set; }
+        public uint?                                   MaxInterproceduralLambdaOrLocalFunctionCallChain { get; set; }
         public bool?                                   ReportAnalysisCompletion            { get; set; }
         public bool?                                   AuditMode                           { get; set; }
         public int?                                    PasswordValidatorRequiredLength     { get; set; }

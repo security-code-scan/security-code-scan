@@ -499,6 +499,8 @@ namespace SecurityCodeScan.Config
             AuditMode                          = configData.AuditMode                          ?? false;
             MinimumPasswordValidatorProperties = configData.MinimumPasswordValidatorProperties ?? 0;
             PasswordValidatorRequiredLength    = configData.PasswordValidatorRequiredLength    ?? 0;
+            MaxInterproceduralMethodCallChain  = configData.MaxInterproceduralMethodCallChain ?? 3;
+            MaxInterproceduralLambdaOrLocalFunctionCallChain = configData.MaxInterproceduralLambdaOrLocalFunctionCallChain ?? 3;
 
             if (configData.PasswordValidatorRequiredProperties != null)
             {
@@ -554,6 +556,8 @@ namespace SecurityCodeScan.Config
 
         public bool ReportAnalysisCompletion           { get; private set; }
         public bool AuditMode                          { get; private set; }
+        public uint MaxInterproceduralMethodCallChain                { get; private set; }
+        public uint MaxInterproceduralLambdaOrLocalFunctionCallChain { get; private set; }
         public int  PasswordValidatorRequiredLength    { get; private set; }
         public int  MinimumPasswordValidatorProperties { get; private set; }
 

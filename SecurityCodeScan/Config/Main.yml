@@ -6,6 +6,10 @@ ReportAnalysisCompletion: false
 # Set to 'true' to see more warnings
 AuditMode: false
 
+MaxInterproceduralMethodCallChain: 3
+
+MaxInterproceduralLambdaOrLocalFunctionCallChain: 3
+
 # Case insensitive pattern of web config files to analyze when AdditionalFileItemNames are configured (see https://security-code-scan.github.io/#Analyzing.aspxandweb.configFiles)
 WebConfigFiles: ^web\.config.*
 

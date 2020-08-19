@@ -167,7 +167,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                                     owningSymbol,
                                                                     operationBlockStartContext.Compilation,
                                                                     defaultInterproceduralAnalysisKind: InterproceduralAnalysisKind.ContextSensitive,
-                                                                    cancellationToken: cancellationToken);
+                                                                    cancellationToken: cancellationToken,
+                                                                    defaultMaxInterproceduralMethodCallChain: config.MaxInterproceduralMethodCallChain,
+                                                                    defaultMaxInterproceduralLambdaOrLocalFunctionCallChain: config.MaxInterproceduralLambdaOrLocalFunctionCallChain);
                             Lazy<ControlFlowGraph?> controlFlowGraphFactory = new Lazy<ControlFlowGraph?>(
                                 () => operationBlockStartContext.OperationBlocks.GetControlFlowGraph());
                             Lazy<PointsToAnalysisResult?> pointsToFactory = new Lazy<PointsToAnalysisResult?>(

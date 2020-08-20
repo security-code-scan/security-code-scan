@@ -29,6 +29,78 @@ namespace SecurityCodeScan.Test.Config
 
         [TestCategory("Detect")]
         [TestMethod]
+        public async Task RemoveSink()
+        {
+            var cSharpTest = @"
+using System.Web.Mvc;
+
+namespace sample
+{
+    public class TestController : Controller
+    {
+        public void Vulnerable(string param)
+        {
+        }
+
+        public void TestMethod(string param)
+        {
+            Vulnerable(param);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Web.Mvc
+
+Namespace sample
+    Public Class TestController
+        Inherits Controller
+
+        Public Sub Vulnerable(param As String)
+        End Sub
+
+        Public Sub TestMethod(param As String)
+            Vulnerable(param)
+        End Sub
+
+    End Class
+End Namespace
+";
+
+            var testConfig = @"
+Sinks:
+  - Type: sample.TestController
+    TaintTypes:
+      - SCS0002
+    Methods:
+      Vulnerable:
+        - param
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0002",
+                Severity = DiagnosticSeverity.Warning,
+            };
+            await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+
+            testConfig = @"
+Sinks:
+  - Type: sample.TestController
+    TaintTypes:
+      - SCS0002
+";
+
+            optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [TestMethod]
         public async Task AddSink()
         {
             var cSharpTest = @"

@@ -2824,6 +2824,87 @@ Sinks:
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestMethod]
+        public async Task TaintSourceAndSinkAtTheSameTime()
+        {
+            var cSharpTest = @"
+class MyClass2
+{
+    public string Prop { get; set; }
+}
+
+public class MyClass
+{
+    private static void Main(string[] args)
+    {
+        var x = new MyClass2();
+        x.Prop = args[1];
+        Sink(x.Prop);
+    }
+
+    private static void Foo1()
+    {
+        var x = new MyClass2();
+        Sink(x.Prop);
+    }
+
+    private static void Sink(string input) {}
+}
+";
+
+            var visualBasicTest = $@"
+Class MyClass2
+    Public Property Prop As String
+End Class
+
+Public Class [MyClass]
+    Private Shared Sub Main(ByVal args As String())
+        Dim x = New MyClass2()
+        x.Prop = args(1)
+        Sink(x.Prop)
+    End Sub
+
+    Private Shared Sub Foo1()
+        Dim x = New MyClass2()
+        Sink(x.Prop)
+    End Sub
+
+    Private Shared Sub Sink(ByVal input As String)
+    End Sub
+End Class
+";
+
+            var testConfig = @"
+TaintEntryPoints:
+  MyClass:
+    Method:
+      Name: Main
+
+TaintSources:
+  - Type: MyClass2
+    Properties:
+      - Prop
+
+Sinks:
+  - Type: MyClass
+    TaintTypes:
+      - SCS0002
+    Methods:
+      Sink:
+        - input
+
+  - Type: MyClass2
+    TaintTypes:
+      - SCS0002
+    Properties:
+      - Prop
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Enumerable.Repeat(Expected, 3).ToArray(), optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Enumerable.Repeat(Expected, 3).ToArray(), optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
         [DataTestMethod]
         [DataRow("HtmlTextArea",            "m_control.Value",                  true)]
         [DataRow("HtmlInputText",           "m_control.Value",                  true)]

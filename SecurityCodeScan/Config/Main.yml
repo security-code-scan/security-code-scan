@@ -464,6 +464,28 @@ TaintSources:
     Properties:
       - Value
 
+  - Type: System.IO.Compression.ZipArchiveEntry
+    Properties:
+      - FullName
+      - Name
+
+  - Type: System.Net.DownloadDataCompletedEventArgs
+    Properties:
+      - Result
+
+  - Type: System.Net.OpenReadCompletedEventArgs
+    Properties:
+      - Result
+
+  - Type: System.Net.WebClient
+    Methods:
+      - DownloadData
+      - DownloadDataTaskAsync
+      - DownloadString
+      - DownloadStringTaskAsync
+      - OpenRead
+      - OpenReadTaskAsync
+
 Sanitizers:
 
   - Type: Microsoft.Security.Application.Encoder
@@ -1029,6 +1051,13 @@ Sinks:
       UnsafeLoadFrom:
         - assemblyFile
 
+  - Type: System.AppDomain
+    TaintTypes:
+      - SCS0018
+    Methods:
+      AppendPrivatePath:
+        - path
+
   - Type: System.Xml.XmlReader
     TaintTypes:
       - SCS0018
@@ -1093,6 +1122,28 @@ Sinks:
         - filename
         - fileHandle
 
+  - Type: System.IO.Compression.ZipFileExtensions
+    TaintTypes:
+      - SCS0018
+    Methods:
+      CreateEntryFromFile:
+        - sourceFileName
+      ExtractToFile:
+        - destinationFileName
+      ExtractToDirectory:
+        - destinationDirectoryName
+
+  - Type: System.Net.WebClient
+    TaintTypes:
+      - SCS0018
+    Methods:
+      DownloadFile:
+        - fileName
+      DownloadFileAsync:
+        - fileName
+      DownloadFileTaskAsync:
+        - fileName
+
  # XSS
 
   - Type: System.Web.HttpResponse
@@ -1106,6 +1157,10 @@ Sinks:
         - buffer
       BinaryWrite:
         - buffer
+      TransmitFile:
+        - filename
+      WriteFile:
+        - filename
 
   - Type: System.Web.HttpResponseBase
     TaintTypes:
@@ -1118,8 +1173,31 @@ Sinks:
         - buffer
       BinaryWrite:
         - buffer
+      TransmitFile:
+        - filename
+      WriteFile:
+        - filename
+
+  - Type: System.Web.UI.ITextControl
+    TaintTypes:
+      - SCS0029
+    IsInterface: true
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.DesignerDataBoundLiteralControl
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
 
   - Type: System.Web.UI.WebControls.CheckBox
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.CheckBoxField
     TaintTypes:
       - SCS0029
     Properties:
@@ -1137,6 +1215,24 @@ Sinks:
     Properties:
       - Text
 
+  - Type: System.Web.UI.WebControls.DetailsView
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Caption
+
+  - Type: System.Web.UI.WebControls.FormView
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Caption
+
+  - Type: System.Web.UI.WebControls.GridView
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Caption
+
   - Type: System.Web.UI.WebControls.HyperLink
     TaintTypes:
       - SCS0029
@@ -1144,6 +1240,24 @@ Sinks:
       - Text
       - NavigateUrl
       - ImageUrl
+
+  - Type: System.Web.UI.WebControls.HyperLinkColumn
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.HyperLinkField
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.ImageButton
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
 
   - Type: System.Web.UI.WebControls.Image
     TaintTypes:
@@ -1163,11 +1277,36 @@ Sinks:
     Properties:
       - Text
 
+  - Type: System.Web.UI.WebControls.ListControl
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.ListItem
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
   - Type: System.Web.UI.WebControls.Literal
     TaintTypes:
       - SCS0029
     Properties:
       - Text
+
+  - Type: System.Web.UI.WebControls.MenuItem
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.MenuItemBinding
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+      - TextField
 
   - Type: System.Web.UI.WebControls.RadioButton
     TaintTypes:
@@ -1189,6 +1328,151 @@ Sinks:
       - Text
 
   - Type: System.Web.UI.WebControls.RequiredFieldValidator
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.RepeatInfo
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Caption
+
+  - Type: System.Web.UI.WebControls.TextBox
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - TextMode
+
+  - Type: System.Web.UI.WebControls.TreeNode
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.TreeNodeBinding
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+      - TextField
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartCatalogAddVerb
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartCatalogCloseVerb
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartCloseVerb
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartConnectionsCancelVerb
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartConnectionsCloseVerb
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartConnectionsConfigureVerb
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartConnectionsConnectVerb
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartConnectionsDisconnectVerb
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartConnectVerb
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartDeleteVerb
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartEditorApplyVerb
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartEditorCancelVerb
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartEditorOKVerb
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartEditVerb
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartExportVerb
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartHeaderCloseVerb
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartHelpVerb
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartMinimizeVerb
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartRestoreVerb
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.WebParts.WebPartVerb
     TaintTypes:
       - SCS0029
     Properties:
@@ -1229,6 +1513,67 @@ Sinks:
       - SCS0029
     Properties:
       - Value
+
+  - Type: System.Web.UI.HtmlControls.HtmlTitle
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.HtmlTextWriter
+    TaintTypes:
+      - SCS0029
+    Methods:
+      AddAttribute:
+        - value
+
+  - Type: System.Web.UI.LiteralControl
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.ResourceBasedLiteralControl
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.TemplateBuilder
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.BaseDataList
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Caption
+
+  - Type: System.Web.UI.WebControls.BaseValidator
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.Button
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.ButtonColumn
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
+
+  - Type: System.Web.UI.WebControls.ButtonField
+    TaintTypes:
+      - SCS0029
+    Properties:
+      - Text
 
   - Type: System.Web.UI.ClientScriptManager
     TaintTypes:
@@ -1304,6 +1649,45 @@ Sinks:
       XPathEvaluate:
         - expression
 
+  - Type: System.Web.UI.PageTheme
+    TaintTypes:
+      - SCS0003
+    Methods:
+      XPath:
+        - xPathExpression
+      XPathSelect:
+        - xPathExpression
+
+  - Type: System.Web.UI.TemplateControl
+    TaintTypes:
+      - SCS0003
+    Methods:
+      XPath:
+        - xPathExpression
+      XPathSelect:
+        - xPathExpression
+
+  - Type: System.Web.UI.WebControls.XmlDataSource
+    TaintTypes:
+      - SCS0003
+    Properties:
+      - XPath
+
+  - Type: System.Web.UI.XPathBinder
+    TaintTypes:
+      - SCS0003
+    Methods:
+      Eval:
+        - xPath
+      Select:
+        - xPath
+
+  - Type: System.Xml.Schema.XmlSchemaXPath
+    TaintTypes:
+      - SCS0003
+    Properties:
+      - XPath
+
  # SQL Injection
 
   - Type: System.Data.IDbCommand
@@ -1314,7 +1698,7 @@ Sinks:
     Properties:
       - CommandText
 
-  - Type: System.Data.IDbDataAdapter
+  - Type: System.Data.IDataAdapter
     TaintTypes:
       - SCS0002
     IsAnyStringParameterInConstructorASink: true
@@ -1372,7 +1756,10 @@ Sinks:
       .ctor:
         - selectCommand
     Properties:
+      - DeleteCommand
+      - InsertCommand
       - SelectCommand
+      - UpdateCommand
 
   - Type: System.Data.Entity.Database
     TaintTypes:

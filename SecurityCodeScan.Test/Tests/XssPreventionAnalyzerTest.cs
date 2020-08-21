@@ -69,6 +69,8 @@ public class Vulnerable
         }
 
         [TestCategory("Detect")]
+        [DataRow("System.Web", "Request.Params[0]",               "",              "Response.ContentType = userInput")]
+        [DataRow("System.Web", "Request.ContentType",             "",              "Response.ContentType = userInput")]
         [DataRow("System.Web", "Request.Params[0]",               "",              "Response.Write(userInput)")]
         [DataRow("System.Web", "Request.Params[0]",               "System.String", "Response.Write(userInput)")]
         [DataRow("System.Web", "Request.Params[0].ToString()",    "System.String", "Response.Write(userInput)")]

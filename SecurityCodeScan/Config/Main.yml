@@ -1037,6 +1037,7 @@ Sinks:
         - destFileName
       Replace:
         - destinationFileName
+        - destinationBackupFileName
 
   - Type: System.Reflection.Assembly
     TaintTypes:
@@ -1150,6 +1151,10 @@ Sinks:
     TaintTypes:
       - SCS0029
     Methods:
+      AddHeader:
+        - value
+      AppendHeader:
+        - value
       Write:
         - ch
         - obj
@@ -1161,11 +1166,17 @@ Sinks:
         - filename
       WriteFile:
         - filename
+    Properties:
+      - ContentType
 
   - Type: System.Web.HttpResponseBase
     TaintTypes:
       - SCS0029
     Methods:
+      AddHeader:
+        - value
+      AppendHeader:
+        - value
       Write:
         - ch
         - obj
@@ -1177,6 +1188,8 @@ Sinks:
         - filename
       WriteFile:
         - filename
+    Properties:
+      - ContentType
 
   - Type: System.Web.UI.ITextControl
     TaintTypes:
@@ -1524,7 +1537,30 @@ Sinks:
     TaintTypes:
       - SCS0029
     Methods:
-      AddAttribute:
+      AddAttribute: # todo: AddAttribute (string name, string value, bool fEndode) needs roslyn changes
+        - name
+        - value
+      RenderBeginTag:
+        - tagName
+      Write:
+        - s
+        - value
+        - format
+        - arg0
+        - arg1
+        - arg
+        - buffer
+      WriteAttribute:
+        - name
+        - value
+      WriteBeginTag:
+        - tagName
+      WriteEndTag:
+        - tagName
+      WriteFullBeginTag:
+        - tagName
+      WriteStyleAttribute:
+        - name
         - value
 
   - Type: System.Web.UI.LiteralControl

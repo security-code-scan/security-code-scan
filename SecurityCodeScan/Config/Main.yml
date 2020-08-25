@@ -501,11 +501,29 @@ Sanitizers:
       - Name: LdapEncode
       - Name: LdapFilterEncode
 
+  - Type: System.Uri
+    TaintTypes:
+      - SCS0027
+    Methods:
+      - Name: TryCreate
+        InOut: [{"uriString": "result"}, {"baseUri": "result"}, {"relativeUri": "result"}]
+
   - Type: System.Web.Mvc.UrlHelper
     TaintTypes:
       - SCS0027
     Methods:
+      - Name: HttpRouteUrl
       - Name: RouteUrl
+      - Name: IsLocalUrl
+        InOut: [{"url": "url"}]
+
+  - Type: Microsoft.AspNetCore.Mvc.IUrlHelper
+    TaintTypes:
+      - SCS0027
+    Methods:
+      - Name: RouteUrl
+      - Name: IsLocalUrl
+        InOut: [{"url": "url"}]
 
   - Type: Microsoft.AspNetCore.Mvc.UrlHelperExtensions
     TaintTypes:

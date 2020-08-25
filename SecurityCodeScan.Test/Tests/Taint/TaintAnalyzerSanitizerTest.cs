@@ -61,13 +61,15 @@ namespace SecurityCodeScan.Test.Taint
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [DataTestMethod]
-        [Ignore("roslyn validator fix")]
         [DataRow("using System; using System.Web.Mvc;",           "!!Url.IsLocalUrl(input)",                                   "Redirect(input)",          false)]
         [DataRow("using System; using System.Web.Mvc;",           "Url.IsLocalUrl(input)",                                     "Redirect(input)",          false)]
+        // todo: roslyn conditional branches
+        //[DataRow("using System; using System.Web.Mvc;",           "!Url.IsLocalUrl(input)",                                    "Redirect(input)",          true)]
         [DataRow("using System; using System.Web.Mvc;",           "Url.IsLocalUrl(inputModel.x)",                              "Redirect(inputModel.x)",   false)]
         [DataRow("using System; using Microsoft.AspNetCore.Mvc;", "Url.IsLocalUrl(input)",                                     "Redirect(input)",          false)]
         [DataRow("using System; using System.Web.Mvc;",           "Uri.TryCreate(input, UriKind.Relative, out uri)",           "Redirect(uri.ToString())", false)]
-        [DataRow("using System; using System.Web.Mvc;",           "Uri.TryCreate(input, UriKind.RelativeOrAbsolute, out uri)", "Redirect(uri.ToString())", true)]
+        // todo: roslyn uri kind value analysis
+        //[DataRow("using System; using System.Web.Mvc;",           "Uri.TryCreate(input, UriKind.RelativeOrAbsolute, out uri)", "Redirect(uri.ToString())", true)]
         public async Task Validator(string usingNamespace, string validate, string sink, bool warn)
         {
             var cSharpTest = $@"

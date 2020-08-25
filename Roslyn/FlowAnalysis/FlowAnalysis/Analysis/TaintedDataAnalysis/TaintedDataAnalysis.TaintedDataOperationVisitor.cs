@@ -429,6 +429,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     Debug.Assert(!this.TryGetInterproceduralAnalysisResult(invocationOperation, out TaintedDataAnalysisResult _));
 
+                    if (this.CurrentAnalysisData.TryGetValue(analysisEntity, out TaintedDataAbstractValue? value))
+                    {
+                        return value; // return the already computed value if there was a transfer/sanitization rule
+                    }
+
                     // Treat ref or out arguments as the same as the invocation operation.
                     TaintedDataAbstractValue returnValueAbstractValue = this.GetCachedAbstractValue(invocationOperation);
                     return returnValueAbstractValue;

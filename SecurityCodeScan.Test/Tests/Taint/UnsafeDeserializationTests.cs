@@ -545,6 +545,52 @@ TaintEntryPoints:
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(8), optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Safe")]
+        [TestMethod]
+        public async Task DetectDataContractJsonSerializerConstructorTypeof()
+        {
+            const string cSharpTest = @"
+using System.Runtime.Serialization.Json;
+
+namespace VulnerableApp
+{
+    public class Test
+    {
+        public void TestDeserialization()
+        {
+            var formatter = new DataContractJsonSerializer(typeof(Test));
+        }
+    }
+}
+";
+
+            const string visualBasicTest = @"
+Imports System.Runtime.Serialization.Json
+
+Namespace VulnerableApp
+    Public Class Test
+        Public Sub TestDeserialization()
+            Dim formatter = New DataContractJsonSerializer(GetType(Test))
+        End Sub
+    End Class
+End Namespace
+";
+
+            var testConfig = @"
+TaintEntryPoints:
+  VulnerableApp.Test:
+    Method:
+      Name: TestDeserialization
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig("AuditMode: true\r\n" + testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
         [TestCategory("Detect")]
         [DataTestMethod]
         [DataRow("System.IO.Stream",     "")]

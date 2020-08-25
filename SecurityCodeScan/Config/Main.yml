@@ -535,15 +535,76 @@ Sanitizers:
     TaintTypes:
       - SCS0029
     Methods:
+      - Name: HtmlAttributeEncode
       - Name: HtmlEncode
+      - Name: HtmlFormUrlEncode
       - Name: UrlEncode
       - Name: UrlPathEncode
+      - Name: XmlAttributeEncode
+      - Name: XmlEncode
+
+  - Type: Microsoft.Security.Application.AntiXss
+    TaintTypes:
+      - SCS0029
+    Methods:
+      - Name: HtmlAttributeEncode
+      - Name: HtmlEncode
+      - Name: HtmlFormUrlEncode
+      - Name: UrlEncode
+      - Name: UrlPathEncode
+      - Name: XmlAttributeEncode
+      - Name: XmlEncode
+
+  - Type: Microsoft.Security.Application.AntiXssEncoder
+    TaintTypes:
+      - SCS0029
+    Methods:
+      - Name: HtmlAttributeEncode
+      - Name: HtmlEncode
 
   - Type: System.Web.Security.AntiXss.AntiXssEncoder
     TaintTypes:
       - SCS0029
     Methods:
       - Name: HtmlEncode
+      - Name: HtmlFormUrlEncode
+      - Name: UrlEncode
+      - Name: XmlAttributeEncode
+      - Name: XmlEncode
+
+  - Type: System.Web.HttpServerUtilityBase
+    TaintTypes:
+      - SCS0029
+    Methods:
+      - Name: HtmlEncode
+        ArgumentCount: 1
+        InOut: [{"s": ".Return"}]
+      - Name: HtmlEncode
+        ArgumentCount: 2
+        InOut: [{"s": "output"}]
+      - Name: UrlEncode
+        ArgumentCount: 1
+        InOut: [{"s": ".Return"}]
+      - Name: UrlEncode
+        ArgumentCount: 2
+        InOut: [{"s": "output"}]
+
+  - Type: System.Web.HttpServerUtilityWrapper
+    TaintTypes:
+      - SCS0029
+    Methods:
+      - Name: HtmlEncode
+        ArgumentCount: 1
+        InOut: [{"s": ".Return"}]
+      - Name: HtmlEncode
+        ArgumentCount: 2
+        InOut: [{"s": "output"}]
+      - Name: UrlEncode
+        ArgumentCount: 1
+        InOut: [{"s": ".Return"}]
+      - Name: UrlEncode
+        ArgumentCount: 2
+        InOut: [{"s": "output"}]
 
   - Type: System.Web.HttpServerUtility
     TaintTypes:
@@ -556,6 +617,11 @@ Sanitizers:
         ArgumentCount: 2
         InOut: [{"s": "output"}]
       - Name: UrlEncode
+        ArgumentCount: 1
+        InOut: [{"s": ".Return"}]
+      - Name: UrlEncode
+        ArgumentCount: 2
+        InOut: [{"s": "output"}]
 
   - Type: System.Web.HttpUtility
     TaintTypes:
@@ -603,6 +669,12 @@ Sanitizers:
   - Type: System.Text.StringBuilder
     Methods:
       - Name: Clear
+        CleansInstance: true
+
+  - Type: System.IDisposable
+    IsInterface: true
+    Methods:
+      - Name: Dispose
         CleansInstance: true
 
   - Type: System.Byte

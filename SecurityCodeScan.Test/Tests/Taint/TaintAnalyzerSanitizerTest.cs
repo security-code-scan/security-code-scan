@@ -572,7 +572,25 @@ End Namespace
 
         [DataRow(@"Response.Write(input);",                                                     "SCS0029")]
         [DataRow(@"Response.Write(Encoder.LdapFilterEncode(input));",                           "SCS0029")]
+        [DataRow(@"var enc = Encoder.HtmlAttributeEncode(input);
+                   Response.Write(enc);
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var enc = Encoder.HtmlEncode(input);
+                   Response.Write(enc);
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
+        [DataRow(@"var enc = Encoder.HtmlFormUrlEncode(input);
+                   Response.Write(enc);
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
+        [DataRow(@"var enc = Encoder.UrlEncode(input);
+                   Response.Write(enc);
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
+        [DataRow(@"var enc = Encoder.UrlPathEncode(input);
+                   Response.Write(enc);
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
+        [DataRow(@"var enc = Encoder.XmlAttributeEncode(input);
+                   Response.Write(enc);
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
+        [DataRow(@"var enc = Encoder.XmlEncode(input);
                    Response.Write(enc);
                    var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var enc = _HttpServerUtility.HtmlEncode(input);
@@ -600,6 +618,18 @@ End Namespace
                    Response.Write(enc);
                    var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var enc = System.Web.Security.AntiXss.AntiXssEncoder.HtmlEncode(input, false);
+                   Response.Write(enc);
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
+        [DataRow(@"var enc = System.Web.Security.AntiXss.AntiXssEncoder.HtmlFormUrlEncode(input);
+                   Response.Write(enc);
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
+        [DataRow(@"var enc = System.Web.Security.AntiXss.AntiXssEncoder.UrlEncode(input);
+                   Response.Write(enc);
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
+        [DataRow(@"var enc = System.Web.Security.AntiXss.AntiXssEncoder.XmlAttributeEncode(input);
+                   Response.Write(enc);
+                   var a = new SqlCommand(enc);",                                               "SCS0002")]
+        [DataRow(@"var enc = System.Web.Security.AntiXss.AntiXssEncoder.XmlEncode(input);
                    Response.Write(enc);
                    var a = new SqlCommand(enc);",                                               "SCS0002")]
         [DataRow(@"var w = new StringWriter();

@@ -26,25 +26,7 @@ namespace SecurityCodeScan.Config
         private static readonly Lazy<string> UserConfigFileCached =
             new Lazy<string>(() =>
                              {
-                                 // todo: use Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) once on netstandard 2.0
-                                 string path;
-                                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                                 {
-                                     path = Environment.GetEnvironmentVariable("LocalAppData");
-                                 }
-                                 else
-                                 {
-                                     string home = Environment.GetEnvironmentVariable("HOME");
-                                     // "$XDG_DATA_HOME defines the base directory relative to which user specific data files should be stored."
-                                     // "If $XDG_DATA_HOME is either not set or empty, a default equal to $HOME/.local/share should be used."
-                                     path = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
-
-                                     if (string.IsNullOrEmpty(path) || path[0] != '/')
-                                     {
-                                         path = Path.Combine(home, ".local", "share");
-                                     }
-                                 }
-
+                                 string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                                  return Path.Combine(path, UserConfigName);
                              });
 

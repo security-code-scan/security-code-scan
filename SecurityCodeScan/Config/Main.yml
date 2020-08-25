@@ -842,6 +842,25 @@ Transfers:
       - Name: Replace
         InOut: [{"newValue": ".This"}, {"newChar": ".This"}]
 
+  - Type: System.IO.Stream
+    Methods:
+      - Name: BeginWrite
+        InOut: [{"buffer": ".This"}]
+      - Name: CopyTo
+        InOut: [{".This": "destination"}]
+      - Name: CopyToAsync
+        InOut: [{".This": "destination"}]
+      - Name: Read
+        InOut: [{".This": "buffer"}]
+      - Name: ReadAsync
+        InOut: [{".This": "buffer"}]
+      - Name: Write
+        InOut: [{"buffer": ".This"}]
+      - Name: WriteAsync
+        InOut: [{"buffer": ".This"}]
+      - Name: WriteByte
+        InOut: [{"value": ".This"}]
+
 Sinks:
 
  # Process

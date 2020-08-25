@@ -1314,7 +1314,6 @@ Transfers:
         }
 
         [TestMethod]
-        [Ignore("Taint is lost somewhere")]
         public async Task TransferMemoryStream()
         {
             var cSharpTest = @"

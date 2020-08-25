@@ -771,7 +771,7 @@ TaintSources:
 
         [TestCategory("Detect")]
         [TestMethod]
-        [Ignore("roslyn bug")]
+        [Ignore("roslyn limitation?")]
         public async Task Property()
         {
             var cSharpTest = @"

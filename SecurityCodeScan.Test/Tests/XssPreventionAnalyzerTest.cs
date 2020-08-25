@@ -123,7 +123,7 @@ End Class
         [DataRow("Microsoft.AspNetCore.Mvc",                       "Microsoft.AspNetCore.Mvc.Controller",     "HttpGet")]
         [DataRow("HG = Microsoft.AspNetCore.Mvc.HttpGetAttribute", "Microsoft.AspNetCore.Mvc.Controller",     "HG")]
         [DataRow("Microsoft.AspNetCore.Mvc",                       "Microsoft.AspNetCore.Mvc.ControllerBase", "HttpGet")]
-        [Ignore]
+        [Ignore("todo: sink on return")]
         // todo: how to define sink on return?
         // maybe isInterface: true and special handling for return
         public async Task UnencodedInputData(string alias, string controller, string attributeName)

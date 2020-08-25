@@ -146,6 +146,7 @@ End Namespace
 
         [TestCategory("Detect")]
         [TestMethod]
+        [Ignore("roslyn conditional branches")]
         public async Task Validator2()
         {
             var cSharpTest = @"
@@ -191,6 +192,7 @@ End Namespace
 
         [TestCategory("Detect")]
         [TestMethod]
+        [Ignore("roslyn conditional branches")]
         public async Task Validator3()
         {
             var cSharpTest = @"

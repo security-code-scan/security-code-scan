@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         internal CopyAbstractValue(ImmutableHashSet<AnalysisEntity> analysisEntities, CopyAbstractValueKind kind)
         {
             Debug.Assert(analysisEntities.IsEmpty != kind.IsKnown());
-            Debug.Assert(kind != CopyAbstractValueKind.KnownReferenceCopy || analysisEntities.All(a => !a.Type.IsValueType));
+            //Debug.Assert(kind != CopyAbstractValueKind.KnownReferenceCopy || analysisEntities.All(a => !a.Type.IsValueType));
 
             if (kind == CopyAbstractValueKind.KnownValueCopy &&
                 analysisEntities.Count == 1 &&

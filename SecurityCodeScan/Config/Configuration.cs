@@ -363,6 +363,8 @@ namespace SecurityCodeScan.Config
                         ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)>.Empty,
                     taintedMethodsNeedsValueContentAnalysis:
                         ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)>.Empty,
+                    transferProperties:
+                        ImmutableHashSet<string>.Empty,
                     transferMethods:
                         (type.Value.sanitizer?.Methods != null || type.Value.transfer?.Methods != null)
                             ? (type.Value.sanitizer?.Methods ?? Enumerable.Empty<TransferInfo>())

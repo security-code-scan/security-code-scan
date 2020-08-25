@@ -460,7 +460,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                         }
                                         finally
                                         {
-                                            rootOperationsNeedingAnalysis.Free();
+                                            rootOperationsNeedingAnalysis.Free(compilationContext.CancellationToken);
                                         }
                                     });
                             });

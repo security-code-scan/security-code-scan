@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
                 finally
                 {
-                    escapedLocationsBuilder.Free();
+                    escapedLocationsBuilder.Dispose();
                 }
             }
 
@@ -185,6 +185,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     SetAbstractValueCore(CurrentAnalysisData, analysisEntity, value);
                     TrackedEntitiesBuilder.AddEntityAndPointsToValue(analysisEntity, value);
                 }
+            }
+
+            protected override CopyAbstractValue GetCopyAbstractValue(IOperation operation)
+            {
+                if (DataFlowAnalysisContext.CopyAnalysisResult == null &&
+                    AnalysisEntityFactory.TryCreate(operation, out var entity) &&
+                    entity.CaptureId.HasValue &&
+                    AnalysisEntityFactory.TryGetCopyValueForFlowCapture(entity.CaptureId.Value.Id, out var copyValue) &&
+                    copyValue.Kind == CopyAbstractValueKind.KnownReferenceCopy)
+                {
+                    return copyValue;
+                }
+
+                return base.GetCopyAbstractValue(operation);
             }
 
             private static void SetAbstractValueCore(PointsToAnalysisData pointsToAnalysisData, AnalysisEntity analysisEntity, PointsToAbstractValue value)

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
+using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
 
 namespace SecurityCodeScan.Test.Taint
@@ -59,6 +60,292 @@ namespace SecurityCodeScan.Test.Taint
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
+
+        [DataTestMethod]
+        [DataRow("System.String",           "System.String", "value = input", true)]
+        [DataRow("System.Byte",             "System.String", "value = input.ToString()", false)]
+        [DataRow("System.SByte",            "System.String", "value = input.ToString()", false)]
+        [DataRow("System.Char",             "System.String", "value = input.ToString()", false)]
+        [DataRow("System.Boolean",          "System.String", "value = input.ToString()", false)]
+        [DataRow("System.Int16",            "System.String", "value = input.ToString()", false)]
+        [DataRow("System.Int32",            "System.String", "value = input.ToString()", false)]
+        [DataRow("System.Int64",            "System.String", "value = input.ToString()", false)]
+        [DataRow("System.UInt16",           "System.String", "value = input.ToString()", false)]
+        [DataRow("System.UInt32",           "System.String", "value = input.ToString()", false)]
+        [DataRow("System.UInt64",           "System.String", "value = input.ToString()", false)]
+        [DataRow("System.IntPtr",           "System.String", "value = input.ToString()", false)]
+        [DataRow("System.UIntPtr",          "System.String", "value = input.ToString()", false)]
+        [DataRow("System.Single",           "System.String", "value = input.ToString()", false)]
+        [DataRow("System.Double",           "System.String", "value = input.ToString()", false)]
+        [DataRow("System.Decimal",          "System.String", "value = input.ToString()", false)]
+        [DataRow("System.Guid",             "System.String", "value = input.ToString()", false)]
+        [DataRow("System.DateTime",         "System.String", "value = input.ToString()", false)]
+        [DataRow("System.TimeSpan",         "System.String", "value = input.ToString()", false)]
+        [DataRow("System.DateTimeOffset",   "System.String", "value = input.ToString()", false)]
+        [DataRow("System.Enum",             "System.String", "value = input.ToString()", false)]
+        [DataRow("System.String",           "System.Byte",      "value = System.Byte.Parse(input)",      false)]
+        [DataRow("System.String",           "System.SByte",     "value = System.SByte.Parse(input)",     false)]
+        [DataRow("System.String",           "System.Char",      "value = System.Char.Parse(input)",      false)]
+        [DataRow("System.String",           "System.Boolean",   "value = System.Boolean.Parse(input)",   false)]
+        [DataRow("System.String",           "System.Int16",     "value = System.Int16.Parse(input)",     false)]
+        [DataRow("System.String",           "System.Int32",     "value = System.Int32.Parse(input)",     false)]
+        [DataRow("System.String",           "System.Int64",     "value = System.Int64.Parse(input)",     false)]
+        [DataRow("System.String",           "System.UInt16",    "value = System.UInt16.Parse(input)",    false)]
+        [DataRow("System.String",           "System.UInt32",    "value = System.UInt32.Parse(input)",    false)]
+        [DataRow("System.String",           "System.UInt64",    "value = System.UInt64.Parse(input)",    false)]
+        [DataRow("System.String",           "System.Single",    "value = System.Single.Parse(input)",    false)]
+        [DataRow("System.String",           "System.Double",    "value = System.Double.Parse(input)",    false)]
+        [DataRow("System.String",           "System.Decimal",   "value = System.Decimal.Parse(input)",   false)]
+        [DataRow("System.String",           "System.Guid",      "value = System.Guid.Parse(input)",      false)]
+        [DataRow("System.String",           "System.Guid",      "value = System.Guid.ParseExact(input, \"\")",      false)]
+        [DataRow("System.String",           "System.DateTime",  "value = System.DateTime.Parse(input)",  false)]
+        [DataRow("System.String",           "System.DateTime",  "value = System.DateTime.ParseExact(input, (System.String)null, null, 0)",  false)]
+        [DataRow("System.String",           "System.TimeSpan",  "value = System.TimeSpan.Parse(input)",  false)]
+        [DataRow("System.String",           "System.TimeSpan",  "value = System.TimeSpan.ParseExact(input, (System.String)null, null, 0)",  false)]
+        [DataRow("System.String",           "System.DateTimeOffset", "value = System.DateTimeOffset.Parse(input)", false)]
+        [DataRow("System.String",           "System.DateTimeOffset", "value = System.DateTimeOffset.ParseExact(input, (System.String)null, null, 0)", false)]
+        [DataRow("System.String",           "System.Byte",      "System.Byte.TryParse(input, out value)",      false)]
+        [DataRow("System.String",           "System.SByte",     "System.SByte.TryParse(input, out value)",     false)]
+        [DataRow("System.String",           "System.Char",      "System.Char.TryParse(input, out value)",      false)]
+        [DataRow("System.String",           "System.Boolean",   "System.Boolean.TryParse(input, out value)",   false)]
+        [DataRow("System.String",           "System.Int16",     "System.Int16.TryParse(input, out value)",     false)]
+        [DataRow("System.String",           "System.Int32",     "System.Int32.TryParse(input, out value)",     false)]
+        [DataRow("System.String",           "System.Int64",     "System.Int64.TryParse(input, out value)",     false)]
+        [DataRow("System.String",           "System.UInt16",    "System.UInt16.TryParse(input, out value)",    false)]
+        [DataRow("System.String",           "System.UInt32",    "System.UInt32.TryParse(input, out value)",    false)]
+        [DataRow("System.String",           "System.UInt64",    "System.UInt64.TryParse(input, out value)",    false)]
+        [DataRow("System.String",           "System.Single",    "System.Single.TryParse(input, out value)",    false)]
+        [DataRow("System.String",           "System.Double",    "System.Double.TryParse(input, out value)",    false)]
+        [DataRow("System.String",           "System.Decimal",   "System.Decimal.TryParse(input, out value)",   false)]
+        [DataRow("System.String",           "System.Guid",      "System.Guid.TryParse(input, out value)",      false)]
+        [DataRow("System.String",           "System.Guid",      "System.Guid.TryParseExact(input, \"\", out value)",      false)]
+        [DataRow("System.String",           "System.DateTime",  "System.DateTime.TryParse(input, out value)",  false)]
+        [DataRow("System.String",           "System.DateTime",  "System.DateTime.TryParseExact(input, (System.String)null, null, 0, out value)",  false)]
+        [DataRow("System.String",           "System.TimeSpan",  "System.TimeSpan.TryParse(input, out value)",  false)]
+        [DataRow("System.String",           "System.TimeSpan",  "System.TimeSpan.TryParseExact(input, (System.String)null, null, 0, out value)",  false)]
+        [DataRow("System.String",           "System.DateTimeOffset", "System.DateTimeOffset.TryParse(input, out value)", false)]
+        [DataRow("System.String",           "System.DateTimeOffset", "System.DateTimeOffset.TryParseExact(input, (System.String)null, null, 0, out value)", false)]
+        public async Task ToStringSanitizer(string intputType, string sinkType, string sink, bool warn)
+        {
+            var cSharpTest = $@"
+namespace sample
+{{
+    public enum MyEnum
+    {{
+        Value = 1
+    }}
+
+    public class Sink
+    {{
+        public static void Redirect({sinkType} x)
+        {{
+        }}
+    }}
+
+    public class My
+    {{
+        public void Run({intputType} input)
+        {{
+            {sinkType} value = default({sinkType});
+            {sink};
+            Sink.Redirect(value);
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Namespace sample
+    Public Enum MyEnum
+        Value = 1
+    End Enum
+
+    Public Class Sink
+        Public Shared Sub Redirect(ByVal x As {sinkType})
+        End Sub
+    End Class
+
+    Public Class My
+        Public Sub Run(ByVal input As {intputType})
+            Dim value As {sinkType}
+            {sink.CSharpReplaceToVBasic()}
+            Sink.Redirect(value)
+        End Sub
+    End Class
+End Namespace
+";
+
+            var testConfig = @"
+TaintEntryPoints:
+  sample.My:
+    Method:
+      Name: Run
+
+Sinks:
+  - Type: sample.Sink
+    TaintTypes:
+      - SCS0027
+    Methods:
+      Redirect:
+        - x
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            if (warn)
+            {
+                var expected = new DiagnosticResult
+                {
+                    Id       = "SCS0027",
+                    Severity = DiagnosticSeverity.Warning,
+                };
+
+                await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+        }
+
+        [TestMethod]
+        public async Task ToStringSanitizer2()
+        {
+            var cSharpTest = @"
+namespace sample
+{
+    public enum MyEnum
+    {
+        Value = 1
+    }
+
+    public class Sink
+    {
+        public static void Redirect(MyEnum x)
+        {
+        }
+    }
+
+    public class My
+    {
+        public void Run(string input)
+        {
+            Sink.Redirect((MyEnum)System.Enum.Parse(typeof(MyEnum), input));
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Namespace sample
+    Public Enum MyEnum
+        Value = 1
+    End Enum
+
+    Public Class Sink
+        Public Shared Sub Redirect(ByVal x As MyEnum)
+        End Sub
+    End Class
+
+    Public Class My
+        Public Sub Run(ByVal input As String)
+            Sink.Redirect(CType(System.[Enum].Parse(GetType(MyEnum), input), MyEnum))
+        End Sub
+    End Class
+End Namespace
+";
+
+            var testConfig = @"
+TaintEntryPoints:
+  sample.My:
+    Method:
+      Name: Run
+
+Sinks:
+  - Type: sample.Sink
+    TaintTypes:
+      - SCS0027
+    Methods:
+      Redirect:
+        - x
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task ToStringSanitizer3()
+        {
+            var cSharpTest = @"
+namespace sample
+{
+    public enum MyEnum
+    {
+        Value = 1
+    }
+
+    public class Sink
+    {
+        public static void Redirect(MyEnum x)
+        {
+        }
+    }
+
+    public class My
+    {
+        public void Run(string input)
+        {
+            System.Enum.TryParse<MyEnum>(input, false, out MyEnum value);
+            Sink.Redirect(value);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Namespace sample
+    Public Enum MyEnum
+        Value = 1
+    End Enum
+
+    Public Class Sink
+        Public Shared Sub Redirect(ByVal x As MyEnum)
+        End Sub
+    End Class
+
+    Public Class My
+        Public Sub Run(ByVal input As String)
+            Dim value As MyEnum = Nothing
+            System.[Enum].TryParse(Of MyEnum)(input, False, value)
+            Sink.Redirect(value)
+        End Sub
+    End Class
+End Namespace
+";
+
+            var testConfig = @"
+TaintEntryPoints:
+  sample.My:
+    Method:
+      Name: Run
+
+Sinks:
+  - Type: sample.Sink
+    TaintTypes:
+      - SCS0027
+    Methods:
+      Redirect:
+        - x
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+        }
 
         [DataTestMethod]
         [DataRow("using System; using System.Web.Mvc;",           "!!Url.IsLocalUrl(input)",                                   "Redirect(input)",          false)]
@@ -141,7 +428,6 @@ End Namespace
                 await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
                 await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
             }
-
         }
 
         [TestCategory("Detect")]

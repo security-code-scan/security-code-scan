@@ -605,6 +605,152 @@ Sanitizers:
       - Name: Clear
         CleansInstance: true
 
+  - Type: System.Byte
+    Methods:
+      - Name: ToString
+      - Name: Parse
+      - Name: TryParse
+        InOut: [{"s": "result"}]
+
+  - Type: System.SByte
+    Methods:
+      - Name: ToString
+      - Name: Parse
+      - Name: TryParse
+        InOut: [{"s": "result"}]
+
+  - Type: System.Char
+    Methods:
+      - Name: ToString
+      - Name: Parse
+      - Name: TryParse
+        InOut: [{"s": "result"}]
+
+  - Type: System.Boolean
+    Methods:
+      - Name: ToString
+      - Name: Parse
+      - Name: TryParse
+        InOut: [{"value": "result"}]
+
+  - Type: System.Int16
+    Methods:
+      - Name: ToString
+      - Name: Parse
+      - Name: TryParse
+        InOut: [{"s": "result"}]
+
+  - Type: System.Int32
+    Methods:
+      - Name: ToString
+      - Name: Parse
+      - Name: TryParse
+        InOut: [{"s": "result"}]
+
+  - Type: System.Int64
+    Methods:
+      - Name: ToString
+      - Name: Parse
+      - Name: TryParse
+        InOut: [{"s": "result"}]
+
+  - Type: System.UInt16
+    Methods:
+      - Name: ToString
+      - Name: Parse
+      - Name: TryParse
+        InOut: [{"s": "result"}]
+
+  - Type: System.UInt32
+    Methods:
+      - Name: ToString
+      - Name: Parse
+      - Name: TryParse
+        InOut: [{"s": "result"}]
+
+  - Type: System.UInt64
+    Methods:
+      - Name: ToString
+      - Name: Parse
+      - Name: TryParse
+        InOut: [{"s": "result"}]
+
+  - Type: System.IntPtr
+    Methods:
+      - Name: ToString
+
+  - Type: System.UIntPtr
+    Methods:
+      - Name: ToString
+
+  - Type: System.Single
+    Methods:
+      - Name: ToString
+      - Name: Parse
+      - Name: TryParse
+        InOut: [{"s": "result"}]
+
+  - Type: System.Double
+    Methods:
+      - Name: ToString
+      - Name: Parse
+      - Name: TryParse
+        InOut: [{"s": "result"}]
+
+  - Type: System.Decimal
+    Methods:
+      - Name: ToString
+      - Name: Parse
+      - Name: TryParse
+        InOut: [{"s": "result"}]
+
+  - Type: System.Guid
+    Methods:
+      - Name: ToString
+      - Name: Parse
+      - Name: ParseExact
+      - Name: TryParse
+        InOut: [{"input": "result"}]
+      - Name: TryParseExact
+        InOut: [{"input": "result"}]
+
+  - Type: System.DateTime
+    Methods:
+      - Name: ToString
+      - Name: Parse
+      - Name: ParseExact
+      - Name: TryParse
+        InOut: [{"s": "result"}]
+      - Name: TryParseExact
+        InOut: [{"s": "result"}]
+
+  - Type: System.TimeSpan
+    Methods:
+      - Name: ToString
+      - Name: Parse
+      - Name: ParseExact
+      - Name: TryParse
+        InOut: [{"s": "result"}]
+      - Name: TryParseExact
+        InOut: [{"s": "result"}]
+
+  - Type: System.DateTimeOffset
+    Methods:
+      - Name: ToString
+      - Name: Parse
+      - Name: ParseExact
+      - Name: TryParse
+        InOut: [{"input": "result"}]
+      - Name: TryParseExact
+        InOut: [{"input": "result"}]
+
+  - Type: System.Enum
+    Methods:
+      - Name: ToString
+      - Name: Parse
+      - Name: TryParse
+        InOut: [{"value": "result"}]
+
 Transfers:
 
   - Type: System.Text.StringBuilder

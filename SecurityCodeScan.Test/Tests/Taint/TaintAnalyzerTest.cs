@@ -961,10 +961,9 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
-            // todo: implement audit mode to recognize as a constant
-            //var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
-            //await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
-            //await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -1004,10 +1003,9 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
-            // todo: implement audit mode to recognize as a constant
-            //var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
-            //await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
-            //await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -1200,10 +1198,9 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
-            // todo: implement audit mode to recognize as a constant
-            //var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
-            //await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
-            //await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]
@@ -1832,10 +1829,9 @@ End Namespace
 
             await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
-            // todo: implement audit mode to recognize as a constant
-            //var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
-            //await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
-            //await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
+            var auditConfig = await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, null, auditConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, auditConfig).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]

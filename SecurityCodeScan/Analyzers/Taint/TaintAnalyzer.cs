@@ -168,6 +168,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                                     return;
                                 }
 
+                                WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
+
                                 void CreateWarning(OperationAnalysisContext operationAnalysisContext, Location location, IParameterSymbol paramSymbol, ISymbol symbol)
                                 {
                                     // Something like:
@@ -184,7 +186,22 @@ namespace SecurityCodeScan.Analyzers.Taint
                                     operationAnalysisContext.ReportDiagnostic(diagnostic);
                                 }
 
-                                WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
+                                bool IsConstant(IArgumentOperation operation, OperationAnalysisContext operationAnalysisContext)
+                                {
+                                    if (operation.ConstantValue.HasValue || operation.Value is ITypeOfOperation)
+                                        return true;
+
+                                    if (!operation.TryGetEnclosingControlFlowGraph(out var cfg))
+                                        return false;
+
+                                    var valueContentResult = ValueContentAnalysis.TryGetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
+                                        operationAnalysisContext.Options, TaintedDataEnteringSinkDescriptor, PointsToAnalysisKind.Complete, operationAnalysisContext.CancellationToken);
+                                    if (valueContentResult == null)
+                                        return false;
+
+                                    ValueContentAbstractValue value = valueContentResult[operation.Kind, operation.Syntax];
+                                    return value.NonLiteralState == ValueContainsNonLiteralState.No;
+                                }
                                 PooledHashSet<IOperation> rootOperationsNeedingAnalysis = PooledHashSet<IOperation>.GetInstance();
 
                                 operationBlockStartContext.RegisterOperationAction(
@@ -197,7 +214,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                         IEnumerable<SinkInfo>? infosForType = sinkInfoSymbolMap.GetInfosForType(propertyReferenceOperation.Member.ContainingType);
                                         if (infosForType != null &&
                                             infosForType.Any() &&
-                                            propertyReferenceOperation.Arguments.Any(x => !x.Value.ConstantValue.HasValue && !(x.Value is ITypeOfOperation)))
+                                            propertyReferenceOperation.Arguments.Any(x => !IsConstant(x, operationAnalysisContext)))
                                         {
                                             CreateWarning(
                                                 operationAnalysisContext,
@@ -218,7 +235,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                                         foreach (SinkInfo sinkInfo in infosForType)
                                         {
-                                            foreach (IArgumentOperation taintedArgument in invocationOperation.Arguments.Where(x => !x.Value.ConstantValue.HasValue && !(x.Value is ITypeOfOperation)))
+                                            foreach (IArgumentOperation taintedArgument in invocationOperation.Arguments.Where(x => !IsConstant(x, operationAnalysisContext)))
                                             {
                                                 if (sinkInfo.SinkMethodParameters.TryGetValue(invocationOperation.TargetMethod.MetadataName, out ImmutableHashSet<string> sinkParameters)
                                                     && sinkParameters.Contains(taintedArgument.Parameter.MetadataName))
@@ -241,7 +258,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                                         foreach (SinkInfo sinkInfo in infosForType)
                                         {
-                                            foreach (IArgumentOperation taintedArgument in invocationOperation.Arguments.Where(x => !x.Value.ConstantValue.HasValue && !(x.Value is ITypeOfOperation)))
+                                            foreach (IArgumentOperation taintedArgument in invocationOperation.Arguments.Where(x => !IsConstant(x, operationAnalysisContext)))
                                             {
                                                 if (sinkInfo.IsAnyStringParameterInConstructorASink
                                                     && taintedArgument.Parameter.Type.SpecialType == SpecialType.System_String)

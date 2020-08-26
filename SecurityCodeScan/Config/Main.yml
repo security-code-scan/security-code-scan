@@ -513,6 +513,7 @@ Sanitizers:
     TaintTypes:
       - SCS0027
     Methods:
+      - Name: Action
       - Name: HttpRouteUrl
       - Name: RouteUrl
       - Name: IsLocalUrl
@@ -656,6 +657,12 @@ Sanitizers:
         InOut: [{"value": "output"}]
 
   - Type: System.Web.HttpServerUtility
+    TaintTypes:
+      - SCS0018
+    Methods:
+      - Name: MapPath
+
+  - Type: System.Web.HttpServerUtilityBase
     TaintTypes:
       - SCS0018
     Methods:
@@ -1234,8 +1241,13 @@ Sinks:
     TaintTypes:
       - SCS0018
     Methods:
-      Exists:
+      Delete:
         - path
+      GetFiles:
+        - path
+      Move:
+        - sourceDirName
+        - destDirName
 
   - Type: System.IO.File
     TaintTypes:
@@ -1259,8 +1271,6 @@ Sinks:
       CreateText:
         - path
       Delete:
-        - path
-      Exists:
         - path
       Move:
         - sourceFileName

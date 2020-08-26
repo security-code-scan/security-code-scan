@@ -732,8 +732,8 @@ End Class
         [DataRow("var query = input; query = input + \"\"", true)]
         [DataRow("var query = input; query = query + \"\"", true)]
         [DataRow("var query = \"\"; query = query + input", true)]
-        // [DataRow("var query = input; query += \"\"", true)] todo: bug in ms taint
-        // [DataRow("var query = \"\"; query += input", true)] todo: bug in ms taint
+        // [DataRow("var query = input; query += \"\"", true)] todo: += bug in ms taint
+        // [DataRow("var query = \"\"; query += input", true)] todo: += bug in ms taint
         [DataRow("var query = input; query = \"\"", false)]
         [DataRow("var query = \"\"; query = input", true)]
 
@@ -848,7 +848,7 @@ TaintEntryPoints:
 
         [DataTestMethod]
         [DataRow("var query = o.Foo5(ref a, b, null);", true)]
-        // todo: bug in microsoft taint tracker
+        // todo: += bug in microsoft taint tracker
         //[DataRow("var query = o.Foo6(a);", true)]
         //[DataRow("var query = o.Foo6(a, b);", true)]
         //[DataRow("var query = o.Foo6(null, b);", true)]

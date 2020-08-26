@@ -418,13 +418,13 @@ namespace SecurityCodeScan.Config
 
             foreach (var sanitizer in config.Sanitizers.Where(s => s.TaintTypes == null || s.TaintTypes.Any(x => (int)x == (int)sinkKind)))
             {
-                if (sanitizer.Methods.Any(x => x.ArgumentCount.HasValue || x.Signature != null || x.SignatureNot != null || x.InOut != null))
+                if (sanitizer.Methods.Any(x => x.ArgumentCount.HasValue || x.Signature != null || x.SignatureNot != null || x.Condition != null || x.InOut != null))
                 {
                     sanitizerInfosBuilder.AddSanitizerInfo(
                         sanitizer.Type,
                         isInterface: sanitizer.IsInterface ?? false,
                         isConstructorSanitizing: false,
-                        sanitizingMethods: sanitizer.Methods.Select(method => new ValueTuple<MethodMatcher, (string, string)[]>
+                        sanitizingMethods: sanitizer.Methods.Where(method => method.Condition == null).Select(method => new ValueTuple<MethodMatcher, (string, string)[]>
                             (
                                 (methodName, arguments) =>
                                 {
@@ -461,8 +461,64 @@ namespace SecurityCodeScan.Config
                                 method.InOut ?? EmptyArgumentMatchArray
                             )
                         ),
+                        sanitizingMethodsNeedsValueContentAnalysis: sanitizer.Methods.Where(method => method.Condition != null)
+                                                                                     .Select(method => new ValueTuple<MethodMatcher, ValueContentCheck, (string, string)[]>
+                            (
+                                (methodName, arguments) =>
+                                {
+                                    if (methodName != method.Name)
+                                        return false;
+
+                                    if (method.ArgumentCount.HasValue && arguments.Length != method.ArgumentCount)
+                                        return false;
+
+                                    if (method.SignatureNot != null)
+                                    {
+                                        bool found = true;
+                                        for (int i = 0; i < method.SignatureNot.Length; ++i)
+                                        {
+                                            found = found &&
+                                                    (arguments[i].Parameter.Type == config.TaintConfiguration.WellKnownTypeProvider.GetOrCreateTypeByMetadataName(method.SignatureNot[i]));
+                                        }
+
+                                        if (found)
+                                            return false;
+                                    }
+
+                                    if (method.Signature != null)
+                                    {
+                                        for (int i = 0; i < method.Signature.Length; ++i)
+                                        {
+                                            if (arguments[i].Parameter.Type != config.TaintConfiguration.WellKnownTypeProvider.GetOrCreateTypeByMetadataName(method.Signature[i]))
+                                                return false;
+                                        }
+                                    }
+
+                                    return true;
+                                },
+                                (argumentPointsTos, argumentValueContents) =>
+                                {
+                                    foreach (var condition in method.Condition)
+                                    {
+                                        if (condition.idx >= argumentValueContents.Length)
+                                            throw new ArgumentOutOfRangeException(nameof(condition.idx));
+
+                                        if (!argumentValueContents[condition.idx].IsLiteralState ||
+                                            argumentValueContents[condition.idx].LiteralValues.Count != 1)
+                                        {
+                                            return false;
+                                        }
+
+                                        if (!Equals(condition.value,argumentValueContents[condition.idx].LiteralValues.First()))
+                                            return false;
+                                    }
+                                    return true;
+                                },
+                                method.InOut ?? EmptyArgumentMatchArray
+                            )
+                        ),
                         sanitizingInstanceMethods: sanitizer.Methods.Any(m => m.CleansInstance == true)
-                            ? sanitizer.Methods.Where(m => m.CleansInstance == true).Select(m => m.Name).ToArray()
+                            ? sanitizer.Methods.Where(m => m.CleansInstance == true).Select(m => m.Name)
                             : null
                     );
                 }
@@ -472,9 +528,9 @@ namespace SecurityCodeScan.Config
                         sanitizer.Type,
                         isInterface: sanitizer.IsInterface ?? false,
                         isConstructorSanitizing: false,
-                        sanitizingMethods: sanitizer.Methods != null ? sanitizer.Methods.Select(x => x.Name).ToArray() : null,
+                        sanitizingMethods: sanitizer.Methods != null ? sanitizer.Methods.Select(x => x.Name) : null,
                         sanitizingInstanceMethods: sanitizer.Methods.Any(m => m.CleansInstance == true)
-                            ? sanitizer.Methods.Where(m => m.CleansInstance == true).Select(m => m.Name).ToArray()
+                            ? sanitizer.Methods.Where(m => m.CleansInstance == true).Select(m => m.Name)
                             : null);
                 }
             }

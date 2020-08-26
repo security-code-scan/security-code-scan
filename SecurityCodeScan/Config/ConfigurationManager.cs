@@ -324,6 +324,8 @@ namespace SecurityCodeScan.Config
 
         public (string inArgumentName, string outArgumentName)[] InOut { get; set; }
 
+        public (int idx, object value)[] Condition { get; set; }
+
         public bool? CleansInstance { get; set; }
     }
 

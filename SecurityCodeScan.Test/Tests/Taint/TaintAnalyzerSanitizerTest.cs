@@ -386,8 +386,9 @@ Sinks:
         [DataRow("using System; using System.Web.Mvc;",           "Url.IsLocalUrl(inputModel.x)",                              "Redirect(inputModel.x)",   false)]
         [DataRow("using System; using Microsoft.AspNetCore.Mvc;", "Url.IsLocalUrl(input)",                                     "Redirect(input)",          false)]
         [DataRow("using System; using System.Web.Mvc;",           "Uri.TryCreate(input, UriKind.Relative, out uri)",           "Redirect(uri.ToString())", false)]
-        // todo: roslyn uri kind value analysis
-        //[DataRow("using System; using System.Web.Mvc;",           "Uri.TryCreate(input, UriKind.RelativeOrAbsolute, out uri)", "Redirect(uri.ToString())", true)]
+        [DataRow("using System; using System.Web.Mvc;",           "Uri.TryCreate(input, UriKind.RelativeOrAbsolute, out uri)", "Redirect(uri.ToString())", true)]
+        [DataRow("using System; using System.Web.Mvc;",           "Uri.TryCreate(inputUri, input, out uri)",           "Redirect(uri.ToString())", true)]
+        [DataRow("using System; using System.Web.Mvc;",           "Uri.TryCreate(inputUri, inputUri, out uri)",        "Redirect(uri.ToString())", true)]
         public async Task Validator(string usingNamespace, string validate, string sink, bool warn)
         {
             var cSharpTest = $@"
@@ -402,7 +403,7 @@ namespace sample
 
     public class MyController : Controller
     {{
-        public object Run(string input, Model inputModel)
+        public object Run(string input, Uri inputUri, Model inputModel)
         {{
 #pragma warning disable CS0219
             Uri uri = null;
@@ -429,7 +430,7 @@ Namespace sample
     Public Class MyController
         Inherits Controller
 
-        Public Function Run(ByVal input As String, ByVal inputModel As Model) As Object
+        Public Function Run(ByVal input As String, ByVal inputUri as Uri, ByVal inputModel As Model) As Object
 #Disable Warning BC42024
             Dim uri As Uri = Nothing
 #Enable Warning BC42024

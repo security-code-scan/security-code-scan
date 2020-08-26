@@ -506,7 +506,8 @@ Sanitizers:
       - SCS0027
     Methods:
       - Name: TryCreate
-        InOut: [{"uriString": "result"}, {"baseUri": "result"}, {"relativeUri": "result"}]
+        Condition: [{1: 2}] # UriKind.Relative
+        InOut: [{"uriString": "result"}]
 
   - Type: System.Web.Mvc.UrlHelper
     TaintTypes:
@@ -844,6 +845,11 @@ Sanitizers:
         InOut: [{"value": "result"}]
 
 Transfers:
+
+  - Type: System.Uri
+    Methods:
+      - Name: TryCreate
+        InOut: [{"uriString": "result"}, {"baseUri": "result"}, {"relativeUri": "result"}]
 
   - Type: System.Text.StringBuilder
     Methods:

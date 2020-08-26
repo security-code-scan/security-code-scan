@@ -17,12 +17,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             bool isInterface,
             bool isConstructorSanitizing,
             ImmutableHashSet<(MethodMatcher methodMatcher, ImmutableHashSet<(string IfTaintedParameter, string ThenUnTaintedTarget)>)> sanitizingMethods,
+            ImmutableHashSet<(MethodMatcher methodMatcher, ValueContentCheck valueContentCheck, ImmutableHashSet<(string IfTaintedParameter, string ThenUnTaintedTarget)>)> sanitizingMethodsNeedsValueContentAnalysis,
             ImmutableHashSet<string> sanitizingInstanceMethods)
         {
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
             IsInterface = isInterface;
             IsConstructorSanitizing = isConstructorSanitizing;
             SanitizingMethods = sanitizingMethods ?? throw new ArgumentNullException(nameof(sanitizingMethods));
+            SanitizingMethodsNeedsValueContentAnalysis = sanitizingMethodsNeedsValueContentAnalysis ?? throw new ArgumentNullException(nameof(sanitizingMethodsNeedsValueContentAnalysis));
             SanitizingInstanceMethods = sanitizingInstanceMethods ?? throw new ArgumentNullException(nameof(sanitizingInstanceMethods));
         }
 
@@ -60,6 +62,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </remarks>
         public ImmutableHashSet<(MethodMatcher MethodMatcher, ImmutableHashSet<(string IfTaintedParameter, string ThenUnTaintedTarget)>)> SanitizingMethods { get; }
 
+        public ImmutableHashSet<(MethodMatcher MethodMatcher, ValueContentCheck valueContentCheck, ImmutableHashSet<(string IfTaintedParameter, string ThenUnTaintedTarget)>)> SanitizingMethodsNeedsValueContentAnalysis { get; }
+
         /// <summary>
         /// Methods that untaint tainted instance.
         /// </summary>
@@ -68,7 +72,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Indicates that this <see cref="SanitizerInfo"/> uses <see cref="ValueContentAbstractValue"/>s.
         /// </summary>
-        public bool RequiresValueContentAnalysis => false;
+        public bool RequiresValueContentAnalysis => !this.SanitizingMethodsNeedsValueContentAnalysis.IsEmpty;
 
         /// <summary>
         /// Indicates that <see cref="OperationKind.ParameterReference"/> is required.

@@ -283,11 +283,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     taintedParameterNamesCached = PooledHashSet<string>.GetInstance();
                     taintedParameterNamesCached.UnionWith(GetTaintedParameterNames());
 
+                    var valueContentFactory = new Lazy<(PointsToAnalysisResult?, ValueContentAnalysisResult?)>(() => (DataFlowAnalysisContext.PointsToAnalysisResult, DataFlowAnalysisContext.ValueContentAnalysisResult));
+
                     if (this.DataFlowAnalysisContext.SourceInfos.IsSourceMethod(
                         method,
                         visitedArguments,
                         new Lazy<PointsToAnalysisResult?>(() => DataFlowAnalysisContext.PointsToAnalysisResult),
-                        new Lazy<(PointsToAnalysisResult?, ValueContentAnalysisResult?)>(() => (DataFlowAnalysisContext.PointsToAnalysisResult, DataFlowAnalysisContext.ValueContentAnalysisResult)),
+                        valueContentFactory,
                         out taintedTargets))
                     {
                         bool rebuildTaintedParameterNames = false;
@@ -356,6 +358,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         method,
                         visitedArguments,
                         taintedParameterNamesCached,
+                        valueContentFactory,
                         out sanitizedParameterPairs))
                     {
                         if (sanitizedParameterPairs.Count == 0)
@@ -599,9 +602,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 IMethodSymbol method,
                 ImmutableArray<IArgumentOperation> arguments,
                 ISet<string> taintedParameterNames,
+                Lazy<(PointsToAnalysisResult? p, ValueContentAnalysisResult? v)> valueContentFactory,
                 [NotNullWhen(returnValue: true)] out PooledHashSet<(string, string)>? taintedParameterPairs)
             {
                 taintedParameterPairs = null;
+                PointsToAnalysisResult? pointsToAnalysisResult = null;
+                ValueContentAnalysisResult? valueContentAnalysisResult = null;
                 foreach (SanitizerInfo sanitizerInfo in this.DataFlowAnalysisContext.SanitizerInfos.GetInfosForType(method.ContainingType))
                 {
                     if (method.MethodKind == MethodKind.Constructor
@@ -615,6 +621,33 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     {
                         if (methodMatcher(method.Name, arguments))
                         {
+                            if (taintedParameterPairs == null)
+                            {
+                                taintedParameterPairs = PooledHashSet<(string, string)>.GetInstance();
+                            }
+
+                            taintedParameterPairs.UnionWith(sourceToEnds.Where(s => taintedParameterNames.Contains(s.source)));
+                        }
+                    }
+
+                    foreach ((MethodMatcher methodMatcher, ValueContentCheck valueContentCheck, ImmutableHashSet <(string source, string end)> sourceToEnds) in sanitizerInfo.SanitizingMethodsNeedsValueContentAnalysis)
+                    {
+                        if (sourceToEnds.Any() && methodMatcher(method.Name, arguments))
+                        {
+                            pointsToAnalysisResult ??= valueContentFactory.Value.p;
+                            valueContentAnalysisResult ??= valueContentFactory.Value.v;
+                            if (pointsToAnalysisResult == null || valueContentAnalysisResult == null)
+                            {
+                                break;
+                            }
+
+                            if (!valueContentCheck(
+                                    arguments.Select(o => pointsToAnalysisResult[o.Kind, o.Syntax]).ToImmutableArray(),
+                                    arguments.Select(o => valueContentAnalysisResult[o.Kind, o.Syntax]).ToImmutableArray()))
+                            {
+                                continue;
+                            }
+
                             if (taintedParameterPairs == null)
                             {
                                 taintedParameterPairs = PooledHashSet<(string, string)>.GetInstance();

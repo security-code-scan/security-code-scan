@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
@@ -182,7 +181,7 @@ namespace SecurityCodeScan.Config
                 foreach (var property in config2.PasswordValidatorRequiredProperties)
                 {
                     if (config1.PasswordValidatorRequiredProperties == null)
-                        config1.PasswordValidatorRequiredProperties = new List<string>();
+                        config1.PasswordValidatorRequiredProperties = new HashSet<string>();
 
                     config1.PasswordValidatorRequiredProperties.Add(property);
                 }
@@ -283,7 +282,7 @@ namespace SecurityCodeScan.Config
         public bool?                                   AuditMode                           { get; set; }
         public int?                                    PasswordValidatorRequiredLength     { get; set; }
         public int?                                    MinimumPasswordValidatorProperties  { get; set; }
-        public List<string>                            PasswordValidatorRequiredProperties { get; set; }
+        public HashSet<string>                         PasswordValidatorRequiredProperties { get; set; }
         public Dictionary<string, TaintEntryPointData> TaintEntryPoints                    { get; set; }
         public List<TaintSource>                       TaintSources                        { get; set; }
         public List<Sink>                              Sinks                               { get; set; }
@@ -306,7 +305,7 @@ namespace SecurityCodeScan.Config
     {
         public string Type { get; set; }
 
-        public List<TaintType> TaintTypes { get; set; }
+        public HashSet<TaintType> TaintTypes { get; set; }
 
         public bool? IsInterface { get; set; }
 
@@ -319,6 +318,10 @@ namespace SecurityCodeScan.Config
 
         public int? ArgumentCount { get; set; }
 
+        public string[] Signature { get; set; }
+
+        public string[] SignatureNot { get; set; }
+
         public (string inArgumentName, string outArgumentName)[] InOut { get; set; }
 
         public bool? CleansInstance { get; set; }
@@ -328,13 +331,13 @@ namespace SecurityCodeScan.Config
     {
         public string Type { get; set; }
 
-        public List<TaintType> TaintTypes { get; set; }
+        public HashSet<TaintType> TaintTypes { get; set; }
 
         public bool? IsAnyStringParameterInConstructorASink { get; set; }
 
         public bool? IsInterface { get; set; }
 
-        public List<string> Properties { get; set; }
+        public HashSet<string> Properties { get; set; }
 
         public Dictionary<string, string[]> Methods { get; set; }
     }
@@ -343,13 +346,13 @@ namespace SecurityCodeScan.Config
     {
         public string Name { get; set; }
 
-        public List<Accessibility> Accessibility { get; set; }
+        public HashSet<Accessibility> Accessibility { get; set; }
 
         public bool? IncludeConstructor { get; set; }
 
         public bool? Static { get; set; }
 
-        public List<string> ExcludeAttributes { get; set; }
+        public HashSet<string> ExcludeAttributes { get; set; }
     }
 
     internal class Suffix
@@ -365,24 +368,24 @@ namespace SecurityCodeScan.Config
 
         public string Parent { get; set; }
 
-        public List<Accessibility> Accessibility { get; set; }
+        public HashSet<Accessibility> Accessibility { get; set; }
 
         public bool? IncludeConstructor { get; set; }
 
         public bool? Static { get; set; }
 
-        public List<string> ExcludeAttributes { get; set; }
-        public List<string> IncludeAttributes { get; set; }
+        public HashSet<string> ExcludeAttributes { get; set; }
+        public HashSet<string> IncludeAttributes { get; set; }
     }
 
     internal class Parameter
     {
-        public List<string> ExcludeAttributes { get; set; }
+        public HashSet<string> ExcludeAttributes { get; set; }
     }
 
     internal class TaintEntryPointData
     {
-        public List<string> Dependency { get; set; }
+        public HashSet<string> Dependency { get; set; }
         public Class Class { get; set; }
 
         public Method Method { get; set; }
@@ -393,6 +396,8 @@ namespace SecurityCodeScan.Config
     internal class TaintSource
     {
         public string Type { get; set; }
+
+        public HashSet<TaintType> TaintTypes { get; set; }
 
         public bool? IsInterface { get; set; }
 
@@ -413,7 +418,7 @@ namespace SecurityCodeScan.Config
 
     internal class CsrfClass
     {
-        public List<string> Name             { get; set; }
+        public HashSet<string> Name             { get; set; }
         public CsrfIncludeExclude Attributes { get; set; }
     }
 

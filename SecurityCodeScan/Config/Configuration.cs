@@ -170,6 +170,9 @@ namespace SecurityCodeScan.Config
 
             foreach (var source in config.TaintSources)
             {
+                if (source.TaintTypes != null && !source.TaintTypes.Contains((TaintType)sinkKind))
+                    continue;
+
                 if (!typeToInfos.TryGetValue(source.Type, out var value))
                 {
                     value = new AggregatedSource();
@@ -415,7 +418,7 @@ namespace SecurityCodeScan.Config
 
             foreach (var sanitizer in config.Sanitizers.Where(s => s.TaintTypes == null || s.TaintTypes.Any(x => (int)x == (int)sinkKind)))
             {
-                if (sanitizer.Methods.Any(x => x.ArgumentCount.HasValue || x.InOut != null))
+                if (sanitizer.Methods.Any(x => x.ArgumentCount.HasValue || x.Signature != null || x.SignatureNot != null || x.InOut != null))
                 {
                     sanitizerInfosBuilder.AddSanitizerInfo(
                         sanitizer.Type,
@@ -430,6 +433,28 @@ namespace SecurityCodeScan.Config
 
                                     if (method.ArgumentCount.HasValue && arguments.Length != method.ArgumentCount)
                                         return false;
+
+                                    if (method.SignatureNot != null)
+                                    {
+                                        bool found = true;
+                                        for (int i = 0; i < method.SignatureNot.Length; ++i)
+                                        {
+                                            found = found &&
+                                                    (arguments[i].Parameter.Type == config.TaintConfiguration.WellKnownTypeProvider.GetOrCreateTypeByMetadataName(method.SignatureNot[i]));
+                                        }
+
+                                        if (found)
+                                            return false;
+                                    }
+
+                                    if (method.Signature != null)
+                                    {
+                                        for (int i = 0; i < method.Signature.Length; ++i)
+                                        {
+                                            if (arguments[i].Parameter.Type != config.TaintConfiguration.WellKnownTypeProvider.GetOrCreateTypeByMetadataName(method.Signature[i]))
+                                                return false;
+                                        }
+                                    }
 
                                     return true;
                                 },

@@ -677,6 +677,26 @@ Sanitizers:
       - Name: Dispose
         CleansInstance: true
 
+  - Type: System.Convert
+    Methods:
+      - Name: ToString
+        SignatureNot: ["System.String"]
+      - Name: ToByte
+      - Name: ToSByte
+      - Name: ToChar
+      - Name: ToBoolean
+      - Name: ToInt16
+      - Name: ToInt32
+      - Name: ToInt64
+      - Name: ToUInt16
+      - Name: ToUInt32
+      - Name: ToUInt64
+      - Name: ToSingle
+      - Name: ToDouble
+      - Name: ToDecimal
+      - Name: ToDateTime
+
+
   - Type: System.Byte
     Methods:
       - Name: ToString

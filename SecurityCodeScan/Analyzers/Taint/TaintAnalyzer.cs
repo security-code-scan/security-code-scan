@@ -26,6 +26,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         SCS0001 = 100,
         SCS0002,
         SCS0003,
+        SCS0015,
         SCS0018,
         SCS0026,
         SCS0027,
@@ -120,6 +121,16 @@ namespace SecurityCodeScan.Analyzers.Taint
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0029");
 
         protected override SinkKind SinkKind { get { return (SinkKind)(int)TaintType.SCS0029; } }
+
+        protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
+    }
+
+    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class HardcodedPasswordTaintAnalyzer : TaintAnalyzer
+    {
+        internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0015");
+
+        protected override SinkKind SinkKind { get { return (SinkKind)(int)TaintType.SCS0015; } }
 
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }

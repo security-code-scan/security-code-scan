@@ -74,8 +74,9 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Vulnerable:
-        - param
+      - Name: Vulnerable
+        Arguments:
+          - param
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -149,7 +150,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Vulnerable:
+    - Name: Vulnerable
+      Arguments:
         - param
 ";
 
@@ -292,7 +294,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Vulnerable:
+    - Name: Vulnerable
+      Arguments:
         - param
 ";
 
@@ -305,7 +308,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Vulnerable:
+    - Name: Vulnerable
+      Arguments:
         - param
 
 TaintSources:

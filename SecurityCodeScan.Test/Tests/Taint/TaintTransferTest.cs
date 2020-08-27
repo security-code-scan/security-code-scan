@@ -103,7 +103,8 @@ Sinks:
     TaintTypes:
       - SCS0018
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - s
 
 TaintSources:
@@ -152,7 +153,8 @@ Sinks:
     TaintTypes:
       - SCS0018
     Methods:
-      Method:
+    - Name: Method
+      Arguments:
         - d
 
 TaintEntryPoints:

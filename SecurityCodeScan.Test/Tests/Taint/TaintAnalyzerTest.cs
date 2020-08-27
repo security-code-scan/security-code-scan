@@ -100,7 +100,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Injectable:
+    - Name: Injectable
+      Arguments:
         - input
 
 TaintEntryPoints:
@@ -223,18 +224,22 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Injectable:
+    - Name: Injectable
+      Arguments:
         - dangerous
-      InjectableOpt:
+    - Name: InjectableOpt
+      Arguments:
         - dangerous
 
   - Type: TestExtensions
     TaintTypes:
       - SCS0002
     Methods:
-      Injectable2:
+    - Name: Injectable2
+      Arguments:
         - dangerous
-      InjectableOpt2:
+    - Name: InjectableOpt2
+      Arguments:
         - dangerous
 ";
 
@@ -476,7 +481,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - value
 ";
 
@@ -670,7 +676,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - value
 ";
 
@@ -2562,7 +2569,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - input
 ";
 
@@ -2632,7 +2640,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - input
 ";
 
@@ -2688,7 +2697,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - input
 ";
 
@@ -2734,7 +2744,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - input
 ";
 
@@ -2779,7 +2790,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - input
 ";
 
@@ -2825,7 +2837,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - input
 ";
 
@@ -2900,7 +2913,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - input
 
   - Type: MyClass2
@@ -2977,7 +2991,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - input
 ";
 
@@ -3075,7 +3090,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Write:
+    - Name: Write
+      Arguments:
         - x
 ";
 
@@ -3126,7 +3142,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - input
 ";
 
@@ -3232,7 +3249,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - input
 ";
 
@@ -3307,7 +3325,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - input
 ";
 
@@ -3384,7 +3403,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - input
 ";
 
@@ -3459,7 +3479,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - input
 ";
 

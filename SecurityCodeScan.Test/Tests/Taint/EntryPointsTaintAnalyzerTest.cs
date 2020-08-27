@@ -121,7 +121,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - input
 ";
 
@@ -258,7 +259,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - input
 ";
 
@@ -359,7 +361,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - input
 ";
 
@@ -469,7 +472,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - input
 ";
 
@@ -569,7 +573,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - input
 ";
 
@@ -713,7 +718,8 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      Sink:
+    - Name: Sink
+      Arguments:
         - input
 ";
 

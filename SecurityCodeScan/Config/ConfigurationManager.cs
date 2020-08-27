@@ -341,7 +341,16 @@ namespace SecurityCodeScan.Config
 
         public HashSet<string> Properties { get; set; }
 
-        public Dictionary<string, string[]> Methods { get; set; }
+        public SinkMethod[] Methods { get; set; }
+    }
+
+    internal class SinkMethod
+    {
+        public string Name { get; set; }
+
+        public (int idx, object value)[] Condition { get; set; }
+
+        public string[] Arguments { get; set; }
     }
 
     internal class Method

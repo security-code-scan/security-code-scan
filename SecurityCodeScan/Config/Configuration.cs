@@ -550,7 +550,7 @@ namespace SecurityCodeScan.Config
                     isInterface: sink.IsInterface ?? false,
                     isAnyStringParameterInConstructorASink: sink.IsAnyStringParameterInConstructorASink ?? false,
                     sinkProperties: sink.Properties ?? null,
-                    sinkMethodParameters: sink.Methods != null ? sink.Methods.Select(x => (x.Key, x.Value)) : null);
+                    sinkMethodParameters: sink.Methods != null ? sink.Methods.Select(x => (x.Name, x.Arguments)) : null);
             }
 
             return sinkInfosBuilder.ToImmutableAndFree();

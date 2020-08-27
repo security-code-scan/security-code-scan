@@ -217,7 +217,8 @@ Sinks:
     TaintTypes:
       - SCS0027
     Methods:
-      Redirect:
+    - Name: Redirect
+      Arguments:
         - x
 ";
 
@@ -299,7 +300,8 @@ Sinks:
     TaintTypes:
       - SCS0027
     Methods:
-      Redirect:
+    - Name: Redirect
+      Arguments:
         - x
 ";
 
@@ -369,7 +371,8 @@ Sinks:
     TaintTypes:
       - SCS0027
     Methods:
-      Redirect:
+    - Name: Redirect
+      Arguments:
         - x
 ";
 

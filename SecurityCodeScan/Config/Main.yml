@@ -907,7 +907,8 @@ Sinks:
     TaintTypes:
       - SCS0001
     Methods:
-      Start:
+    - Name: Start
+      Arguments:
         - fileName
         - arguments
 
@@ -926,32 +927,38 @@ Sinks:
     TaintTypes:
       - SCS0028
     Methods:
-      Deserialize:
+    - Name: Deserialize
+      Arguments:
         - serializationStream
-      UnsafeDeserialize:
+    - Name: UnsafeDeserialize
+      Arguments:
         - serializationStream
-      UnsafeDeserializeMethodResponse:
+    - Name: UnsafeDeserializeMethodResponse
+      Arguments:
         - serializationStream
 
   - Type: System.Messaging.BinaryMessageFormatter
     TaintTypes:
       - SCS0028
     Methods:
-      Read:
+    - Name: Read
+      Arguments:
         - message
 
   - Type: System.Runtime.Serialization.Formatters.Soap.SoapFormatter
     TaintTypes:
       - SCS0028
     Methods:
-      Deserialize:
+    - Name: Deserialize
+      Arguments:
         - serializationStream
 
   - Type: System.Web.UI.ObjectStateFormatter
     TaintTypes:
       - SCS0028
     Methods:
-      Deserialize:
+    - Name: Deserialize
+      Arguments:
         - inputStream
         - inputString
 
@@ -959,7 +966,8 @@ Sinks:
     TaintTypes:
       - SCS0028
     Methods:
-      ReadObject:
+    - Name: ReadObject
+      Arguments:
         - stream
         - reader
 
@@ -967,27 +975,33 @@ Sinks:
     TaintTypes:
       - SCS0028
     Methods:
-      Deserialize:
+    - Name: Deserialize
+      Arguments:
         - stream
-      ReadObject:
+    - Name: ReadObject
+      Arguments:
         - reader
 
   - Type: System.Runtime.Serialization.DataContractSerializer
     TaintTypes:
       - SCS0028
     Methods:
-      .ctor:
+    - Name: .ctor
+      Arguments:
         - type
-      ReadObject:
+    - Name: ReadObject
+      Arguments:
         - reader
 
   - Type: System.Runtime.Serialization.Json.DataContractJsonSerializer
     TaintTypes:
       - SCS0028
     Methods:
-      .ctor:
+    - Name: .ctor
+      Arguments:
         - type
-      ReadObject:
+    - Name: ReadObject
+      Arguments:
         - stream
         - reader
 
@@ -995,9 +1009,11 @@ Sinks:
     TaintTypes:
       - SCS0028
     Methods:
-      .ctor:
+    - Name: .ctor
+      Arguments:
         - type
-      Deserialize:
+    - Name: Deserialize
+      Arguments:
         - stream
         - textReader
         - reader
@@ -1007,14 +1023,16 @@ Sinks:
     TaintTypes:
       - SCS0028
     Methods:
-      Read:
+    - Name: Read
+      Arguments:
         - message
 
   - Type: System.Web.UI.LosFormatter
     TaintTypes:
       - SCS0028
     Methods:
-      Deserialize:
+    - Name: Deserialize
+      Arguments:
         - stream
         - input
 
@@ -1022,26 +1040,32 @@ Sinks:
     TaintTypes:
       - SCS0028
     Methods:
-      ToObject:
+    - Name: ToObject
+      Arguments:
         - json
 
   - Type: ServiceStack.Text.JsonSerializer
     TaintTypes:
       - SCS0028
     Methods:
-      DeserializeFromString:
+    - Name: DeserializeFromString
+      Arguments:
         - value
         - type
-      DeserializeFromReader:
+    - Name: DeserializeFromReader
+      Arguments:
         - reader
         - type
-      DeserializeFromStream:
+    - Name: DeserializeFromStream
+      Arguments:
         - stream
         - type
-      DeserializeRequest:
+    - Name: DeserializeRequest
+      Arguments:
         - webRequest
         - type
-      DeserializeResponse:
+    - Name: DeserializeResponse
+      Arguments:
         - webResponse
         - type
 
@@ -1049,16 +1073,19 @@ Sinks:
     TaintTypes:
       - SCS0028
     Methods:
-      DeserializeFromString:
+    - Name: DeserializeFromString
+      Arguments:
         - value
-      DeserializeFromReader:
+    - Name: DeserializeFromReader
+      Arguments:
         - reader
 
   - Type: ServiceStack.Text.JsonStringSerializer
     TaintTypes:
       - SCS0028
     Methods:
-      DeserializeFromString:
+    - Name: DeserializeFromString
+      Arguments:
         - serializedText
         - type
 
@@ -1066,13 +1093,16 @@ Sinks:
     TaintTypes:
       - SCS0028
     Methods:
-      DeserializeFromString:
+    - Name: DeserializeFromString
+      Arguments:
         - value
         - type
-      DeserializeFromReader:
+    - Name: DeserializeFromReader
+      Arguments:
         - reader
         - type
-      DeserializeFromStream:
+    - Name: DeserializeFromStream
+      Arguments:
         - stream
         - type
 
@@ -1080,22 +1110,27 @@ Sinks:
     TaintTypes:
       - SCS0028
     Methods:
-      DeserializeFromString:
+    - Name: DeserializeFromString
+      Arguments:
         - value
-      DeserializeFromReader:
+    - Name: DeserializeFromReader
+      Arguments:
         - reader
 
   - Type: ServiceStack.Text.CsvSerializer
     TaintTypes:
       - SCS0028
     Methods:
-      DeserializeFromString:
+    - Name: DeserializeFromString
+      Arguments:
         - text
         - type
-      DeserializeFromReader:
+    - Name: DeserializeFromReader
+      Arguments:
         - reader
         - type
-      DeserializeFromStream:
+    - Name: DeserializeFromStream
+      Arguments:
         - stream
         - type
 
@@ -1103,20 +1138,24 @@ Sinks:
     TaintTypes:
       - SCS0028
     Methods:
-      ReadObject:
+    - Name: ReadObject
+      Arguments:
         - value
 
   - Type: ServiceStack.Text.XmlSerializer
     TaintTypes:
       - SCS0028
     Methods:
-      DeserializeFromString:
+    - Name: DeserializeFromString
+      Arguments:
         - xml
         - type
-      DeserializeFromReader:
+    - Name: DeserializeFromReader
+      Arguments:
         - reader
         - type
-      DeserializeFromStream:
+    - Name: DeserializeFromStream
+      Arguments:
         - stream
         - type
 
@@ -1124,7 +1163,8 @@ Sinks:
     TaintTypes:
       - SCS0028
     Methods:
-      .ctor:
+    - Name: .ctor
+      Arguments:
         - stream
         - fileName
 
@@ -1140,7 +1180,8 @@ Sinks:
     TaintTypes:
       - SCS0031
     Methods:
-      .ctor:
+    - Name: .ctor
+      Arguments:
         - filter
     Properties:
       - Filter
@@ -1149,7 +1190,8 @@ Sinks:
     TaintTypes:
       - SCS0026
     Methods:
-      .ctor:
+    - Name: .ctor
+      Arguments:
         - path
     Properties:
       - Path
@@ -1160,13 +1202,17 @@ Sinks:
     TaintTypes:
       - SCS0027
     Methods:
-      Redirect:
+    - Name: Redirect
+      Arguments:
         - url
-      RedirectPermanent:
+    - Name: RedirectPermanent
+      Arguments:
         - url
-      RedirectToRoute:
+    - Name: RedirectToRoute
+      Arguments:
         - routeName
-      RedirectToRoutePermanent:
+    - Name: RedirectToRoutePermanent
+      Arguments:
         - routeName
     Properties:
       - RedirectLocation
@@ -1175,13 +1221,17 @@ Sinks:
     TaintTypes:
       - SCS0027
     Methods:
-      Redirect:
+    - Name: Redirect
+      Arguments:
         - url
-      RedirectPermanent:
+    - Name: RedirectPermanent
+      Arguments:
         - url
-      RedirectToRoute:
+    - Name: RedirectToRoute
+      Arguments:
         - routeName
-      RedirectToRoutePermanent:
+    - Name: RedirectToRoutePermanent
+      Arguments:
         - routeName
     Properties:
       - RedirectLocation
@@ -1190,43 +1240,52 @@ Sinks:
     TaintTypes:
       - SCS0027
     Methods:
-      Redirect:
+    - Name: Redirect
+      Arguments:
         - location
 
   - Type: System.Web.Http.ApiController
     TaintTypes:
       - SCS0027
     Methods:
-      Redirect:
+    - Name: Redirect
+      Arguments:
         - location
 
   - Type: System.Web.Mvc.Controller
     TaintTypes:
       - SCS0027
     Methods:
-      Redirect:
+    - Name: Redirect
+      Arguments:
         - url
-      RedirectPermanent:
+    - Name: RedirectPermanent
+      Arguments:
         - url
 
   - Type: Microsoft.AspNetCore.Mvc.ControllerBase
     TaintTypes:
       - SCS0027
     Methods:
-      Redirect:
+    - Name: Redirect
+      Arguments:
         - url
-      RedirectPermanent:
+    - Name: RedirectPermanent
+      Arguments:
         - url
-      RedirectPreserveMethod:
+    - Name: RedirectPreserveMethod
+      Arguments:
         - url
-      RedirectPermanentPreserveMethod:
+    - Name: RedirectPermanentPreserveMethod
+      Arguments:
         - url
 
   - Type: System.Web.Mvc.RedirectResult
     TaintTypes:
       - SCS0027
     Methods:
-      .ctor:
+    - Name: .ctor
+      Arguments:
         - url
     Properties:
       - Url
@@ -1235,7 +1294,8 @@ Sinks:
     TaintTypes:
       - SCS0027
     Methods:
-      .ctor:
+    - Name: .ctor
+      Arguments:
         - url
     Properties:
       - Url
@@ -1246,11 +1306,14 @@ Sinks:
     TaintTypes:
       - SCS0018
     Methods:
-      Delete:
+    - Name: Delete
+      Arguments:
         - path
-      GetFiles:
+    - Name: GetFiles
+      Arguments:
         - path
-      Move:
+    - Name: Move
+      Arguments:
         - sourceDirName
         - destDirName
 
@@ -1258,80 +1321,113 @@ Sinks:
     TaintTypes:
       - SCS0018
     Methods:
-      AppendAllLines:
+    - Name: AppendAllLines
+      Arguments:
         - path
-      AppendAllLinesAsync:
+    - Name: AppendAllLinesAsync
+      Arguments:
         - path
-      AppendAllText:
+    - Name: AppendAllText
+      Arguments:
         - path
-      AppendAllTextAsync:
+    - Name: AppendAllTextAsync
+      Arguments:
         - path
-      AppendText:
+    - Name: AppendText
+      Arguments:
         - path
-      Copy:
+    - Name: Copy
+      Arguments:
         - sourceFileName
         - destFileName
-      Create:
+    - Name: Create
+      Arguments:
         - path
-      CreateText:
+    - Name: CreateText
+      Arguments:
         - path
-      Delete:
+    - Name: Delete
+      Arguments:
         - path
-      Move:
+    - Name: Move
+      Arguments:
         - sourceFileName
         - destFileName
-      Open:
+    - Name: Open
+      Arguments:
         - path
-      OpenRead:
+    - Name: OpenRead
+      Arguments:
         - path
-      OpenText:
+    - Name: OpenText
+      Arguments:
         - path
-      OpenWrite:
+    - Name: OpenWrite
+      Arguments:
         - path
-      ReadAllBytes:
+    - Name: ReadAllBytes
+      Arguments:
         - path
-      ReadAllBytesAsync:
+    - Name: ReadAllBytesAsync
+      Arguments:
         - path
-      ReadAllLines:
+    - Name: ReadAllLines
+      Arguments:
         - path
-      ReadAllLinesAsync:
+    - Name: ReadAllLinesAsync
+      Arguments:
         - path
-      ReadAllText:
+    - Name: ReadAllText
+      Arguments:
         - path
-      ReadAllTextAsync:
+    - Name: ReadAllTextAsync
+      Arguments:
         - path
-      ReadLines:
+    - Name: ReadLines
+      Arguments:
         - path
-      Replace:
+    - Name: Replace
+      Arguments:
         - sourceFileName
         - destinationFileName
         - destinationBackupFileName
-      SetAccessControl:
+    - Name: SetAccessControl
+      Arguments:
         - path
-      WriteAllBytes:
+    - Name: WriteAllBytes
+      Arguments:
         - path
-      WriteAllBytesAsync:
+    - Name: WriteAllBytesAsync
+      Arguments:
         - path
-      WriteAllLines:
+    - Name: WriteAllLines
+      Arguments:
         - path
-      WriteAllLinesAsync:
+    - Name: WriteAllLinesAsync
+      Arguments:
         - path
-      WriteAllText:
+    - Name: WriteAllText
+      Arguments:
         - path
-      WriteAllTextAsync:
+    - Name: WriteAllTextAsync
+      Arguments:
         - path
 
   - Type: System.IO.FileInfo
     TaintTypes:
       - SCS0018
     Methods:
-      .ctor:
+    - Name: .ctor
+      Arguments:
         - fileName
-      CopyTo:
+    - Name: CopyTo
+      Arguments:
         - destFileName
-      MoveTo:
+    - Name: MoveTo
+      Arguments:
         - destFileName
-      Replace:
+    - Name: Replace
+      Arguments:
         - destinationFileName
         - destinationBackupFileName
 
@@ -1339,48 +1435,57 @@ Sinks:
     TaintTypes:
       - SCS0018
     Methods:
-      LoadFile:
+    - Name: LoadFile
+      Arguments:
         - path
-      LoadFrom:
+    - Name: LoadFrom
+      Arguments:
         - assemblyFile
-      ReflectionOnlyLoadFrom:
+    - Name: ReflectionOnlyLoadFrom
+      Arguments:
         - assemblyFile
-      UnsafeLoadFrom:
+    - Name: UnsafeLoadFrom
+      Arguments:
         - assemblyFile
 
   - Type: System.AppDomain
     TaintTypes:
       - SCS0018
     Methods:
-      AppendPrivatePath:
+    - Name: AppendPrivatePath
+      Arguments:
         - path
 
   - Type: System.Xml.XmlReader
     TaintTypes:
       - SCS0018
     Methods:
-      Create:
+    - Name: Create
+      Arguments:
         - inputUri
 
   - Type: System.IO.StreamReader
     TaintTypes:
       - SCS0018
     Methods:
-      .ctor:
+    - Name: .ctor
+      Arguments:
         - path
 
   - Type: System.IO.StreamWriter
     TaintTypes:
       - SCS0018
     Methods:
-      .ctor:
+    - Name: .ctor
+      Arguments:
         - path
 
   - Type: System.IO.FileStream
     TaintTypes:
       - SCS0018
     Methods:
-      .ctor:
+    - Name: .ctor
+      Arguments:
         - handle
         - path
 
@@ -1388,7 +1493,8 @@ Sinks:
     TaintTypes:
       - SCS0018
     Methods:
-      .ctor:
+    - Name: .ctor
+      Arguments:
         - fileName
     Properties:
       - FileName
@@ -1397,7 +1503,8 @@ Sinks:
     TaintTypes:
       - SCS0018
     Methods:
-      .ctor:
+    - Name: .ctor
+      Arguments:
         - fileName
     Properties:
       - FileName
@@ -1406,16 +1513,19 @@ Sinks:
     TaintTypes:
       - SCS0018
     Methods:
-      SaveAs:
+    - Name: SaveAs
+      Arguments:
         - filename
 
   - Type: System.Web.HttpResponse
     TaintTypes:
       - SCS0018
     Methods:
-      TransmitFile:
+    - Name: TransmitFile
+      Arguments:
         - filename
-      WriteFile:
+    - Name: WriteFile
+      Arguments:
         - filename
         - fileHandle
 
@@ -1423,22 +1533,28 @@ Sinks:
     TaintTypes:
       - SCS0018
     Methods:
-      CreateEntryFromFile:
+    - Name: CreateEntryFromFile
+      Arguments:
         - sourceFileName
-      ExtractToFile:
+    - Name: ExtractToFile
+      Arguments:
         - destinationFileName
-      ExtractToDirectory:
+    - Name: ExtractToDirectory
+      Arguments:
         - destinationDirectoryName
 
   - Type: System.Net.WebClient
     TaintTypes:
       - SCS0018
     Methods:
-      DownloadFile:
+    - Name: DownloadFile
+      Arguments:
         - fileName
-      DownloadFileAsync:
+    - Name: DownloadFileAsync
+      Arguments:
         - fileName
-      DownloadFileTaskAsync:
+    - Name: DownloadFileTaskAsync
+      Arguments:
         - fileName
 
  # XSS
@@ -1447,20 +1563,26 @@ Sinks:
     TaintTypes:
       - SCS0029
     Methods:
-      AddHeader:
+    - Name: AddHeader
+      Arguments:
         - value
-      AppendHeader:
+    - Name: AppendHeader
+      Arguments:
         - value
-      Write:
+    - Name: Write
+      Arguments:
         - ch
         - obj
         - s
         - buffer
-      BinaryWrite:
+    - Name: BinaryWrite
+      Arguments:
         - buffer
-      TransmitFile:
+    - Name: TransmitFile
+      Arguments:
         - filename
-      WriteFile:
+    - Name: WriteFile
+      Arguments:
         - filename
     Properties:
       - ContentType
@@ -1469,20 +1591,26 @@ Sinks:
     TaintTypes:
       - SCS0029
     Methods:
-      AddHeader:
+    - Name: AddHeader
+      Arguments:
         - value
-      AppendHeader:
+    - Name: AppendHeader
+      Arguments:
         - value
-      Write:
+    - Name: Write
+      Arguments:
         - ch
         - obj
         - s
         - buffer
-      BinaryWrite:
+    - Name: BinaryWrite
+      Arguments:
         - buffer
-      TransmitFile:
+    - Name: TransmitFile
+      Arguments:
         - filename
-      WriteFile:
+    - Name: WriteFile
+      Arguments:
         - filename
     Properties:
       - ContentType
@@ -1833,15 +1961,19 @@ Sinks:
     TaintTypes:
       - SCS0029
     Methods:
-      AddAttribute:
+    - Name: AddAttribute
+      Arguments:
         - name
         - value
-      AddStyleAttribute:
+    - Name: AddStyleAttribute
+      Arguments:
         - name
         - value
-      RenderBeginTag:
+    - Name: RenderBeginTag
+      Arguments:
         - tagName
-      Write:
+    - Name: Write
+      Arguments:
         - s
         - value
         - format
@@ -1849,16 +1981,21 @@ Sinks:
         - arg1
         - arg
         - buffer
-      WriteAttribute:
+    - Name: WriteAttribute
+      Arguments:
         - name
         - value
-      WriteBeginTag:
+    - Name: WriteBeginTag
+      Arguments:
         - tagName
-      WriteEndTag:
+    - Name: WriteEndTag
+      Arguments:
         - tagName
-      WriteFullBeginTag:
+    - Name: WriteFullBeginTag
+      Arguments:
         - tagName
-      WriteStyleAttribute:
+    - Name: WriteStyleAttribute
+      Arguments:
         - name
         - value
 
@@ -1914,18 +2051,22 @@ Sinks:
     TaintTypes:
       - SCS0029
     Methods:
-      RegisterStartupScript:
+    - Name: RegisterStartupScript
+      Arguments:
         - script
-      RegisterClientScriptBlock:
+    - Name: RegisterClientScriptBlock
+      Arguments:
         - script
 
   - Type: System.Web.UI.Page
     TaintTypes:
       - SCS0029
     Methods:
-      RegisterStartupScript:
+    - Name: RegisterStartupScript
+      Arguments:
         - script
-      RegisterClientScriptBlock:
+    - Name: RegisterClientScriptBlock
+      Arguments:
         - script
 
   - Type: System.Web.UI.Control
@@ -1940,66 +2081,84 @@ Sinks:
     TaintTypes:
       - SCS0003
     Methods:
-      SelectNodes:
+    - Name: SelectNodes
+      Arguments:
         - xpath
-      SelectSingleNode:
+    - Name: SelectSingleNode
+      Arguments:
         - xpath
 
   - Type: System.Xml.XPath.XPathNavigator
     TaintTypes:
       - SCS0003
     Methods:
-      Compile:
+    - Name: Compile
+      Arguments:
         - xpath
-      Evaluate:
+    - Name: Evaluate
+      Arguments:
         - xpath
-      Matches:
+    - Name: Matches
+      Arguments:
         - xpath
-      Select:
+    - Name: Select
+      Arguments:
         - xpath
-      SelectAncestors:
+    - Name: SelectAncestors
+      Arguments:
         - name
-      SelectChildren:
+    - Name: SelectChildren
+      Arguments:
         - name
-      SelectDescendants:
+    - Name: SelectDescendants
+      Arguments:
         - name
-      SelectSingleNode:
+    - Name: SelectSingleNode
+      Arguments:
         - xpath
 
   - Type: System.Xml.XPath.XPathExpression
     TaintTypes:
       - SCS0003
     Methods:
-      Compile:
+    - Name: Compile
+      Arguments:
         - xpath
 
   - Type: System.Xml.XPath.Extensions
     TaintTypes:
       - SCS0003
     Methods:
-      XPathSelectElement:
+    - Name: XPathSelectElement
+      Arguments:
         - expression
-      XPathSelectElements:
+    - Name: XPathSelectElements
+      Arguments:
         - expression
-      XPathEvaluate:
+    - Name: XPathEvaluate
+      Arguments:
         - expression
 
   - Type: System.Web.UI.PageTheme
     TaintTypes:
       - SCS0003
     Methods:
-      XPath:
+    - Name: XPath
+      Arguments:
         - xPathExpression
-      XPathSelect:
+    - Name: XPathSelect
+      Arguments:
         - xPathExpression
 
   - Type: System.Web.UI.TemplateControl
     TaintTypes:
       - SCS0003
     Methods:
-      XPath:
+    - Name: XPath
+      Arguments:
         - xPathExpression
-      XPathSelect:
+    - Name: XPathSelect
+      Arguments:
         - xPathExpression
 
   - Type: System.Web.UI.WebControls.XmlDataSource
@@ -2012,9 +2171,11 @@ Sinks:
     TaintTypes:
       - SCS0003
     Methods:
-      Eval:
+    - Name: Eval
+      Arguments:
         - xPath
-      Select:
+    - Name: Select
+      Arguments:
         - xPath
 
   - Type: System.Xml.Schema.XmlSchemaXPath
@@ -2043,52 +2204,68 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      ExecuteQuery:
+    - Name: ExecuteQuery
+      Arguments:
         - query
-      ExecuteCommand:
+    - Name: ExecuteCommand
+      Arguments:
         - command
 
   - Type: MySql.Data.MySqlClient.MySqlHelper
     TaintTypes:
       - SCS0002
     Methods:
-      ExecuteDataRow:
+    - Name: ExecuteDataRow
+      Arguments:
         - commandText
-      ExecuteDataRowAsync:
+    - Name: ExecuteDataRowAsync
+      Arguments:
         - commandText
-      ExecuteDataset:
+    - Name: ExecuteDataset
+      Arguments:
         - commandText
-      ExecuteDatasetAsync:
+    - Name: ExecuteDatasetAsync
+      Arguments:
         - commandText
-      ExecuteNonQuery:
+    - Name: ExecuteNonQuery
+      Arguments:
         - commandText
-      ExecuteNonQueryAsync:
+    - Name: ExecuteNonQueryAsync
+      Arguments:
         - commandText
-      ExecuteReader:
+    - Name: ExecuteReader
+      Arguments:
         - commandText
-      ExecuteReaderAsync:
+    - Name: ExecuteReaderAsync
+      Arguments:
         - commandText
-      ExecuteScalar:
+    - Name: ExecuteScalar
+      Arguments:
         - commandText
-      ExecuteScalarAsync:
+    - Name: ExecuteScalarAsync
+      Arguments:
         - commandText
-      UpdateDataSet:
+    - Name: UpdateDataSet
+      Arguments:
         - commandText
-      UpdateDataSetAsync:
+    - Name: UpdateDataSetAsync
+      Arguments:
         - commandText
 
   - Type: System.Data.SQLite.SQLiteCommand
     TaintTypes:
       - SCS0002
     Methods:
-      Execute:
+    - Name: Execute
+      Arguments:
         - commandText
 
   - Type: System.Web.UI.WebControls.SqlDataSource
     TaintTypes:
       - SCS0002
     Methods:
-      .ctor:
+    - Name: .ctor
+      Arguments:
         - selectCommand
     Properties:
       - DeleteCommand
@@ -2100,65 +2277,81 @@ Sinks:
     TaintTypes:
       - SCS0002
     Methods:
-      SqlQuery:
+    - Name: SqlQuery
+      Arguments:
         - sql
-      ExecuteSqlCommand:
+    - Name: ExecuteSqlCommand
+      Arguments:
         - sql
-      ExecuteSqlCommandAsync:
+    - Name: ExecuteSqlCommandAsync
+      Arguments:
         - sql
 
   - Type: System.Data.Entity.DbSet
     TaintTypes:
       - SCS0002
     Methods:
-      SqlQuery:
+    - Name: SqlQuery
+      Arguments:
         - sql
 
   - Type: System.Data.Entity.DbSet`1
     TaintTypes:
       - SCS0002
     Methods:
-      SqlQuery:
+    - Name: SqlQuery
+      Arguments:
         - sql
 
   - Type: Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions
     TaintTypes:
       - SCS0002
     Methods:
-      ExecuteSqlCommand:
+    - Name: ExecuteSqlCommand
+      Arguments:
         - sql
-      ExecuteSqlCommandAsync:
+    - Name: ExecuteSqlCommandAsync
+      Arguments:
         - sql
-      ExecuteSqlRaw:
+    - Name: ExecuteSqlRaw
+      Arguments:
         - sql
-      ExecuteSqlRawAsync:
+    - Name: ExecuteSqlRawAsync
+      Arguments:
         - sql
 
   - Type: Microsoft.EntityFrameworkCore.RelationalQueryableExtensions
     TaintTypes:
       - SCS0002
     Methods:
-      FromSqlRaw:
+    - Name: FromSqlRaw
+      Arguments:
         - sql
-      FromSql:
+    - Name: FromSql
+      Arguments:
         - sql
 
   - Type: Microsoft.Practices.EnterpriseLibrary.Data.Database
     TaintTypes:
       - SCS0002
     Methods:
-      GetSqlStringCommand:
+    - Name: GetSqlStringCommand
+      Arguments:
         - query
-      ExecuteDataSet:
+    - Name: ExecuteDataSet
+      Arguments:
         - commandText
         - storedProcedureName
-      ExecuteReader:
+    - Name: ExecuteReader
+      Arguments:
         - commandText
         - storedProcedureName
-      ExecuteNonQuery:
+    - Name: ExecuteNonQuery
+      Arguments:
         - commandText
         - storedProcedureName
-      ExecuteScalar:
+    - Name: ExecuteScalar
+      Arguments:
         - commandText
         - storedProcedureName
 
@@ -2167,7 +2360,8 @@ Sinks:
       - SCS0002
     IsInterface: true
     Methods:
-      CreateSQLQuery:
+    - Name: CreateSQLQuery
+      Arguments:
         - queryString
 
   - Type: Cassandra.ISession
@@ -2175,5 +2369,6 @@ Sinks:
       - SCS0002
     IsInterface: true
     Methods:
-      Execute:
+    - Name: Execute
+      Arguments:
         - cqlQuery

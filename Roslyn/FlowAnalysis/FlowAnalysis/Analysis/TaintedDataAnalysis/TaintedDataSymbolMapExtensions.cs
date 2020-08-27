@@ -112,6 +112,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             return allTaintedTargets != null;
         }
 
+        public static bool IsSourceField(this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap, IFieldSymbol fieldSymbol)
+        {
+            foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(fieldSymbol.ContainingType))
+            {
+                if (sourceInfo.AllFieldsAreTainted)
+                {
+                    return true;
+                }
+
+                // the list of tainted fields is not implemented yet
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Determines if the given property is a tainted data source.
         /// </summary>
@@ -122,6 +137,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(propertySymbol.ContainingType))
             {
+                if (sourceInfo.AllProperitesAreTainted)
+                {
+                    return true;
+                }
+
                 if (sourceInfo.TaintedProperties.Contains(propertySymbol.MetadataName))
                 {
                     return true;

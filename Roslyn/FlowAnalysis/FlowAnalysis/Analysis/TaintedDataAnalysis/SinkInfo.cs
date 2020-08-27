@@ -73,6 +73,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public bool RequiresParameterReferenceAnalysis => false;
 
+        public bool RequiresFieldReferenceAnalysis => false;
+
         /// <summary>
         /// Qualified names of the optional dependency types.
         /// </summary>

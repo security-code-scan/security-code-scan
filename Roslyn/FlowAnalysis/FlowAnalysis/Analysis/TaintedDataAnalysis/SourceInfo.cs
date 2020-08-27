@@ -56,7 +56,39 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             TransferMethods = transferMethods ?? throw new ArgumentNullException(nameof(transferMethods));
             TaintConstantArray = taintConstantArray;
             DependencyFullTypeNames = dependencyFullTypeNames ?? ImmutableArray<string>.Empty;
+            AllProperitesAreTainted = false;
+            AllFieldsAreTainted = false;
         }
+
+        public SourceInfo(
+            string fullTypeName,
+            bool isInterface,
+            ImmutableHashSet<(MethodMatcher, ImmutableHashSet<string>)> taintedMethods,
+            ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)> taintedMethodsNeedsPointsToAnalysis,
+            ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)> taintedMethodsNeedsValueContentAnalysis,
+            ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)> transferMethods,
+            bool allProperitesAreTainted,
+            bool allFieldsAreTainted,
+            ImmutableArray<string>? dependencyFullTypeNames = null)
+        {
+            FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
+            IsInterface = isInterface;
+            TaintedProperties = ImmutableHashSet<string>.Empty;
+            TaintedArguments = ImmutableHashSet<ParameterMatcher>.Empty;
+            TaintedMethods = taintedMethods ?? throw new ArgumentNullException(nameof(taintedMethods));
+            TaintedMethodsNeedsPointsToAnalysis = taintedMethodsNeedsPointsToAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsPointsToAnalysis));
+            TaintedMethodsNeedsValueContentAnalysis = taintedMethodsNeedsValueContentAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsValueContentAnalysis));
+            TransferProperties = ImmutableHashSet<string>.Empty;
+            TransferMethods = transferMethods ?? throw new ArgumentNullException(nameof(transferMethods));
+            TaintConstantArray = false;
+            DependencyFullTypeNames = dependencyFullTypeNames ?? ImmutableArray<string>.Empty;
+            AllProperitesAreTainted = allProperitesAreTainted;
+            AllFieldsAreTainted = allFieldsAreTainted;
+        }
+
+        public bool AllProperitesAreTainted { get; }
+
+        public bool AllFieldsAreTainted { get; }
 
         /// <summary>
         /// Full type name of the...type (namespace + type).
@@ -173,6 +205,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Indicates that <see cref="OperationKind.ParameterReference"/> is required.
         /// </summary>
         public bool RequiresParameterReferenceAnalysis => !this.TaintedArguments.IsEmpty;
+
+        public bool RequiresFieldReferenceAnalysis => this.AllFieldsAreTainted;
 
         public override int GetHashCode()
         {

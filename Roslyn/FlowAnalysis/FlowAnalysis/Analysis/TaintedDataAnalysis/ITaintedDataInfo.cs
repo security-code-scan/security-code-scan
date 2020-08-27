@@ -31,6 +31,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         bool RequiresParameterReferenceAnalysis { get; }
 
+        bool RequiresFieldReferenceAnalysis { get; }
+
         /// <summary>
         /// Indicates that this info uses <see cref="ValueContentAbstractValue"/>s.
         /// </summary>

@@ -241,15 +241,36 @@ namespace SecurityCodeScan.Config
                     else
                         isIterface = type.Value.sanitizer.IsInterface;
 
-                SourceInfo metadata = new SourceInfo(
-                    type.Key,
-                    isInterface: isIterface ?? false,
-                    taintedProperties: type.Value.source?.Properties?.ToImmutableHashSet(StringComparer.Ordinal)
-                        ?? ImmutableHashSet<string>.Empty,
-                    dependencyFullTypeNames:
-                        type.Value.entryPoint?.Dependency?.ToImmutableArray(),
-                    taintedArguments: type.Value.entryPoint != null ?
-                        new ParameterMatcher[]{
+                SourceInfo metadata;
+
+                if (type.Value.source != null && type.Value.source.Methods == null && type.Value.source.Properties == null)
+                {
+                    metadata = new SourceInfo(
+                        type.Key,
+                        isInterface: isIterface ?? false,
+                        taintedMethods:
+                            ImmutableHashSet<(MethodMatcher, ImmutableHashSet<string>)>.Empty,
+                        taintedMethodsNeedsPointsToAnalysis:
+                            ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)>.Empty,
+                        taintedMethodsNeedsValueContentAnalysis:
+                            ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)>.Empty,
+                        transferMethods:
+                            ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
+                        allProperitesAreTainted: true,
+                        allFieldsAreTainted: true
+                        );
+                }
+                else
+                {
+                    metadata = new SourceInfo(
+                        type.Key,
+                        isInterface: isIterface ?? false,
+                        taintedProperties: type.Value.source?.Properties?.ToImmutableHashSet(StringComparer.Ordinal)
+                            ?? ImmutableHashSet<string>.Empty,
+                        dependencyFullTypeNames:
+                            type.Value.entryPoint?.Dependency?.ToImmutableArray(),
+                        taintedArguments: type.Value.entryPoint != null ?
+                            new ParameterMatcher[]{
                     (parameter, wellKnownTypeProvider) => {
                         if (!(parameter.ContainingSymbol is IMethodSymbol methodSymbol))
                         {
@@ -352,52 +373,53 @@ namespace SecurityCodeScan.Config
 
                         return true;
                     }
-                 }.ToImmutableHashSet() : ImmutableHashSet<ParameterMatcher>.Empty,
-                    taintedMethods:
-                        type.Value.source?.Methods
-                            ?.Select<string, (MethodMatcher, ImmutableHashSet<string>)>(o =>
-                                (
-                                    (methodName, arguments) => methodName == o,
-                                    ImmutableHashSet<string>.Empty.Add(TaintedTargetValue.Return)
-                                ))
-                            ?.ToImmutableHashSet()
-                        ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<string>)>.Empty,
-                    taintedMethodsNeedsPointsToAnalysis:
-                        ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)>.Empty,
-                    taintedMethodsNeedsValueContentAnalysis:
-                        ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)>.Empty,
-                    transferProperties:
-                        ImmutableHashSet<string>.Empty,
-                    transferMethods:
-                        (type.Value.sanitizer?.Methods != null || type.Value.transfer?.Methods != null)
-                            ? (type.Value.sanitizer?.Methods ?? Enumerable.Empty<TransferInfo>())
-                                .Where(method => method.InOut != null && method.InOut.Any(io => io.outArgumentName != TaintedTargetValue.Return))
-                                .Concat(type.Value.transfer?.Methods ?? Enumerable.Empty<TransferInfo>())
-                                .Select(method => new ValueTuple<MethodMatcher, (string, string)[]>
-                                (
-                                    (methodName, arguments) =>
-                                    {
-                                        if (methodName != method.Name)
-                                            return false;
+                     }.ToImmutableHashSet() : ImmutableHashSet<ParameterMatcher>.Empty,
+                        taintedMethods:
+                            type.Value.source?.Methods
+                                ?.Select<string, (MethodMatcher, ImmutableHashSet<string>)>(o =>
+                                    (
+                                        (methodName, arguments) => methodName == o,
+                                        ImmutableHashSet<string>.Empty.Add(TaintedTargetValue.Return)
+                                    ))
+                                ?.ToImmutableHashSet()
+                            ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<string>)>.Empty,
+                        taintedMethodsNeedsPointsToAnalysis:
+                            ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)>.Empty,
+                        taintedMethodsNeedsValueContentAnalysis:
+                            ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)>.Empty,
+                        transferProperties:
+                            ImmutableHashSet<string>.Empty,
+                        transferMethods:
+                            (type.Value.sanitizer?.Methods != null || type.Value.transfer?.Methods != null)
+                                ? (type.Value.sanitizer?.Methods ?? Enumerable.Empty<TransferInfo>())
+                                    .Where(method => method.InOut != null && method.InOut.Any(io => io.outArgumentName != TaintedTargetValue.Return))
+                                    .Concat(type.Value.transfer?.Methods ?? Enumerable.Empty<TransferInfo>())
+                                    .Select(method => new ValueTuple<MethodMatcher, (string, string)[]>
+                                    (
+                                        (methodName, arguments) =>
+                                        {
+                                            if (methodName != method.Name)
+                                                return false;
 
-                                        if (method.ArgumentCount.HasValue && arguments.Length != method.ArgumentCount)
-                                            return false;
+                                            if (method.ArgumentCount.HasValue && arguments.Length != method.ArgumentCount)
+                                                return false;
 
-                                        return true;
-                                    },
-                                    method.InOut.Where(pair => pair.outArgumentName != TaintedTargetValue.Return).ToArray()
-                                )
-                            )?.Select(o =>
-                                (
-                                    o.Item1,
-                                    o.Item2
-                                        ?.ToImmutableHashSet()
-                                    ?? ImmutableHashSet<(string, string)>.Empty))
-                            ?.ToImmutableHashSet()
-                        ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty : ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
-                    taintConstantArray: false);
+                                            return true;
+                                        },
+                                        method.InOut.Where(pair => pair.outArgumentName != TaintedTargetValue.Return).ToArray()
+                                    )
+                                )?.Select(o =>
+                                    (
+                                        o.Item1,
+                                        o.Item2
+                                            ?.ToImmutableHashSet()
+                                        ?? ImmutableHashSet<(string, string)>.Empty))
+                                ?.ToImmutableHashSet()
+                            ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty : ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
+                        taintConstantArray: false);
+                }
 
-                    sourceInfosBuilder.Add(metadata);
+                sourceInfosBuilder.Add(metadata);
             }
 
             return sourceInfosBuilder.ToImmutableAndFree();

@@ -39,7 +39,7 @@ namespace SecurityCodeScan.Test.Taint
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [DataRow("Sink((from x in new SampleContext().TestProp  where x == \"aaa\" select x).SingleOrDefault())", true)]
-        //[DataRow("Sink((from x in new SampleContext().TestField where x == \"aaa\" select x).SingleOrDefault())", true)] todo: fields are not treated as taint source
+        [DataRow("Sink((from x in new SampleContext().TestField where x == \"aaa\" select x).SingleOrDefault())", true)]
         [DataTestMethod]
         public async Task EntityFrameworkCore(string sink, bool warn)
         {
@@ -106,12 +106,6 @@ Sinks:
     - Name: Sink
       Arguments:
         - s
-
-TaintSources:
-  - Type: sample.SampleContext
-    Properties:
-      - TestProp
-      - TestField
 ";
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 

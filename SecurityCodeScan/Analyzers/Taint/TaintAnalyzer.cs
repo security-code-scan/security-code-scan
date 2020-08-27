@@ -370,6 +370,23 @@ namespace SecurityCodeScan.Analyzers.Taint
                                     },
                                     OperationKind.PropertyReference);
 
+                                if (sourceInfoSymbolMap.RequiresFieldReferenceAnalysis)
+                                {
+                                    operationBlockStartContext.RegisterOperationAction(
+                                    operationAnalysisContext =>
+                                    {
+                                        IFieldReferenceOperation fieldReferenceOperation = (IFieldReferenceOperation)operationAnalysisContext.Operation;
+                                        if (sourceInfoSymbolMap.IsSourceField(fieldReferenceOperation.Field))
+                                        {
+                                            lock (rootOperationsNeedingAnalysis)
+                                            {
+                                                rootOperationsNeedingAnalysis.Add(fieldReferenceOperation.GetRoot());
+                                            }
+                                        }
+                                    },
+                                    OperationKind.FieldReference);
+                                }
+
                                 if (sourceInfoSymbolMap.RequiresParameterReferenceAnalysis)
                                 {
                                     operationBlockStartContext.RegisterOperationAction(

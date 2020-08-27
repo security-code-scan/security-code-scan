@@ -70,6 +70,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     {
                         RequiresParameterReferenceAnalysis = true;
                     }
+
+                    if (info.RequiresFieldReferenceAnalysis)
+                    {
+                        RequiresFieldReferenceAnalysis = true;
+                    }
                 }
             }
 
@@ -101,6 +106,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Indicates that <see cref="OperationKind.ParameterReference"/> is required.
         /// </summary>
         public bool RequiresParameterReferenceAnalysis { get; }
+
+        public bool RequiresFieldReferenceAnalysis { get; }
 
         /// <summary>
         /// Gets an enumeration of infos for the given type.

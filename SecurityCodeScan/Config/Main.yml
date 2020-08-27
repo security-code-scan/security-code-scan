@@ -241,6 +241,8 @@ TaintEntryPoints:
 
 TaintSources:
 
+  - Type: Microsoft.EntityFrameworkCore.DbContext
+
   - Type: System.Console
     Methods:
       - ReadLine

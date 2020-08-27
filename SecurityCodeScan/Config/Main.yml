@@ -535,6 +535,12 @@ Sanitizers:
     Methods:
       - Name: RouteUrl
 
+  - Type: Newtonsoft.Json.JsonConvert
+    TaintTypes:
+      - SCS0029
+    Methods:
+      - Name: SerializeObject
+
   - Type: Microsoft.Security.Application.Encoder
     TaintTypes:
       - SCS0029
@@ -676,21 +682,21 @@ Sanitizers:
     Methods:
       - Name: MapPath
 
-  - Type: System.String
-    Methods:
-      - Name: IsNullOrWhiteSpace
-        InOut: [{"value": "value"}]
+#  - Type: System.String
+#    Methods:
+#      - Name: IsNullOrWhiteSpace
+#        InOut: [{"value": "value"}]
 
   - Type: System.Text.StringBuilder
     Methods:
       - Name: Clear
         CleansInstance: true
 
-  - Type: System.IDisposable
-    IsInterface: true
-    Methods:
-      - Name: Dispose
-        CleansInstance: true
+#  - Type: System.IDisposable
+#    IsInterface: true
+#    Methods:
+#      - Name: Dispose
+#        CleansInstance: true
 
   - Type: System.Convert
     Methods:
@@ -1531,6 +1537,18 @@ Sinks:
         - filename
         - fileHandle
 
+  - Type: System.Web.HttpResponseBase
+    TaintTypes:
+      - SCS0018
+    Methods:
+    - Name: TransmitFile
+      Arguments:
+        - filename
+    - Name: WriteFile
+      Arguments:
+        - filename
+        - fileHandle
+
   - Type: System.IO.Compression.ZipFileExtensions
     TaintTypes:
       - SCS0018
@@ -1608,9 +1626,6 @@ Sinks:
     - Name: BinaryWrite
       Arguments:
         - buffer
-    - Name: TransmitFile
-      Arguments:
-        - filename
     - Name: WriteFile
       Arguments:
         - filename

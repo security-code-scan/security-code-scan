@@ -466,7 +466,8 @@ End Namespace
         }
 
         [DataTestMethod]
-        [DataRow("using System; using System.Web.Mvc;", "System.String.IsNullOrWhiteSpace(input) && Url.IsLocalUrl(input)", "Redirect(input)", false)]
+        [Ignore("todo: roslyn conditional branches")]
+        [DataRow("using System; using System.Web.Mvc;", "!System.String.IsNullOrWhiteSpace(input) && !Url.IsLocalUrl(input)", "Redirect(input)", false)]
         public async Task Validator1(string usingNamespace, string validate, string sink, bool warn)
         {
             var cSharpTest = $@"
@@ -487,7 +488,7 @@ namespace sample
             Uri uri = null;
 #pragma warning restore CS0219
             if ({validate})
-                input = null;
+                input = """";
 
             return {sink};
         }}

@@ -546,11 +546,41 @@ namespace SecurityCodeScan.Config
             {
                 sinkInfosBuilder.AddSinkInfo(
                     sink.Type,
-                    sinkKind,
+                    new [] { sinkKind },
                     isInterface: sink.IsInterface ?? false,
                     isAnyStringParameterInConstructorASink: sink.IsAnyStringParameterInConstructorASink ?? false,
                     sinkProperties: sink.Properties ?? null,
-                    sinkMethodParameters: sink.Methods != null ? sink.Methods.Select(x => (x.Name, x.Arguments)) : null);
+                    sinkMethodParameters: sink.Methods != null ? sink.Methods.Where(x => x.Condition == null)
+                                                                             .Select(x => (x.Name, x.Arguments)) : null,
+                    sinkMethodMatchingParameters:
+                        sink.Methods != null
+                            ? sink.Methods.Where(x => x.Condition != null)
+                                          .Select(method => new ValueTuple<MethodMatcher, string[]>
+                                (
+                                    (methodName, arguments) =>
+                                    {
+                                        if (methodName != method.Name)
+                                            return false;
+
+                                        foreach (var condition in method.Condition)
+                                        {
+                                            var arg = arguments.FirstOrDefault(x => x.Parameter.Name == condition.argName);
+                                            if (arg == null)
+                                                return false;
+
+                                            if (!arg.Value.ConstantValue.HasValue)
+                                                return false;
+
+                                            if (!Equals(condition.value, arg.Value.ConstantValue.Value))
+                                                return false;
+                                        }
+
+                                        return true;
+                                    },
+                                    method.Arguments
+                                )
+                              )
+                            : null);
             }
 
             return sinkInfosBuilder.ToImmutableAndFree();

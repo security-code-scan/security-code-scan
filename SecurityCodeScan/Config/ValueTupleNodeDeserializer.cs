@@ -21,8 +21,13 @@ namespace SecurityCodeScan.Config
                 {
                     var scalar = parser.Consume<Scalar>();
                     var stringValue = scalar.Value;
+
                     if (pairArgs[i] == typeof(int))
                         args[i] = int.Parse(stringValue);
+                    else if (stringValue == "True")
+                        args[i] = true;
+                    else if (stringValue == "False")
+                        args[i] = false;
                     else if (pairArgs[i] == typeof(object) && scalar.Style == ScalarStyle.Plain)
                         args[i] = int.Parse(stringValue);
                     else

@@ -335,7 +335,6 @@ End Class
         [DataRow("true", "", "{x = 0}", false)]
         [DataRow("false", "", "{x = 0}", false)]
         [DataTestMethod]
-        [Ignore("todo: conditionals")]
         public async Task ConditionalConstructorOpenRedirectCSharp(string injectableByDefault, string arguments, string parameters, bool warn)
         {
             var cSharpTest = $@"
@@ -363,15 +362,15 @@ public class ConditionallyScaryRedirect : ActionResult
 ";
 
             var testConfig = @"
-Behavior:
-
-  Conditional:
-    ClassName: ConditionallyScaryRedirect
-    Name: .ctor
-    Method:
-      Condition: {1: { Value: True } }
-      ArgTypes: (System.String, System.Boolean)
-      InjectableArguments: [SCS0027: 0]
+Sinks:
+  - Type: ConditionallyScaryRedirect
+    TaintTypes:
+      - SCS0027
+    Methods:
+      - Name: .ctor
+        Condition: [{""injectable"": True}]
+        Arguments:
+          - maybeTainted
 ";
 
             var config = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -399,7 +398,6 @@ Behavior:
         [DataRow("True",  "",                      " With {.x = 0}",             false)]
         [DataRow("False", "",                      " With {.x = 0}",             false)]
         [DataTestMethod]
-        [Ignore("todo: conditionals")]
         public async Task ConditionalConstructorOpenRedirectVBasic(string injectableByDefault, string arguments, string parameters, bool warn)
         {
             var vbTest = $@"
@@ -425,34 +423,22 @@ End Class
 ";
 
             var testConfig = @"
-Behavior:
-
-  Conditional:
-    ClassName: ConditionallyScaryRedirect
-    Name: .ctor
-    Method:
-      Condition: {1: { Value: True } }
-      ArgTypes: (System.String, System.Boolean)
-      InjectableArguments: [SCS0027: 0]
+Sinks:
+  - Type: ConditionallyScaryRedirect
+    TaintTypes:
+      - SCS0027
+    Methods:
+      - Name: .ctor
+        Condition: [{""injectable"": True}]
+        Arguments:
+          - maybeTainted
 ";
 
             var config = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
             if (warn)
             {
-                var expectedCSharp =
-                new[]
-                {
-                    Expected.WithLocation(8)
-                };
-
-                var expectedVB =
-                new[]
-                {
-                    Expected.WithLocation(8)
-                };
-
-                await VerifyVisualBasicDiagnostic(vbTest, expectedVB, options: config).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(vbTest, Expected.WithLocation(8), options: config).ConfigureAwait(false);
             }
             else
             {
@@ -462,7 +448,6 @@ Behavior:
 
         [TestCategory("Detect")]
         [TestMethod]
-        [Ignore("todo: conditionals")]
         public async Task ConditionalOpenRedirect()
         {
             var cSharpTest1 = @"
@@ -580,15 +565,15 @@ End Class
 
 
             var testConfig = @"
-Behavior:
-
-  Conditional:
-    ClassName: OpenRedirectController
-    Name: ConditionalRedirect
-    Method:
-      Condition: {1: { Value: False } }
-      ArgTypes: (System.String, System.Boolean)
-      InjectableArguments: [SCS0027: 0]
+Sinks:
+  - Type: OpenRedirectController
+    TaintTypes:
+      - SCS0027
+    Methods:
+      - Name: ConditionalRedirect
+        Condition: [{""internalOnly"": False}]
+        Arguments:
+          - url
 ";
 
             var expectedCSharp1 =
@@ -601,7 +586,7 @@ Behavior:
                 new[]
                 {
                     Expected.WithLocation(8, 36),
-                    Expected.WithLocation(13, 62)
+                    Expected.WithLocation(13, 57)
                 };
             var expectedVB1 =
                 new[]
@@ -612,7 +597,7 @@ Behavior:
                 new[]
                 {
                     Expected.WithLocation(8, 36),
-                    Expected.WithLocation(12, 62)
+                    Expected.WithLocation(12, 57)
                 };
 
             var config = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

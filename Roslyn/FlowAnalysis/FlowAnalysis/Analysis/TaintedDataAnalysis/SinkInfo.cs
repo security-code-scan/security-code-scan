@@ -13,13 +13,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// <remarks>It's bad if tainted data reaches a sink.</remarks>
     internal sealed class SinkInfo : ITaintedDataInfo, IEquatable<SinkInfo>
     {
-        public SinkInfo(string fullTypeName, ImmutableHashSet<SinkKind> sinkKinds, bool isInterface, bool isAnyStringParameterInConstructorASink, ImmutableHashSet<string> sinkProperties, ImmutableDictionary<string, ImmutableHashSet<string>> sinkMethodParameters)
+        public SinkInfo(
+            string fullTypeName,
+            ImmutableHashSet<SinkKind> sinkKinds,
+            bool isInterface,
+            bool isAnyStringParameterInConstructorASink,
+            ImmutableHashSet<string> sinkProperties,
+            ImmutableHashSet<(MethodMatcher, ImmutableHashSet<string>)> sinkMethodMatchingParameters,
+            ImmutableDictionary<string, ImmutableHashSet<string>> sinkMethodParameters)
         {
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
             SinkKinds = sinkKinds ?? throw new ArgumentNullException(nameof(sinkKinds));
             IsInterface = isInterface;
             IsAnyStringParameterInConstructorASink = isAnyStringParameterInConstructorASink;
             SinkProperties = sinkProperties ?? throw new ArgumentNullException(nameof(sinkProperties));
+            SinkMethodMatchingParameters = sinkMethodMatchingParameters ?? throw new ArgumentNullException(nameof(sinkMethodMatchingParameters));
             SinkMethodParameters = sinkMethodParameters ?? throw new ArgumentNullException(nameof(sinkMethodParameters));
         }
 
@@ -52,6 +60,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Mapping of method name to parameter names that are sinks.
         /// </summary>
         public ImmutableDictionary<string, ImmutableHashSet<string>> SinkMethodParameters { get; }
+
+        public ImmutableHashSet<(MethodMatcher methodMatcher, ImmutableHashSet<string>)> SinkMethodMatchingParameters { get; }
 
         /// <summary>
         /// Indicates that this <see cref="SinkInfo"/> uses <see cref="ValueContentAbstractValue"/>s.

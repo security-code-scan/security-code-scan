@@ -231,7 +231,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 IEnumerable<IArgumentOperation> taintedArguments = GetTaintedArguments(operation.Arguments);
                 if (taintedArguments.Any())
                 {
-                    ProcessTaintedDataEnteringInvocationOrCreation(operation.Constructor, taintedArguments, operation);
+                    ProcessTaintedDataEnteringInvocationOrCreation(operation.Constructor, operation.Arguments, taintedArguments, operation);
                 }
 
                 return baseValue;
@@ -257,7 +257,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 IEnumerable<IArgumentOperation> taintedArguments = GetTaintedArguments(visitedArguments);
                 if (taintedArguments.Any())
                 {
-                    ProcessTaintedDataEnteringInvocationOrCreation(method, taintedArguments, originalOperation);
+                    ProcessTaintedDataEnteringInvocationOrCreation(method, visitedArguments, taintedArguments, originalOperation);
                 }
 
                 PooledHashSet<string>? taintedTargets = null;
@@ -409,7 +409,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 IEnumerable<IArgumentOperation> taintedArguments = GetTaintedArguments(visitedArguments);
                 if (taintedArguments.Any())
                 {
-                    ProcessTaintedDataEnteringInvocationOrCreation(localFunction, taintedArguments, originalOperation);
+                    ProcessTaintedDataEnteringInvocationOrCreation(localFunction, visitedArguments, taintedArguments, originalOperation);
                 }
 
                 return baseValue;
@@ -529,6 +529,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// <param name="originalOperation">Original IOperation for the method/constructor invocation.</param>
             private void ProcessTaintedDataEnteringInvocationOrCreation(
                 IMethodSymbol targetMethod,
+                ImmutableArray<IArgumentOperation> allArguments,
                 IEnumerable<IArgumentOperation> taintedArguments,
                 IOperation originalOperation)
             {
@@ -539,7 +540,25 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     {
                         foreach (IArgumentOperation taintedArgument in taintedArguments)
                         {
-                            if (IsMethodArgumentASink(targetMethod, infosForType, taintedArgument, out HashSet<SinkKind>? sinkKinds))
+                            Lazy<HashSet<SinkKind>> lazySinkKinds = new Lazy<HashSet<SinkKind>>(() => new HashSet<SinkKind>());
+                            foreach (SinkInfo sinkInfo in infosForType)
+                            {
+                                if (lazySinkKinds.IsValueCreated && lazySinkKinds.Value.IsSupersetOf(sinkInfo.SinkKinds))
+                                {
+                                    continue;
+                                }
+
+                                foreach ((MethodMatcher methodMatcher, ImmutableHashSet<string> parameters) in sinkInfo.SinkMethodMatchingParameters)
+                                {
+                                    if (parameters.Contains(taintedArgument.Parameter.MetadataName)
+                                        && methodMatcher(targetMethod.Name, allArguments))
+                                    {
+                                        lazySinkKinds.Value.UnionWith(sinkInfo.SinkKinds);
+                                    }
+                                }
+                            }
+
+                            if (IsMethodArgumentASink(targetMethod, infosForType, taintedArgument, lazySinkKinds, out HashSet<SinkKind>? sinkKinds))
                             {
                                 TaintedDataAbstractValue abstractValue = this.GetCachedAbstractValue(taintedArgument);
                                 this.TrackTaintedDataEnteringSink(taintedArgument.Parameter, taintedArgument.Syntax.GetLocation(), sinkKinds, abstractValue.SourceOrigins);
@@ -685,10 +704,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// <param name="method">Method being invoked.</param>
             /// <param name="taintedArgument">Argument passed to the method invocation that is tainted.</param>
             /// <returns>True if any of the tainted data arguments enters a sink, false otherwise.</returns>
-            private static bool IsMethodArgumentASink(IMethodSymbol method, IEnumerable<SinkInfo> infosForType, IArgumentOperation taintedArgument, [NotNullWhen(returnValue: true)] out HashSet<SinkKind>? sinkKinds)
+            private static bool IsMethodArgumentASink(
+                IMethodSymbol method,
+                IEnumerable<SinkInfo> infosForType,
+                IArgumentOperation taintedArgument,
+                Lazy<HashSet<SinkKind>> lazySinkKinds,
+                [NotNullWhen(returnValue: true)] out HashSet<SinkKind>? sinkKinds)
             {
                 sinkKinds = null;
-                Lazy<HashSet<SinkKind>> lazySinkKinds = new Lazy<HashSet<SinkKind>>(() => new HashSet<SinkKind>());
                 foreach (SinkInfo sinkInfo in infosForType)
                 {
                     if (lazySinkKinds.IsValueCreated && lazySinkKinds.Value.IsSupersetOf(sinkInfo.SinkKinds))

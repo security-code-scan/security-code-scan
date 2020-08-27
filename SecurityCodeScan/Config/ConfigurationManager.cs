@@ -348,7 +348,7 @@ namespace SecurityCodeScan.Config
     {
         public string Name { get; set; }
 
-        public (int idx, object value)[] Condition { get; set; }
+        public (string argName, object value)[] Condition { get; set; }
 
         public string[] Arguments { get; set; }
     }

@@ -46,6 +46,38 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 isAnyStringParameterInConstructorASink,
                 sinkProperties: sinkProperties?.ToImmutableHashSet(StringComparer.Ordinal)
                         ?? ImmutableHashSet<string>.Empty,
+                sinkMethodMatchingParameters:
+                    ImmutableHashSet<(MethodMatcher, ImmutableHashSet<string>)>.Empty,
+                sinkMethodParameters:
+                    sinkMethodParameters
+                            ?.Select(o => new KeyValuePair<string, ImmutableHashSet<string>>(o.Method, o.Parameters.ToImmutableHashSet()))
+                            ?.ToImmutableDictionary(StringComparer.Ordinal)
+                        ?? ImmutableDictionary<string, ImmutableHashSet<string>>.Empty);
+            builder.Add(sinkInfo);
+        }
+
+        public static void AddSinkInfo(
+            this PooledHashSet<SinkInfo> builder,
+            string fullTypeName,
+            IEnumerable<SinkKind> sinkKinds,
+            bool isInterface,
+            bool isAnyStringParameterInConstructorASink,
+            IEnumerable<string>? sinkProperties,
+            IEnumerable<(MethodMatcher Matcher, string[] Parameters)> sinkMethodMatchingParameters,
+            IEnumerable<(string Method, string[] Parameters)>? sinkMethodParameters = null)
+        {
+            SinkInfo sinkInfo = new SinkInfo(
+                fullTypeName,
+                sinkKinds.ToImmutableHashSet(),
+                isInterface,
+                isAnyStringParameterInConstructorASink,
+                sinkProperties: sinkProperties?.ToImmutableHashSet(StringComparer.Ordinal)
+                        ?? ImmutableHashSet<string>.Empty,
+                sinkMethodMatchingParameters:
+                    sinkMethodMatchingParameters
+                            ?.Select(o => (o.Matcher, o.Parameters.ToImmutableHashSet()))
+                            ?.ToImmutableHashSet()
+                        ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<string>)>.Empty,
                 sinkMethodParameters:
                     sinkMethodParameters
                             ?.Select(o => new KeyValuePair<string, ImmutableHashSet<string>>(o.Method, o.Parameters.ToImmutableHashSet()))

@@ -188,7 +188,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                                 bool IsConstant(IArgumentOperation operation, OperationAnalysisContext operationAnalysisContext)
                                 {
-                                    if (operation.ConstantValue.HasValue || operation.Value is ITypeOfOperation)
+                                    if (operation.Value.ConstantValue.HasValue || operation.Value is ITypeOfOperation)
                                         return true;
 
                                     if (!operation.TryGetEnclosingControlFlowGraph(out var cfg))

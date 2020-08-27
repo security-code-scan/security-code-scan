@@ -674,6 +674,11 @@ Sanitizers:
     Methods:
       - Name: MapPath
 
+  - Type: System.String
+    Methods:
+      - Name: IsNullOrWhiteSpace
+        InOut: [{"value": "value"}]
+
   - Type: System.Text.StringBuilder
     Methods:
       - Name: Clear

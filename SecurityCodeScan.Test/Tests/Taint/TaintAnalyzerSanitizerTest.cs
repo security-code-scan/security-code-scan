@@ -462,6 +462,81 @@ End Namespace
             }
         }
 
+        [DataTestMethod]
+        [DataRow("using System; using System.Web.Mvc;", "System.String.IsNullOrWhiteSpace(input) && Url.IsLocalUrl(input)", "Redirect(input)", false)]
+        public async Task Validator1(string usingNamespace, string validate, string sink, bool warn)
+        {
+            var cSharpTest = $@"
+{usingNamespace}
+
+namespace sample
+{{
+    public class Model
+    {{
+        public string x {{ get; set; }}
+    }}
+
+    public class MyController : Controller
+    {{
+        public object Run(string input, Uri inputUri, Model inputModel)
+        {{
+#pragma warning disable CS0219
+            Uri uri = null;
+#pragma warning restore CS0219
+            if ({validate})
+                input = null;
+
+            return {sink};
+        }}
+    }}
+}}
+";
+
+            var vb = validate.CSharpReplaceToVBasic().Replace("!", "Not ");
+
+            var visualBasicTest = $@"
+{usingNamespace.CSharpReplaceToVBasic()}
+
+Namespace sample
+    Public Class Model
+        Public Property x As String
+    End Class
+
+    Public Class MyController
+        Inherits Controller
+
+        Public Function Run(ByVal input As String, ByVal inputUri as Uri, ByVal inputModel As Model) As Object
+#Disable Warning BC42024
+            Dim uri As Uri = Nothing
+#Enable Warning BC42024
+            If {vb} Then
+                input = Nothing
+            End If
+
+            Return {sink}
+        End Function
+    End Class
+End Namespace
+";
+
+            if (warn)
+            {
+                var expected = new DiagnosticResult
+                {
+                    Id       = "SCS0027",
+                    Severity = DiagnosticSeverity.Warning,
+                };
+
+                await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            }
+        }
+
         [TestCategory("Detect")]
         [TestMethod]
         [Ignore("roslyn conditional branches")]

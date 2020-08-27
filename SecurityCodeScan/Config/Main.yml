@@ -1833,7 +1833,10 @@ Sinks:
     TaintTypes:
       - SCS0029
     Methods:
-      AddAttribute: # todo: AddAttribute (string name, string value, bool fEndode) needs roslyn changes
+      AddAttribute:
+        - name
+        - value
+      AddStyleAttribute:
         - name
         - value
       RenderBeginTag:

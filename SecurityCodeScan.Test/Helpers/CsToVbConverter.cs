@@ -28,6 +28,8 @@ namespace SecurityCodeScan.Test.Helpers
             vb.Replace("ref ", "");
             vb.Replace("[", "(");
             vb.Replace("]", ")");
+            vb.Replace("&&", "AndAlso");
+            vb.Replace("!=", "IsNot");
 
             vb.Replace("public ",   "Public ");
             vb.Replace("internal ", "Friend ");

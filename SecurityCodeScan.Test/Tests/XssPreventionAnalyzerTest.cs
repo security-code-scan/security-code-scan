@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
+using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
 using DiagnosticVerifier = SecurityCodeScan.Test.Helpers.DiagnosticVerifier;
 
@@ -441,6 +442,89 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected.WithLocation(10)).ConfigureAwait(false);
         }
 
+        [DataRow("AddAttribute(stringInput, \"const\")", true)]
+        [DataRow("AddAttribute(\"const\", stringInput)", true)]
+        [DataRow("AddAttribute(stringInput, \"const\", true)", true)]
+        [DataRow("AddAttribute(\"const\", stringInput, true)", true)]
+        [DataRow("AddStyleAttribute(stringInput, \"const\")", true)]
+        [DataRow("AddStyleAttribute(\"const\", stringInput)", true)]
+        [DataRow("RenderBeginTag(stringInput)", true)]
+        [DataRow("Write(stringInput)", true)]
+        [DataRow("Write(stringInput, \"const\")", true)]
+        [DataRow("Write(\"{0}\", objectInput)", true)]
+        [DataRow("Write(\"{0}{1}\", \"const\", objectInput)", true)]
+        // todo: roslyn params array handling
+        //[DataRow("Write(\"{0}{1}{2}\", \"const\", \"const\", objectInput)", true)]
+        [DataRow("Write(\"{0}\", objectArray)", true)]
+        [DataRow("Write(charInput)", true)]
+        [DataRow("Write(charArray)", true)]
+        [DataRow("Write(objectInput)", true)]
+        [DataRow("WriteAttribute(stringInput, \"const\")", true)]
+        [DataRow("WriteAttribute(\"const\", stringInput)", true)]
+        [DataRow("WriteAttribute(stringInput, \"const\", true)", true)]
+        [DataRow("WriteAttribute(\"const\", stringInput, true)", true)]
+        [DataRow("WriteBeginTag(stringInput)", true)]
+        [DataRow("WriteEndTag(stringInput)", true)]
+        [DataRow("WriteFullBeginTag(stringInput)", true)]
+        [DataRow("WriteStyleAttribute(stringInput, \"const\")", true)]
+        [DataRow("WriteStyleAttribute(\"const\", stringInput)", true)]
+        [DataRow("WriteStyleAttribute(stringInput, \"const\", true)", true)]
+        [DataRow("WriteStyleAttribute(\"const\", stringInput, true)", true)]
+        [DataTestMethod]
+        public async Task XssHtmlTextWriter(string sink, bool warn)
+        {
+            var cSharpTest = $@"
+using System.Web.UI;
+using System.IO;
+using System.Text;
+
+public class Vulnerable
+{{
+    public static void Run(string stringInput, char charInput, char[] charArray, object objectInput, object[] objectArray)
+    {{
+        var sb = new StringBuilder();
+        var writer = new HtmlTextWriter(new StringWriter(sb));
+        writer.{sink};
+    }}
+}}
+";
+
+            sink = sink.CSharpReplaceToVBasic();
+
+            var visualBasicTest = $@"
+Imports System.Web.UI
+Imports System.IO
+Imports System.Text
+
+Public Class Vulnerable
+    Public Shared Sub Run(ByVal stringInput As String, ByVal charInput As Char, ByVal charArray As Char(), ByVal objectInput As Object, ByVal objectArray As Object())
+        Dim sb = New StringBuilder()
+        Dim writer = New HtmlTextWriter(New StringWriter(sb))
+        writer.{sink}
+    End Sub
+End Class
+";
+
+            var testConfig = @"
+TaintEntryPoints:
+  Vulnerable:
+    Method:
+      Name: Run
+";
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+        }
+
         [DataRow("new Control(); temp.ID = input", true)]
         [DataRow("new Label(); temp.Text = input", true)]
         [DataRow("new HyperLink(); temp.NavigateUrl = input", true)]
@@ -514,7 +598,6 @@ public class Vulnerable
         var temp = {sink};
 #pragma warning restore 618
     }}
-
 }}
 ";
 
@@ -544,7 +627,6 @@ Public Class Vulnerable
     End Sub
 End Class
 ";
-
 
             if (warn)
             {

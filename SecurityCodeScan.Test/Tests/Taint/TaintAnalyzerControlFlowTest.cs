@@ -184,13 +184,18 @@ namespace SecurityCodeScan.Test.Taint
                    var1 = var1 ?? ""const2"";",
                   @"Dim var1 As String = ""const1""
                     var1 = If(var1, ""const2"")", false)]
-        // todo: not implemented
-        //[DataRow(@"string var1 = ""const"";
-        //           b.x = input;
-        //           var1 = b?.x;",
-        //          @"Dim var1 As String = ""const""
-        //            b.x = input
-        //            var1 = b?.x;", true)]
+        [DataRow(@"string var1 = ""const"";
+                   b.x = input;
+                   var1 = b.x;",
+                  @"Dim var1 As String = ""const""
+                    b.x = input
+                    var1 = b.x", true)]
+        [DataRow(@"string var1 = ""const"";
+                   b.x = input;
+                   var1 = b?.x;",
+                  @"Dim var1 As String = ""const""
+                    b.x = input
+                    var1 = b?.x", true)]
         public async Task IfElse(string cs, string vb, bool warn)
         {
             var cSharpTest = $@"
@@ -216,7 +221,7 @@ namespace sample
         public void Run(string input, ABC abc)
         {{
 #pragma warning disable CS0219
-            B b = null;
+            B b = new B();
 #pragma warning restore CS0219
             {cs}
 
@@ -245,7 +250,7 @@ Namespace sample
         Inherits Controller
 
         Public Sub Run(ByVal input As String, ByVal abc As ABC)
-            Dim b As B = Nothing
+            Dim b As B = New B()
             {vb}
             Dim temp = New SqlCommand(var1)
         End Sub

@@ -245,17 +245,31 @@ namespace SecurityCodeScan.Config
                 }
             }
 
-            if (config2.CsrfProtection != null)
+            if (config2.CsrfCheck != null)
             {
-                foreach (var data in config2.CsrfProtection)
+                foreach (var data in config2.CsrfCheck)
                 {
-                    if (config1.CsrfProtection == null)
-                        config1.CsrfProtection = new Dictionary<string, CsrfProtectionData>();
+                    if (config1.CsrfCheck == null)
+                        config1.CsrfCheck = new Dictionary<string, AttributeCheck>();
 
-                    if (data.Value == default(CsrfProtectionData))
-                        config1.CsrfProtection.Remove(data.Key);
+                    if (data.Value == default(AttributeCheck))
+                        config1.CsrfCheck.Remove(data.Key);
                     else
-                        config1.CsrfProtection[data.Key] = data.Value;
+                        config1.CsrfCheck[data.Key] = data.Value;
+                }
+            }
+
+            if (config2.AuthorizeCheck != null)
+            {
+                foreach (var data in config2.AuthorizeCheck)
+                {
+                    if (config1.AuthorizeCheck == null)
+                        config1.AuthorizeCheck = new Dictionary<string, AttributeCheck>();
+
+                    if (data.Value == default(AttributeCheck))
+                        config1.AuthorizeCheck.Remove(data.Key);
+                    else
+                        config1.AuthorizeCheck[data.Key] = data.Value;
                 }
             }
 
@@ -288,7 +302,8 @@ namespace SecurityCodeScan.Config
         public List<Sink>                              Sinks                               { get; set; }
         public List<Sanitizer>                         Sanitizers                          { get; set; }
         public List<Transfer>                          Transfers                           { get; set; }
-        public Dictionary<string, CsrfProtectionData>  CsrfProtection                      { get; set; }
+        public Dictionary<string, AttributeCheck>      CsrfCheck                           { get; set; }
+        public Dictionary<string, AttributeCheck>      AuthorizeCheck                      { get; set; }
         public string                                  WebConfigFiles                      { get; set; }
     }
 
@@ -417,45 +432,45 @@ namespace SecurityCodeScan.Config
         public string[] Methods { get; set; }
     }
 
-    internal class CsrfProtectionData
+    internal class AttributeCheck
     {
         public string Name                                      { get; set; }
-        public CsrfMessage Message                              { get; set; }
-        public List<CsrfAttributeData> AntiCsrfAttributes       { get; set; }
-        public CsrfClass Class                                  { get; set; }
-        public CsrfMethod Method                                { get; set; }
-        public CsrfParameter Parameter                          { get; set; }
+        public AttributeCheckMessage Message                    { get; set; }
+        public List<AttributeCheckData> RequiredAttributes       { get; set; }
+        public AttributeCheckClass Class                                  { get; set; }
+        public AttributeCheckMethod Method                                { get; set; }
+        public AttributeCheckParameter Parameter                          { get; set; }
     }
 
-    internal class CsrfClass
+    internal class AttributeCheckClass
     {
         public HashSet<string> Name             { get; set; }
-        public CsrfIncludeExclude Attributes { get; set; }
+        public AttributeCheckIncludeExclude Attributes { get; set; }
     }
 
-    internal class CsrfMethod
+    internal class AttributeCheckMethod
     {
-        public CsrfIncludeExclude Attributes { get; set; }
+        public AttributeCheckIncludeExclude Attributes { get; set; }
     }
 
-    internal class CsrfParameter
+    internal class AttributeCheckParameter
     {
-        public CsrfIncludeExclude Attributes { get; set; }
+        public AttributeCheckIncludeExclude Attributes { get; set; }
     }
 
-    internal class CsrfIncludeExclude
+    internal class AttributeCheckIncludeExclude
     {
-        public List<CsrfAttributeData> Include { get; set; }
-        public List<CsrfAttributeData> Exclude { get; set; }
+        public List<AttributeCheckData> Include { get; set; }
+        public List<AttributeCheckData> Exclude { get; set; }
     }
 
-    internal class CsrfAttributeData
+    internal class AttributeCheckData
     {
         public string Name                          { get; set; }
         public Dictionary<object, object> Condition { get; set; }
     }
 
-    internal class CsrfMessage
+    internal class AttributeCheckMessage
     {
         public string Title       { get; set; }
         public string Description { get; set; }

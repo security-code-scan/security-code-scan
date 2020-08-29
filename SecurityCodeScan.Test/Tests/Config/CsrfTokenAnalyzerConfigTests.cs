@@ -90,10 +90,10 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(16, 25)).ConfigureAwait(false);
 
             var testConfig = @"
-CsrfProtection:
+CsrfCheck:
   Test:
     Name: ASP.NET MVC
-    AntiCsrfAttributes:
+    RequiredAttributes:
       - Name: VulnerableApp.TestAttribute
 ";
 
@@ -162,10 +162,10 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(16, 25)).ConfigureAwait(false);
 
             var testConfig = @"
-CsrfProtection:
+CsrfCheck:
   Test:
     Name: ASP.NET Core MVC
-    AntiCsrfAttributes:
+    RequiredAttributes:
       - Name: VulnerableApp.TestAttribute
 ";
 
@@ -240,7 +240,7 @@ End Namespace
 ";
 
             var testConfig = @"
-CsrfProtection:
+CsrfCheck:
   Test:
     Name: ASP.NET MVC
     Method:
@@ -248,7 +248,7 @@ CsrfProtection:
         Include:
           - Name: VulnerableApp.TestAttribute
             Condition: {0: {Value: 2}}
-    AntiCsrfAttributes:
+    RequiredAttributes:
       - Name: VulnerableApp.TestAttribute
         Condition: {1: {Value: true}}
 ";

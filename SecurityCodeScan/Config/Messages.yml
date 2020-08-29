@@ -91,8 +91,12 @@ SCS0013:
   description: This specific mode is susceptible to a cryptographic attack.
 
 SCS0016:
-  title: Controller method is vulnerable to Cross Site Request Forgery (CSRF).
+  title: Controller method is potentially vulnerable to Cross Site Request Forgery (CSRF).
   description: The annotation [ValidateAntiForgeryToken] is missing. The warning may be ignored/suppressed if .NET Core AutoValidateAntiforgeryToken is set up globally.
+
+SCS0012:
+  title: Controller method is potentially vulnerable to authorization bypass.
+  description: Neither the annotation [Authorize] nor [AllowAnonymous] is present. The warning may be ignored/suppressed if the application is using other authorization checks.
 
 SCS0017:
   title: Request validation is disabled.
@@ -134,10 +138,6 @@ SCS0029:
   title: "Potential Cross-Site Scripting (XSS) vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
   title_assignment: Potential Cross-Site Scripting (XSS) vulnerability.
   description: The untrusted value used to create a HTML should be validated or properly encoded.
-
-SCS0014:
-  title: Potential Cross-Site Scripting (XSS) vulnerability.
-  description: The endpoint returns a variable from the client input that has not been url encoded.
 
 # Password Validator
 

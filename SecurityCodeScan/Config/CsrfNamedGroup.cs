@@ -3,46 +3,45 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Locale;
 
 namespace SecurityCodeScan.Config
 {
-    internal class CsrfAttributeCondition
+    internal class AttributeCondition
     {
-        public static readonly CsrfAttributeCondition TRUE = new CsrfAttributeCondition();
+        private static readonly AttributeCondition TRUE = new AttributeCondition();
 
         public readonly List<(object ParameterIndexOrPropertyName, object ExpectedValue)> MustMatch;
 
-        public CsrfAttributeCondition()
+        public AttributeCondition()
         {
             MustMatch = new List<(object ParameterIndexOrPropertyName, object ExpectedValue)>();
         }
 
-        public static void AddCsrfAttributes(Dictionary<string, List<CsrfAttributeCondition>> destination, IEnumerable<CsrfAttributeData> source)
+        public static void AddAttributes(Dictionary<string, List<AttributeCondition>> destination, IEnumerable<AttributeCheckData> source)
         {
             if (source == null)
                 return;
 
             foreach (var attr in source)
             {
-                var condition = CreateCsrfAttributeCondition(attr.Condition);
+                var condition = CreateAttributeCondition(attr.Condition);
 
                 if (!destination.TryGetValue(attr.Name, out var conditions))
                 {
-                    destination[attr.Name] = conditions = new List<CsrfAttributeCondition>();
+                    destination[attr.Name] = conditions = new List<AttributeCondition>();
                 }
 
                 conditions.Add(condition);
             }
         }
 
-        private static CsrfAttributeCondition CreateCsrfAttributeCondition(Dictionary<object, object> conditions)
+        private static AttributeCondition CreateAttributeCondition(Dictionary<object, object> conditions)
         {
             if (conditions == null)
-                return CsrfAttributeCondition.TRUE;
+                return AttributeCondition.TRUE;
 
-            var ret = new CsrfAttributeCondition();
+            var ret = new AttributeCondition();
 
             foreach (var argument in conditions)
             {
@@ -96,66 +95,63 @@ namespace SecurityCodeScan.Config
     {
         public IncludeExcludeAttributes()
         {
-            Include = new Dictionary<string, List<CsrfAttributeCondition>>();
-            Exclude = new Dictionary<string, List<CsrfAttributeCondition>>();
+            Include = new Dictionary<string, List<AttributeCondition>>();
+            Exclude = new Dictionary<string, List<AttributeCondition>>();
         }
 
-        public Dictionary<string, List<CsrfAttributeCondition>> Include { get; }
+        public Dictionary<string, List<AttributeCondition>> Include { get; }
 
-        public Dictionary<string, List<CsrfAttributeCondition>> Exclude { get; }
+        public Dictionary<string, List<AttributeCondition>> Exclude { get; }
     }
 
-    internal class CsrfController : IncludeExcludeAttributes
+    internal class AttributeController : IncludeExcludeAttributes
     {
-        public CsrfController(CsrfClass @class)
+        public AttributeController(AttributeCheckClass @class)
         {
             if (@class.Name != null)
                 Names = new HashSet<string>(@class.Name);
 
-            CsrfAttributeCondition.AddCsrfAttributes(Include, @class?.Attributes?.Include);
-            CsrfAttributeCondition.AddCsrfAttributes(Exclude, @class?.Attributes?.Exclude);
+            AttributeCondition.AddAttributes(Include, @class?.Attributes?.Include);
+            AttributeCondition.AddAttributes(Exclude, @class?.Attributes?.Exclude);
         }
 
         public readonly HashSet<string> Names;
     }
 
-    internal class CsrfNamedGroup
+    internal class NamedGroup
     {
         public readonly string Name;
 
         public readonly DiagnosticDescriptor Message;
-        public readonly Dictionary<string, List<CsrfAttributeCondition>> AntiCsrfAttributes = new Dictionary<string, List<CsrfAttributeCondition>>();
+        public readonly Dictionary<string, List<AttributeCondition>> RequiredAttributes = new Dictionary<string, List<AttributeCondition>>();
 
-        private CsrfController _Class;
-        public CsrfController Class => _Class;
+        public AttributeController Class { get; }
 
-        private IncludeExcludeAttributes _Method = new IncludeExcludeAttributes();
-        public IncludeExcludeAttributes Method => _Method;
+        public IncludeExcludeAttributes Method { get; } = new IncludeExcludeAttributes();
 
-        private IncludeExcludeAttributes _Parameter = new IncludeExcludeAttributes();
-        public IncludeExcludeAttributes Parameter => _Parameter;
+        public IncludeExcludeAttributes Parameter { get; } = new IncludeExcludeAttributes();
 
-        public CsrfNamedGroup(CsrfProtectionData configData)
+        public NamedGroup(AttributeCheck configData, string diagnosticId)
         {
             Name = configData.Name;
 
             if (configData.Message != null)
-                Message = LocaleUtil.GetDescriptorByText(CsrfTokenDiagnosticAnalyzer.DiagnosticId, configData.Message.Title, configData.Message.Description);
+                Message = LocaleUtil.GetDescriptorByText(diagnosticId, configData.Message.Title, configData.Message.Description);
 
-            CsrfAttributeCondition.AddCsrfAttributes(AntiCsrfAttributes, configData.AntiCsrfAttributes);
+            AttributeCondition.AddAttributes(RequiredAttributes, configData.RequiredAttributes);
 
             if (configData.Class != null)
-                _Class = new CsrfController(configData.Class);
+                Class = new AttributeController(configData.Class);
 
-            CsrfAttributeCondition.AddCsrfAttributes(Method.Include, configData.Method?.Attributes.Include);
-            CsrfAttributeCondition.AddCsrfAttributes(Method.Exclude, configData.Method?.Attributes.Exclude);
-            CsrfAttributeCondition.AddCsrfAttributes(Parameter.Include, configData.Parameter?.Attributes.Include);
-            CsrfAttributeCondition.AddCsrfAttributes(Parameter.Exclude, configData.Parameter?.Attributes.Exclude);
+            AttributeCondition.AddAttributes(Method.Include, configData.Method?.Attributes.Include);
+            AttributeCondition.AddAttributes(Method.Exclude, configData.Method?.Attributes.Exclude);
+            AttributeCondition.AddAttributes(Parameter.Include, configData.Parameter?.Attributes.Include);
+            AttributeCondition.AddAttributes(Parameter.Exclude, configData.Parameter?.Attributes.Exclude);
         }
 
-        public void AddFrom(CsrfProtectionData configData)
+        public void AddFrom(AttributeCheck configData)
         {
-            CsrfAttributeCondition.AddCsrfAttributes(AntiCsrfAttributes, configData.AntiCsrfAttributes);
+            AttributeCondition.AddAttributes(RequiredAttributes, configData.RequiredAttributes);
 
             if (configData.Class?.Name != null)
             {
@@ -163,13 +159,13 @@ namespace SecurityCodeScan.Config
                     Class.Names.Add(name);
             }
 
-            CsrfAttributeCondition.AddCsrfAttributes(Class.Include, configData.Class?.Attributes?.Include);
-            CsrfAttributeCondition.AddCsrfAttributes(Class.Exclude, configData.Class?.Attributes?.Exclude);
+            AttributeCondition.AddAttributes(Class.Include, configData.Class?.Attributes?.Include);
+            AttributeCondition.AddAttributes(Class.Exclude, configData.Class?.Attributes?.Exclude);
 
-            CsrfAttributeCondition.AddCsrfAttributes(Method.Include, configData.Method?.Attributes?.Include);
-            CsrfAttributeCondition.AddCsrfAttributes(Method.Exclude, configData.Method?.Attributes?.Exclude);
-            CsrfAttributeCondition.AddCsrfAttributes(Parameter.Include, configData.Parameter?.Attributes?.Include);
-            CsrfAttributeCondition.AddCsrfAttributes(Parameter.Exclude, configData.Parameter?.Attributes?.Exclude);
+            AttributeCondition.AddAttributes(Method.Include, configData.Method?.Attributes?.Include);
+            AttributeCondition.AddAttributes(Method.Exclude, configData.Method?.Attributes?.Exclude);
+            AttributeCondition.AddAttributes(Parameter.Include, configData.Parameter?.Attributes?.Include);
+            AttributeCondition.AddAttributes(Parameter.Exclude, configData.Parameter?.Attributes?.Exclude);
         }
     }
 }

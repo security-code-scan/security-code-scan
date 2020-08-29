@@ -731,7 +731,7 @@ End Namespace
     [TestClass]
     public class CoreCsrfTokenAnalyzerTest : CoreCsrfTokenAnalyzerBaseTest
     {
-        private const string ExpectedMessage = "Controller method is vulnerable to Cross Site Request Forgery (CSRF).";
+        private const string ExpectedMessage = "Controller method is potentially vulnerable to Cross Site Request Forgery (CSRF).";
 
         [TestMethod]
         public async Task CsrfValidateAntiForgeryTokenApiControllerDefault()
@@ -1544,7 +1544,7 @@ End Namespace
 ";
 
             var testConfig = @"
-CsrfProtection:
+CsrfCheck:
   Test:
     Name: Stack Overflow Example Config
     Class:
@@ -1692,7 +1692,7 @@ End Namespace
 ";
 
             var testConfig = @"
-CsrfProtection:
+CsrfCheck:
   Test:
     Name: Test
     Method:

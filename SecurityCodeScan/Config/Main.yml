@@ -13,15 +13,15 @@ MaxInterproceduralLambdaOrLocalFunctionCallChain: 3
 # Case insensitive pattern of web config files to analyze when AdditionalFileItemNames are configured (see https://security-code-scan.github.io/#Analyzing.aspxandweb.configFiles)
 WebConfigFiles: ^web\.config.*
 
-# Allows to define custom anti CSRF attributes and conditions
+# Verifies if the class methods have necessary attributes. Allows to define custom anti CSRF attributes with conditions.
 # The format is:
 # <<<
-# CsrfProtection:
+# CsrfCheck:
 #   - Name: "Unique group name. If a group only with the name is provided, it deletes already existing group with the same name. Use it to override existing settings."
 #     Message: # Optional.
 #       Title: "Warning title to display if matched"
 #       Description: "Detailed warning message"
-#     AntiCsrfAttributes: # Optional. A list of attributes which indicate that CSRF checking is automated on the class or method.
+#     RequiredAttributes: # Optional. A list of attributes which indicate the class or method is safe.
 #       - Name: "Fully qualified name of the attribute"
 #         Condition: "Optional. In format of { 0: { Value: 0}, ...}"
 #       - Name: "Fully qualified name of the attribute"
@@ -69,9 +69,9 @@ WebConfigFiles: ^web\.config.*
 #
 # Multiple entries with unique Name are supported.
 # To add additional anti CSRF tokens to an existing rule do in user or project config:
-# CsrfProtection:
+# CsrfCheck:
 #   - Name: ASP.NET MVC
-#     AntiCsrfAttributes:
+#     RequiredAttributes:
 #       - Name: "Fully qualified name of the custom anti CSRF attribute"
 #
 # The analysis starts from a class down to method parameters. If all rules apply (like a presence and absence of a specific attributes)
@@ -88,10 +88,10 @@ WebConfigFiles: ^web\.config.*
 #  will match 
 #   [My(null, 32, FirstProperty = "foo", SecondProperty = true)]
 
-CsrfProtection:
+CsrfCheck:
   Mvc:
     Name: ASP.NET MVC
-    AntiCsrfAttributes:
+    RequiredAttributes:
       - Name: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
     Class:
       Name:
@@ -112,7 +112,7 @@ CsrfProtection:
 
   CoreMvc:
     Name: ASP.NET Core MVC
-    AntiCsrfAttributes:
+    RequiredAttributes:
       - Name: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
       - Name: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
     Class:
@@ -141,7 +141,7 @@ CsrfProtection:
 
   CoreMvcApiController:
     Name: ASP.NET Core MVC ApiController
-    AntiCsrfAttributes:
+    RequiredAttributes:
       - Name: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
       - Name: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
     Class:
@@ -168,6 +168,49 @@ CsrfProtection:
       Attributes:
         Include:
           - Name: Microsoft.AspNetCore.Mvc.FromFormAttribute
+
+AuthorizeCheck:
+  Mvc:
+    Name: ASP.NET MVC
+    RequiredAttributes:
+      - Name: System.Web.Mvc.AuthorizeAttribute
+    Class:
+      Name:
+        - System.Web.Mvc.Controller
+      Attributes:
+        Exclude:
+          - Name: System.Web.Mvc.AllowAnonymousAttribute
+    Method:
+      Attributes:
+        Include:
+          - Name: System.Web.Mvc.HttpPostAttribute
+          - Name: System.Web.Mvc.HttpPutAttribute
+          - Name: System.Web.Mvc.HttpDeleteAttribute
+          - Name: System.Web.Mvc.HttpPatchAttribute
+        Exclude:
+          - Name: System.Web.Mvc.NonActionAttribute
+          - Name: System.Web.Mvc.AllowAnonymousAttribute
+
+  CoreMvc:
+    Name: ASP.NET Core MVC
+    RequiredAttributes:
+      - Name: Microsoft.AspNetCore.Authorization.AuthorizeAttribute
+    Class:
+      Name:
+        - Microsoft.AspNetCore.Mvc.Controller
+      Attributes:
+        Exclude:
+          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+    Method:
+      Attributes:
+        Include:
+          - Name: Microsoft.AspNetCore.Mvc.HttpPostAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpPutAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpDeleteAttribute
+          - Name: Microsoft.AspNetCore.Mvc.HttpPatchAttribute
+        Exclude:
+          - Name: Microsoft.AspNetCore.Mvc.NonActionAttribute
+          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
 
 # Password validator analysis preferences:
 PasswordValidatorRequiredLength: 8

@@ -13,6 +13,7 @@ using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
+using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Analyzers.Utils;
 
@@ -647,8 +648,10 @@ namespace SecurityCodeScan.Config
             _PasswordValidatorRequiredProperties = new HashSet<string>();
             PasswordValidatorRequiredProperties = new ReadOnlyHashSet<string>(_PasswordValidatorRequiredProperties);
 
-            _CsrfGroupsList = new LinkedList<CsrfNamedGroup>();
-            _CsrfGroups = new Dictionary<string, LinkedListNode<CsrfNamedGroup>>();
+            _CsrfGroupsList = new LinkedList<NamedGroup>();
+            _CsrfGroups = new Dictionary<string, LinkedListNode<NamedGroup>>();
+            _AuthorizeGroupsList = new LinkedList<NamedGroup>();
+            _AuthorizeGroups = new Dictionary<string, LinkedListNode<NamedGroup>>();
         }
 
         private readonly Lazy<TaintConfiguration> CachedTaintConfiguration;
@@ -703,11 +706,19 @@ namespace SecurityCodeScan.Config
 
             TaintSources = new List<TaintSource>(_TaintSources);
 
-            if (configData.CsrfProtection != null)
+            if (configData.CsrfCheck != null)
             {
-                foreach (var data in configData.CsrfProtection)
+                foreach (var data in configData.CsrfCheck)
                 {
-                    AddCsrfProtectionToConfiguration(data.Value);
+                    AddAttributeCheckToConfiguration(data.Value, CsrfTokenDiagnosticAnalyzer.DiagnosticId, _CsrfGroups, _CsrfGroupsList);
+                }
+            }
+
+            if (configData.AuthorizeCheck != null)
+            {
+                foreach (var data in configData.AuthorizeCheck)
+                {
+                    AddAttributeCheckToConfiguration(data.Value, AthorizationAttributeDiagnosticAnalyzer.DiagnosticId, _AuthorizeGroups, _AuthorizeGroupsList);
                 }
             }
 
@@ -745,24 +756,28 @@ namespace SecurityCodeScan.Config
 
         public Regex                        WebConfigFilesRegex { get; private set; }
 
-        private readonly LinkedList<CsrfNamedGroup>                         _CsrfGroupsList; // ensure groups are exposed in the same order they were added
-        private readonly Dictionary<string, LinkedListNode<CsrfNamedGroup>> _CsrfGroups;
-        public IReadOnlyCollection<CsrfNamedGroup> CsrfGoups => _CsrfGroupsList;
+        private readonly LinkedList<NamedGroup>                         _CsrfGroupsList; // ensure groups are exposed in the same order they were added
+        private readonly Dictionary<string, LinkedListNode<NamedGroup>> _CsrfGroups;
+        public IReadOnlyCollection<NamedGroup> CsrfGoups => _CsrfGroupsList;
 
-        public void AddCsrfProtectionToConfiguration(CsrfProtectionData csrfData)
+        private readonly LinkedList<NamedGroup>                         _AuthorizeGroupsList; // ensure groups are exposed in the same order they were added
+        private readonly Dictionary<string, LinkedListNode<NamedGroup>> _AuthorizeGroups;
+        public IReadOnlyCollection<NamedGroup> AuthorizeGoups => _AuthorizeGroupsList;
+
+        private static void AddAttributeCheckToConfiguration(AttributeCheck data, string diagnosticId, Dictionary<string, LinkedListNode<NamedGroup>> groups, LinkedList<NamedGroup> groupsList)
         {
-            if (string.IsNullOrWhiteSpace(csrfData.Name))
-                throw new Exception($"{nameof(CsrfProtectionData.Name)} is required in CsrfProtection");
+            if (string.IsNullOrWhiteSpace(data.Name))
+                throw new Exception($"{nameof(AttributeCheck.Name)} is required in AttributeCheck");
 
-            if (!_CsrfGroups.TryGetValue(csrfData.Name, out var curGroupNode))
+            if (!groups.TryGetValue(data.Name, out var curGroupNode))
             {
-                var curGroup = new CsrfNamedGroup(csrfData);
-                var node = _CsrfGroupsList.AddLast(curGroup);
-                _CsrfGroups.Add(csrfData.Name, node);
+                var curGroup = new NamedGroup(data, diagnosticId);
+                var node = groupsList.AddLast(curGroup);
+                groups.Add(data.Name, node);
             }
             else
             {
-                curGroupNode.Value.AddFrom(csrfData);
+                curGroupNode.Value.AddFrom(data);
             }
         }
     }

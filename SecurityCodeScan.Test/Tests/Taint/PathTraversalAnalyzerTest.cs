@@ -300,8 +300,6 @@ End Class
         [DataRow("StreamWriter(input, false)")]
         [DataRow("StreamWriter(input, false, System.Text.Encoding.ASCII)")]
         [DataRow("StreamWriter(input, false, System.Text.Encoding.ASCII, 10)")]
-
-        [DataRow("FileStream(g, FileMode.CreateNew)")]
         [TestCategory("Detect")]
         [DataTestMethod]
         public async Task PathTraversalNewObject(string sink)
@@ -315,7 +313,7 @@ using System.Web.Mvc;
 
 public class PathTraversalController : Controller
 {{
-    public void Run(Guid g, string input, FileMode fileMode, IntPtr handle, FileAccess access, SafeFileHandle safeHandle,
+    public void Run(string input, FileMode fileMode, IntPtr handle, FileAccess access, SafeFileHandle safeHandle,
                     FileShare fileShare, FileOptions fileOptions, FileSystemRights fileSystemRights,
                     FileSecurity fileSecurity, bool flag)
     {{

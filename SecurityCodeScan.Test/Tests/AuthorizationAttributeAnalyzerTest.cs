@@ -137,6 +137,52 @@ End Namespace
 
         [TestCategory("Safe")]
         [TestMethod]
+        public async Task HasAllowAnonymousDerivedAttribute()
+        {
+            var cSharpTest = $@"
+{InsertNamespacesCS()}
+
+namespace VulnerableApp
+{{
+    public class CustomAllowAnonymousAttribute : AllowAnonymousAttribute {{}}
+
+    public class TestController : Controller
+    {{
+        [CustomAllowAnonymous]
+        [HttpPost]
+        public ActionResult ControllerMethod(string input)
+        {{
+            return null;
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+{InsertNamespacesVB()}
+
+Namespace VulnerableApp
+    Public Class CustomAllowAnonymousAttribute
+        Inherits AllowAnonymousAttribute
+    End Class
+
+    Public Class TestController
+        Inherits Controller
+
+        <CustomAllowAnonymous>
+        <HttpPost> _
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestCategory("Safe")]
+        [TestMethod]
         public async Task ClassHasAuthorizeAttribute()
         {
             var cSharpTest = $@"
@@ -161,6 +207,51 @@ namespace VulnerableApp
 
 Namespace VulnerableApp
     <{AuthorizeAttributeName}>
+    Public Class TestController
+        Inherits Controller
+
+        <HttpPost> _
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task ClassHasAuthorizeDerivedAttribute()
+        {
+            var cSharpTest = $@"
+{InsertNamespacesCS()}
+
+namespace VulnerableApp
+{{
+    public class CustomAuthorizeAttribute : {AuthorizeAttributeName}Attribute {{}}
+
+    [CustomAuthorize]
+    public class TestController : Controller
+    {{
+        [HttpPost]
+        public ActionResult ControllerMethod(string input)
+        {{
+            return null;
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+{InsertNamespacesVB()}
+
+Namespace VulnerableApp
+    Public Class CustomAuthorizeAttribute
+        Inherits {AuthorizeAttributeName}Attribute
+    End Class
+
+    <CustomAuthorize>
     Public Class TestController
         Inherits Controller
 

@@ -65,13 +65,24 @@ namespace SecurityCodeScan.Analyzers
             if (!attributes.Any())
                 return false;
 
-            var name = attributeData.AttributeClass.ToString();
+            var attributeClass = attributeData.AttributeClass;
+            List<AttributeCondition> conditions = null;
+
+            while (attributeClass != null)
+            {
+                var name = attributeClass.ToString();
+
+                if (attributes.TryGetValue(name, out conditions))
+                    break;
+
+                attributeClass = attributeClass.BaseType;
+            }
+
+            if (attributeClass == null)
+                return false;
 
             var args = attributeData.ConstructorArguments;
             var namedArgs = attributeData.NamedArguments;
-
-            if (!attributes.TryGetValue(name, out var conditions))
-                return false;
 
             foreach (var condition in conditions)
             {
@@ -124,7 +135,7 @@ namespace SecurityCodeScan.Analyzers
             return false;
         }
 
-        private static bool IsAntiForgeryToken(AttributeData attributeData, NamedGroup group)
+        private static bool IsRequiredAttribute(AttributeData attributeData, NamedGroup group)
         => HasApplicableAttribute(attributeData, group.RequiredAttributes);
 
         public void VisitClass(SymbolAnalysisContext ctx, IReadOnlyCollection<NamedGroup> namedGroups)
@@ -152,7 +163,7 @@ namespace SecurityCodeScan.Analyzers
                     return;
             }
 
-            if (AntiforgeryAttributeExists(classSymbol, group))
+            if (RequiredAttributeExists(classSymbol, group))
                 return;
 
             if (IsClassIgnored(classSymbol, group))
@@ -170,7 +181,7 @@ namespace SecurityCodeScan.Analyzers
                 if (IsMethodIgnored(methodSymbol, group))
                     continue;
 
-                if (AntiforgeryAttributeExists(methodSymbol, group))
+                if (RequiredAttributeExists(methodSymbol, group))
                     continue;
 
                 if (AreParametersSafe(methodSymbol, group))
@@ -229,20 +240,20 @@ namespace SecurityCodeScan.Analyzers
             return false;
         }
 
-        private static bool AntiforgeryAttributeExists(ITypeSymbol classSymbol, NamedGroup group)
+        private static bool RequiredAttributeExists(ITypeSymbol classSymbol, NamedGroup group)
         {
             if (!group.RequiredAttributes.Any())
                 return false;
 
-            return classSymbol.HasDerivedClassAttribute(c => IsAntiForgeryToken(c, group));
+            return classSymbol.HasDerivedClassAttribute(c => IsRequiredAttribute(c, group));
         }
 
-        private static bool AntiforgeryAttributeExists(IMethodSymbol methodSymbol, NamedGroup group)
+        private static bool RequiredAttributeExists(IMethodSymbol methodSymbol, NamedGroup group)
         {
             if (!group.RequiredAttributes.Any())
                 return false;
 
-            return methodSymbol.HasDerivedMethodAttribute(c => IsAntiForgeryToken(c, group));
+            return methodSymbol.HasDerivedMethodAttribute(c => IsRequiredAttribute(c, group));
         }
     }
 }

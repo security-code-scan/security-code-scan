@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
+using SecurityCodeScan.Test.Audit;
 using SecurityCodeScan.Test.Helpers;
 
 namespace SecurityCodeScan.Test.Taint
@@ -47,6 +48,7 @@ namespace SecurityCodeScan.Test.Taint
         [DataRow("new DirectorySearcher(entry, \"constant\", propertiesToLoad, scope)")]
         [DataRow("new DirectorySearcher(entry, \"constant\", null, scope)")]
         [DataRow("new DirectorySearcher(); temp.Filter = input", "SCS0031")]
+        [DataRow("new DirectorySearcher(); temp.Filter = $\"{input}\"", "SCS0031")]
         [DataRow("new DirectorySearcher(); temp.Filter = \"constant\"")]
         [DataRow("new DirectoryEntry(input)", "SCS0026")]
         [DataRow("new DirectoryEntry(\"constant\")")]
@@ -101,6 +103,7 @@ End Namespace
                 };
 
                 await VerifyCSharpDiagnostic(cSharpTest, Enumerable.Repeat(expected, count).ToArray()).ConfigureAwait(false);
+                await VerifyCSharpDiagnostic(cSharpTest, Enumerable.Repeat(expected, count).ToArray(), await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false)).ConfigureAwait(false);
                 await VerifyVisualBasicDiagnostic(visualBasicTest, Enumerable.Repeat(expected, count).ToArray()).ConfigureAwait(false);
             }
             else

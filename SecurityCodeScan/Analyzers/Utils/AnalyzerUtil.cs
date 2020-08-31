@@ -128,10 +128,9 @@ namespace SecurityCodeScan.Analyzers.Utils
             }
 
             return null;
-
         }
 
-        public static bool HasDerivedClassAttribute(this ITypeSymbol symbol, Func<AttributeData, bool> condition)
+        public static bool HasDerivedAttribute(this ITypeSymbol symbol, Func<AttributeData, bool> condition)
         {
             while (symbol != null)
             {
@@ -147,7 +146,24 @@ namespace SecurityCodeScan.Analyzers.Utils
             return false;
         }
 
-        public static bool HasDerivedMethodAttribute(this IMethodSymbol symbol, Func<AttributeData, bool> condition)
+        public static AttributeData TryGetDerivedAttribute(this ITypeSymbol symbol, Func<AttributeData, bool> condition)
+        {
+            while (symbol != null)
+            {
+                var attr = symbol.GetAttribute(condition);
+                if (attr != null)
+                    return attr;
+
+                if (symbol.BaseType == null)
+                    return null;
+
+                symbol = symbol.BaseType;
+            }
+
+            return null;
+        }
+
+        public static bool HasDerivedAttribute(this IMethodSymbol symbol, Func<AttributeData, bool> condition)
         {
             while (symbol != null)
             {
@@ -161,6 +177,23 @@ namespace SecurityCodeScan.Analyzers.Utils
             }
 
             return false;
+        }
+
+        public static AttributeData TryGetDerivedAttribute(this IMethodSymbol symbol, Func<AttributeData, bool> condition)
+        {
+            while (symbol != null)
+            {
+                var attr = symbol.GetAttribute(condition);
+                if (attr != null)
+                    return attr;
+
+                if (symbol.OverriddenMethod == null)
+                    return null;
+
+                symbol = symbol.OverriddenMethod;
+            }
+
+            return null;
         }
     }
 

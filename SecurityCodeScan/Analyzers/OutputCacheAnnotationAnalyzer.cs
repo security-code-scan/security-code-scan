@@ -45,8 +45,8 @@ namespace SecurityCodeScan.Analyzers
             }
 
             var ret = method
-                          ? ((IMethodSymbol)symbol).HasDerivedMethodAttribute(Condition)
-                          : ((ITypeSymbol)symbol).HasDerivedClassAttribute(Condition);
+                          ? ((IMethodSymbol)symbol).HasDerivedAttribute(Condition)
+                          : ((ITypeSymbol)symbol).HasDerivedAttribute(Condition);
             duration = d;
             return ret;
         }
@@ -56,7 +56,7 @@ namespace SecurityCodeScan.Analyzers
         {
             var classSymbol = (ITypeSymbol)ctx.Symbol;
 
-            bool classHasAuthAnnotation  = classSymbol.HasDerivedClassAttribute(
+            bool classHasAuthAnnotation  = classSymbol.HasDerivedAttribute(
                 attributeData => attributeData.AttributeClass.ToString() == "System.Web.Mvc.AuthorizeAttribute");
             int  classCacheDuration      = 0;
             bool classHasCacheAnnotation = HasOutputCacheAttribute(classSymbol, ref classCacheDuration, method: false);
@@ -72,7 +72,7 @@ namespace SecurityCodeScan.Analyzers
                 if (methodSymbol.DeclaredAccessibility != Accessibility.Public)
                     continue;
 
-                bool methodHasAuthAnnotation  = methodSymbol.HasDerivedMethodAttribute(
+                bool methodHasAuthAnnotation  = methodSymbol.HasDerivedAttribute(
                     attributeData => attributeData.AttributeClass.ToString() == "System.Web.Mvc.AuthorizeAttribute");
                 int  methodCacheDuration      = 0;
                 bool methodHasCacheAnnotation = HasOutputCacheAttribute(methodSymbol,

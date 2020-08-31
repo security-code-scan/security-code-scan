@@ -63,9 +63,9 @@ namespace SecurityCodeScan.Config
             }
         }
 
-        public TaintConfiguration(Compilation compilation, Configuration config)
+        public TaintConfiguration(WellKnownTypeProvider wellKnownTypeProvider, Configuration config)
         {
-            WellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
+            WellKnownTypeProvider = wellKnownTypeProvider;
             using PooledDictionary<SinkKind, Lazy<TaintedDataSymbolMap<SourceInfo>>> sourceSymbolMapBuilder =
                 PooledDictionary<SinkKind, Lazy<TaintedDataSymbolMap<SourceInfo>>>.GetInstance();
             using PooledDictionary<SinkKind, Lazy<TaintedDataSymbolMap<SanitizerInfo>>> sanitizerSymbolMapBuilder =
@@ -146,7 +146,7 @@ namespace SecurityCodeScan.Config
         }
 
         /// <summary>
-        /// Cached information if the specified symbol is a Asp.Net Core Controller: (compilation) -> ((class symbol) -> (is Controller))
+        /// Cached information if the specified symbol is a Asp.Net Controller: (compilation) -> ((class symbol) -> (is Controller))
         /// </summary>
         private static readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>> s_classIsControllerByCompilation =
             new BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>>();
@@ -273,7 +273,7 @@ namespace SecurityCodeScan.Config
                         taintedArguments: type.Value.entryPoint != null ?
                             new ParameterMatcher[]{
                     (parameter, wellKnownTypeProvider) => {
-                        if (!(parameter.ContainingSymbol is IMethodSymbol methodSymbol))
+                        if (!(parameter.ContainingSymbol is IMethodSymbol methodSymbol) || methodSymbol.IsPropertyAccessor())
                         {
                             return false;
                         }
@@ -352,13 +352,13 @@ namespace SecurityCodeScan.Config
                                         isTaintEntryClass = IsTaintEntryClass();
                                     }
 
-                                    if (type.Value.entryPoint.Class.ExcludeAttributes != null &&
-                                        type.Value.entryPoint.Class.ExcludeAttributes.Any(x => typeSymbol.HasDerivedTypeAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(x))))
+                                    if (type.Value.entryPoint.Class.Attributes?.Exclude != null &&
+                                        type.Value.entryPoint.Class.Attributes.Exclude.Any(x => typeSymbol.HasDerivedTypeAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(x.Type))))
                                     {
                                         isTaintEntryClass = false;
                                     }
-                                    else if (type.Value.entryPoint.Class.IncludeAttributes != null &&
-                                             type.Value.entryPoint.Class.IncludeAttributes.Any(x => typeSymbol.HasDerivedTypeAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(x))))
+                                    else if (type.Value.entryPoint.Class.Attributes?.Include != null &&
+                                             type.Value.entryPoint.Class.Attributes.Include.Any(x => typeSymbol.HasDerivedTypeAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(x.Type))))
                                     {
                                         isTaintEntryClass = true;
                                     }
@@ -387,15 +387,15 @@ namespace SecurityCodeScan.Config
                             if (type.Value.entryPoint.Method.Accessibility.All(a => a != methodSymbol.DeclaredAccessibility))
                                 return false;
 
-                            if (type.Value.entryPoint.Method.ExcludeAttributes != null &&
-                                type.Value.entryPoint.Method.ExcludeAttributes.Any(x => methodSymbol.HasDerivedMethodAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(x))))
+                            if (type.Value.entryPoint.Method.Attributes?.Exclude != null &&
+                                type.Value.entryPoint.Method.Attributes.Exclude.Any(x => methodSymbol.HasDerivedMethodAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(x.Type))))
                             {
                                 return false;
                             }
                         }
 
-                        if (type.Value.entryPoint.Parameter?.ExcludeAttributes != null &&
-                            type.Value.entryPoint.Parameter.ExcludeAttributes.Any(x => parameter.HasAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(x))))
+                        if (type.Value.entryPoint.Parameter?.Attributes?.Exclude != null &&
+                            type.Value.entryPoint.Parameter.Attributes.Exclude.Any(x => parameter.HasAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(x.Type))))
                         {
                             return false;
                         }
@@ -657,9 +657,12 @@ namespace SecurityCodeScan.Config
         private readonly Lazy<TaintConfiguration> CachedTaintConfiguration;
         public TaintConfiguration TaintConfiguration { get { return CachedTaintConfiguration.Value; } }
 
+        public WellKnownTypeProvider WellKnownTypeProvider { get; private set; }
+
         public Configuration(ConfigData configData, Compilation compilation) : this()
         {
-            CachedTaintConfiguration = new Lazy<TaintConfiguration>(() => new TaintConfiguration(compilation, this));
+            WellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
+            CachedTaintConfiguration = new Lazy<TaintConfiguration>(() => new TaintConfiguration(WellKnownTypeProvider, this));
 
             ReportAnalysisCompletion           = configData.ReportAnalysisCompletion           ?? false;
             AuditMode                          = configData.AuditMode                          ?? false;
@@ -712,6 +715,8 @@ namespace SecurityCodeScan.Config
                 {
                     AddAttributeCheckToConfiguration(data.Value, CsrfTokenDiagnosticAnalyzer.DiagnosticId, _CsrfGroups, _CsrfGroupsList);
                 }
+
+                RemoveUnresolvable(_CsrfGroupsList);
             }
 
             if (configData.AuthorizeCheck != null)
@@ -720,12 +725,49 @@ namespace SecurityCodeScan.Config
                 {
                     AddAttributeCheckToConfiguration(data.Value, AthorizationAttributeDiagnosticAnalyzer.DiagnosticId, _AuthorizeGroups, _AuthorizeGroupsList);
                 }
+
+                RemoveUnresolvable(_AuthorizeGroupsList);
             }
 
             if (configData.WebConfigFiles != null)
             {
                 WebConfigFilesRegex = new Regex(configData.WebConfigFiles, RegexOptions.IgnoreCase | RegexOptions.Compiled);
             }
+        }
+
+        private void RemoveUnresolvable(LinkedList<NamedGroup> list)
+        {
+            if (WellKnownTypeProvider.Compilation == null)
+                return; // for tests
+
+            var node = list.First;
+            while (node != null)
+            {
+                var nextNode = node.Next;
+
+                if (!TryResolveDependencies(node.Value.Dependency))
+                {
+                    list.Remove(node);
+                }
+
+                node = nextNode;
+            }
+        }
+
+        private bool TryResolveDependencies(IEnumerable<string> dependencies)
+        {
+            if (dependencies == null)
+                return true;
+
+            foreach (string dependency in dependencies)
+            {
+                if (!WellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(dependency, out INamedTypeSymbol _))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public bool ReportAnalysisCompletion           { get; private set; }

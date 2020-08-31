@@ -1547,20 +1547,34 @@ End Namespace
 CsrfCheck:
   Test:
     Name: Stack Overflow Example Config
+    RequiredAttributes:
+      - Type: VulnerableApp.CustomRouteAttribute
+        Condition:
+          - { 1: { Value:  2 }, EnsureCSRFSafe: { Value: true } }  # Post
+          - { 1: { Value:  2 }, EnsureCSRFSafe: { Value: none } }  # Post
+          - { 1: { Value:  4 }, EnsureCSRFSafe: { Value: true } }  # Put
+          - { 1: { Value:  4 }, EnsureCSRFSafe: { Value: none } }  # Put
+          - { 1: { Value:  8 }, EnsureCSRFSafe: { Value: true } }  # Delete
+          - { 1: { Value:  8 }, EnsureCSRFSafe: { Value: none } }  # Delete
+          - { 1: { Value: 32 }, EnsureCSRFSafe: { Value: true } }  # Patch
+          - { 1: { Value: 32 }, EnsureCSRFSafe: { Value: none } }  # Patch
     Class:
-      Name:
-        - VulnerableApp.CustomController
+      Accessibility:
+        - public
+      Parent: VulnerableApp.CustomController
     Method:
+      Accessibility:
+        - public
+      IncludeConstructor: false
+      Static: false
       Attributes:
         Include:
-          - Name: VulnerableApp.CustomRouteAttribute
-            Condition: { 1: { Value:  2 }, EnsureCSRFSafe: { Value: false } }  # Post
-          - Name: VulnerableApp.CustomRouteAttribute
-            Condition: { 1: { Value:  4 }, EnsureCSRFSafe: { Value: false } }  # Put
-          - Name: VulnerableApp.CustomRouteAttribute
-            Condition: { 1: { Value:  8 }, EnsureCSRFSafe: { Value: false } }  # Delete
-          - Name: VulnerableApp.CustomRouteAttribute
-            Condition: { 1: { Value: 32 }, EnsureCSRFSafe: { Value: false } }  # Patch
+          - Type: VulnerableApp.CustomRouteAttribute
+            Condition:
+              - { 1: { Value:  2 } }   # Post
+              - { 1: { Value:  4 } }   # Put
+              - { 1: { Value:  8 } }   # Delete
+              - { 1: { Value:  32 } }  # Patch
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -1696,9 +1710,11 @@ CsrfCheck:
   Test:
     Name: Test
     Method:
+      IncludeConstructor: false
+      Static: false
       Attributes:
         Include:
-          - Name: VulnerableApp.CustomRouteAttribute
+          - Type: VulnerableApp.CustomRouteAttribute
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

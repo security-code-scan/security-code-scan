@@ -4,12 +4,15 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using SecurityCodeScan.Analyzers.Locale;
+using SecurityCodeScan.Analyzers.Utils;
 
 namespace SecurityCodeScan.Config
 {
     internal class AttributeCondition
     {
         private static readonly AttributeCondition TRUE = new AttributeCondition();
+
+        public static readonly object NONE = new object();
 
         public readonly List<(object ParameterIndexOrPropertyName, object ExpectedValue)> MustMatch;
 
@@ -25,22 +28,27 @@ namespace SecurityCodeScan.Config
 
             foreach (var attr in source)
             {
-                var condition = CreateAttributeCondition(attr.Condition);
-
-                if (!destination.TryGetValue(attr.Name, out var conditions))
+                if (!destination.TryGetValue(attr.Type, out var conditions))
                 {
-                    destination[attr.Name] = conditions = new List<AttributeCondition>();
+                    destination[attr.Type] = conditions = new List<AttributeCondition>();
                 }
 
-                conditions.Add(condition);
+                if (attr.Condition == null)
+                {
+                    conditions.Add(AttributeCondition.TRUE);
+                    continue;
+                }
+
+                foreach (var c in attr.Condition)
+                {
+                    var condition = CreateAttributeCondition(c);
+                    conditions.Add(condition);
+                }
             }
         }
 
         private static AttributeCondition CreateAttributeCondition(Dictionary<object, object> conditions)
         {
-            if (conditions == null)
-                return AttributeCondition.TRUE;
-
             var ret = new AttributeCondition();
 
             foreach (var argument in conditions)
@@ -79,7 +87,9 @@ namespace SecurityCodeScan.Config
 
                 object key = idx != null ? (object)idx.Value : arg;
 
-                if (int.TryParse(conditionValue, out var intVal))
+                if (conditionValue == "none")
+                    ret.MustMatch.Add((key, NONE));
+                else if (int.TryParse(conditionValue, out var intVal))
                     ret.MustMatch.Add((key, intVal));
                 else if (bool.TryParse(conditionValue, out var boolVal))
                     ret.MustMatch.Add((key, boolVal));
@@ -104,36 +114,94 @@ namespace SecurityCodeScan.Config
         public Dictionary<string, List<AttributeCondition>> Exclude { get; }
     }
 
+    internal class MethodAttributes : IncludeExcludeAttributes
+    {
+        public MethodAttributes(Method method)
+        {
+            IncludeConstructor = method.IncludeConstructor;
+
+            Static = method.Static;
+
+            Accessibility = method.Accessibility;
+
+            AttributeCondition.AddAttributes(Include, method?.Attributes?.Include);
+            AttributeCondition.AddAttributes(Exclude, method?.Attributes?.Exclude);
+        }
+
+        public HashSet<Accessibility> Accessibility { get; }
+
+        public bool? IncludeConstructor { get; }
+
+        public bool? Static { get; }
+    }
+
+    internal class ParameterAttributes : IncludeExcludeAttributes
+    {
+        public ParameterAttributes(Parameter parameter)
+        {
+            AttributeCondition.AddAttributes(Include, parameter?.Attributes?.Include);
+            AttributeCondition.AddAttributes(Exclude, parameter?.Attributes?.Exclude);
+        }
+    }
+
     internal class AttributeController : IncludeExcludeAttributes
     {
-        public AttributeController(AttributeCheckClass @class)
+        public AttributeController(Class @class)
         {
-            if (@class.Name != null)
-                Names = new HashSet<string>(@class.Name);
+            Parent = @class.Parent;
+
+            Suffix = @class.Suffix;
+
+            Accessibility = @class.Accessibility;
 
             AttributeCondition.AddAttributes(Include, @class?.Attributes?.Include);
             AttributeCondition.AddAttributes(Exclude, @class?.Attributes?.Exclude);
         }
 
-        public readonly HashSet<string> Names;
+        public Suffix Suffix { get; }
+
+        public HashSet<Accessibility> Accessibility { get; }
+
+        private string _Parent;
+
+        public string Parent
+        {
+            get => _Parent;
+            set
+                {
+                if (_Parent != null)
+                    throw new Exception("Parent class is already defined.");
+
+                _Parent = value;
+                }
+        }
     }
 
     internal class NamedGroup
     {
         public readonly string Name;
 
+        public ReadOnlyHashSet<string> Dependency { get; }
+        private readonly HashSet<string> _Dependency;
+
         public readonly DiagnosticDescriptor Message;
         public readonly Dictionary<string, List<AttributeCondition>> RequiredAttributes = new Dictionary<string, List<AttributeCondition>>();
 
-        public AttributeController Class { get; }
+        public AttributeController Class { get; private set; }
 
-        public IncludeExcludeAttributes Method { get; } = new IncludeExcludeAttributes();
+        public MethodAttributes Method { get; private set; }
 
-        public IncludeExcludeAttributes Parameter { get; } = new IncludeExcludeAttributes();
+        public ParameterAttributes Parameter { get; private set; }
 
         public NamedGroup(AttributeCheck configData, string diagnosticId)
         {
             Name = configData.Name;
+
+            if (configData.Dependency != null)
+            {
+                _Dependency = configData.Dependency;
+                Dependency = new ReadOnlyHashSet<string>(_Dependency);
+            }
 
             if (configData.Message != null)
                 Message = LocaleUtil.GetDescriptorByText(diagnosticId, configData.Message.Title, configData.Message.Description);
@@ -143,29 +211,54 @@ namespace SecurityCodeScan.Config
             if (configData.Class != null)
                 Class = new AttributeController(configData.Class);
 
-            AttributeCondition.AddAttributes(Method.Include, configData.Method?.Attributes.Include);
-            AttributeCondition.AddAttributes(Method.Exclude, configData.Method?.Attributes.Exclude);
-            AttributeCondition.AddAttributes(Parameter.Include, configData.Parameter?.Attributes.Include);
-            AttributeCondition.AddAttributes(Parameter.Exclude, configData.Parameter?.Attributes.Exclude);
+            if (configData.Method != null)
+                Method = new MethodAttributes(configData.Method);
+
+            if (configData.Parameter != null)
+                Parameter = new ParameterAttributes(configData.Parameter);
         }
 
         public void AddFrom(AttributeCheck configData)
         {
             AttributeCondition.AddAttributes(RequiredAttributes, configData.RequiredAttributes);
 
-            if (configData.Class?.Name != null)
+            if (configData.Class?.Parent != null)
             {
-                foreach (var name in configData.Class.Name)
-                    Class.Names.Add(name);
+                Class.Parent = configData.Class.Parent;
             }
 
-            AttributeCondition.AddAttributes(Class.Include, configData.Class?.Attributes?.Include);
-            AttributeCondition.AddAttributes(Class.Exclude, configData.Class?.Attributes?.Exclude);
+            if (Class == null)
+            {
+                if (configData.Class != null)
+                    Class = new AttributeController(configData.Class);
+            }
+            else
+            {
+                AttributeCondition.AddAttributes(Class.Include, configData.Class?.Attributes?.Include);
+                AttributeCondition.AddAttributes(Class.Exclude, configData.Class?.Attributes?.Exclude);
+            }
 
-            AttributeCondition.AddAttributes(Method.Include, configData.Method?.Attributes?.Include);
-            AttributeCondition.AddAttributes(Method.Exclude, configData.Method?.Attributes?.Exclude);
-            AttributeCondition.AddAttributes(Parameter.Include, configData.Parameter?.Attributes?.Include);
-            AttributeCondition.AddAttributes(Parameter.Exclude, configData.Parameter?.Attributes?.Exclude);
+            if (Method == null)
+            {
+                if (configData.Method != null)
+                    Method = new MethodAttributes(configData.Method);
+            }
+            else
+            {
+                AttributeCondition.AddAttributes(Method.Include, configData.Method?.Attributes?.Include);
+                AttributeCondition.AddAttributes(Method.Exclude, configData.Method?.Attributes?.Exclude);
+            }
+
+            if (Parameter == null)
+            {
+                if (configData.Parameter != null)
+                    Parameter = new ParameterAttributes(configData.Parameter);
+            }
+            else
+            {
+                AttributeCondition.AddAttributes(Parameter.Include, configData.Parameter?.Attributes?.Include);
+                AttributeCondition.AddAttributes(Parameter.Exclude, configData.Parameter?.Attributes?.Exclude);
+            }
         }
     }
 }

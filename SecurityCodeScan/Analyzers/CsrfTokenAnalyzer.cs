@@ -1,8 +1,11 @@
 ﻿#nullable disable
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
@@ -26,7 +29,7 @@ namespace SecurityCodeScan.Analyzers
 
         private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
         {
-            var analyzer = new AttributeAnalyzer(Rule);
+            var analyzer = new AttributeAnalyzer(Rule, config.WellKnownTypeProvider);
             context.RegisterSymbolAction((ctx) => analyzer.VisitClass(ctx, config.AuthorizeGoups), SymbolKind.NamedType);
         }
     }
@@ -46,7 +49,7 @@ namespace SecurityCodeScan.Analyzers
 
         private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
         {
-            var analyzer = new AttributeAnalyzer(Rule);
+            var analyzer = new AttributeAnalyzer(Rule, config.WellKnownTypeProvider);
             context.RegisterSymbolAction((ctx) => analyzer.VisitClass(ctx, config.CsrfGoups), SymbolKind.NamedType);
         }
     }
@@ -55,32 +58,16 @@ namespace SecurityCodeScan.Analyzers
     {
         private readonly DiagnosticDescriptor Rule;
 
-        public AttributeAnalyzer(DiagnosticDescriptor rule)
+        private readonly WellKnownTypeProvider WellKnownTypeProvider;
+
+        public AttributeAnalyzer(DiagnosticDescriptor rule, WellKnownTypeProvider wellKnownTypeProvider)
         {
             Rule = rule;
+            WellKnownTypeProvider = wellKnownTypeProvider;
         }
 
-        private static bool HasApplicableAttribute(AttributeData attributeData, Dictionary<string, List<AttributeCondition>> attributes)
+        private static bool SatisfiesConditon(AttributeData attributeData, List<AttributeCondition> conditions)
         {
-            if (!attributes.Any())
-                return false;
-
-            var attributeClass = attributeData.AttributeClass;
-            List<AttributeCondition> conditions = null;
-
-            while (attributeClass != null)
-            {
-                var name = attributeClass.ToString();
-
-                if (attributes.TryGetValue(name, out conditions))
-                    break;
-
-                attributeClass = attributeClass.BaseType;
-            }
-
-            if (attributeClass == null)
-                return false;
-
             var args = attributeData.ConstructorArguments;
             var namedArgs = attributeData.NamedArguments;
 
@@ -114,7 +101,7 @@ namespace SecurityCodeScan.Analyzers
                                     }
 
                                     if (actualVal == null)
-                                        return false;
+                                        return expectedVal == AttributeCondition.NONE;
                                 }
                                 else
                                 {
@@ -135,17 +122,25 @@ namespace SecurityCodeScan.Analyzers
             return false;
         }
 
-        private static bool IsRequiredAttribute(AttributeData attributeData, NamedGroup group)
-        => HasApplicableAttribute(attributeData, group.RequiredAttributes);
-
         public void VisitClass(SymbolAnalysisContext ctx, IReadOnlyCollection<NamedGroup> namedGroups)
         {
             var classSymbol = (ITypeSymbol)ctx.Symbol;
             var diagnostics = new Dictionary<Location, Diagnostic>();
 
+            var groupCache = _classIsControllerByCompilation.GetOrCreateValue(WellKnownTypeProvider.Compilation, (compilation)
+                    => new ConcurrentDictionary<NamedGroup, ConcurrentDictionary<INamedTypeSymbol, bool>>());
+
             foreach (var group in namedGroups)
             {
-                VisitClass(classSymbol, group, diagnostics);
+                if (!groupCache.TryGetValue(group, out var classCache))
+                {
+                    classCache = new ConcurrentDictionary<INamedTypeSymbol, bool>();
+                    if (!groupCache.TryAdd(group, classCache))
+                        if (!groupCache.TryGetValue(group, out classCache))
+                            throw new Exception("groupCache.TryGetValue failed");
+                }
+
+                VisitClass(classSymbol, group, diagnostics, classCache);
             }
 
             foreach (var diagnostic in diagnostics.Values)
@@ -154,53 +149,139 @@ namespace SecurityCodeScan.Analyzers
             }
         }
 
-        private void VisitClass(ITypeSymbol classSymbol, NamedGroup group, Dictionary<Location, Diagnostic> diagnostics)
+        /// <summary>
+        /// Cached information if the specified symbol is a Asp.Net Controller: (compilation) -> ((named group) - > ((class symbol) -> (is Controller)))
+        /// </summary>
+        private readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<NamedGroup, ConcurrentDictionary<INamedTypeSymbol, bool>>> _classIsControllerByCompilation =
+            new BoundedCacheWithFactory<Compilation, ConcurrentDictionary<NamedGroup, ConcurrentDictionary<INamedTypeSymbol, bool>>>();
+
+        private void VisitClass(
+            ITypeSymbol classSymbol,
+            NamedGroup group,
+            Dictionary<Location, Diagnostic> diagnostics,
+            ConcurrentDictionary<INamedTypeSymbol, bool> classCache)
         {
-            if (group?.Class?.Names.Any() == true)
+            if (!(classSymbol is INamedTypeSymbol typeSymbol))
+                return;
+
+            if (RequiredAttributeExists((c) => typeSymbol.TryGetDerivedAttribute(c), group.RequiredAttributes))
+                return;
+
+            if (group.Class != null)
             {
-                var descendsFromController = classSymbol.IsDerivedFrom(group.Class.Names);
-                if (!descendsFromController)
+                if (!classCache.TryGetValue(typeSymbol, out bool isTheClass))
+                {
+                    isTheClass = false;
+
+                    bool IsTheClassBySuffix()
+                    {
+                        if (typeSymbol.Name.EndsWith(group.Class.Suffix.Text, StringComparison.Ordinal))
+                        {
+                            return true;
+                        }
+                        else if (group.Class.Suffix.IncludeParent &&
+                                 typeSymbol.GetBaseTypes().Any(x => x.Name.EndsWith(group.Class.Suffix.Text, StringComparison.Ordinal)))
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+
+                    if (group.Class.Accessibility != null &&
+                        group.Class.Accessibility.All(a => a != typeSymbol.DeclaredAccessibility))
+                    {
+                        isTheClass = false;
+                    }
+                    else
+                    {
+                        if (group.Class.Suffix != null &&
+                            group.Class.Parent == null)
+                        {
+                            isTheClass = IsTheClassBySuffix();
+                        }
+                        else if (group.Class.Parent != null &&
+                                 typeSymbol.GetBaseTypesAndThis().Any(x => x == WellKnownTypeProvider.GetOrCreateTypeByMetadataName(group.Class.Parent)))
+                        {
+                            isTheClass = group.Class.Suffix != null ? IsTheClassBySuffix() : true;
+                        }
+
+                        if (group.Class?.Exclude != null &&
+                            RequiredAttributeExists((c) => typeSymbol.TryGetDerivedAttribute(c), group.Class.Exclude))
+                        {
+                            isTheClass = false;
+                        }
+                        else if (group.Class?.Include != null &&
+                                 RequiredAttributeExists((c) => typeSymbol.TryGetDerivedAttribute(c), group.Class.Include))
+                        {
+                            isTheClass = true;
+                        }
+                    }
+
+                    classCache.TryAdd(typeSymbol, isTheClass);
+                }
+
+                if (!isTheClass)
+                {
                     return;
+                }
             }
-
-            if (RequiredAttributeExists(classSymbol, group))
-                return;
-
-            if (IsClassIgnored(classSymbol, group))
-                return;
 
             foreach (var member in classSymbol.GetMembers())
             {
-                if (!(member is IMethodSymbol methodSymbol))
+                if (!(member is IMethodSymbol methodSymbol) || methodSymbol.IsPropertyAccessor())
                     continue;
 
                 var location = methodSymbol.Locations[0];
                 if (diagnostics.ContainsKey(location)) // first NamedGroup in a sequence wins
                     continue;
 
-                if (IsMethodIgnored(methodSymbol, group))
+                if (group.Method != null)
+                {
+                    if (group.Method.Static.HasValue && group.Method.Static != methodSymbol.IsStatic)
+                        continue;
+
+                    if (group.Method.IncludeConstructor.HasValue && group.Method.IncludeConstructor != methodSymbol.IsConstructor())
+                        continue;
+
+                    if (group.Method?.Accessibility?.All(a => a != methodSymbol.DeclaredAccessibility) == true)
+                        continue;
+
+                    if (group.Method?.Exclude != null &&
+                        RequiredAttributeExists((c) => methodSymbol.TryGetDerivedAttribute(c), group.Method.Exclude))
+                    {
+                        continue;
+                    }
+                    else if (group.Method?.Include?.Any() == true &&
+                             !RequiredAttributeExists((c) => methodSymbol.TryGetDerivedAttribute(c), group.Method.Include))
+                    {
+                        continue;
+                    }
+                }
+
+                if (RequiredAttributeExists((c) => methodSymbol.TryGetDerivedAttribute(c), group.RequiredAttributes))
                     continue;
 
-                if (RequiredAttributeExists(methodSymbol, group))
-                    continue;
-
-                if (AreParametersSafe(methodSymbol, group))
+                if (group.Parameter != null && AreParametersExcluded(methodSymbol, group))
                     continue;
 
                 diagnostics.Add(location, Diagnostic.Create(group.Message != null ? group.Message : Rule, location));
             }
         }
 
-        private static bool AreParametersSafe(IMethodSymbol methodSymbol, NamedGroup group)
+        private bool AreParametersExcluded(IMethodSymbol methodSymbol, NamedGroup group)
         {
-            foreach (var arg in methodSymbol.Parameters)
+            foreach (var parameter in methodSymbol.Parameters)
             {
-                if (arg.HasAttribute(attributeData => HasApplicableAttribute(attributeData, group.Parameter.Exclude)))
+                if (group.Parameter.Exclude != null &&
+                    group.Parameter.Exclude.Any(x => parameter.HasAttribute(WellKnownTypeProvider.GetOrCreateTypeByMetadataName(x.Key))))
                 {
                     return true;
                 }
-
-                if (arg.HasAttribute(attributeData => HasApplicableAttribute(attributeData, group.Parameter.Include)))
+                else if (group.Parameter.Include != null &&
+                         group.Parameter.Include.Any(x => parameter.HasAttribute(WellKnownTypeProvider.GetOrCreateTypeByMetadataName(x.Key))))
                 {
                     return false;
                 }
@@ -209,51 +290,47 @@ namespace SecurityCodeScan.Analyzers
             return group.Parameter.Include.Any();
         }
 
-        private static bool IsClassIgnored(ITypeSymbol classSymbol, NamedGroup group)
+        private bool RequiredAttributeExists(Func<Func<AttributeData, bool>, AttributeData> tryGetDerivedAttribute, Dictionary<string, List<AttributeCondition>> attributes)
         {
-            if (group.Class == null)
-                return false;
+            foreach (var requiredAttribute in attributes)
+            {
+                var type = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(requiredAttribute.Key);
+                if (type == null)
+                    continue;
 
-            if (!group.Class.Include.Any() && !group.Class.Exclude.Any())
-                return false;
-
-            if (classSymbol.HasDerivedClassAttribute(attributeData => HasApplicableAttribute(attributeData, group.Class.Exclude)))
-                return true;
-
-            if (group.Class.Include.Any())
-                return !classSymbol.HasDerivedClassAttribute(attributeData => HasApplicableAttribute(attributeData, group.Class.Include));
+                (bool found, bool satisfies) = RequiredAttributeExists(tryGetDerivedAttribute, type, requiredAttribute.Value);
+                if (found)
+                    return satisfies;
+            }
 
             return false;
         }
 
-        private static bool IsMethodIgnored(IMethodSymbol methodSymbol, NamedGroup group)
+        private (bool found, bool satisfies) RequiredAttributeExists(Func<Func<AttributeData, bool>, AttributeData> tryGetDerivedAttribute, INamedTypeSymbol type, List<AttributeCondition> conditions)
         {
-            if (!group.Method.Include.Any() && !group.Method.Exclude.Any())
+            var hasConditions = conditions.Any(x => x.MustMatch.Count != 0);
+
+            var attr = tryGetDerivedAttribute(c =>
+            {
+                if (hasConditions)
+                    return Equals(c.AttributeClass, type);
+
+                var attributeClass = c.AttributeClass;
+                while (attributeClass != null)
+                {
+                    if (Equals(attributeClass, type))
+                        return true;
+
+                    attributeClass = attributeClass.BaseType;
+                }
+
                 return false;
+            });
 
-            if (methodSymbol.HasDerivedMethodAttribute(attributeData => HasApplicableAttribute(attributeData, group.Method.Exclude)))
-                return true;
+            if (attr != null)
+                return (true, SatisfiesConditon(attr, conditions));
 
-            if (group.Method.Include.Any())
-                return !methodSymbol.HasDerivedMethodAttribute(attributeData => HasApplicableAttribute(attributeData, group.Method.Include));
-
-            return false;
-        }
-
-        private static bool RequiredAttributeExists(ITypeSymbol classSymbol, NamedGroup group)
-        {
-            if (!group.RequiredAttributes.Any())
-                return false;
-
-            return classSymbol.HasDerivedClassAttribute(c => IsRequiredAttribute(c, group));
-        }
-
-        private static bool RequiredAttributeExists(IMethodSymbol methodSymbol, NamedGroup group)
-        {
-            if (!group.RequiredAttributes.Any())
-                return false;
-
-            return methodSymbol.HasDerivedMethodAttribute(c => IsRequiredAttribute(c, group));
+            return (false, false);
         }
     }
 }

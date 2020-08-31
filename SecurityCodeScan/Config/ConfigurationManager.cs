@@ -378,7 +378,7 @@ namespace SecurityCodeScan.Config
 
         public bool? Static { get; set; }
 
-        public HashSet<string> ExcludeAttributes { get; set; }
+        public AttributeCheckIncludeExclude Attributes { get; set; }
     }
 
     internal class Suffix
@@ -396,17 +396,12 @@ namespace SecurityCodeScan.Config
 
         public HashSet<Accessibility> Accessibility { get; set; }
 
-        public bool? IncludeConstructor { get; set; }
-
-        public bool? Static { get; set; }
-
-        public HashSet<string> ExcludeAttributes { get; set; }
-        public HashSet<string> IncludeAttributes { get; set; }
+        public AttributeCheckIncludeExclude Attributes { get; set; }
     }
 
     internal class Parameter
     {
-        public HashSet<string> ExcludeAttributes { get; set; }
+        public AttributeCheckIncludeExclude Attributes { get; set; }
     }
 
     internal class TaintEntryPointData
@@ -434,28 +429,13 @@ namespace SecurityCodeScan.Config
 
     internal class AttributeCheck
     {
-        public string Name                                      { get; set; }
-        public AttributeCheckMessage Message                    { get; set; }
-        public List<AttributeCheckData> RequiredAttributes       { get; set; }
-        public AttributeCheckClass Class                                  { get; set; }
-        public AttributeCheckMethod Method                                { get; set; }
-        public AttributeCheckParameter Parameter                          { get; set; }
-    }
-
-    internal class AttributeCheckClass
-    {
-        public HashSet<string> Name             { get; set; }
-        public AttributeCheckIncludeExclude Attributes { get; set; }
-    }
-
-    internal class AttributeCheckMethod
-    {
-        public AttributeCheckIncludeExclude Attributes { get; set; }
-    }
-
-    internal class AttributeCheckParameter
-    {
-        public AttributeCheckIncludeExclude Attributes { get; set; }
+        public HashSet<string> Dependency                   { get; set; }
+        public string Name                                  { get; set; }
+        public AttributeCheckMessage Message                { get; set; }
+        public List<AttributeCheckData> RequiredAttributes  { get; set; }
+        public Class Class                                  { get; set; }
+        public Method Method                                { get; set; }
+        public Parameter Parameter                          { get; set; }
     }
 
     internal class AttributeCheckIncludeExclude
@@ -466,8 +446,8 @@ namespace SecurityCodeScan.Config
 
     internal class AttributeCheckData
     {
-        public string Name                          { get; set; }
-        public Dictionary<object, object> Condition { get; set; }
+        public string Type                                { get; set; }
+        public List<Dictionary<object, object>> Condition { get; set; }
     }
 
     internal class AttributeCheckMessage

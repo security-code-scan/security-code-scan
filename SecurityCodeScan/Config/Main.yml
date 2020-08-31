@@ -17,54 +17,55 @@ WebConfigFiles: ^web\.config.*
 # The format is:
 # <<<
 # CsrfCheck:
-#   - Name: "Unique group name. If a group only with the name is provided, it deletes already existing group with the same name. Use it to override existing settings."
+#   {Name}: # Unique entry name. If a group only with the name is provided, it deletes already existing group with the same name. Use it to override existing settings.
+#   - Name: "Unique group name. Multiple entries with the unique Name are supported. Use it to add an additional attributes to the already existing configuration."
 #     Message: # Optional.
 #       Title: "Warning title to display if matched"
 #       Description: "Detailed warning message"
 #     RequiredAttributes: # Optional. A list of attributes which indicate the class or method is safe.
-#       - Name: "Fully qualified name of the attribute"
-#         Condition: "Optional. In format of { 0: { Value: 0}, ...}"
-#       - Name: "Fully qualified name of the attribute"
-#         Condition: "Optional. In format of { 0: { Value: 0}, ...}"
-#     Class: # Optional. Either 'Name:' or 'Attributes:' below must be specified. Settings checked against the class being analyzed.
-#       Name: # Optional. Apply the rule to classes derived from the list.
-#         - "Fully qualified name of the class"
-#         - "Fully qualified name of the class"
+#       - Type: "Fully qualified type of the attribute"
+#         Condition:
+#           - "Optional. In format of { 0: { Value: 0}, ...}"
+#           - "Optional. In format of { 0: { Value: 0}, ...}"
+#     Class: # Optional. Either 'Type:' or 'Attributes:' below must be specified. Settings checked against the class being analyzed.
+#       Type: # Optional. Apply the rule to classes derived from the list.
+#         - "Fully qualified type of the class"
+#         - "Fully qualified type of the class"
 #       Attributes: # Optional. Class attributes to filter by.
 #         Include: # Optional. Apply the rule to classes with any of the attributes below.
-#           - Name: "Fully qualified name of the attribute"
-#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
-#           - Name: "Fully qualified name of the attribute"
-#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+#           - Type: "Fully qualified type of the attribute"
+#             Condition:
+#               - "Optional. In format of { 0: { Value: 0}, ...}"
+#               - "Optional. In format of { 0: { Value: 0}, ...}"
 #         Exclude: # Optional. Do not apply the rule to classes with any of the attributes below.
-#           - Name: "Fully qualified name of the attribute"
-#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
-#           - Name: "Fully qualified name of the attribute"
-#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+#           - Type: "Fully qualified type of the attribute"
+#             Condition:
+#               - "Optional. In format of { 0: { Value: 0}, ...}"
+#               - "Optional. In format of { 0: { Value: 0}, ...}"
 #     Method: # Optional. Settings checked against the method being analyzed.
 #       Attributes: # Method attributes to filter by.
 #         Include: # Optional. Apply the rule to methods with any of the attributes below.
-#           - Name: "Fully qualified name of the attribute"
-#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
-#           - Name: "Fully qualified name of the attribute"
-#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+#           - Type: "Fully qualified type of the attribute"
+#             Condition:
+#               - "Optional. In format of { 0: { Value: 0}, ...}"
+#               - "Optional. In format of { 0: { Value: 0}, ...}"
 #         Exclude: # Optional. Do not apply the rule to methods with any of the attributes below.
-#           - Name: "Fully qualified name of the attribute"
-#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
-#           - Name: "Fully qualified name of the attribute"
-#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+#           - Type: "Fully qualified type of the attribute"
+#             Condition:
+#               - "Optional. In format of { 0: { Value: 0}, ...}"
+#               - "Optional. In format of { 0: { Value: 0}, ...}"
 #     Parameter: # Optional. Settings checked against the parameter of a method being analyzed.
 #       Attributes: # Parameter attributes to filter by.
 #         Include: # Optional. Apply the rule to parameters with any of the attributes below.
-#           - Name: "Fully qualified name of the attribute"
-#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
-#           - Name: "Fully qualified name of the attribute"
-#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+#           - Type: "Fully qualified type of the attribute"
+#             Condition:
+#               - "Optional. In format of { 0: { Value: 0}, ...}"
+#               - "Optional. In format of { 0: { Value: 0}, ...}"
 #         Exclude: # Optional. Do not apply the rule to parameters with any of the attributes below.
-#           - Name: "Fully qualified name of the attribute"
-#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
-#           - Name: "Fully qualified name of the attribute"
-#             Condition: "Optional. In format of { 0: { Value: 0}, ...}"
+#           - Type: "Fully qualified type of the attribute"
+#             Condition:
+#               - "Optional. In format of { 0: { Value: 0}, ...}"
+#               - "Optional. In format of { 0: { Value: 0}, ...}"
 # <<<
 #
 # Multiple entries with unique Name are supported.
@@ -72,7 +73,7 @@ WebConfigFiles: ^web\.config.*
 # CsrfCheck:
 #   - Name: ASP.NET MVC
 #     RequiredAttributes:
-#       - Name: "Fully qualified name of the custom anti CSRF attribute"
+#       - Type: "Fully qualified type of the custom anti CSRF attribute"
 #
 # The analysis starts from a class down to method parameters. If all rules apply (like a presence and absence of a specific attributes)
 #  the method needs CSRF protection.
@@ -83,134 +84,195 @@ WebConfigFiles: ^web\.config.*
 #
 # Conditions can have integer, string, or boolean values.  
 #  For example
-#    - Name: MyAttribute
-#      Condition: { 1: {Value: 32 }, FirstProperty: {Value: foo }, SecondProperty: { Value: true } }
+#    - Type: MyAttribute
+#      Condition:
+#        - { 1: {Value: 32 }, FirstProperty: {Value: foo }, SecondProperty: { Value: true } }
 #  will match 
 #   [My(null, 32, FirstProperty = "foo", SecondProperty = true)]
 
 CsrfCheck:
   Mvc:
     Name: ASP.NET MVC
+    Dependency:
+      - System.Web.Mvc.Controller
     RequiredAttributes:
-      - Name: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
+      - Type: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
     Class:
-      Name:
-        - System.Web.Mvc.Controller
+      Accessibility:
+        - public
+      Parent: System.Web.Mvc.Controller
+      Suffix:
+        Text: Controller
+        IncludeParent: false
       Attributes:
         Exclude:
-          - Name: System.Web.Mvc.AllowAnonymousAttribute
+          - Type: System.Web.Mvc.AllowAnonymousAttribute
     Method:
+      Accessibility:
+        - public
+      IncludeConstructor: false
+      Static: false
       Attributes:
         Include:
-          - Name: System.Web.Mvc.HttpPostAttribute
-          - Name: System.Web.Mvc.HttpPutAttribute
-          - Name: System.Web.Mvc.HttpDeleteAttribute
-          - Name: System.Web.Mvc.HttpPatchAttribute
+          - Type: System.Web.Mvc.HttpPostAttribute
+          - Type: System.Web.Mvc.HttpPutAttribute
+          - Type: System.Web.Mvc.HttpDeleteAttribute
+          - Type: System.Web.Mvc.HttpPatchAttribute
         Exclude:
-          - Name: System.Web.Mvc.NonActionAttribute
-          - Name: System.Web.Mvc.AllowAnonymousAttribute
+          - Type: System.Web.Mvc.NonActionAttribute
+          - Type: System.Web.Mvc.AllowAnonymousAttribute
 
   CoreMvc:
     Name: ASP.NET Core MVC
+    Dependency:
+      - Microsoft.AspNetCore.Mvc.ControllerBase
+      - Microsoft.AspNetCore.Mvc.ApiControllerAttribute
+      - Microsoft.AspNetCore.Mvc.ControllerAttribute
+      - Microsoft.AspNetCore.Mvc.NonControllerAttribute
+      - Microsoft.AspNetCore.Mvc.NonActionAttribute
+      - Microsoft.AspNetCore.Mvc.FromServicesAttribute
     RequiredAttributes:
-      - Name: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
-      - Name: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+      - Type: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
+      - Type: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
     Class:
-      Name:
-        - Microsoft.AspNetCore.Mvc.Controller
-      Attributes:
-        Exclude:
-          - Name: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
-          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
-          - Name: Microsoft.AspNetCore.Mvc.ApiControllerAttribute
-    Method:
+      Accessibility:
+        - public
+      Suffix:
+        Text: Controller
+        IncludeParent: true
       Attributes:
         Include:
-          - Name: Microsoft.AspNetCore.Mvc.HttpPostAttribute
-          - Name: Microsoft.AspNetCore.Mvc.HttpPutAttribute
-          - Name: Microsoft.AspNetCore.Mvc.HttpDeleteAttribute
-          - Name: Microsoft.AspNetCore.Mvc.HttpPatchAttribute
+          - Type: Microsoft.AspNetCore.Mvc.ControllerAttribute
         Exclude:
-          - Name: Microsoft.AspNetCore.Mvc.NonActionAttribute
-          - Name: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
-          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+          - Type: Microsoft.AspNetCore.Mvc.NonControllerAttribute
+          - Type: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
+          - Type: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+          - Type: Microsoft.AspNetCore.Mvc.ApiControllerAttribute
+    Method:
+      Accessibility:
+        - public
+      IncludeConstructor: false
+      Static: false
+      Attributes:
+        Include:
+          - Type: Microsoft.AspNetCore.Mvc.HttpPostAttribute
+          - Type: Microsoft.AspNetCore.Mvc.HttpPutAttribute
+          - Type: Microsoft.AspNetCore.Mvc.HttpDeleteAttribute
+          - Type: Microsoft.AspNetCore.Mvc.HttpPatchAttribute
+        Exclude:
+          - Type: Microsoft.AspNetCore.Mvc.NonActionAttribute
+          - Type: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
+          - Type: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
     Parameter:
       Attributes:
         Exclude:
-          - Name: Microsoft.AspNetCore.Mvc.FromBodyAttribute
+          - Type: Microsoft.AspNetCore.Mvc.FromBodyAttribute
 
   CoreMvcApiController:
     Name: ASP.NET Core MVC ApiController
+    Dependency:
+      - Microsoft.AspNetCore.Mvc.ControllerBase
+      - Microsoft.AspNetCore.Mvc.ApiControllerAttribute
+      - Microsoft.AspNetCore.Mvc.ControllerAttribute
+      - Microsoft.AspNetCore.Mvc.NonControllerAttribute
+      - Microsoft.AspNetCore.Mvc.NonActionAttribute
+      - Microsoft.AspNetCore.Mvc.FromServicesAttribute
     RequiredAttributes:
-      - Name: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
-      - Name: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+      - Type: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
+      - Type: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
     Class:
-      Name:
-        - Microsoft.AspNetCore.Mvc.Controller
+      Accessibility:
+        - public
+      Suffix:
+        Text: Controller
+        IncludeParent: true
       Attributes:
         Include:
-          - Name: Microsoft.AspNetCore.Mvc.ApiControllerAttribute
+          - Type: Microsoft.AspNetCore.Mvc.ControllerAttribute
+          - Type: Microsoft.AspNetCore.Mvc.ApiControllerAttribute
         Exclude:
-          - Name: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
-          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+          - Type: Microsoft.AspNetCore.Mvc.NonControllerAttribute
+          - Type: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
+          - Type: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
     Method:
+      Accessibility:
+        - public
+      IncludeConstructor: false
+      Static: false
       Attributes:
         Include:
-          - Name: Microsoft.AspNetCore.Mvc.HttpPostAttribute
-          - Name: Microsoft.AspNetCore.Mvc.HttpPutAttribute
-          - Name: Microsoft.AspNetCore.Mvc.HttpDeleteAttribute
-          - Name: Microsoft.AspNetCore.Mvc.HttpPatchAttribute
+          - Type: Microsoft.AspNetCore.Mvc.HttpPostAttribute
+          - Type: Microsoft.AspNetCore.Mvc.HttpPutAttribute
+          - Type: Microsoft.AspNetCore.Mvc.HttpDeleteAttribute
+          - Type: Microsoft.AspNetCore.Mvc.HttpPatchAttribute
         Exclude:
-          - Name: Microsoft.AspNetCore.Mvc.NonActionAttribute
-          - Name: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
-          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+          - Type: Microsoft.AspNetCore.Mvc.NonActionAttribute
+          - Type: Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryTokenAttribute
+          - Type: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
     Parameter:
       Attributes:
         Include:
-          - Name: Microsoft.AspNetCore.Mvc.FromFormAttribute
+          - Type: Microsoft.AspNetCore.Mvc.FromFormAttribute
 
 AuthorizeCheck:
   Mvc:
     Name: ASP.NET MVC
+    Dependency:
+      - System.Web.Mvc.Controller
     RequiredAttributes:
-      - Name: System.Web.Mvc.AuthorizeAttribute
+      - Type: System.Web.Mvc.AuthorizeAttribute
     Class:
-      Name:
-        - System.Web.Mvc.Controller
+      Accessibility:
+        - public
+      Parent: System.Web.Mvc.Controller
+      Suffix:
+        Text: Controller
+        IncludeParent: false
       Attributes:
         Exclude:
-          - Name: System.Web.Mvc.AllowAnonymousAttribute
+          - Type: System.Web.Mvc.AllowAnonymousAttribute
     Method:
+      Accessibility:
+        - public
+      IncludeConstructor: false
+      Static: false
       Attributes:
-        Include:
-          - Name: System.Web.Mvc.HttpPostAttribute
-          - Name: System.Web.Mvc.HttpPutAttribute
-          - Name: System.Web.Mvc.HttpDeleteAttribute
-          - Name: System.Web.Mvc.HttpPatchAttribute
         Exclude:
-          - Name: System.Web.Mvc.NonActionAttribute
-          - Name: System.Web.Mvc.AllowAnonymousAttribute
+          - Type: System.Web.Mvc.NonActionAttribute
+          - Type: System.Web.Mvc.AllowAnonymousAttribute
 
   CoreMvc:
     Name: ASP.NET Core MVC
+    Dependency:
+      - Microsoft.AspNetCore.Mvc.ControllerBase
+      - Microsoft.AspNetCore.Mvc.ApiControllerAttribute
+      - Microsoft.AspNetCore.Mvc.ControllerAttribute
+      - Microsoft.AspNetCore.Mvc.NonControllerAttribute
+      - Microsoft.AspNetCore.Mvc.NonActionAttribute
+      - Microsoft.AspNetCore.Mvc.FromServicesAttribute
     RequiredAttributes:
-      - Name: Microsoft.AspNetCore.Authorization.AuthorizeAttribute
+      - Type: Microsoft.AspNetCore.Authorization.AuthorizeAttribute
     Class:
-      Name:
-        - Microsoft.AspNetCore.Mvc.Controller
-      Attributes:
-        Exclude:
-          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
-    Method:
+      Accessibility:
+        - public
+      Suffix:
+        Text: Controller
+        IncludeParent: true
       Attributes:
         Include:
-          - Name: Microsoft.AspNetCore.Mvc.HttpPostAttribute
-          - Name: Microsoft.AspNetCore.Mvc.HttpPutAttribute
-          - Name: Microsoft.AspNetCore.Mvc.HttpDeleteAttribute
-          - Name: Microsoft.AspNetCore.Mvc.HttpPatchAttribute
+          - Type: Microsoft.AspNetCore.Mvc.ControllerAttribute
         Exclude:
-          - Name: Microsoft.AspNetCore.Mvc.NonActionAttribute
-          - Name: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+          - Type: Microsoft.AspNetCore.Mvc.NonControllerAttribute
+          - Type: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
+    Method:
+      Accessibility:
+        - public
+      IncludeConstructor: false
+      Static: false
+      Attributes:
+        Exclude:
+          - Type: Microsoft.AspNetCore.Mvc.NonActionAttribute
+          - Type: Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute
 
 # Password validator analysis preferences:
 PasswordValidatorRequiredLength: 8
@@ -234,21 +296,24 @@ TaintEntryPoints:
       Suffix:
         Text: Controller
         IncludeParent: true
-      IncludeAttributes:
-        - Microsoft.AspNetCore.Mvc.ControllerAttribute
-        - Microsoft.AspNetCore.Mvc.ApiControllerAttribute
-      ExcludeAttributes:
-        - Microsoft.AspNetCore.Mvc.NonControllerAttribute
+      Attributes:
+        Include:
+          - Type: Microsoft.AspNetCore.Mvc.ControllerAttribute
+          - Type: Microsoft.AspNetCore.Mvc.ApiControllerAttribute
+        Exclude:
+          - Type: Microsoft.AspNetCore.Mvc.NonControllerAttribute
     Method:
       Accessibility:
         - public
       IncludeConstructor: false
       Static: false
-      ExcludeAttributes:
-        - Microsoft.AspNetCore.Mvc.NonActionAttribute
+      Attributes:
+        Exclude:
+          - Type: Microsoft.AspNetCore.Mvc.NonActionAttribute
     Parameter:
-      ExcludeAttributes:
-        - Microsoft.AspNetCore.Mvc.FromServicesAttribute
+      Attributes:
+        Exclude:
+          - Type: Microsoft.AspNetCore.Mvc.FromServicesAttribute
 
   System.Web.Mvc.ControllerBase:
     Class:
@@ -263,8 +328,9 @@ TaintEntryPoints:
         - public
       IncludeConstructor: false
       Static: false
-      ExcludeAttributes:
-        - System.Web.Mvc.NonActionAttribute
+      Attributes:
+        Exclude:
+          - Type: System.Web.Mvc.NonActionAttribute
 
   System.Web.Http.ApiController:
     Class:
@@ -279,8 +345,9 @@ TaintEntryPoints:
         - public
       IncludeConstructor: false
       Static: false
-      ExcludeAttributes:
-        - System.Web.Http.NonActionAttribute
+      Attributes:
+        Exclude:
+          - Type: System.Web.Http.NonActionAttribute
 
 TaintSources:
 

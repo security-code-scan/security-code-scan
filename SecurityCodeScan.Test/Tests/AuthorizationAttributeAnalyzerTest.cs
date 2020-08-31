@@ -47,6 +47,52 @@ namespace SecurityCodeScan.Test.AuthorizationAttribute
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
+
+        [TestCategory("Safe")]
+        [TestMethod]
+        public async Task HasAllowAnonymousDerivedAttribute()
+        {
+            var cSharpTest = $@"
+{InsertNamespacesCS()}
+
+namespace VulnerableApp
+{{
+    public class CustomAllowAnonymousAttribute : AllowAnonymousAttribute {{}}
+
+    public class TestController : Controller
+    {{
+        [CustomAllowAnonymous]
+        [HttpPost]
+        public ActionResult ControllerMethod(string input)
+        {{
+            return null;
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+{InsertNamespacesVB()}
+
+Namespace VulnerableApp
+    Public Class CustomAllowAnonymousAttribute
+        Inherits AllowAnonymousAttribute
+    End Class
+
+    Public Class TestController
+        Inherits Controller
+
+        <CustomAllowAnonymous>
+        <HttpPost>
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
     }
 
     public abstract class AuthorizationAttributeAnalyzerTest : DiagnosticVerifier
@@ -71,7 +117,7 @@ namespace SecurityCodeScan.Test.AuthorizationAttribute
                 return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new AthorizationAttributeDiagnosticAnalyzer()) };
         }
 
-        private string InsertNamespacesCS()
+        protected string InsertNamespacesCS()
         {
             var sb = new StringBuilder();
             sb.AppendLine("#pragma warning disable 8019");
@@ -83,7 +129,7 @@ namespace SecurityCodeScan.Test.AuthorizationAttribute
             return sb.ToString();
         }
 
-        private string InsertNamespacesVB()
+        protected string InsertNamespacesVB()
         {
             var sb = new StringBuilder();
             sb.AppendLine("#Disable Warning BC50001");
@@ -124,53 +170,7 @@ Namespace VulnerableApp
         Inherits Controller
 
         <AllowAnonymous>
-        <HttpPost> _
-        Public Function ControllerMethod(input As String) As ActionResult
-            Return Nothing
-        End Function
-    End Class
-End Namespace
-";
-            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
-        }
-
-        [TestCategory("Safe")]
-        [TestMethod]
-        public async Task HasAllowAnonymousDerivedAttribute()
-        {
-            var cSharpTest = $@"
-{InsertNamespacesCS()}
-
-namespace VulnerableApp
-{{
-    public class CustomAllowAnonymousAttribute : AllowAnonymousAttribute {{}}
-
-    public class TestController : Controller
-    {{
-        [CustomAllowAnonymous]
-        [HttpPost]
-        public ActionResult ControllerMethod(string input)
-        {{
-            return null;
-        }}
-    }}
-}}
-";
-
-            var visualBasicTest = $@"
-{InsertNamespacesVB()}
-
-Namespace VulnerableApp
-    Public Class CustomAllowAnonymousAttribute
-        Inherits AllowAnonymousAttribute
-    End Class
-
-    Public Class TestController
-        Inherits Controller
-
-        <CustomAllowAnonymous>
-        <HttpPost> _
+        <HttpPost>
         Public Function ControllerMethod(input As String) As ActionResult
             Return Nothing
         End Function
@@ -210,7 +210,7 @@ Namespace VulnerableApp
     Public Class TestController
         Inherits Controller
 
-        <HttpPost> _
+        <HttpPost>
         Public Function ControllerMethod(input As String) As ActionResult
             Return Nothing
         End Function
@@ -221,6 +221,7 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
+        [TestCategory("Safe")]
         [TestMethod]
         public async Task ClassHasAuthorizeDerivedAttribute()
         {
@@ -255,7 +256,55 @@ Namespace VulnerableApp
     Public Class TestController
         Inherits Controller
 
-        <HttpPost> _
+        <HttpPost>
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestCategory("Safe")]
+        [TestMethod]
+        public async Task MethodHasAuthorizeDerivedAttribute()
+        {
+            var cSharpTest = $@"
+{InsertNamespacesCS()}
+
+namespace VulnerableApp
+{{
+    public class CustomAuthorizeAttribute : {AuthorizeAttributeName}Attribute {{}}
+
+    public class TestController : Controller
+    {{
+        public string SomeProp {{ get; }}
+
+        [HttpPost]
+        [CustomAuthorize]
+        public ActionResult ControllerMethod(string input)
+        {{
+            return null;
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+{InsertNamespacesVB()}
+
+Namespace VulnerableApp
+    Public Class CustomAuthorizeAttribute
+        Inherits {AuthorizeAttributeName}Attribute
+    End Class
+
+    Public Class TestController
+        Inherits Controller
+
+        <HttpPost>
+        <CustomAuthorize>
         Public Function ControllerMethod(input As String) As ActionResult
             Return Nothing
         End Function
@@ -293,7 +342,91 @@ Namespace VulnerableApp
     Public Class TestController
         Inherits Controller
 
-        <HttpPost> _
+        <HttpPost>
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task DetectExplicitHttpPostWithAntiforegery()
+        {
+            var cSharpTest = $@"
+{InsertNamespacesCS()}
+
+namespace VulnerableApp
+{{
+    public class TestController : Controller
+    {{
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ControllerMethod(string input)
+        {{
+            return null;
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+{InsertNamespacesVB()}
+
+Namespace VulnerableApp
+    Public Class TestController
+        Inherits Controller
+
+        <ValidateAntiForgeryToken>
+        <HttpPost>
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task DetectImplicitHttpGet()
+        {
+            var cSharpTest = $@"
+{InsertNamespacesCS()}
+
+namespace VulnerableApp
+{{
+    public abstract class BaseController : Controller {{}}
+
+    public class TestController : BaseController
+    {{
+        [ValidateAntiForgeryToken]
+        public ActionResult ControllerMethod(string input)
+        {{
+            return null;
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+{InsertNamespacesVB()}
+
+Namespace VulnerableApp
+    Public MustInherit Class BaseController
+        Inherits Controller
+    End Class
+
+    Public Class TestController
+        Inherits BaseController
+
+        <ValidateAntiForgeryToken>
         Public Function ControllerMethod(input As String) As ActionResult
             Return Nothing
         End Function

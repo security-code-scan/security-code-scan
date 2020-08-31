@@ -29,7 +29,7 @@ namespace SecurityCodeScan.Analyzers
 
         private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
         {
-            var analyzer = new AttributeAnalyzer(Rule, config.WellKnownTypeProvider);
+            var analyzer = new AttributesAnalyzer(Rule, config.WellKnownTypeProvider);
             context.RegisterSymbolAction((ctx) => analyzer.VisitClass(ctx, config.AuthorizeGoups), SymbolKind.NamedType);
         }
     }
@@ -49,18 +49,18 @@ namespace SecurityCodeScan.Analyzers
 
         private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
         {
-            var analyzer = new AttributeAnalyzer(Rule, config.WellKnownTypeProvider);
+            var analyzer = new AttributesAnalyzer(Rule, config.WellKnownTypeProvider);
             context.RegisterSymbolAction((ctx) => analyzer.VisitClass(ctx, config.CsrfGoups), SymbolKind.NamedType);
         }
     }
 
-    internal class AttributeAnalyzer
+    internal class AttributesAnalyzer
     {
         private readonly DiagnosticDescriptor Rule;
 
         private readonly WellKnownTypeProvider WellKnownTypeProvider;
 
-        public AttributeAnalyzer(DiagnosticDescriptor rule, WellKnownTypeProvider wellKnownTypeProvider)
+        public AttributesAnalyzer(DiagnosticDescriptor rule, WellKnownTypeProvider wellKnownTypeProvider)
         {
             Rule = rule;
             WellKnownTypeProvider = wellKnownTypeProvider;

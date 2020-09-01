@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecurityCodeScan.Analyzers;
+using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
 
 namespace SecurityCodeScan.Test.AuthorizationAttribute
@@ -25,6 +26,71 @@ namespace SecurityCodeScan.Test.AuthorizationAttribute
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
+
+        [TestCategory("Safe")]
+        [TestMethod]
+        public async Task MethodHasCustomAuthorizeAttribute()
+        {
+            var cSharpTest = $@"
+{InsertNamespacesCS()}
+using System;
+
+namespace VulnerableApp
+{{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+    public class CustomAuthorizeAttribute : Attribute {{}}
+
+    public class TestController : Controller
+    {{
+        public string SomeProp {{ get; }}
+
+        [HttpPost]
+        [CustomAuthorize]
+        public ActionResult ControllerMethod(string input)
+        {{
+            return null;
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+{InsertNamespacesVB()}
+Imports System
+
+Namespace VulnerableApp
+    <AttributeUsage(AttributeTargets.Class Or AttributeTargets.Method)>
+    Public Class CustomAuthorizeAttribute
+        Inherits Attribute
+    End Class
+
+    Public Class TestController
+        Inherits Controller
+
+        <HttpPost>
+        <CustomAuthorize>
+        Public Function ControllerMethod(input As String) As ActionResult
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+
+            var testConfig = @"
+AuthorizeCheck:
+  Unique:
+    Name: ASP.NET MVC
+    RequiredAttributes:
+      - Type: VulnerableApp.CustomAuthorizeAttribute
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+        }
     }
 
     [TestClass]

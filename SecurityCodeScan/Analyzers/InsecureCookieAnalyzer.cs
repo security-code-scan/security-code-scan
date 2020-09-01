@@ -1,94 +1,127 @@
-﻿//using System.Collections.Generic;
-//using System.Collections.Immutable;
-//using Microsoft.CodeAnalysis;
-//using SecurityCodeScan.Analyzers.Locale;
-//using SecurityCodeScan.Analyzers.Taint;
-//using SecurityCodeScan.Analyzers.Utils;
-//using SecurityCodeScan.Config;
+﻿using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
+using SecurityCodeScan.Analyzers.Locale;
+using SecurityCodeScan.Analyzers.Utils;
+using SecurityCodeScan.Config;
 
-//namespace SecurityCodeScan.Analyzers
-//{
-//    internal class InsecureCookieAnalyzerCSharp : TaintAnalyzerExtensionCSharp
-//    {
-//        private readonly InsecureCookieAnalyzer Analyzer = new InsecureCookieAnalyzer();
+namespace SecurityCodeScan.Analyzers
+{
+    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class InsecureCookieAnalyzer : SecurityAnalyzer
+    {
+        public const            string               DiagnosticIdSecure = "SCS0008";
+        private static readonly DiagnosticDescriptor RuleSecure         = LocaleUtil.GetDescriptor(DiagnosticIdSecure);
 
-//        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Analyzer.SupportedDiagnostics;
+        public const            string               DiagnosticIdHttpOnly = "SCS0009";
+        private static readonly DiagnosticDescriptor RuleHttpOnly         = LocaleUtil.GetDescriptor(DiagnosticIdHttpOnly);
 
-//        public override void VisitEnd(SyntaxNode node, ExecutionState state, Configuration projectConfiguration)
-//        {
-//            Analyzer.CheckState(state, projectConfiguration);
-//        }
-//    }
+        private const string HttpCookieTypeName = "System.Web.HttpCookie";
+        private const string CookieOptionsTypeName = "Microsoft.AspNetCore.Http.CookieOptions";
 
-//    internal class InsecureCookieAnalyzerVisualBasic : TaintAnalyzerExtensionVisualBasic
-//    {
-//        private readonly InsecureCookieAnalyzer Analyzer = new InsecureCookieAnalyzer();
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(RuleSecure, RuleHttpOnly);
 
-//        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Analyzer.SupportedDiagnostics;
+        public override void Initialize(ISecurityAnalysisContext context)
+        {
+            CookieAnalyzer.Initialize(context, HttpCookieTypeName);
+            CookieAnalyzer.Initialize(context, CookieOptionsTypeName);
+        }
 
-//        public override void VisitEnd(SyntaxNode node, ExecutionState state, Configuration projectConfiguration)
-//        {
-//            Analyzer.CheckState(state, projectConfiguration);
-//        }
-//    }
+        private class CookieAnalyzer
+        {
+            public static void Initialize(ISecurityAnalysisContext context, string type)
+            {
+                context.RegisterCompilationStartAction(
+                    (CompilationStartAnalysisContext compilationContext, Configuration configuration) =>
+                    {
+                        Compilation compilation = compilationContext.Compilation;
+                        var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
 
-//    internal class InsecureCookieAnalyzer
-//    {
-//        public const            string               DiagnosticIdSecure = "SCS0008";
-//        private static readonly DiagnosticDescriptor RuleSecure         = LocaleUtil.GetDescriptor(DiagnosticIdSecure);
+                        if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(type, out var cookieType))
+                        {
+                            return;
+                        }
 
-//        public const            string               DiagnosticIdHttpOnly = "SCS0009";
-//        private static readonly DiagnosticDescriptor RuleHttpOnly         = LocaleUtil.GetDescriptor(DiagnosticIdHttpOnly);
+                        compilationContext.RegisterOperationBlockStartAction(
+                            operationBlockStartContext =>
+                            {
+                                ISymbol owningSymbol = operationBlockStartContext.OwningSymbol;
+                                AnalyzerOptions options = operationBlockStartContext.Options;
+                                CancellationToken cancellationToken = operationBlockStartContext.CancellationToken;
+                                if (owningSymbol.IsConfiguredToSkipAnalysis(options, RuleSecure, compilation, cancellationToken))
+                                {
+                                    return;
+                                }
 
-//        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(RuleSecure, RuleHttpOnly);
+                                operationBlockStartContext.RegisterOperationAction(
+                                    ctx =>
+                                    {
+                                        IObjectCreationOperation invocationOperation = (IObjectCreationOperation)ctx.Operation;
+                                        if (invocationOperation.Constructor.ContainingType.GetBaseTypesAndThis().All(x => x != cookieType))
+                                        {
+                                            return;
+                                        }
 
-//        public void CheckState(ExecutionState state, Configuration configuration)
-//        {
-//            var visited = new HashSet<VariableState>();
-//            // For every variables registered in state
-//            foreach (var variableState in state.VariableStates.Values)
-//            {
-//                CheckState(variableState, state, visited, configuration);
-//            }
-//        }
+                                        IAssignmentOperation TryGetInitializerAssignment(string name)
+                                        {
+                                            return (IAssignmentOperation)invocationOperation.Initializer
+                                                                                            ?.Initializers
+                                                                                            .FirstOrDefault(initializer => initializer is IAssignmentOperation assignmentOperaiton &&
+                                            assignmentOperaiton.Target is IPropertyReferenceOperation propertyReferenceOperation &&
+                                            propertyReferenceOperation.Property.Name == name);
+                                        }
 
-//        private void CheckState(VariableState variableState, ExecutionState state, HashSet<VariableState> visited, Configuration configuration)
-//        {
-//            if (!visited.Add(variableState))
-//                return;
+                                        var isSecureInitializer = TryGetInitializerAssignment("Secure");
+                                        if (isSecureInitializer == null)
+                                        {
+                                            ctx.ReportDiagnostic(Diagnostic.Create(RuleSecure, invocationOperation.Syntax.GetLocation()));
+                                        }
 
-//            foreach (var propertyStatesValue in variableState.PropertyStates.Values)
-//            {
-//                CheckState(propertyStatesValue, state, visited, configuration);
-//            }
+                                        var isHttpOnlyInitializer = TryGetInitializerAssignment("HttpOnly");
+                                        if (isHttpOnlyInitializer == null)
+                                        {
+                                            ctx.ReportDiagnostic(Diagnostic.Create(RuleHttpOnly, invocationOperation.Syntax.GetLocation()));
+                                        }
+                                    },
+                                    OperationKind.ObjectCreation);
 
-//            var symbol = state.GetSymbol(variableState.Node);
-//            if (symbol == null)
-//                return;
+                                operationBlockStartContext.RegisterOperationAction(
+                                    ctx =>
+                                    {
+                                        IAssignmentOperation operation = (IAssignmentOperation)ctx.Operation;
+                                        if (!(operation.Target is IPropertyReferenceOperation propertyReferenceOperation))
+                                            return;
 
-//            // Only if it is the constructor of the HttpCookie instance
-//            if (!symbol.IsConstructor() ||
-//                (!symbol.ContainingSymbol.ToString().Equals("System.Web.HttpCookie") &&
-//                 !symbol.ContainingSymbol.ToString().Equals("Microsoft.AspNetCore.Http.CookieOptions")))
-//            {
-//                return;
-//            }
+                                        if (propertyReferenceOperation.Member.ContainingType.GetBaseTypesAndThis().All(x => x != cookieType))
+                                        {
+                                            return;
+                                        }
 
-//            if (!variableState.PropertyStates.TryGetValue("Secure", out var secureState) ||
-//                (secureState.Taint == VariableTaint.Constant &&
-//                secureState.Value is bool isSecure && !isSecure) ||
-//                configuration.AuditMode && secureState.Taint != VariableTaint.Constant)
-//            {
-//                state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleSecure, variableState.Node.GetLocation()));
-//            }
+                                        if (propertyReferenceOperation.Member.Name == "Secure" &&
+                                            ((operation.Value.ConstantValue.HasValue &&
+                                             operation.Value.ConstantValue.Value is bool isSecure && !isSecure) ||
+                                            !operation.Value.ConstantValue.HasValue && configuration.AuditMode))
+                                        {
+                                            ctx.ReportDiagnostic(Diagnostic.Create(RuleSecure, operation.Syntax.GetLocation()));
+                                        }
 
-//            if (!variableState.PropertyStates.TryGetValue("HttpOnly", out var httpOnly) ||
-//                (httpOnly.Taint == VariableTaint.Constant &&
-//                httpOnly.Value is bool isHttpOnly && !isHttpOnly) ||
-//                configuration.AuditMode && httpOnly.Taint != VariableTaint.Constant)
-//            {
-//                state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleHttpOnly, variableState.Node.GetLocation()));
-//            }
-//        }
-//    }
-//}
+                                        if (propertyReferenceOperation.Member.Name == "HttpOnly" &&
+                                            ((operation.Value.ConstantValue.HasValue &&
+                                             operation.Value.ConstantValue.Value is bool isHttpOnly && !isHttpOnly) ||
+                                            !operation.Value.ConstantValue.HasValue && configuration.AuditMode))
+                                        {
+                                            ctx.ReportDiagnostic(Diagnostic.Create(RuleHttpOnly, operation.Syntax.GetLocation()));
+                                        }
+                                    },
+                                    OperationKind.SimpleAssignment);
+                            });
+                    });
+            }
+        }
+    }
+}

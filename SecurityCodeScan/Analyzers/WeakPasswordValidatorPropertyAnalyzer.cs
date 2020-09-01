@@ -1,6 +1,8 @@
 ﻿using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -40,6 +42,14 @@ namespace SecurityCodeScan.Analyzers
                     compilationContext.RegisterOperationBlockStartAction(
                         operationBlockStartContext =>
                         {
+                            ISymbol owningSymbol = operationBlockStartContext.OwningSymbol;
+                            AnalyzerOptions options = operationBlockStartContext.Options;
+                            CancellationToken cancellationToken = operationBlockStartContext.CancellationToken;
+                            if (owningSymbol.IsConfiguredToSkipAnalysis(options, RuleRequiredPasswordValidators, compilation, cancellationToken))
+                            {
+                                return;
+                            }
+
                             operationBlockStartContext.RegisterOperationAction(
                                 ctx =>
                                 {
@@ -53,13 +63,13 @@ namespace SecurityCodeScan.Analyzers
                                     IAssignmentOperation TryGetInitializerAssignment(string name)
                                     {
                                         return (IAssignmentOperation)invocationOperation.Initializer
-                                                                                        .Initializers
+                                                                                        ?.Initializers
                                                                                         .FirstOrDefault(initializer => initializer is IAssignmentOperation assignmentOperaiton &&
                                         assignmentOperaiton.Target is IPropertyReferenceOperation propertyReferenceOperation &&
                                         propertyReferenceOperation.Property.Name == name);
                                     }
 
-                                     var requiredLengthInitializer = TryGetInitializerAssignment("RequiredLength");
+                                    var requiredLengthInitializer = TryGetInitializerAssignment("RequiredLength");
 
                                     if (requiredLengthInitializer == null)
                                     {
@@ -106,7 +116,6 @@ namespace SecurityCodeScan.Analyzers
                                     if (propertiesCount < minimumRequiredProperties)
                                     {
                                         ctx.ReportDiagnostic(Diagnostic.Create(RulePasswordValidators, invocationOperation.Syntax.GetLocation(), minimumRequiredProperties));
-
                                     }
                                 },
                                 OperationKind.ObjectCreation);

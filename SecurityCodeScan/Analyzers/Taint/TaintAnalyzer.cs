@@ -186,10 +186,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                                     operationAnalysisContext.ReportDiagnostic(diagnostic);
                                 }
 
-                                bool IsConstant(IOperation operation, Func<IOperation> getValue, OperationAnalysisContext operationAnalysisContext)
+                                bool IsConstant(IOperation operation, IOperation value, OperationAnalysisContext operationAnalysisContext)
                                 {
-                                    var value = getValue();
-
                                     if (value.ConstantValue.HasValue || value is ITypeOfOperation)
                                         return true;
 
@@ -217,7 +215,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                         IEnumerable<SinkInfo>? infosForType = sinkInfoSymbolMap.GetInfosForType(propertyReferenceOperation.Member.ContainingType);
                                         if (infosForType != null &&
                                             infosForType.Any() &&
-                                            !IsConstant(operation, () => operation.Value, operationAnalysisContext))
+                                            !IsConstant(operation, operation.Value, operationAnalysisContext))
                                         {
                                             CreateWarning(
                                                 operationAnalysisContext,
@@ -238,7 +236,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                                         foreach (SinkInfo sinkInfo in infosForType)
                                         {
-                                            foreach (IArgumentOperation taintedArgument in invocationOperation.Arguments.Where(x => !IsConstant(x, () => x.Value, operationAnalysisContext)))
+                                            foreach (IArgumentOperation taintedArgument in invocationOperation.Arguments.Where(x => !IsConstant(x, x.Value, operationAnalysisContext)))
                                             {
                                                 if (sinkInfo.SinkMethodParameters.TryGetValue(invocationOperation.TargetMethod.MetadataName, out ImmutableHashSet<string> sinkParameters)
                                                     && sinkParameters.Contains(taintedArgument.Parameter.MetadataName))
@@ -261,7 +259,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                                         foreach (SinkInfo sinkInfo in infosForType)
                                         {
-                                            foreach (IArgumentOperation taintedArgument in invocationOperation.Arguments.Where(x => !IsConstant(x, () => x.Value, operationAnalysisContext)))
+                                            foreach (IArgumentOperation taintedArgument in invocationOperation.Arguments.Where(x => !IsConstant(x, x.Value, operationAnalysisContext)))
                                             {
                                                 if (sinkInfo.IsAnyStringParameterInConstructorASink
                                                     && taintedArgument.Parameter.Type.SpecialType == SpecialType.System_String)

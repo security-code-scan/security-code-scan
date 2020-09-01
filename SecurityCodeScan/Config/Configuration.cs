@@ -58,7 +58,8 @@ namespace SecurityCodeScan.Config
             }
             else
             {
-                Debug.Fail($"SinkKind {sinkKind} entry missing from {typeof(T).Name} map");
+                if (!ConstAnalyzer.ConstantTaintTypes.Cast<SinkKind>().Contains(sinkKind))
+                    Debug.Fail($"SinkKind {sinkKind} entry missing from {typeof(T).Name} map");
                 return new TaintedDataSymbolMap<T>(this.WellKnownTypeProvider, Enumerable.Empty<T>());
             }
         }
@@ -85,7 +86,7 @@ namespace SecurityCodeScan.Config
                 PooledDictionary<(ImmutableHashSet<SourceInfo> SourceInfos, ImmutableHashSet<SanitizerInfo> SanitizerInfos), (ImmutableHashSet<SinkKind>.Builder SinkKinds, ImmutableHashSet<SinkInfo>.Builder SinkInfos)>.GetInstance();
 
             // Using LazyThreadSafetyMode.ExecutionAndPublication to avoid instantiating multiple times.
-            foreach (SinkKind sinkKind in Enum.GetValues(typeof(TaintType)))
+            foreach (SinkKind sinkKind in Enum.GetValues(typeof(TaintType)).Cast<SinkKind>().Except(ConstAnalyzer.ConstantTaintTypes.Cast<SinkKind>()))
             {
                 ImmutableHashSet<SourceInfo> sources = GetSourceInfos(sinkKind, config);
                 if (!sourcesToSymbolMap.TryGetValue(sources, out Lazy<TaintedDataSymbolMap<SourceInfo>> lazySourceSymbolMap))
@@ -130,6 +131,17 @@ namespace SecurityCodeScan.Config
                 {
                     sinkSymbolMapBuilder.Add(sinkKind, lazySinkSymbolMap);
                 }
+            }
+
+            foreach (SinkKind sinkKind in ConstAnalyzer.ConstantTaintTypes)
+            {
+                ImmutableHashSet<SinkInfo> sinks = GetSinkInfos(sinkKind, config);
+
+                Lazy<TaintedDataSymbolMap<SinkInfo>> lazySinkSymbolMap = new Lazy<TaintedDataSymbolMap<SinkInfo>>(
+                    () => { return new TaintedDataSymbolMap<SinkInfo>(WellKnownTypeProvider, sinks); },
+                    LazyThreadSafetyMode.ExecutionAndPublication);
+
+                sinkSymbolMapBuilder.Add(sinkKind, lazySinkSymbolMap);
             }
 
             SourceSymbolMap = sourceSymbolMapBuilder.ToImmutableDictionary();

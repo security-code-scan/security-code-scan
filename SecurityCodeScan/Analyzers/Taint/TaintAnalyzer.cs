@@ -125,16 +125,6 @@ namespace SecurityCodeScan.Analyzers.Taint
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }
 
-    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class HardcodedPasswordTaintAnalyzer : TaintAnalyzer
-    {
-        internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0015");
-
-        protected override SinkKind SinkKind { get { return (SinkKind)(int)TaintType.SCS0015; } }
-
-        protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
-    }
-
     internal abstract class TaintAnalyzer : SecurityAnalyzer
     {
         protected abstract DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get; }

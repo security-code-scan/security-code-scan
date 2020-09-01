@@ -531,21 +531,21 @@ Sanitizers:
     Methods:
       - Name: MapPath
 
-#  - Type: System.String
-#    Methods:
-#      - Name: IsNullOrWhiteSpace
-#        InOut: [{"value": "value"}]
+  #  - Type: System.String
+  #    Methods:
+  #      - Name: IsNullOrWhiteSpace
+  #        InOut: [{"value": "value"}]
 
   - Type: System.Text.StringBuilder
     Methods:
       - Name: Clear
         CleansInstance: true
 
-#  - Type: System.IDisposable
-#    IsInterface: true
-#    Methods:
-#      - Name: Dispose
-#        CleansInstance: true
+  #  - Type: System.IDisposable
+  #    IsInterface: true
+  #    Methods:
+  #      - Name: Dispose
+  #        CleansInstance: true
 
   - Type: System.Convert
     Methods:
@@ -757,6 +757,33 @@ Transfers:
         InOut: [{"value": ".This"}]
 
 Sinks:
+
+ # Hardcoded passwords
+
+  - Type: System.Net.NetworkCredential
+    TaintTypes:
+      - SCS0015
+    Methods:
+    - Name: .ctor
+      Arguments:
+        - password
+
+  - Type: System.Security.Cryptography.PasswordDeriveBytes
+    TaintTypes:
+      - SCS0015
+    Methods:
+    - Name: .ctor
+      Arguments:
+        - password
+        - salt
+        - strPassword
+        - rgbSalt
+
+  - Type: System.UriBuilder
+    TaintTypes:
+      - SCS0015
+    Properties:
+      - Password
 
  # Process
 

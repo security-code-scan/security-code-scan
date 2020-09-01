@@ -16,9 +16,9 @@ namespace SecurityCodeScan.Test.Password
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new HardcodedPasswordTaintAnalyzer()) };
+                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new HardcodedPasswordAnalyzer()) };
             else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new HardcodedPasswordTaintAnalyzer()) };
+                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new HardcodedPasswordAnalyzer()) };
         }
 
         [TestCategory("Detect")]
@@ -66,7 +66,7 @@ End Namespace
 
         [TestCategory("Detect")]
         [TestMethod]
-        public async Task HardCodePasswordDerivedBytes()
+        public async Task HardCodePasswordDerivedBytesPassword()
         {
             var cSharpTest = @"
 using System.Security.Cryptography;
@@ -105,9 +105,10 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
 
-        [TestCategory("Safe")]
+        [TestCategory("Detect")]
+        [Ignore("hardcoded array const as const")]
         [TestMethod]
-        public async Task HardCodePasswordDerivedBytesFalsePositive()
+        public async Task HardCodePasswordDerivedBytesSalt()
         {
             var cSharpTest = @"
 using System.Security.Cryptography;
@@ -136,8 +137,14 @@ Namespace VulnerableApp
 End Namespace
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0015",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
         }
     }
 }

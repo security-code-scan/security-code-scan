@@ -54,7 +54,7 @@ namespace SecurityCodeScan.Analyzers
                                 ctx =>
                                 {
                                     IObjectCreationOperation invocationOperation = (IObjectCreationOperation)ctx.Operation;
-                                    if (invocationOperation.Constructor.ContainingType.GetBaseTypesAndThis().All(x => x != validatorType))
+                                    if (invocationOperation.Constructor.ContainingType != validatorType)
                                         return;
 
                                     var propertiesCount = 0;

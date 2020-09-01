@@ -62,7 +62,7 @@ namespace SecurityCodeScan.Analyzers
                                     ctx =>
                                     {
                                         IObjectCreationOperation invocationOperation = (IObjectCreationOperation)ctx.Operation;
-                                        if (invocationOperation.Constructor.ContainingType.GetBaseTypesAndThis().All(x => x != cookieType))
+                                        if (invocationOperation.Constructor.ContainingType != cookieType)
                                         {
                                             return;
                                         }
@@ -97,7 +97,7 @@ namespace SecurityCodeScan.Analyzers
                                         if (!(operation.Target is IPropertyReferenceOperation propertyReferenceOperation))
                                             return;
 
-                                        if (propertyReferenceOperation.Member.ContainingType.GetBaseTypesAndThis().All(x => x != cookieType))
+                                        if (propertyReferenceOperation.Member.ContainingType != cookieType)
                                         {
                                             return;
                                         }

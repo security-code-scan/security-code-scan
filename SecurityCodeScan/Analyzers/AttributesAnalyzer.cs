@@ -29,7 +29,7 @@ namespace SecurityCodeScan.Analyzers
 
         private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
         {
-            var analyzer = new AttributesAnalyzer(Rule, config.WellKnownTypeProvider);
+            var analyzer = new AttributesAnalyzer(Rule, WellKnownTypeProvider.GetOrCreate(context.Compilation));
             context.RegisterSymbolAction((ctx) => analyzer.VisitClass(ctx, config.AuthorizeGoups), SymbolKind.NamedType);
         }
     }
@@ -49,7 +49,7 @@ namespace SecurityCodeScan.Analyzers
 
         private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
         {
-            var analyzer = new AttributesAnalyzer(Rule, config.WellKnownTypeProvider);
+            var analyzer = new AttributesAnalyzer(Rule, WellKnownTypeProvider.GetOrCreate(context.Compilation));
             context.RegisterSymbolAction((ctx) => analyzer.VisitClass(ctx, config.CsrfGoups), SymbolKind.NamedType);
         }
     }
@@ -127,7 +127,7 @@ namespace SecurityCodeScan.Analyzers
             var classSymbol = (ITypeSymbol)ctx.Symbol;
             var diagnostics = new Dictionary<Location, Diagnostic>();
 
-            var groupCache = _classIsControllerByCompilation.GetOrCreateValue(WellKnownTypeProvider.Compilation, (compilation)
+            var groupCache = _classIsControllerByCompilation.GetOrCreateValue(ctx.Compilation, (compilation)
                     => new ConcurrentDictionary<NamedGroup, ConcurrentDictionary<INamedTypeSymbol, bool>>());
 
             foreach (var group in namedGroups)

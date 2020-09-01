@@ -669,7 +669,7 @@ namespace SecurityCodeScan.Config
         private readonly Lazy<TaintConfiguration> CachedTaintConfiguration;
         public TaintConfiguration TaintConfiguration { get { return CachedTaintConfiguration.Value; } }
 
-        public WellKnownTypeProvider WellKnownTypeProvider { get; private set; }
+        private WellKnownTypeProvider WellKnownTypeProvider { get; set; }
 
         public Configuration(ConfigData configData, Compilation compilation) : this()
         {

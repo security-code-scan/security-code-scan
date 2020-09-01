@@ -1,124 +1,117 @@
-﻿//using System.Collections.Generic;
-//using System.Collections.Immutable;
-//using Microsoft.CodeAnalysis;
-//using SecurityCodeScan.Analyzers.Locale;
-//using SecurityCodeScan.Analyzers.Taint;
-//using SecurityCodeScan.Analyzers.Utils;
-//using SecurityCodeScan.Config;
+﻿using System.Collections.Immutable;
+using System.Linq;
+using Analyzer.Utilities;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
+using SecurityCodeScan.Analyzers.Locale;
+using SecurityCodeScan.Analyzers.Utils;
+using SecurityCodeScan.Config;
 
-//namespace SecurityCodeScan.Analyzers
-//{
-//    internal class WeakPasswordValidatorPropertyAnalyzerCSharp : TaintAnalyzerExtensionCSharp
-//    {
-//        private readonly WeakPasswordValidatorPropertyAnalyzer Analyzer = new WeakPasswordValidatorPropertyAnalyzer();
+namespace SecurityCodeScan.Analyzers
+{
+    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    internal class WeakPasswordValidatorPropertyAnalyzer : SecurityAnalyzer
+    {
+        private static readonly DiagnosticDescriptor RulePasswordLength                  = LocaleUtil.GetDescriptor("SCS0032"); // RequiredLength's value is too small
+        private static readonly DiagnosticDescriptor RulePasswordValidators              = LocaleUtil.GetDescriptor("SCS0033"); // Not enough properties set
+        private static readonly DiagnosticDescriptor RuleRequiredPasswordValidators      = LocaleUtil.GetDescriptor("SCS0034"); // Required property must be set
 
-//        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Analyzer.SupportedDiagnostics;
+        private static readonly string[] BoolPropertyNames =  { "RequireDigit", "RequireLowercase", "RequireNonLetterOrDigit", "RequireUppercase" };
 
-//        public override void VisitEnd(SyntaxNode node, ExecutionState state, Configuration configuration)
-//        {
-//            Analyzer.CheckState(state, configuration);
-//        }
-//    }
+        private const string ValidatorTypeName = "Microsoft.AspNet.Identity.PasswordValidator";
 
-//    internal class WeakPasswordValidatorPropertyAnalyzerVisualBasic : TaintAnalyzerExtensionVisualBasic
-//    {
-//        private readonly WeakPasswordValidatorPropertyAnalyzer Analyzer = new WeakPasswordValidatorPropertyAnalyzer();
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
+            RulePasswordLength,
+            RulePasswordValidators,
+            RuleRequiredPasswordValidators);
 
-//        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Analyzer.SupportedDiagnostics;
+        public override void Initialize(ISecurityAnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(
+                (CompilationStartAnalysisContext compilationContext, Configuration configuration) =>
+                {
+                    Compilation compilation = compilationContext.Compilation;
+                    var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
 
-//        public override void VisitEnd(SyntaxNode node, ExecutionState state, Configuration configuration)
-//        {
-//            Analyzer.CheckState(state, configuration);
-//        }
-//    }
+                    if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(ValidatorTypeName, out var validatorType))
+                        return;
 
-//    internal class WeakPasswordValidatorPropertyAnalyzer
-//    {
-//        private static readonly DiagnosticDescriptor RulePasswordLength                  = LocaleUtil.GetDescriptor("SCS0032"); // RequiredLength's value is too small
-//        private static readonly DiagnosticDescriptor RulePasswordValidators              = LocaleUtil.GetDescriptor("SCS0033"); // Not enough properties set
-//        private static readonly DiagnosticDescriptor RuleRequiredPasswordValidators      = LocaleUtil.GetDescriptor("SCS0034"); // Required property must be set
+                    compilationContext.RegisterOperationBlockStartAction(
+                        operationBlockStartContext =>
+                        {
+                            operationBlockStartContext.RegisterOperationAction(
+                                ctx =>
+                                {
+                                    IObjectCreationOperation invocationOperation = (IObjectCreationOperation)ctx.Operation;
+                                    if (invocationOperation.Constructor.ContainingType.GetBaseTypesAndThis().All(x => x != validatorType))
+                                        return;
 
-//        private static readonly string[] BoolPropertyNames =  { "RequireDigit", "RequireLowercase", "RequireNonLetterOrDigit", "RequireUppercase" };
+                                    var propertiesCount = 0;
+                                    var requiredProperties = configuration.PasswordValidatorRequiredProperties;
 
-//        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(RulePasswordLength,
-//                                                                                                  RulePasswordValidators,
-//                                                                                                  RuleRequiredPasswordValidators);
+                                    IAssignmentOperation TryGetInitializerAssignment(string name)
+                                    {
+                                        return (IAssignmentOperation)invocationOperation.Initializer
+                                                                                        .Initializers
+                                                                                        .FirstOrDefault(initializer => initializer is IAssignmentOperation assignmentOperaiton &&
+                                        assignmentOperaiton.Target is IPropertyReferenceOperation propertyReferenceOperation &&
+                                        propertyReferenceOperation.Property.Name == name);
+                                    }
 
-//        public void CheckState(ExecutionState state, Configuration configuration)
-//        {
-//            var visited = new HashSet<VariableState>();
-//            // For every variables registered in state
-//            foreach (var variableState in state.VariableStates.Values)
-//            {
-//                CheckState(variableState, state, visited, configuration);
-//            }
-//        }
+                                     var requiredLengthInitializer = TryGetInitializerAssignment("RequiredLength");
 
-//        private void CheckState(VariableState variableState, ExecutionState state, HashSet<VariableState> visited, Configuration configuration)
-//        {
-//            if (!visited.Add(variableState))
-//                return;
+                                    if (requiredLengthInitializer == null)
+                                    {
+                                        if (requiredProperties.Contains("RequiredLength"))
+                                        {
+                                            var diagnostic = Diagnostic.Create(RuleRequiredPasswordValidators, invocationOperation.Syntax.GetLocation(), "RequiredLength");
+                                            ctx.ReportDiagnostic(diagnostic);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        propertiesCount++;
+                                        var requiredLength = configuration.PasswordValidatorRequiredLength;
 
-//            foreach (var propertyStatesValue in variableState.PropertyStates.Values)
-//            {
-//                CheckState(propertyStatesValue, state, visited, configuration);
-//            }
+                                        if ((requiredLengthInitializer.Value.ConstantValue.HasValue &&
+                                             requiredLengthInitializer.Value.ConstantValue.Value is int intValue && intValue < requiredLength) ||
+                                            !requiredLengthInitializer.Value.ConstantValue.HasValue && configuration.AuditMode)
+                                        {
+                                            ctx.ReportDiagnostic(Diagnostic.Create(RulePasswordLength, invocationOperation.Syntax.GetLocation(), requiredLength));
+                                        }
+                                    }
 
-//            var symbol = state.GetSymbol(variableState.Node);
-//            if(symbol == null)
-//                return;
+                                    foreach (var propertyName in BoolPropertyNames)
+                                    {
+                                        var initializerAssignment = TryGetInitializerAssignment(propertyName);
+                                        if (initializerAssignment == null ||
+                                            (initializerAssignment.Value.ConstantValue.HasValue &&
+                                             initializerAssignment.Value.ConstantValue.Value is bool isRequired && !isRequired) ||
+                                            !initializerAssignment.Value.ConstantValue.HasValue && configuration.AuditMode)
+                                        {
+                                            if (requiredProperties.Contains(propertyName))
+                                            {
+                                                ctx.ReportDiagnostic(Diagnostic.Create(RuleRequiredPasswordValidators, invocationOperation.Syntax.GetLocation(), propertyName));
+                                            }
+                                        }
+                                        else
+                                        {
+                                            propertiesCount++;
+                                        }
+                                    }
 
-//            // Only if it is the constructor of the PasswordValidator instance
-//            if (!symbol.IsConstructor() || !symbol.ContainingSymbol.ToString().Equals("Microsoft.AspNet.Identity.PasswordValidator"))
-//                return;
+                                    var minimumRequiredProperties = configuration.MinimumPasswordValidatorProperties;
+                                    // If the PasswordValidator instance doesn't have enough properties set
+                                    if (propertiesCount < minimumRequiredProperties)
+                                    {
+                                        ctx.ReportDiagnostic(Diagnostic.Create(RulePasswordValidators, invocationOperation.Syntax.GetLocation(), minimumRequiredProperties));
 
-//            var propertiesCount = 0;
-//            var requiredProperties = configuration.PasswordValidatorRequiredProperties;
-
-//            if (!variableState.PropertyStates.TryGetValue("RequiredLength", out var requiredLenghtState))
-//            {
-//                if (requiredProperties.Contains("RequiredLength"))
-//                    state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleRequiredPasswordValidators,
-//                                                                             variableState.Node.GetLocation(), "RequiredLength"));
-//            }
-//            else
-//            {
-//                propertiesCount++;
-//                var requiredLength = configuration.PasswordValidatorRequiredLength;
-//                if ((requiredLenghtState.Taint == VariableTaint.Constant &&
-//                     requiredLenghtState.Value is int intValue           && intValue < requiredLength) ||
-//                    requiredLenghtState.Taint != VariableTaint.Constant && configuration.AuditMode)
-//                {
-//                    state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RulePasswordLength, variableState.Node.GetLocation(), requiredLength));
-//                }
-//            }
-
-//            foreach (var propertyName in BoolPropertyNames)
-//            {
-//                if (!variableState.PropertyStates.TryGetValue(propertyName, out var propertyState) ||
-//                    (propertyState.Taint == VariableTaint.Constant &&
-//                    propertyState.Value is bool isRequired && !isRequired) ||
-//                    propertyState.Taint != VariableTaint.Constant && configuration.AuditMode)
-//                {
-//                    if (requiredProperties.Contains(propertyName))
-//                    {
-//                        state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleRequiredPasswordValidators,
-//                                                                                 variableState.Node.GetLocation(), propertyName));
-//                    }
-//                }
-//                else
-//                {
-//                    propertiesCount++;
-//                }
-//            }
-
-//            var minimumRequiredProperties = configuration.MinimumPasswordValidatorProperties;
-//            // If the PasswordValidator instance doesn't have enough properties set
-//            if (propertiesCount < minimumRequiredProperties)
-//            {
-//                state.AnalysisContext.ReportDiagnostic(Diagnostic.Create(RulePasswordValidators,
-//                                                                         variableState.Node.GetLocation(), minimumRequiredProperties));
-//            }
-//        }
-//    }
-//}
+                                    }
+                                },
+                                OperationKind.ObjectCreation);
+                        });
+                });
+        }
+    }
+}

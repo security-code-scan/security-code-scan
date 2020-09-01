@@ -193,8 +193,6 @@ namespace SecurityCodeScan.Analyzers.Taint
                                     return abstractValue.NonLiteralState == ValueContainsNonLiteralState.No;
                                 }
 
-                                PooledHashSet<IOperation> rootOperationsNeedingAnalysis = PooledHashSet<IOperation>.GetInstance();
-
                                 operationBlockStartContext.RegisterOperationAction(
                                     operationAnalysisContext =>
                                     {

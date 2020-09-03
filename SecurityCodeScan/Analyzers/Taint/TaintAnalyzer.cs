@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Analyzer.Utilities;
@@ -20,6 +21,34 @@ using SecurityCodeScan.Config;
 namespace SecurityCodeScan.Analyzers.Taint
 {
     using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
+
+    internal class Wrapper<T> where T : class
+    {
+        public Wrapper(T t)
+        {
+            inner = t;
+        }
+
+        public void Free()
+        {
+            inner = default;
+        }
+
+        public T Get()
+        {
+            if (inner == null)
+            {
+                if (Debugger.IsAttached)
+                    Debugger.Break();
+                else
+                    Debugger.Launch();
+            }
+
+            return inner!;
+        }
+
+        private T? inner;
+    }
 
     internal enum TaintType
     {
@@ -343,7 +372,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                         return (p, valuecontentAnalysisResult);
                                     });
 
-                                PooledHashSet<IOperation> rootOperationsNeedingAnalysis = PooledHashSet<IOperation>.GetInstance();
+                                var rootOperationsNeedingAnalysis = new Wrapper<PooledHashSet<IOperation>>(PooledHashSet<IOperation>.GetInstance());
 
                                 operationBlockStartContext.RegisterOperationAction(
                                     operationAnalysisContext =>
@@ -353,7 +382,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                         {
                                             lock (rootOperationsNeedingAnalysis)
                                             {
-                                                rootOperationsNeedingAnalysis.Add(propertyReferenceOperation.GetRoot());
+                                                rootOperationsNeedingAnalysis.Get().Add(propertyReferenceOperation.GetRoot());
                                             }
                                         }
                                     },
@@ -369,7 +398,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                         {
                                             lock (rootOperationsNeedingAnalysis)
                                             {
-                                                rootOperationsNeedingAnalysis.Add(fieldReferenceOperation.GetRoot());
+                                                rootOperationsNeedingAnalysis.Get().Add(fieldReferenceOperation.GetRoot());
                                             }
                                         }
                                     },
@@ -386,7 +415,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                             {
                                                 lock (rootOperationsNeedingAnalysis)
                                                 {
-                                                    rootOperationsNeedingAnalysis.Add(parameterReferenceOperation.GetRoot());
+                                                    rootOperationsNeedingAnalysis.Get().Add(parameterReferenceOperation.GetRoot());
                                                 }
                                             }
                                         },
@@ -406,7 +435,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                         {
                                             lock (rootOperationsNeedingAnalysis)
                                             {
-                                                rootOperationsNeedingAnalysis.Add(invocationOperation.GetRoot());
+                                                rootOperationsNeedingAnalysis.Get().Add(invocationOperation.GetRoot());
                                             }
                                         }
                                     },
@@ -423,7 +452,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                             {
                                                 lock (rootOperationsNeedingAnalysis)
                                                 {
-                                                    rootOperationsNeedingAnalysis.Add(operationAnalysisContext.Operation.GetRoot());
+                                                    rootOperationsNeedingAnalysis.Get().Add(operationAnalysisContext.Operation.GetRoot());
                                                 }
                                             }
                                         },
@@ -437,7 +466,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                         {
                                             lock (rootOperationsNeedingAnalysis)
                                             {
-                                                if (!rootOperationsNeedingAnalysis.Any())
+                                                if (!rootOperationsNeedingAnalysis.Get().Any())
                                                 {
                                                     return;
                                                 }
@@ -447,7 +476,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                     return;
                                                 }
 
-                                                foreach (IOperation rootOperation in rootOperationsNeedingAnalysis)
+                                                foreach (IOperation rootOperation in rootOperationsNeedingAnalysis.Get())
                                                 {
                                                     TaintedDataAnalysisResult? taintedDataAnalysisResult = TaintedDataAnalysis.TryGetOrComputeResult(
                                                         controlFlowGraphFactory.Value,
@@ -494,7 +523,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                                         }
                                         finally
                                         {
-                                            rootOperationsNeedingAnalysis.Free(compilationContext.CancellationToken);
+                                            rootOperationsNeedingAnalysis.Get().Free(compilationContext.CancellationToken);
+                                            rootOperationsNeedingAnalysis.Free();
                                         }
                                     });
                             });

@@ -110,7 +110,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                 if (valueContentResult == null)
                                     return false;
 
-                                ValueContentAbstractValue abstractValue = valueContentResult[operation.Kind, operation.Syntax];
+                                ValueContentAbstractValue abstractValue = valueContentResult[value.Kind, value.Syntax];
                                 if (abstractValue.NonLiteralState != ValueContainsNonLiteralState.No)
                                     return false;
 

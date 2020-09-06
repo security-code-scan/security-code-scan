@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Analyzer.Utilities;
@@ -9,18 +9,17 @@ using Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FlowAnalysis;
-using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using SecurityCodeScan.Analyzers.Locale;
+using SecurityCodeScan.Analyzers.Utils;
 using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Analyzers.Taint
 {
-    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class HardcodedPasswordAnalyzer : ConstAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class HardcodedPasswordAnalyzer : ConstAnalyzer
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0015");
 
@@ -29,9 +28,9 @@ namespace SecurityCodeScan.Analyzers.Taint
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }
 
-    internal abstract class ConstAnalyzer : SecurityAnalyzer
+    public abstract class ConstAnalyzer : DiagnosticAnalyzer
     {
-        public static readonly TaintType[] ConstantTaintTypes = new []
+        internal static readonly TaintType[] ConstantTaintTypes = new []
         {
             TaintType.SCS0015,
         };
@@ -42,11 +41,21 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(TaintedDataEnteringSinkDescriptor);
 
-        public override void Initialize(ISecurityAnalysisContext context)
+        public override void Initialize(AnalysisContext context)
         {
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                context.EnableConcurrentExecution();
+
+            if (context.IsAuditMode())
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            else
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterCompilationStartAction(
-                (CompilationStartAnalysisContext compilationContext, Configuration config) =>
+                (CompilationStartAnalysisContext compilationContext) =>
                 {
+                    var config = Configuration.GetOrCreate(compilationContext);
+
                     TaintedDataSymbolMap<SinkInfo> sinkInfoSymbolMap = config.TaintConfiguration.GetSinkSymbolMap(this.SinkKind);
                     if (sinkInfoSymbolMap.IsEmpty)
                     {

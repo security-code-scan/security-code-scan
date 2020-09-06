@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Test.Audit;
 using SecurityCodeScan.Test.Helpers;
@@ -14,12 +13,9 @@ namespace SecurityCodeScan.Test.Taint
     [TestClass]
     public class LdapInjectionAnalyzerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _)
         {
-            if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new LdapPathTaintAnalyzer(), new LdapFilterTaintAnalyzer()) };
-            else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new LdapPathTaintAnalyzer(), new LdapFilterTaintAnalyzer()) };
+            return new DiagnosticAnalyzer[] { new LdapPathTaintAnalyzer(), new LdapFilterTaintAnalyzer() };
         }
 
         private static readonly PortableExecutableReference[] References =

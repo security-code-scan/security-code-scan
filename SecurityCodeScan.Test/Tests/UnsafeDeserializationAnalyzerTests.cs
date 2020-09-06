@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Test.Helpers;
@@ -9,7 +8,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using SecurityCodeScan.Analyzers.Taint;
-using SecurityCodeScan.Test.Config;
 
 namespace SecurityCodeScan.Test
 {
@@ -19,9 +17,9 @@ namespace SecurityCodeScan.Test
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new DeserializationTaintAnalyzer(), new UnsafeDeserializationAnalyzerCSharp()) };
+                return new DiagnosticAnalyzer[] { new DeserializationTaintAnalyzer(), new UnsafeDeserializationAnalyzerCSharp() };
             else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new DeserializationTaintAnalyzer(), new UnsafeDeserializationAnalyzerVisualBasic()) };
+                return new DiagnosticAnalyzer[] { new DeserializationTaintAnalyzer(), new UnsafeDeserializationAnalyzerVisualBasic() };
         }
 
         private static readonly PortableExecutableReference[] References =

@@ -175,12 +175,9 @@ End Namespace
             Severity = DiagnosticSeverity.Warning
         };
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _)
         {
-            if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new AthorizationAttributeDiagnosticAnalyzer()) };
-            else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new AthorizationAttributeDiagnosticAnalyzer()) };
+            return new[] { new AthorizationAttributeDiagnosticAnalyzer() };
         }
 
         protected string InsertNamespacesCS()

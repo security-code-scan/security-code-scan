@@ -1,43 +1,59 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
-using SecurityCodeScan.Config;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [SecurityAnalyzer(LanguageNames.CSharp)]
-    internal class WeakRandomAnalyzerCSharp : WeakRandomAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class WeakRandomAnalyzerCSharp : WeakRandomAnalyzer
     {
-        public override void Initialize(ISecurityAnalysisContext context)
+        public override void Initialize(AnalysisContext context)
         {
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                context.EnableConcurrentExecution();
+
+            if (context.IsAuditMode())
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            else
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterCompilationStartAction(OnCompilationStartAction);
         }
 
-        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(ctx => VisitSyntaxNode(ctx, CSharpSyntaxNodeHelper.Default), CSharp.SyntaxKind.InvocationExpression);
         }
     }
 
-    [SecurityAnalyzer(LanguageNames.VisualBasic)]
-    internal class WeakRandomAnalyzerVisualBasic : WeakRandomAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+    public class WeakRandomAnalyzerVisualBasic : WeakRandomAnalyzer
     {
-        public override void Initialize(ISecurityAnalysisContext context)
+        public override void Initialize(AnalysisContext context)
         {
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                context.EnableConcurrentExecution();
+
+            if (context.IsAuditMode())
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            else
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterCompilationStartAction(OnCompilationStartAction);
         }
 
-        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(ctx => VisitSyntaxNode(ctx, VBSyntaxNodeHelper.Default), VB.SyntaxKind.InvocationExpression);
         }
     }
 
-    internal abstract class WeakRandomAnalyzer : SecurityAnalyzer
+    public abstract class WeakRandomAnalyzer : DiagnosticAnalyzer
     {
         private static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0005");
 

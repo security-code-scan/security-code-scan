@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 
 namespace SecurityCodeScan.Analyzers.Utils
 {
-    internal abstract class SyntaxNodeHelper
+    public abstract class SyntaxNodeHelper
     {
         [System.Flags]
         protected enum CallKind

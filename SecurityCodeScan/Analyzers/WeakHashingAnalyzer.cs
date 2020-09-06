@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -13,17 +14,25 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [SecurityAnalyzer(LanguageNames.CSharp)]
-    internal class WeakHashingAnalyzerCSharp : WeakHashingAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class WeakHashingAnalyzerCSharp : WeakHashingAnalyzer
     {
-        public override void Initialize(ISecurityAnalysisContext context)
+        public override void Initialize(AnalysisContext context)
         {
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                context.EnableConcurrentExecution();
+
+            if (context.IsAuditMode())
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            else
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterCompilationStartAction(OnCompilationStartAction);
         }
 
-        private void OnCompilationStartAction(CompilationStartAnalysisContext ctx, Configuration config)
+        private void OnCompilationStartAction(CompilationStartAnalysisContext ctx)
         {
-            var analyzer = new WeakHashingCompilationAnalyzer(config);
+            var analyzer = new WeakHashingCompilationAnalyzer(Configuration.GetOrCreate(ctx));
             ctx.RegisterSyntaxNodeAction(actionContext => analyzer.VisitInvocationSyntaxNode(actionContext, CSharpSyntaxNodeHelper.Default),
                                          CSharp.SyntaxKind.InvocationExpression);
 
@@ -35,17 +44,25 @@ namespace SecurityCodeScan.Analyzers
         }
     }
 
-    [SecurityAnalyzer(LanguageNames.VisualBasic)]
-    internal class WeakHashingAnalyzerVisualBasic: WeakHashingAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+    public class WeakHashingAnalyzerVisualBasic: WeakHashingAnalyzer
     {
-        public override void Initialize(ISecurityAnalysisContext context)
+        public override void Initialize(AnalysisContext context)
         {
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                context.EnableConcurrentExecution();
+
+            if (context.IsAuditMode())
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            else
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterCompilationStartAction(OnCompilationStartAction);
         }
 
-        private void OnCompilationStartAction(CompilationStartAnalysisContext ctx, Configuration config)
+        private void OnCompilationStartAction(CompilationStartAnalysisContext ctx)
         {
-            var analyzer = new WeakHashingCompilationAnalyzer(config);
+            var analyzer = new WeakHashingCompilationAnalyzer(Configuration.GetOrCreate(ctx));
             ctx.RegisterSyntaxNodeAction(actionContext => analyzer.VisitInvocationSyntaxNode(actionContext, VBSyntaxNodeHelper.Default),
                                          VB.SyntaxKind.InvocationExpression);
 
@@ -57,7 +74,7 @@ namespace SecurityCodeScan.Analyzers
         }
     }
 
-    internal abstract class WeakHashingAnalyzer : SecurityAnalyzer
+    public abstract class WeakHashingAnalyzer : DiagnosticAnalyzer
     {
         public static readonly DiagnosticDescriptor Md5Rule  = LocaleUtil.GetDescriptor("SCS0006", args: new[] { "MD5" });
         public static readonly DiagnosticDescriptor Sha1Rule = LocaleUtil.GetDescriptor("SCS0006", args: new[] { "SHA1" });

@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
@@ -14,12 +13,9 @@ namespace SecurityCodeScan.Test.Taint
     [TestClass]
     public class XPathInjectionAnalyzerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _)
         {
-            if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new XPathTaintAnalyzer()) };
-            else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new XPathTaintAnalyzer()) };
+            return new[] { new XPathTaintAnalyzer() };
         }
 
         private static readonly PortableExecutableReference[] References =

@@ -7,20 +7,29 @@ using System.Collections.Immutable;
 using SecurityCodeScan.Config;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
+using System.Diagnostics;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [SecurityAnalyzer(LanguageNames.CSharp)]
-    internal class WeakCertificateValidationAnalyzerCSharp : WeakCertificateValidationAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class WeakCertificateValidationAnalyzerCSharp : WeakCertificateValidationAnalyzer
     {
-        public override void Initialize(ISecurityAnalysisContext context)
+        public override void Initialize(AnalysisContext context)
         {
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                context.EnableConcurrentExecution();
+
+            if (context.IsAuditMode())
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            else
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterCompilationStartAction(OnCompilationStartAction);
         }
 
-        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context)
         {
-            OnCompilationStartAction(config);
+            InitConfig(context);
             context.RegisterSyntaxNodeAction(ctx => VisitSyntaxNode(ctx, CSharpSyntaxNodeHelper.Default),
                                              CSharp.SyntaxKind.SimpleAssignmentExpression, CSharp.SyntaxKind.AddAssignmentExpression);
         }
@@ -61,17 +70,25 @@ namespace SecurityCodeScan.Analyzers
         }
     }
 
-    [SecurityAnalyzer(LanguageNames.VisualBasic)]
-    internal class WeakCertificateValidationAnalyzerVisualBasic : WeakCertificateValidationAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+    public class WeakCertificateValidationAnalyzerVisualBasic : WeakCertificateValidationAnalyzer
     {
-        public override void Initialize(ISecurityAnalysisContext context)
+        public override void Initialize(AnalysisContext context)
         {
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                context.EnableConcurrentExecution();
+
+            if (context.IsAuditMode())
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            else
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterCompilationStartAction(OnCompilationStartAction);
         }
 
-        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context)
         {
-            OnCompilationStartAction(config);
+            InitConfig(context);
             context.RegisterSyntaxNodeAction(ctx => VisitSyntaxNode(ctx, VBSyntaxNodeHelper.Default),
                                              VB.SyntaxKind.SimpleAssignmentStatement, VB.SyntaxKind.AddAssignmentStatement);
         }
@@ -108,7 +125,7 @@ namespace SecurityCodeScan.Analyzers
         }
     }
 
-    internal abstract class WeakCertificateValidationAnalyzer : SecurityAnalyzer
+    public abstract class WeakCertificateValidationAnalyzer : DiagnosticAnalyzer
     {
         private static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0004");
 
@@ -119,9 +136,9 @@ namespace SecurityCodeScan.Analyzers
 
         private Configuration Config;
 
-        protected void OnCompilationStartAction(Configuration config)
+        protected void InitConfig(CompilationStartAnalysisContext context)
         {
-            Config = config;
+            Config = Configuration.GetOrCreate(context);
         }
 
         protected void VisitSyntaxNode(SyntaxNodeAnalysisContext ctx, SyntaxNodeHelper nodeHelper)

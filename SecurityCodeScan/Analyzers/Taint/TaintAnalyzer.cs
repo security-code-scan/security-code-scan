@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using SecurityCodeScan.Analyzers.Locale;
+using SecurityCodeScan.Analyzers.Utils;
 using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Analyzers.Taint
@@ -64,8 +65,8 @@ namespace SecurityCodeScan.Analyzers.Taint
         SCS0031,
     }
 
-    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class CommandInjectionTaintAnalyzer : TaintAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class CommandInjectionTaintAnalyzer : TaintAnalyzer
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0001");
 
@@ -74,8 +75,8 @@ namespace SecurityCodeScan.Analyzers.Taint
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }
 
-    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class SqlInjectionTaintAnalyzer : TaintAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class SqlInjectionTaintAnalyzer : TaintAnalyzer
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0002");
 
@@ -84,8 +85,8 @@ namespace SecurityCodeScan.Analyzers.Taint
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }
 
-    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class XPathTaintAnalyzer : TaintAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class XPathTaintAnalyzer : TaintAnalyzer
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0003");
 
@@ -94,8 +95,8 @@ namespace SecurityCodeScan.Analyzers.Taint
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }
 
-    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class PathTraversalTaintAnalyzer : TaintAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class PathTraversalTaintAnalyzer : TaintAnalyzer
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0018");
 
@@ -104,8 +105,8 @@ namespace SecurityCodeScan.Analyzers.Taint
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }
 
-    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class OpenRedirectTaintAnalyzer : TaintAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class OpenRedirectTaintAnalyzer : TaintAnalyzer
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0027");
 
@@ -114,8 +115,8 @@ namespace SecurityCodeScan.Analyzers.Taint
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }
 
-    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class DeserializationTaintAnalyzer : TaintAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class DeserializationTaintAnalyzer : TaintAnalyzer
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0028");
 
@@ -124,8 +125,8 @@ namespace SecurityCodeScan.Analyzers.Taint
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }
 
-    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class LdapFilterTaintAnalyzer : TaintAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class LdapFilterTaintAnalyzer : TaintAnalyzer
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0031");
 
@@ -134,8 +135,8 @@ namespace SecurityCodeScan.Analyzers.Taint
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }
 
-    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class LdapPathTaintAnalyzer : TaintAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class LdapPathTaintAnalyzer : TaintAnalyzer
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0026");
 
@@ -144,8 +145,8 @@ namespace SecurityCodeScan.Analyzers.Taint
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }
 
-    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class XssTaintAnalyzer : TaintAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class XssTaintAnalyzer : TaintAnalyzer
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0029");
 
@@ -154,7 +155,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         protected override DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get { return Rule; } }
     }
 
-    internal abstract class TaintAnalyzer : SecurityAnalyzer
+    public abstract class TaintAnalyzer : DiagnosticAnalyzer
     {
         protected abstract DiagnosticDescriptor TaintedDataEnteringSinkDescriptor { get; }
 
@@ -162,11 +163,21 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(TaintedDataEnteringSinkDescriptor);
 
-        public override void Initialize(ISecurityAnalysisContext context)
+        public override void Initialize(AnalysisContext context)
         {
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                context.EnableConcurrentExecution();
+
+            if (context.IsAuditMode())
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            else
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterCompilationStartAction(
-                (CompilationStartAnalysisContext compilationContext, Configuration config) =>
+                (CompilationStartAnalysisContext compilationContext) =>
                 {
+                    var config = Configuration.GetOrCreate(compilationContext);
+
                     if (config.AuditMode)
                     {
                         TaintedDataSymbolMap<SinkInfo> sinkInfoSymbolMap = config.TaintConfiguration.GetSinkSymbolMap(this.SinkKind);

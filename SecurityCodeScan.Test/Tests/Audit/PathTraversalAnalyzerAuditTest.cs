@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Test.Helpers;
 
@@ -12,12 +11,9 @@ namespace SecurityCodeScan.Test.Audit
     [TestClass]
     public class PathTraversalAnalyzerAuditTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _)
         {
-            if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new PathTraversalTaintAnalyzer()) };
-            else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new PathTraversalTaintAnalyzer()) };
+            return new[] { new PathTraversalTaintAnalyzer() };
         }
 
         private static readonly PortableExecutableReference[] References =

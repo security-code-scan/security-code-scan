@@ -12,12 +12,9 @@ namespace SecurityCodeScan.Test.Config
     [TestClass]
     public class CsrfProtectionConfigurationTests : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _)
         {
-            if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
-            else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
+            return new[] { new CsrfTokenDiagnosticAnalyzer() };
         }
 
         private static readonly PortableExecutableReference[] References =

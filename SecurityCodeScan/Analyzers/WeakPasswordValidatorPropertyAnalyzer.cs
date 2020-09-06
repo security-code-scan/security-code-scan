@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Analyzer.Utilities;
@@ -12,8 +13,8 @@ using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class WeakPasswordValidatorPropertyAnalyzer : SecurityAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class WeakPasswordValidatorPropertyAnalyzer : DiagnosticAnalyzer
     {
         private static readonly DiagnosticDescriptor RulePasswordLength                  = LocaleUtil.GetDescriptor("SCS0032"); // RequiredLength's value is too small
         private static readonly DiagnosticDescriptor RulePasswordValidators              = LocaleUtil.GetDescriptor("SCS0033"); // Not enough properties set
@@ -28,16 +29,26 @@ namespace SecurityCodeScan.Analyzers
             RulePasswordValidators,
             RuleRequiredPasswordValidators);
 
-        public override void Initialize(ISecurityAnalysisContext context)
+        public override void Initialize(AnalysisContext context)
         {
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                context.EnableConcurrentExecution();
+
+            if (context.IsAuditMode())
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            else
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterCompilationStartAction(
-                (CompilationStartAnalysisContext compilationContext, Configuration configuration) =>
+                (CompilationStartAnalysisContext compilationContext) =>
                 {
                     Compilation compilation = compilationContext.Compilation;
                     var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
 
                     if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(ValidatorTypeName, out var validatorType))
                         return;
+
+                    var configuration = Configuration.GetOrCreate(compilationContext);
 
                     compilationContext.RegisterOperationBlockStartAction(
                         operationBlockStartContext =>

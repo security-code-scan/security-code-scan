@@ -13,6 +13,7 @@ using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Analyzers.Utils;
@@ -655,6 +656,30 @@ namespace SecurityCodeScan.Config
     /// </summary>
     internal class Configuration
     {
+        private static readonly BoundedCacheWithFactory<CompilationStartAnalysisContext, Configuration> s_projectConfigurationCache =
+            new BoundedCacheWithFactory<CompilationStartAnalysisContext, Configuration>();
+
+        public static Configuration GetOrCreate(CompilationStartAnalysisContext ctx)
+        {
+            return s_projectConfigurationCache.GetOrCreateValue(ctx, CreateConfiguration);
+
+#pragma warning disable RS1012 // Start action has no registered actions.
+            static Configuration CreateConfiguration(CompilationStartAnalysisContext ctx)
+#pragma warning restore RS1012 // Start action has no registered actions.
+                => new Configuration(ConfigurationManager.GetProjectConfiguration(ctx.Options.AdditionalFiles), ctx.Compilation);
+        }
+
+        private static readonly BoundedCacheWithFactory<AnalysisContext, ConfigData> s_userConfigurationCache =
+            new BoundedCacheWithFactory<AnalysisContext, ConfigData>();
+
+        public static ConfigData GetOrCreate(AnalysisContext ctx)
+        {
+            return s_userConfigurationCache.GetOrCreateValue(ctx, CreateConfiguration);
+
+            static ConfigData CreateConfiguration(AnalysisContext ctx)
+                => ConfigurationManager.GetBuiltInAndUserConfiguration();
+        }
+
         private Configuration()
         {
             _PasswordValidatorRequiredProperties = new HashSet<string>();

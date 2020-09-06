@@ -1,23 +1,31 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
-using SecurityCodeScan.Config;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [SecurityAnalyzer(LanguageNames.CSharp)]
-    internal class WeakCipherAnalyzerCSharp : WeakCipherAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class WeakCipherAnalyzerCSharp : WeakCipherAnalyzer
     {
-        public override void Initialize(ISecurityAnalysisContext context)
+        public override void Initialize(AnalysisContext context)
         {
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                context.EnableConcurrentExecution();
+
+            if (context.IsAuditMode())
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            else
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterCompilationStartAction(OnCompilationStartAction);
         }
 
-        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(ctx => VisitSyntaxNode(ctx, CSharpSyntaxNodeHelper.Default),
                                              CSharp.SyntaxKind.InvocationExpression,
@@ -25,15 +33,23 @@ namespace SecurityCodeScan.Analyzers
         }
     }
 
-    [SecurityAnalyzer(LanguageNames.VisualBasic)]
-    internal class WeakCipherAnalyzerVisualBasic : WeakCipherAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+    public class WeakCipherAnalyzerVisualBasic : WeakCipherAnalyzer
     {
-        public override void Initialize(ISecurityAnalysisContext context)
+        public override void Initialize(AnalysisContext context)
         {
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                context.EnableConcurrentExecution();
+
+            if (context.IsAuditMode())
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            else
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterCompilationStartAction(OnCompilationStartAction);
         }
 
-        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(ctx => VisitSyntaxNode(ctx, VBSyntaxNodeHelper.Default),
                                              VB.SyntaxKind.InvocationExpression,
@@ -41,7 +57,7 @@ namespace SecurityCodeScan.Analyzers
         }
     }
 
-    internal abstract class WeakCipherAnalyzer : SecurityAnalyzer
+    public abstract class WeakCipherAnalyzer : DiagnosticAnalyzer
     {
         private static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0010");
 

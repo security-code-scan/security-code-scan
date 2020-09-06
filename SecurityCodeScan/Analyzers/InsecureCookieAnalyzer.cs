@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Analyzer.Utilities;
@@ -12,8 +13,8 @@ using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class InsecureCookieAnalyzer : SecurityAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class InsecureCookieAnalyzer : DiagnosticAnalyzer
     {
         public const            string               DiagnosticIdSecure = "SCS0008";
         private static readonly DiagnosticDescriptor RuleSecure         = LocaleUtil.GetDescriptor(DiagnosticIdSecure);
@@ -26,18 +27,34 @@ namespace SecurityCodeScan.Analyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(RuleSecure, RuleHttpOnly);
 
-        public override void Initialize(ISecurityAnalysisContext context)
+        public override void Initialize(AnalysisContext context)
         {
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                context.EnableConcurrentExecution();
+
+            if (context.IsAuditMode())
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            else
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             CookieAnalyzer.Initialize(context, HttpCookieTypeName);
             CookieAnalyzer.Initialize(context, CookieOptionsTypeName);
         }
 
         private class CookieAnalyzer
         {
-            public static void Initialize(ISecurityAnalysisContext context, string type)
+            public static void Initialize(AnalysisContext context, string type)
             {
+                if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                    context.EnableConcurrentExecution();
+
+                if (context.IsAuditMode())
+                    context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+                else
+                    context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
                 context.RegisterCompilationStartAction(
-                    (CompilationStartAnalysisContext compilationContext, Configuration configuration) =>
+                    (CompilationStartAnalysisContext compilationContext) =>
                     {
                         Compilation compilation = compilationContext.Compilation;
                         var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
@@ -46,6 +63,8 @@ namespace SecurityCodeScan.Analyzers
                         {
                             return;
                         }
+
+                        var configuration = Configuration.GetOrCreate(compilationContext);
 
                         compilationContext.RegisterOperationBlockStartAction(
                             operationBlockStartContext =>

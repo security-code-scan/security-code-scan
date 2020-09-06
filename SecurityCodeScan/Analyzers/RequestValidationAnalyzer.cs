@@ -1,25 +1,33 @@
 ﻿#nullable disable
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
-using SecurityCodeScan.Config;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [SecurityAnalyzer(LanguageNames.CSharp)]
-    internal class RequestValidationAnalyzerCSharp : RequestValidationAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class RequestValidationAnalyzerCSharp : RequestValidationAnalyzer
     {
-        public override void Initialize(ISecurityAnalysisContext context)
+        public override void Initialize(AnalysisContext context)
         {
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                context.EnableConcurrentExecution();
+
+            if (context.IsAuditMode())
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            else
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterCompilationStartAction(OnCompilationStartAction);
             base.Initialize(context);
         }
 
-        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(ctx => CheckAllowHtml(ctx, CSharpSyntaxNodeHelper.Default),     CSharp.SyntaxKind.PropertyDeclaration);
             context.RegisterSyntaxNodeAction(ctx => CheckUnvalidated(ctx, CSharpSyntaxNodeHelper.Default),   CSharp.SyntaxKind.SimpleMemberAccessExpression);
@@ -28,16 +36,24 @@ namespace SecurityCodeScan.Analyzers
         }
     }
 
-    [SecurityAnalyzer(LanguageNames.VisualBasic)]
-    internal class RequestValidationAnalyzerVisualBasic : RequestValidationAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+    public class RequestValidationAnalyzerVisualBasic : RequestValidationAnalyzer
     {
-        public override void Initialize(ISecurityAnalysisContext context)
+        public override void Initialize(AnalysisContext context)
         {
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                context.EnableConcurrentExecution();
+
+            if (context.IsAuditMode())
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            else
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterCompilationStartAction(OnCompilationStartAction);
             base.Initialize(context);
         }
 
-        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(ctx => CheckAllowHtml(ctx, VBSyntaxNodeHelper.Default),         VB.SyntaxKind.PropertyBlock);
             context.RegisterSyntaxNodeAction(ctx => CheckUnvalidated(ctx, VBSyntaxNodeHelper.Default),       VB.SyntaxKind.SimpleMemberAccessExpression);
@@ -47,14 +63,22 @@ namespace SecurityCodeScan.Analyzers
         }
     }
 
-    internal abstract class RequestValidationAnalyzer : SecurityAnalyzer
+    public abstract class RequestValidationAnalyzer : DiagnosticAnalyzer
     {
         private static readonly DiagnosticDescriptor                 Rule = LocaleUtil.GetDescriptor("SCS0017");
         private static readonly DiagnosticDescriptor                 InheritanceRule = LocaleUtil.GetDescriptor("SCS0017", "title_base");
         public override         ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule, InheritanceRule);
 
-        public override void Initialize(ISecurityAnalysisContext context)
+        public override void Initialize(AnalysisContext context)
         {
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                context.EnableConcurrentExecution();
+
+            if (context.IsAuditMode())
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            else
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterSymbolAction(CheckValidateInputInheritance, SymbolKind.NamedType);
         }
 

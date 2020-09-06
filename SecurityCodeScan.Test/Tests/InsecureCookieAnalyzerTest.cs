@@ -15,12 +15,9 @@ namespace SecurityCodeScan.Test.InsecureCookie
     [TestClass]
     public class InsecureCookieAnalyzerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _)
         {
-            if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new InsecureCookieAnalyzer()) };
-            else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new InsecureCookieAnalyzer()) };
+            return new[] { new InsecureCookieAnalyzer() };
         }
 
         private static readonly PortableExecutableReference[] References =

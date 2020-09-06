@@ -7,21 +7,29 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Utils;
 using SecurityCodeScan.Analyzers.Locale;
-using SecurityCodeScan.Config;
 using CSharp = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
+using System.Diagnostics;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [SecurityAnalyzer(LanguageNames.CSharp)]
-    internal class XxeDiagnosticAnalyzerCSharp : XxeDiagnosticAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class XxeDiagnosticAnalyzerCSharp : XxeDiagnosticAnalyzer
     {
-        public override void Initialize(ISecurityAnalysisContext context)
+        public override void Initialize(AnalysisContext context)
         {
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                context.EnableConcurrentExecution();
+
+            if (context.IsAuditMode())
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            else
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterCompilationStartAction(OnCompilationStartAction);
         }
 
-        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context)
         {
             Compilation compilation = context.Compilation;
             var         xmlTypes    = new XxeSecurityTypes(compilation);
@@ -43,15 +51,23 @@ namespace SecurityCodeScan.Analyzers
         }
     }
 
-    [SecurityAnalyzer(LanguageNames.VisualBasic)]
-    internal class XxeDiagnosticAnalyzerVisualBasic : XxeDiagnosticAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+    public class XxeDiagnosticAnalyzerVisualBasic : XxeDiagnosticAnalyzer
     {
-        public override void Initialize(ISecurityAnalysisContext context)
+        public override void Initialize(AnalysisContext context)
         {
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                context.EnableConcurrentExecution();
+
+            if (context.IsAuditMode())
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            else
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterCompilationStartAction(OnCompilationStartAction);
         }
 
-        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context)
         {
             Compilation compilation = context.Compilation;
             var         xmlTypes    = new XxeSecurityTypes(compilation);
@@ -73,7 +89,7 @@ namespace SecurityCodeScan.Analyzers
         }
     }
 
-    internal abstract class XxeDiagnosticAnalyzer : SecurityAnalyzer
+    public abstract class XxeDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         internal static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor("SCS0007");
 

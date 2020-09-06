@@ -16,9 +16,9 @@ namespace SecurityCodeScan.Test
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new RequestValidationAnalyzerCSharp()) };
+                return new DiagnosticAnalyzer[] { new RequestValidationAnalyzerCSharp() };
             else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new RequestValidationAnalyzerVisualBasic()) };
+                return new DiagnosticAnalyzer[] { new RequestValidationAnalyzerVisualBasic() };
         }
 
         private static readonly PortableExecutableReference[] References =

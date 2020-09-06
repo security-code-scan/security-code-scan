@@ -15,12 +15,12 @@ namespace SecurityCodeScan.Test.XXE
             if (language == LanguageNames.CSharp)
                 return new DiagnosticAnalyzer[]
                 {
-                    new CSharpAnalyzers(new XxeDiagnosticAnalyzerCSharp())
+                    new XxeDiagnosticAnalyzerCSharp()
                 };
             else
                 return new DiagnosticAnalyzer[]
                 {
-                    new VBasicAnalyzers(new XxeDiagnosticAnalyzerCSharp())
+                    new XxeDiagnosticAnalyzerVisualBasic()
                 };
         }
 

@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Test.Audit;
 using SecurityCodeScan.Test.Helpers;
@@ -14,12 +13,9 @@ namespace SecurityCodeScan.Test.Password
     [TestClass]
     public class HardcodedPasswordFieldTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _)
         {
-            if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new HardcodedPasswordAnalyzer()) };
-            else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new HardcodedPasswordAnalyzer()) };
+            return new[] { new HardcodedPasswordAnalyzer() };
         }
 
         [TestCategory("Safe")]

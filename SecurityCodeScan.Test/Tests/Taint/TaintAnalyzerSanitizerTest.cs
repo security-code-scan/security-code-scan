@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
@@ -20,20 +19,20 @@ namespace SecurityCodeScan.Test.Taint
             if (language == LanguageNames.CSharp)
                 return new DiagnosticAnalyzer[]
                 {
-                    new CSharpAnalyzers(new XssTaintAnalyzer(),
-                                        new OpenRedirectTaintAnalyzer(),
-                                        new SqlInjectionTaintAnalyzer(),
-                                        new LdapPathTaintAnalyzer(),
-                                        new LdapFilterTaintAnalyzer())
+                    new XssTaintAnalyzer(),
+                    new OpenRedirectTaintAnalyzer(),
+                    new SqlInjectionTaintAnalyzer(),
+                    new LdapPathTaintAnalyzer(),
+                    new LdapFilterTaintAnalyzer()
                 };
             else
                 return new DiagnosticAnalyzer[]
                 {
-                    new VBasicAnalyzers(new XssTaintAnalyzer(),
-                                        new OpenRedirectTaintAnalyzer(),
-                                        new SqlInjectionTaintAnalyzer(),
-                                        new LdapPathTaintAnalyzer(),
-                                        new LdapFilterTaintAnalyzer())
+                    new XssTaintAnalyzer(),
+                    new OpenRedirectTaintAnalyzer(),
+                    new SqlInjectionTaintAnalyzer(),
+                    new LdapPathTaintAnalyzer(),
+                    new LdapFilterTaintAnalyzer()
                 };
         }
 

@@ -15,9 +15,9 @@ namespace SecurityCodeScan.Test.Audit
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
         {
             if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new WeakHashingAnalyzerCSharp()) };
+                return new DiagnosticAnalyzer[] { new WeakHashingAnalyzerCSharp() };
             else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new WeakHashingAnalyzerVisualBasic()) };
+                return new DiagnosticAnalyzer[] { new WeakHashingAnalyzerVisualBasic() };
         }
 
         [DataRow("CryptoConfig.CreateFromName(name)", true)]

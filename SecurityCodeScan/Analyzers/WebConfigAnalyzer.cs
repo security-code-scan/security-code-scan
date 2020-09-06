@@ -1,8 +1,8 @@
 ﻿#nullable disable
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
@@ -13,8 +13,8 @@ using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Analyzers
 {
-    [SecurityAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class WebConfigAnalyzer : SecurityAnalyzer, IExternalFileAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class WebConfigAnalyzer : DiagnosticAnalyzer, IExternalFileAnalyzer
     {
         public static readonly DiagnosticDescriptor RuleValidateRequest         = LocaleUtil.GetDescriptor("SCS0021");
         public static readonly DiagnosticDescriptor RuleRequestValidationMode   = LocaleUtil.GetDescriptor("SCS0030");
@@ -28,8 +28,16 @@ namespace SecurityCodeScan.Analyzers
                                                                                                            RuleViewStateEncryptionMode,
                                                                                                            RuleEnableViewStateMac);
 
-        public override void Initialize(ISecurityAnalysisContext context)
+        public override void Initialize(AnalysisContext context)
         {
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                context.EnableConcurrentExecution();
+
+            if (context.IsAuditMode())
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            else
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterCompilationStartAction(OnCompilationStartAction);
             context.RegisterCompilationAction(OnCompilationAction);
         }
@@ -37,10 +45,10 @@ namespace SecurityCodeScan.Analyzers
         private Configuration Config;
 
 #pragma warning disable RS1012 // Start action has no registered actions.
-        private void OnCompilationStartAction(CompilationStartAnalysisContext context, Configuration config)
+        private void OnCompilationStartAction(CompilationStartAnalysisContext context)
 #pragma warning restore RS1012 // Start action has no registered actions.
         {
-            Config = config;
+            Config = Configuration.GetOrCreate(context);
         }
 
         private void OnCompilationAction(CompilationAnalysisContext ctx)

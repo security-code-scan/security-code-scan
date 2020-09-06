@@ -4,9 +4,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Analyzers.Utils
 {
+    internal static class AnalysisContextExtensions
+    {
+        public static bool IsAuditMode(this AnalysisContext context)
+        {
+            var config = Configuration.GetOrCreate(context);
+            return config.AuditMode.HasValue && config.AuditMode.Value;
+        }
+    }
+
     internal static class XElementExtensions
     {
         public static string ToStringStartElement(this XElement e)

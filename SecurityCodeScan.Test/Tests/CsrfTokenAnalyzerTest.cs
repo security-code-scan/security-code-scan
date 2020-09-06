@@ -691,12 +691,9 @@ End Namespace
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _)
         {
-            if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
-            else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
+            return new[] { new CsrfTokenDiagnosticAnalyzer() };
         }
     }
 
@@ -719,12 +716,9 @@ End Namespace
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _)
         {
-            if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
-            else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
+            return new[] { new CsrfTokenDiagnosticAnalyzer() };
         }
     }
 
@@ -1161,12 +1155,9 @@ End Namespace
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _)
         {
-            if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
-            else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
+            return new[] { new CsrfTokenDiagnosticAnalyzer() };
         }
     }
 
@@ -1259,12 +1250,9 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected.WithLocation(8, 25)).ConfigureAwait(false);
         }
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _)
         {
-            if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
-            else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
+            return new[] { new CsrfTokenDiagnosticAnalyzer() };
         }
 
         private static readonly PortableExecutableReference[] References =
@@ -1753,12 +1741,9 @@ CsrfCheck:
             await VerifyVisualBasicDiagnostic(vbTest, expectedVb, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _)
         {
-            if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
-            else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new CsrfTokenDiagnosticAnalyzer()) };
+            return new[] { new CsrfTokenDiagnosticAnalyzer() };
         }
     }
 }

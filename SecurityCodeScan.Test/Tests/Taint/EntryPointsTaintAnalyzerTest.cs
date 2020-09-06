@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SecurityCodeScan.Analyzers;
 using SecurityCodeScan.Analyzers.Taint;
 using SecurityCodeScan.Test.Config;
 using SecurityCodeScan.Test.Helpers;
@@ -15,12 +14,9 @@ namespace SecurityCodeScan.Test.Taint
     [TestClass]
     public class SystemWebApiControllerEntryPointsTaintAnalyzerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _)
         {
-            if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new SqlInjectionTaintAnalyzer()) };
-            else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new SqlInjectionTaintAnalyzer()) };
+            return new[] { new SqlInjectionTaintAnalyzer() };
         }
 
         private static readonly PortableExecutableReference[] References =
@@ -144,12 +140,9 @@ Sinks:
     [TestClass]
     public class SystemWebMvcControllerEntryPointsTaintAnalyzerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _)
         {
-            if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new SqlInjectionTaintAnalyzer()) };
-            else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new SqlInjectionTaintAnalyzer()) };
+            return new[] { new SqlInjectionTaintAnalyzer() };
         }
 
         private static readonly PortableExecutableReference[] References =
@@ -384,12 +377,9 @@ Sinks:
     [TestClass]
     public class AspNetCoreMvcEntryPointsTaintAnalyzerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _)
         {
-            if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new SqlInjectionTaintAnalyzer()) };
-            else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new SqlInjectionTaintAnalyzer()) };
+            return new[] { new SqlInjectionTaintAnalyzer() };
         }
 
         private static readonly PortableExecutableReference[] References =
@@ -596,12 +586,9 @@ Sinks:
     [TestClass]
     public class AspNetCoreMvcApiControllerEntryPointsTaintAnalyzerTest : DiagnosticVerifier
     {
-        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _)
         {
-            if (language == LanguageNames.CSharp)
-                return new DiagnosticAnalyzer[] { new CSharpAnalyzers(new SqlInjectionTaintAnalyzer()) };
-            else
-                return new DiagnosticAnalyzer[] { new VBasicAnalyzers(new SqlInjectionTaintAnalyzer()) };
+            return new[] { new SqlInjectionTaintAnalyzer() };
         }
 
         private static readonly PortableExecutableReference[] References =

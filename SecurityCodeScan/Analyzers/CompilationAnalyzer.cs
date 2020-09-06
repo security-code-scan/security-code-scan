@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SecurityCodeScan.Analyzers.Locale;
+using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Analyzers
 {
@@ -22,12 +23,17 @@ namespace SecurityCodeScan.Analyzers
 
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
-            context.RegisterCompilationAction(OnCompilationAction);
-        }
-
-        private void OnCompilationAction(CompilationAnalysisContext ctx)
-        {
-            ctx.ReportDiagnostic(Diagnostic.Create(Rule, Location.None));
+            context.RegisterCompilationStartAction(ctx =>
+            {
+                var configuration = Configuration.GetOrCreate(ctx);
+                if (configuration.ReportAnalysisCompletion)
+                {
+                    ctx.RegisterCompilationEndAction(ctx =>
+                    {
+                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, Location.None));
+                    });
+                }
+            });
         }
     }
 }

@@ -214,7 +214,7 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                                         IEnumerable<SinkInfo>? infosForType = sinkInfoSymbolMap.GetInfosForType(propertyReferenceOperation.Member.ContainingType);
                                         if (infosForType != null &&
-                                            infosForType.Any() &&
+                                            infosForType.Any(x => x.SinkProperties.Contains(propertyReferenceOperation.Member.MetadataName)) &&
                                             !IsConstant(operation, operation.Value, operationAnalysisContext))
                                         {
                                             CreateWarning(

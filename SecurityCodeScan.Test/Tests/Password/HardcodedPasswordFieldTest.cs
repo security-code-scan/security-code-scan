@@ -174,6 +174,41 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, expected, await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false)).ConfigureAwait(false);
         }
 
+        [TestCategory("Safe")]
+        [TestMethod]
+        public async Task HardCodedInitializer()
+        {
+            var cSharpTest = @"
+using System;
+
+namespace VulnerableApp
+{
+    class HardCodedPassword
+    {
+        static void TestCookie()
+        {
+            var uri = new UriBuilder {Port = 443};
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System
+
+Namespace VulnerableApp
+    Class HardCodedPassword
+        Private Shared Sub TestCookie()
+            Dim uri = New UriBuilder With {.Port = 443}
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, null, await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false)).ConfigureAwait(false);
+        }
+
         [TestCategory("Detect")]
         [TestMethod]
         [Ignore("field source readonly tracking")]

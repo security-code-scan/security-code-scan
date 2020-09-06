@@ -58,7 +58,9 @@ SCS0010:
   title: Weak cipher algorithm.
   description: "{0} is not considered as a strong modern cipher."
 
-#SCS0011
+SCS0011:
+  title: "Unsafe XSLT setting used."
+  description: XSLT scripting should be enabled only if you require script support and you are working in a fully trusted environment.
 
 SCS0012:
   title: Controller method is potentially vulnerable to authorization bypass.

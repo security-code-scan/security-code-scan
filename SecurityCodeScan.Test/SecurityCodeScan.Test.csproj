@@ -533,6 +533,7 @@
     <Compile Include="Tests\Taint\UnsafeDeserializationTests.cs" />
     <Compile Include="Tests\UnsafeDeserializationAnalyzerTests.cs" />
     <Compile Include="Tests\WeakPasswordValidatorPropertyAnalyzerTest.cs" />
+    <Compile Include="Tests\XsltSettingsTest.cs" />
     <Compile Include="Tests\XssPreventionAnalyzerTest.cs" />
     <Compile Include="Tests\CsrfTokenAnalyzerTest.cs" />
     <Compile Include="Tests\Password\HardcodedPasswordTest.cs" />

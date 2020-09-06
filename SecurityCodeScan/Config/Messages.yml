@@ -15,8 +15,6 @@ SCS0000:
   title: "Compilation analysis completed."
   description: This a fake warning you may enable in configuration just to have a proof in a log that analyzer did run.
 
-# Injections
-
 SCS0001:
   title: "Potential Command Injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
   title_assignment: Potential Command Injection vulnerability.
@@ -26,37 +24,23 @@ SCS0002:
   title: "Potential SQL injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
   description: The untrusted value passed to the SQL query should be validated.
 
-SCS0027:
-  title: "Potential Open Redirect vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
-  title_assignment: Potential Open Redirect vulnerability.
-  description: The untrusted value passed to the redirect should be validated.
-
 SCS0003:
   title: "Potential XPath injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
   description: The untrusted value passed to the XPath query should be validated.
 
-SCS0028:
-  title: "Potential unsafe deserialization vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
-  title_typenamehandling_analyzer: "TypeNameHandling is set to the other value than 'None'. It may lead to deserialization vulnerability."
-  title_javascriptserializer_analyzer: "Type information is used. It may lead to deserialization vulnerability"
-  title_assignment: "Potential unsafe deserialization setting used."
-  description: Deserialization of untrusted data is unsafe.
-
-SCS0026:
-  title: "Potential LDAP injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
-  title_assignment: Potential LDAP injection vulnerability.
-  description: The untrusted value passed to the LDAP query should be validated.
-
-SCS0031:
-  title: "Potential LDAP injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
-  title_assignment: Possible LDAP injection vulnerability.
-  description: The untrusted value passed in the LDAP query should be validated.
-
-# Various
-
 SCS0004:
   title: Certificate Validation has been disabled.
   description: Disabled certificate validation may lead to Person in the Middle attack.
+
+SCS0005:
+  title: Weak random number generator.
+  description: It is possible to predict the next numbers of a pseudo random generator. Use a cryptographically strong generator for security sensitive purposes.
+
+SCS0006:
+  title: Weak hashing function.
+  description: "{0} is no longer considered as a strong hashing algorithm."
+  title2: Possibly weak hashing function.
+  description_unknown: "Unable to determine hashing algorithm statically. Review if it is strong enough (SHA256 for example)."
 
 SCS0007:
   title: Potential XML eXternal Entity (XXE) vulnerability.
@@ -70,33 +54,30 @@ SCS0009:
   title: The cookie is missing 'HttpOnly' flag.
   description: Cookies without 'HttpOnly' may be stolen in case of JavaScript injection (XSS).
 
-# Crypto
-
-SCS0005:
-  title: Weak random number generator.
-  description: It is possible to predict the next numbers of a pseudo random generator. Use a cryptographically strong generator for security sensitive purposes.
-
-SCS0006:
-  title: Weak hashing function.
-  description: "{0} is no longer considered as a strong hashing algorithm."
-  title2: Possibly weak hashing function.
-  description_unknown: "Unable to determine hashing algorithm statically. Review if it is strong enough (SHA256 for example)."
-
 SCS0010:
   title: Weak cipher algorithm.
   description: "{0} is not considered as a strong modern cipher."
+
+#SCS0011
+
+SCS0012:
+  title: Controller method is potentially vulnerable to authorization bypass.
+  description: Neither the annotation [Authorize] nor [AllowAnonymous] is present. The warning may be ignored/suppressed if the application is using other authorization checks.
 
 SCS0013:
   title: Potential usage of weak AES mode.
   description: This specific mode is susceptible to a cryptographic attack.
 
+#SCS0014
+
+SCS0015:
+  title: "Hardcoded password in {1} argument passed to '{0}'."
+  title_assignment: Hardcoded password.
+  description: The password configuration to this API appears to be hardcoded. Consider moving the password to externalized configuration to avoid leakage of secret information.
+
 SCS0016:
   title: Controller method is potentially vulnerable to Cross Site Request Forgery (CSRF).
   description: The annotation [ValidateAntiForgeryToken] is missing. The warning may be ignored/suppressed if .NET Core AutoValidateAntiforgeryToken is set up globally.
-
-SCS0012:
-  title: Controller method is potentially vulnerable to authorization bypass.
-  description: Neither the annotation [Authorize] nor [AllowAnonymous] is present. The warning may be ignored/suppressed if the application is using other authorization checks.
 
 SCS0017:
   title: Request validation is disabled.
@@ -111,15 +92,11 @@ SCS0019:
   title: OutputCache annotation is disabling authorization checks.
   description: Having the annotation [OutputCache] will disable the annotation [Authorize] for the requests following the first one.
 
-# Configuration issues
+#SCS0020
 
 SCS0021:
   title: "Request validation has been disabled in {0}({1}): {2}."
   description: Request validation, which provides additional protection against Cross-Site Scripting (XSS), has been disabled.
-
-SCS0030:
-  title: "Request validation is enabled only for pages, not for all HTTP requests. {0}({1}): {2}."
-  description: The RequestValidationMode property specifies which ASP.NET approach to validation will be used.
 
 SCS0022:
   title: "Event validation is disabled in {0}({1}): {2}."
@@ -133,18 +110,38 @@ SCS0024:
   title: "View state mac is disabled in {0}({1}): {2}."
   description: View state mac is disabled. The view state could be altered by an attacker. (This feature cannot be disabled in the recent version of ASP.net).
 
-# XSS
+#SCS0025
+
+SCS0026:
+  title: "Potential LDAP injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
+  title_assignment: Potential LDAP injection vulnerability.
+  description: The untrusted value passed to the LDAP query should be validated.
+
+SCS0027:
+  title: "Potential Open Redirect vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
+  title_assignment: Potential Open Redirect vulnerability.
+  description: The untrusted value passed to the redirect should be validated.
+
+SCS0028:
+  title: "Potential unsafe deserialization vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
+  title_typenamehandling_analyzer: "TypeNameHandling is set to the other value than 'None'. It may lead to deserialization vulnerability."
+  title_javascriptserializer_analyzer: "Type information is used. It may lead to deserialization vulnerability"
+  title_assignment: "Potential unsafe deserialization setting used."
+  description: Deserialization of untrusted data is unsafe.
+
 SCS0029:
   title: "Potential Cross-Site Scripting (XSS) vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
   title_assignment: Potential Cross-Site Scripting (XSS) vulnerability.
   description: The untrusted value used to create a HTML should be validated or properly encoded.
 
-# Password Validator
+SCS0030:
+  title: "Request validation is enabled only for pages, not for all HTTP requests. {0}({1}): {2}."
+  description: The RequestValidationMode property specifies which ASP.NET approach to validation will be used.
 
-SCS0015:
-  title: "Hardcoded password in {1} argument passed to '{0}'."
-  title_assignment: Hardcoded password.
-  description: The password configuration to this API appears to be hardcoded. Consider moving the password to externalized configuration to avoid leakage of secret information.
+SCS0031:
+  title: "Potential LDAP injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
+  title_assignment: Possible LDAP injection vulnerability.
+  description: The untrusted value passed in the LDAP query should be validated.
 
 SCS0032:
   title: "The RequiredLength property of PasswordValidator should be set to at least {0}."

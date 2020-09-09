@@ -1455,6 +1455,23 @@ Sinks:
 
  # XSS
 
+  - Type: System.Web.Mvc.HtmlHelper
+    TaintTypes:
+      - SCS0029
+    Methods:
+    - Name: Raw
+      Arguments:
+        - value
+
+  - Type: Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper
+    TaintTypes:
+      - SCS0029
+    IsInterface: true
+    Methods:
+    - Name: Raw
+      Arguments:
+        - value
+
   - Type: System.Web.HttpResponse
     TaintTypes:
       - SCS0029

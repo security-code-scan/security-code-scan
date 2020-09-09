@@ -34,126 +34,118 @@ namespace SecurityCodeScan.Analyzers
             else
                 context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
-            Analyzer.Initialize(context);
-        }
+            if (!Debugger.IsAttached) // prefer single thread for debugging in development
+                context.EnableConcurrentExecution();
 
-        private class Analyzer
-        {
-            public static void Initialize(AnalysisContext context)
-            {
-                if (!Debugger.IsAttached) // prefer single thread for debugging in development
-                    context.EnableConcurrentExecution();
+            if (context.IsAuditMode())
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            else
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
-                if (context.IsAuditMode())
-                    context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
-                else
-                    context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.RegisterCompilationStartAction(
+                (CompilationStartAnalysisContext compilationContext) =>
+                {
+                    Compilation compilation = compilationContext.Compilation;
+                    var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
 
-                context.RegisterCompilationStartAction(
-                    (CompilationStartAnalysisContext compilationContext) =>
+                    if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName("System.Xml.Xsl.XsltSettings", out var type))
                     {
-                        Compilation compilation = compilationContext.Compilation;
-                        var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
+                        return;
+                    }
 
-                        if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName("System.Xml.Xsl.XsltSettings", out var type))
+                    var configuration = Configuration.GetOrCreate(compilationContext);
+
+                    compilationContext.RegisterOperationBlockStartAction(
+                        operationBlockStartContext =>
                         {
-                            return;
-                        }
-
-                        var configuration = Configuration.GetOrCreate(compilationContext);
-
-                        compilationContext.RegisterOperationBlockStartAction(
-                            operationBlockStartContext =>
+                            ISymbol owningSymbol = operationBlockStartContext.OwningSymbol;
+                            AnalyzerOptions options = operationBlockStartContext.Options;
+                            CancellationToken cancellationToken = operationBlockStartContext.CancellationToken;
+                            if (owningSymbol.IsConfiguredToSkipAnalysis(options, Rule, compilation, cancellationToken))
                             {
-                                ISymbol owningSymbol = operationBlockStartContext.OwningSymbol;
-                                AnalyzerOptions options = operationBlockStartContext.Options;
-                                CancellationToken cancellationToken = operationBlockStartContext.CancellationToken;
-                                if (owningSymbol.IsConfiguredToSkipAnalysis(options, Rule, compilation, cancellationToken))
-                                {
-                                    return;
-                                }
+                                return;
+                            }
 
-                                bool? GetValue(IOperation operation, IOperation value, OperationAnalysisContext operationAnalysisContext)
-                                {
-                                    if (value.ConstantValue.HasValue && value.ConstantValue.Value is bool isEnableScript)
-                                        return isEnableScript;
+                            bool? GetValue(IOperation operation, IOperation value, OperationAnalysisContext operationAnalysisContext)
+                            {
+                                if (value.ConstantValue.HasValue && value.ConstantValue.Value is bool isEnableScript)
+                                    return isEnableScript;
 
-                                    if (!operation.TryGetEnclosingControlFlowGraph(out var cfg))
-                                        return null;
-
-                                    var valueContentResult = ValueContentAnalysis.TryGetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
-                                    operationAnalysisContext.Options, Rule, PointsToAnalysisKind.Complete, operationAnalysisContext.CancellationToken);
-                                    if (valueContentResult == null)
-                                        return null;
-
-                                    ValueContentAbstractValue abstractValue = valueContentResult[value.Kind, value.Syntax];
-
-                                    PropertySetAbstractValueKind kind = PropertySetCallbacks.EvaluateLiteralValues(abstractValue, (object? o) => o is true);
-                                    if (kind == PropertySetAbstractValueKind.MaybeFlagged || kind == PropertySetAbstractValueKind.Flagged)
-                                        return true;
-
-                                    kind = PropertySetCallbacks.EvaluateLiteralValues(abstractValue, (object? o) => o is false);
-                                    if (kind == PropertySetAbstractValueKind.Flagged)
-                                        return false;
-
+                                if (!operation.TryGetEnclosingControlFlowGraph(out var cfg))
                                     return null;
-                                }
 
-                                operationBlockStartContext.RegisterOperationAction(
-                                    ctx =>
+                                var valueContentResult = ValueContentAnalysis.TryGetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
+                                    operationAnalysisContext.Options, Rule, PointsToAnalysisKind.Complete, operationAnalysisContext.CancellationToken);
+                                if (valueContentResult == null)
+                                    return null;
+
+                                ValueContentAbstractValue abstractValue = valueContentResult[value.Kind, value.Syntax];
+
+                                PropertySetAbstractValueKind kind = PropertySetCallbacks.EvaluateLiteralValues(abstractValue, (object? o) => o is true);
+                                if (kind == PropertySetAbstractValueKind.MaybeFlagged || kind == PropertySetAbstractValueKind.Flagged)
+                                    return true;
+
+                                kind = PropertySetCallbacks.EvaluateLiteralValues(abstractValue, (object? o) => o is false);
+                                if (kind == PropertySetAbstractValueKind.Flagged)
+                                    return false;
+
+                                return null;
+                            }
+
+                            operationBlockStartContext.RegisterOperationAction(
+                                ctx =>
+                                {
+                                    IAssignmentOperation operation = (IAssignmentOperation)ctx.Operation;
+                                    if (!(operation.Target is IPropertyReferenceOperation propertyReferenceOperation))
+                                        return;
+
+                                    if (propertyReferenceOperation.Member.ContainingType != type)
+                                        return;
+
+                                    if (propertyReferenceOperation.Member.Name == "EnableScript")
                                     {
-                                        IAssignmentOperation operation = (IAssignmentOperation)ctx.Operation;
-                                        if (!(operation.Target is IPropertyReferenceOperation propertyReferenceOperation))
-                                            return;
-
-                                        if (propertyReferenceOperation.Member.ContainingType != type)
-                                            return;
-
-                                        if (propertyReferenceOperation.Member.Name == "EnableScript")
-                                        {
-                                            var enableScript = GetValue(operation, operation.Value, ctx);
-                                            if ((enableScript.HasValue && enableScript.Value) ||
-                                                !enableScript.HasValue && configuration.AuditMode)
-                                            {
-                                                ctx.ReportDiagnostic(Diagnostic.Create(Rule, operation.Syntax.GetLocation()));
-                                            }
-                                        }
-                                    },
-                                    OperationKind.SimpleAssignment);
-
-                                operationBlockStartContext.RegisterOperationAction(
-                                    ctx =>
-                                    {
-                                        var operation = (IPropertyReferenceOperation)ctx.Operation;
-                                        if (operation.Property.ContainingType != type || operation.Property.Name != "TrustedXslt")
-                                            return;
-
-                                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, operation.Syntax.GetLocation()));
-                                    },
-                                    OperationKind.PropertyReference);
-
-                                operationBlockStartContext.RegisterOperationAction(
-                                    ctx =>
-                                    {
-                                        IObjectCreationOperation invocationOperation = (IObjectCreationOperation)ctx.Operation;
-                                        if (invocationOperation.Constructor.ContainingType != type)
-                                            return;
-
-                                        var enableScriptArg = invocationOperation.Arguments.FirstOrDefault(x => x.Parameter.Name == "enableScript");
-                                        if (enableScriptArg == null)
-                                            return;
-
-                                        var enableScript = GetValue(invocationOperation, enableScriptArg.Value, ctx);
+                                        var enableScript = GetValue(operation, operation.Value, ctx);
                                         if ((enableScript.HasValue && enableScript.Value) ||
                                             !enableScript.HasValue && configuration.AuditMode)
                                         {
-                                            ctx.ReportDiagnostic(Diagnostic.Create(Rule, invocationOperation.Syntax.GetLocation()));
+                                            ctx.ReportDiagnostic(Diagnostic.Create(Rule, operation.Syntax.GetLocation()));
                                         }
-                                    },
-                                    OperationKind.ObjectCreation);
-                            });
-                    });
-            }
+                                    }
+                                },
+                                OperationKind.SimpleAssignment);
+
+                            operationBlockStartContext.RegisterOperationAction(
+                                ctx =>
+                                {
+                                    var operation = (IPropertyReferenceOperation)ctx.Operation;
+                                    if (operation.Property.ContainingType != type || operation.Property.Name != "TrustedXslt")
+                                        return;
+
+                                    ctx.ReportDiagnostic(Diagnostic.Create(Rule, operation.Syntax.GetLocation()));
+                                },
+                                OperationKind.PropertyReference);
+
+                            operationBlockStartContext.RegisterOperationAction(
+                                ctx =>
+                                {
+                                    IObjectCreationOperation invocationOperation = (IObjectCreationOperation)ctx.Operation;
+                                    if (invocationOperation.Constructor.ContainingType != type)
+                                        return;
+
+                                    var enableScriptArg = invocationOperation.Arguments.FirstOrDefault(x => x.Parameter.Name == "enableScript");
+                                    if (enableScriptArg == null)
+                                        return;
+
+                                    var enableScript = GetValue(invocationOperation, enableScriptArg.Value, ctx);
+                                    if ((enableScript.HasValue && enableScript.Value) ||
+                                        !enableScript.HasValue && configuration.AuditMode)
+                                    {
+                                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, invocationOperation.Syntax.GetLocation()));
+                                    }
+                                },
+                                OperationKind.ObjectCreation);
+                        });
+                });
         }
     }
 }

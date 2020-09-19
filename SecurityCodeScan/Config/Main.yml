@@ -3179,6 +3179,14 @@ Behavior:
       Returns:
         Taint: Tainted
 
+ # Microsoft.AspNetCore.Routing_RouteValueDictionary
+  Microsoft.AspNetCore.Routing_RouteValueDictionary:
+    Namespace: Microsoft.AspNetCore.Routing
+    ClassName: RouteValueDictionary
+    Method:
+      Returns:
+        Taint: Tainted
+
  # Microsoft.AspNetCore.Http.HostString
   Microsoft.AspNetCore.Http_HostString:
     Namespace: Microsoft.AspNetCore.Http

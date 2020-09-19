@@ -34,6 +34,8 @@ namespace SecurityCodeScan.Test.Taint
             MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ControllerBase).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Http.HttpRequest).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Http.IRequestCookieCollection).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ActionContext).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Routing.RouteValueDictionary).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.Extensions.Primitives.StringValues).Assembly.Location),
             MetadataReference.CreateFromFile(Assembly.Load("System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")
                                                      .Location),
@@ -2818,6 +2820,7 @@ Behavior:
         [DataRow("Request.QueryString.Value",                                                 true)]
         [DataRow("Request.Scheme",                                                            false)]
         [DataRow("Request.ReadFormAsync(System.Threading.CancellationToken.None).ToString()", true)]
+        [DataRow("ControllerContext.RouteData.Values[\"test\"].ToString()", true)]
         public async Task TaintSourceControllerCore(string payload, bool warn)
         {
             var cSharpTest = $@"

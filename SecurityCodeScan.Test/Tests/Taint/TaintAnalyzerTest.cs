@@ -1839,6 +1839,207 @@ End Namespace
 
         [TestCategory("Detect")]
         [TestMethod]
+        public async Task VariableTransferModelUnsafe()
+        {
+            var cSharpTest = @"
+using System.Data.SqlClient;
+using System.Web.Mvc;
+
+namespace sample
+{
+    public class Model
+    {
+        public string Value {get; set;}
+    }
+
+    public class SqlConstantController : Controller
+    {
+        public void Run(Model model)
+        {
+            new SqlCommand(model.Value);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+Imports System.Web.Mvc
+
+Namespace sample
+    Public Class Model
+        Public Property Value As String
+    End Class
+
+    Public Class SqlConstantController
+        Inherits Controller
+
+        Public Sub Run(ByVal model As Model)
+            Dim sql = New SqlCommand(model.Value)
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task VariableTransferModelUnsafe2()
+        {
+            var cSharpTest = @"
+using System.Data.SqlClient;
+using System.Web.Mvc;
+
+namespace sample
+{
+    public class Model
+    {
+        public string Value {get; set;}
+    }
+
+    public class SqlConstantController : Controller
+    {
+        public void Run(string input)
+        {
+            var model = new Model {Value = input};
+            new SqlCommand(model.Value);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+Imports System.Web.Mvc
+
+Namespace sample
+    Public Class Model
+        Public Property Value As String
+    End Class
+
+    Public Class SqlConstantController
+        Inherits Controller
+
+        Public Sub Run(ByVal input As String)
+            Dim model = New Model With {.Value = input}
+            Dim sql = New SqlCommand(model.Value)
+        End Sub
+    End Class
+End Namespace
+
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+        }
+
+        [TestCategory("Safe")]
+        [TestMethod]
+        public async Task VariableTransferModelSafe()
+        {
+            var cSharpTest = @"
+using System.Data.SqlClient;
+using System.Web.Mvc;
+
+namespace sample
+{
+    public class Model
+    {
+        public string Value {get; set;}
+    }
+
+    public class SqlConstantController : Controller
+    {
+        public void Run(Model model)
+        {
+            model.Value = ""const"";
+            new SqlCommand(model.Value);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+Imports System.Web.Mvc
+
+Namespace sample
+    Public Class Model
+        Public Property Value As String
+    End Class
+
+    Public Class SqlConstantController
+        Inherits Controller
+
+        Public Sub Run(ByVal model As Model)
+            model.Value = ""const""
+            Dim sql = New SqlCommand(model.Value)
+        End Sub
+    End Class
+End Namespace
+
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestCategory("Safe")]
+        [TestMethod]
+        public async Task VariableTransferModelSafe2()
+        {
+            var cSharpTest = @"
+using System.Data.SqlClient;
+using System.Web.Mvc;
+
+namespace sample
+{
+    public class Model
+    {
+        public string Value {get; set;}
+    }
+
+    public class SqlConstantController : Controller
+    {
+        public void Run(Model model)
+        {
+            model = new Model();
+            new SqlCommand(model.Value);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+Imports System.Web.Mvc
+
+Namespace sample
+    Public Class Model
+        Public Property Value As String
+    End Class
+
+    Public Class SqlConstantController
+        Inherits Controller
+
+        Public Sub Run(ByVal model As Model)
+            model = New Model()
+            Dim sql = New SqlCommand(model.Value)
+        End Sub
+    End Class
+End Namespace
+
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [TestMethod]
         public async Task VariableTransferUnsafe()
         {
             var cSharpTest = @"
@@ -3411,7 +3612,7 @@ Sinks:
         }
 
         [TestMethod]
-        [TestCategory("Detect")]
+        [TestCategory("Safe")]
         public async Task ExtensionMethodWithParams()
         {
             var cSharpTest = @"
@@ -3437,27 +3638,27 @@ static class Exts
 }
 ";
 
-//            var vbTest = @"
-//Imports System.Runtime.CompilerServices
+            var vbTest = @"
+Imports System.Runtime.CompilerServices
 
-//Class Test
-//    Public Sub Foo(ByVal userInput As String)
-//        Dim foo As String = ""
-//        ""
-//        Sink(foo.ExtensionMethod(foo, foo, userInput))
-//    End Sub
+Class Test
+    Public Sub Foo(ByVal userInput As String)
+        Dim foo As String = ""
+        ""
+        Sink(foo.ExtensionMethod(foo, foo, userInput))
+    End Sub
 
-//    Private Sub Sink(ByVal input As String)
-//    End Sub
-//End Class
+    Private Sub Sink(ByVal input As String)
+    End Sub
+End Class
 
-//Module Exts
-//    <Extension()>
-//    Function ExtensionMethod(ByVal str As String, ParamArray args As String()) As String
-//        Return args(0)
-//    End Function
-//End Module
-//";
+Module Exts
+    <Extension()>
+    Function ExtensionMethod(ByVal str As String, ParamArray args As String()) As String
+        Return args(0)
+    End Function
+End Module
+";
 
             var testConfig = @"
 TaintEntryPoints:
@@ -3465,10 +3666,76 @@ TaintEntryPoints:
     Method:
       Name: Foo
 
-TaintSources:
-  - Type: Exts
+Sinks:
+  - Type: Test
+    TaintTypes:
+      - SCS0002
     Methods:
-      - ExtensionMethodRef
+    - Name: Sink
+      Arguments:
+        - input
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        [TestCategory("Detect")]
+        [Ignore("Should it work without transfer rules?")]
+        public async Task ExtensionMethodWithParams2()
+        {
+            var cSharpTest = @"
+public class Test
+{
+    public void Foo(string userInput)
+    {
+        string foo = """";
+        Sink(foo.ExtensionMethod(foo, foo, userInput));
+    }
+
+    private void Sink(string input)
+    {
+    }
+}
+
+static class Exts
+{
+    public static string ExtensionMethod(this string str, params string[] args)
+    {
+        return args[2];
+    }
+}
+";
+
+            var vbTest = @"
+Imports System.Runtime.CompilerServices
+
+Class Test
+    Public Sub Foo(ByVal userInput As String)
+        Dim foo As String = ""
+        ""
+        Sink(foo.ExtensionMethod(foo, foo, userInput))
+    End Sub
+
+    Private Sub Sink(ByVal input As String)
+    End Sub
+End Class
+
+Module Exts
+    <Extension()>
+    Function ExtensionMethod(ByVal str As String, ParamArray args As String()) As String
+        Return args(2)
+    End Function
+End Module
+";
+
+            var testConfig = @"
+TaintEntryPoints:
+  Test:
+    Method:
+      Name: Foo
 
 Sinks:
   - Type: Test
@@ -3482,8 +3749,7 @@ Sinks:
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
-            //todo: bug in Roslyn VB only
-            //await VerifyVisualBasicDiagnostic(vbTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(vbTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
     }
 }

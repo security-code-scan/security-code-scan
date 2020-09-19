@@ -92,6 +92,10 @@ TaintSources:
 
   - Type: Microsoft.EntityFrameworkCore.DbContext
 
+  - Type: Microsoft.AspNetCore.Routing.RouteValueDictionary
+
+  - Type: System.Web.Routing.RouteValueDictionary
+
   - Type: System.Console
     Methods:
       - ReadLine

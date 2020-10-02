@@ -63,7 +63,8 @@ jobs:
     #    and modify them (or add more) to build your code if your project
     #    uses a compiled language
 
-    #- run: |
+    - run: |
+        msbuild /p:UseSharedCompilation=false
     #   make bootstrap
     #   make release
 

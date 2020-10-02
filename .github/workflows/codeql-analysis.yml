@@ -66,8 +66,8 @@ jobs:
       uses: microsoft/setup-msbuild@v1.0.1
 
     - run: |
-        nuget restore
-        msbuild securitycodescan.sln /p:UseSharedCompilation=false
+        nuget restore SecurityCodeScan.sln
+        msbuild SecurityCodeScan.sln /p:UseSharedCompilation=false
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1

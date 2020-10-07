@@ -14,7 +14,7 @@ on:
   schedule:
     - cron: '0 9 * * 3'
 
-jobs:
+jobs:         
   analyze:
     name: Analyze
     runs-on: windows-latest
@@ -71,3 +71,9 @@ jobs:
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
+      
+    - name: Print dir
+      shell: bash
+      run: |
+        value=`ls`
+        echo The result is $value

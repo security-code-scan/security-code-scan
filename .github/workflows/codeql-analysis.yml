@@ -72,8 +72,8 @@ jobs:
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
       
-    - name: Print dir
-      shell: bash
-      run: |
-        value=`printenv`
-        echo The result is $value
+    - name: Save codeql db
+      uses: actions/upload-artifact@v2
+      with:
+        name: scs_csharp
+        path: "$RUNNER_TEMP/codeql_databases/csharp"

@@ -14,7 +14,7 @@ on:
   schedule:
     - cron: '0 9 * * 3'
 
-jobs:         
+jobs:
   analyze:
     name: Analyze
     runs-on: windows-latest
@@ -75,5 +75,5 @@ jobs:
     - name: Print dir
       shell: bash
       run: |
-        value=`ls`
+        value=`printenv`
         echo The result is $value

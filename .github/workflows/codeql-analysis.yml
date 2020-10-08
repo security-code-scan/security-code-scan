@@ -27,7 +27,10 @@ jobs:
         language: ['csharp', 'python']
         # Learn more...
         # https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#overriding-automatic-language-detection
-
+    
+    env:
+      CODE: ${{ env }}
+        
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -73,8 +76,6 @@ jobs:
       uses: github/codeql-action/analyze@v1
       
     - name: Print dir
-      env:
-        CODE: ${{ env }}
       shell: bash
       run: |
         echo trampampam ${CODE}

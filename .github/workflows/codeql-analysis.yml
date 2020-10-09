@@ -72,22 +72,22 @@ jobs:
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
 
-    - name: Export temp directory env variable
+    - name: Export Temp Directory Environment Variable
       shell: bash
       run: echo '::set-output name=RUNNER_TEMP::'$RUNNER_TEMP
       id: runner-temp
        
-    - name: Save codeql db to artifacts
+    - name: Save CodeQL Database to Artifacts
       uses: actions/upload-artifact@v2
       with:
         name: ${{ matrix.language }}
         path: "${{steps.runner-temp.outputs.RUNNER_TEMP}}/codeql_databases/${{ matrix.language }}"
         
-    - name: Zip codeql db
+    - name: Zip CodeQL Database
       shell: pwsh
       run: Compress-Archive -Path "${{steps.runner-temp.outputs.RUNNER_TEMP}}/codeql_databases/${{ matrix.language }}/*" -DestinationPath "${{steps.runner-temp.outputs.RUNNER_TEMP}}/${{ matrix.language }}.zip"
     
-    - name: Upload codeql zip to azure
+    - name: Upload CodeQL Zip to Azure
       uses: fixpoint/azblob-upload-artifact@v4.2
       with:
         connection-string: ${{ secrets.CODEQL_STORAGE_CONNECTION_STRING }}

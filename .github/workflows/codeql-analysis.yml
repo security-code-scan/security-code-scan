@@ -30,7 +30,7 @@ jobs:
         
     steps:
     - name: Set temp env var
-      run: echo '::set-output name=RUNNER_TEMP::$RUNNER_TEMP'
+      run: echo '::set-output name=RUNNER_TEMP::'$RUNNER_TEMP
       shell: bash
       id: runner-temp2
       

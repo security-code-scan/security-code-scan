@@ -82,3 +82,10 @@ jobs:
       with:
         name: ${{ matrix.language }}
         path: "${{steps.runner-temp.outputs.RUNNER_TEMP}}/codeql_databases/${{ matrix.language }}"
+        
+    - uses: fixpoint/azblob-upload-artifact@v4.2
+      with:
+        connection-string: ${{ secrets.CODEQL_STORAGE_CONNECTION_STRING }}
+        name: ${{ github.repository }}
+        container_name: ${{ matrix.language }}
+        path: ${{ matrix.language }}

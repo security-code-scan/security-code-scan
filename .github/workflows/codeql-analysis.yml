@@ -84,8 +84,9 @@ jobs:
         path: "${{steps.runner-tem.outputs.RUNNER_TEMP}}/codeql_databases/${{ matrix.language }}"
         
     - name: Zip codeql db
-      shell: bash
-      run: "zip -r ${{steps.runner-tem.outputs.RUNNER_TEMP}}/${{ matrix.language }}.zip ${{steps.runner-tem.outputs.RUNNER_TEMP}}/codeql_databases/${{ matrix.language }}"
+      uses: montudor/action-zip@v0.1.0
+      with:
+        args: "zip -r ${{steps.runner-tem.outputs.RUNNER_TEMP}}/${{ matrix.language }}.zip ${{steps.runner-tem.outputs.RUNNER_TEMP}}/codeql_databases/${{ matrix.language }}"
     
     - name: Upload codeql zip to azure
       uses: fixpoint/azblob-upload-artifact@v4.2

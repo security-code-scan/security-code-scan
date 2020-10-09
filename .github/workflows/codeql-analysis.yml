@@ -85,7 +85,7 @@ jobs:
         
     - name: Zip codeql db
       shell: pwsh
-      run: Compress-Archive -Path "${{steps.runner-temp.outputs.RUNNER_TEMP}}/codeql_databases/${{ matrix.language }}" -DestinationPath "${{steps.runner-temp.outputs.RUNNER_TEMP}}/${{ matrix.language }}.zip"
+      run: Compress-Archive -Path "${{steps.runner-temp.outputs.RUNNER_TEMP}}/codeql_databases/${{ matrix.language }}/*" -DestinationPath "${{steps.runner-temp.outputs.RUNNER_TEMP}}/${{ matrix.language }}.zip"
     
     - name: Upload codeql zip to azure
       uses: fixpoint/azblob-upload-artifact@v4.2

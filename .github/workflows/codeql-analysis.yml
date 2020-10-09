@@ -86,7 +86,7 @@ jobs:
     - name: Zip codeql db
       uses: papeloto/action-zip@v1
       with:
-        files: ${{steps.runner-temp.outputs.RUNNER_TEMP}}/codeql_databases/${{ matrix.language }}"
+        files: "${{steps.runner-temp.outputs.RUNNER_TEMP}}/codeql_databases/${{ matrix.language }}"
         dest: "${{steps.runner-temp.outputs.RUNNER_TEMP}}/${{ matrix.language }}.zip"
     
     - name: Upload codeql zip to azure

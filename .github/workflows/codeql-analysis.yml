@@ -35,7 +35,7 @@ jobs:
       id: runner-temp2
       
     - name: print env var
-      run: echo 'The runner temp is' ${steps.runner-temp2.outputs.RUNNER_TEMP}
+      run: echo 'The runner temp is' ${{steps.runner-temp2.outputs.RUNNER_TEMP}}
       
     - name: Checkout repository
       uses: actions/checkout@v2

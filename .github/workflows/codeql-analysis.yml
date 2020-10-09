@@ -80,11 +80,5 @@ jobs:
     - name: Save codeql db
       uses: actions/upload-artifact@v2
       with:
-        name: csharp
-        path: "${{steps.runner-temp.outputs.RUNNER_TEMP}}/codeql_databases/csharp"
-        
-    - name: Save codeql db
-      uses: actions/upload-artifact@v2
-      with:
-        name: python
-        path: "${{steps.runner-temp.outputs.RUNNER_TEMP}}/codeql_databases/python"
+        name: ${{ matrix.language }}
+        path: "${{steps.runner-temp.outputs.RUNNER_TEMP}}/codeql_databases/${{ matrix.language }}"

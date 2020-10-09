@@ -29,6 +29,10 @@ jobs:
         # https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#overriding-automatic-language-detection
         
     steps:
+    - name: Set temp env var
+      run: echo $RUNNER_TEMP
+      id: runner-temp2
+      
     - name: Checkout repository
       uses: actions/checkout@v2
       with:

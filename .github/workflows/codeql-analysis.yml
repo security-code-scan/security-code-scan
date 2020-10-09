@@ -74,7 +74,7 @@ jobs:
 
     - name: Set temp env var
       shell: bash
-      run: echo '::set-output name=RUNNER_TEMP::'$RUNNER_TEMP'
+      run: echo '::set-output name=RUNNER_TEMP::'$RUNNER_TEMP
       id: runner-temp
        
     - name: Save codeql db

@@ -8,7 +8,7 @@
 
 <span class="octicon octicon-code"/> Analyzes .NET and [.NET Core](https://en.wikipedia.org/wiki/.NET_Framework#.NET_Core) projects in a background (IntelliSense) or during a build.
 
-<span class="octicon octicon-pulse"/> [Continuous Integration (CI)](https://github.com/marketplace/actions/securitycodescan). For Unix CI runners please use [VS2017 NuGet package](https://www.nuget.org/packages/SecurityCodeScan.VS2017). See [Continuous Integration Builds section](#continuous-integration-builds) for instructions.
+<span class="octicon octicon-pulse"/> [Continuous Integration (CI/CD)](https://github.com/marketplace/actions/securitycodescan). For Unix runners please use [VS2017 NuGet package](https://www.nuget.org/packages/SecurityCodeScan.VS2017). See [Continuous Integration Builds section](#continuous-integration-builds) for instructions.
 
 <span class="octicon octicon-plug"/> Works with Visual Studio 2015 or higher. Visual Studio [Community](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx), Professional and Enterprise editions are supported. Other editors that support Roslyn based analyzers like Rider or OmniSharp should work too.
 

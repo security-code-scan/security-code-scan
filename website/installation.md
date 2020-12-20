@@ -18,14 +18,6 @@ However it requires discipline to install SCS into every solution a developer wo
 The NuGet version runs during a build and in background as IntelliSense (VS extension provides IntelliSense only) and can be integrated to any Continuous Integration (CI) server that supports [MSBuild](https://msdn.microsoft.com/en-us/library/dd393574.aspx).
 
 ## Continuous Integration Builds
-If the CI server of your choice is using MSBuild, then integration of SCS is just a matter of adding NuGet packages and collecting the output from the build. SCS warnings are in the form of  
+There is [SCS action](https://github.com/marketplace/actions/securitycodescan) for integration with GitHub Actions.
+For custom integrations SCS is capable of producing results in SARIF format and displaying warnings with other build messages in the build output. SCS warnings are in the form of  
 `[source file](line,column): warning SCS[rule id]: [warning description] [project_file]`  
-If your CI server doesn't support MSBuild, here is an example how it can be scripted to use Docker container for building:  
-* `git clone` or copy by other means the sources of your project to a local directory.
-* `docker run -ti --rm --volume $PWD/SourcesFolderName:/tmp/app -w /tmp/app microsoft/dotnet:2.0-sdk`
-* `dotnet add src/SourcesFolderName/ProjectName.csproj package SecurityCodeScan.VS2017` to reference SCS NuGet package in specific project file. Repeat for every project you want to analyze. Strictly speaking the step is not necessary if the SCS NuGet package is already referenced in project during development.
-> ⚠️If there is an error `Package 'SecurityCodeScan.VS2017' is incompatible with 'all' frameworks in project` try:  
-a. `dotnet nuget locals all -c` as suggested in [this NuGet issue](https://github.com/NuGet/Home/issues/5127#issuecomment-360645795).  
-b. or using `dotnet add src/SourcesFolderName/ProjectName.csproj package SecurityCodeScan` instead.  
-* `dotnet build --no-incremental`
-* Grep the output.

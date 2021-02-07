@@ -646,9 +646,16 @@ namespace SecurityCodeScan.Analyzers.Taint
                     }
 
                     return VisitAnonymousFunctionExpression(parenthesizedLambdaExpressionSyntax, state);
+                case SimpleLambdaExpressionSyntax simpleLambdaExpressionSyntax:
+                    if(ProjectConfiguration.AuditMode)
+                    {
+                        state.AddNewValue(ResolveIdentifier(simpleLambdaExpressionSyntax.Parameter.Identifier),
+                          new VariableState(simpleLambdaExpressionSyntax.Parameter, VariableTaint.Tainted));
+                    }
+
+                    return VisitAnonymousFunctionExpression(simpleLambdaExpressionSyntax, state);
                 case AnonymousFunctionExpressionSyntax anonymousFunctionExpressionSyntax:
                     return VisitAnonymousFunctionExpression(anonymousFunctionExpressionSyntax, state);
-
             }
 #if DEBUG
             if (Logger.IsConfigured())

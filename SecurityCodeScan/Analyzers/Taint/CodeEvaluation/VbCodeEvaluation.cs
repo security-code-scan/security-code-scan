@@ -83,9 +83,9 @@ namespace SecurityCodeScan.Analyzers.Taint
             return lastState;
         }
 
-        private void TaintParameters(MethodBlockBaseSyntax node, ParameterListSyntax parameterList, ExecutionState state)
+        private void TaintParameters(ParameterListSyntax parameterList, ExecutionState state)
         {
-            foreach (ParameterSyntax parameter in parameterList.Parameters)
+            foreach (ParameterSyntax parameter in parameterList?.Parameters ?? Enumerable.Empty<ParameterSyntax>())
             {
                 state.AddNewValue(ResolveIdentifier(parameter.Identifier.Identifier),
                                   new VariableState(parameter, VariableTaint.Tainted));
@@ -99,7 +99,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             if (ProjectConfiguration.AuditMode)
             {
-                TaintParameters(node, parameterList, state);
+                TaintParameters(parameterList, state);
             }
             else
             {
@@ -107,9 +107,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                 if (symbol != null)
                 {
                     if (symbol is IMethodSymbol methodSymbol && methodSymbol.IsStatic && methodSymbol.Name == "Main")
-                        TaintParameters(node, parameterList, state);
+                        TaintParameters(parameterList, state);
                     else if (symbol.IsTaintEntryPoint(ProjectConfiguration.TaintEntryPoints))
-                        TaintParameters(node, parameterList, state);
+                        TaintParameters(parameterList, state);
                 }
             }
 
@@ -609,6 +609,26 @@ namespace SecurityCodeScan.Analyzers.Taint
                     return new VariableState(predefinedTypeSyntax, VariableTaint.Constant);
                 case MyBaseExpressionSyntax myBaseExpressionSyntax:
                     return new VariableState(myBaseExpressionSyntax, VariableTaint.Unknown);
+                case SingleLineLambdaExpressionSyntax singleLineLambdaExpressionSyntax:
+                    if(ProjectConfiguration.AuditMode)
+                    {
+                        TaintParameters(singleLineLambdaExpressionSyntax.SubOrFunctionHeader.ParameterList, state);
+                    }
+
+                    return VisitNode(singleLineLambdaExpressionSyntax.Body, state);
+                case MultiLineLambdaExpressionSyntax multiLineLambdaExpressionSyntax:
+                    if (ProjectConfiguration.AuditMode)
+                    {
+                        TaintParameters(multiLineLambdaExpressionSyntax.SubOrFunctionHeader.ParameterList, state);
+                    }
+
+                    var finalStateLambda = new VariableState(multiLineLambdaExpressionSyntax, VariableTaint.Unset);
+                    foreach (var clause in multiLineLambdaExpressionSyntax.Statements)
+                    {
+                        finalStateLambda.MergeTaint(VisitNode(clause, state).Taint);
+                    }
+
+                    return finalStateLambda;
             }
 
 #if DEBUG

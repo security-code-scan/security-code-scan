@@ -959,6 +959,95 @@ AuditMode: true
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task LambdaSingleLine()
+        {
+            var cSharpTest = @"
+using System;
+using System.Data.SqlClient;
+
+namespace sample
+{
+    class Test
+    {
+        public void Run()
+        {
+            Func<string, SqlCommand> lambdaExpr = x => new SqlCommand(x);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+    Class Test
+        Sub Run
+            Dim lambdaExpr = Function (x) New SqlCommand(x)
+        End Sub
+    End Class
+End Namespace
+";
+
+            var testConfig = @"
+AuditMode: true
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task LambdaMultiline()
+        {
+            var cSharpTest = @"
+using System;
+using System.Data.SqlClient;
+
+namespace sample
+{
+    class Test
+    {
+        public void Run(string sql)
+        {
+            Func<string, SqlCommand> lambdaExpr = (x) => {
+                var cmd = new SqlCommand(x);
+                return cmd;
+            };
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+
+Namespace sample
+    Class Test
+        Sub Run
+            Dim lambdaExpr = Function (x)
+              Dim cmd As New SqlCommand(x)
+              Return cmd
+            End Function
+        End Sub
+    End Class
+End Namespace
+";
+
+            var testConfig = @"
+AuditMode: true
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+
         [TestCategory("Safe")]
         [TestMethod]
         public async Task VariableTransferSimple()

@@ -86,9 +86,9 @@ namespace SecurityCodeScan.Analyzers.Taint
             return lastState;
         }
 
-        private void TaintParameters(BaseMethodDeclarationSyntax node, ExecutionState state)
+        private void TaintParameters(ParameterListSyntax parameterList, ExecutionState state)
         {
-            foreach (ParameterSyntax parameter in node.ParameterList.Parameters)
+            foreach (ParameterSyntax parameter in parameterList.Parameters)
             {
                 state.AddNewValue(ResolveIdentifier(parameter.Identifier),
                                   new VariableState(parameter, VariableTaint.Tainted));
@@ -102,7 +102,7 @@ namespace SecurityCodeScan.Analyzers.Taint
         {
             if (ProjectConfiguration.AuditMode)
             {
-                TaintParameters(node, state);
+                TaintParameters(node.ParameterList, state);
             }
             else
             {
@@ -110,9 +110,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                 if (symbol != null)
                 {
                     if (symbol is IMethodSymbol methodSymbol && methodSymbol.IsStatic && methodSymbol.Name == "Main")
-                        TaintParameters(node, state);
+                        TaintParameters(node.ParameterList, state);
                     else if (symbol.IsTaintEntryPoint(ProjectConfiguration.TaintEntryPoints))
-                        TaintParameters(node, state);
+                        TaintParameters(node.ParameterList, state);
                 }
             }
 
@@ -131,6 +131,20 @@ namespace SecurityCodeScan.Analyzers.Taint
                 return VisitBlock(node.Body, state);
 
             return new VariableState(node, VariableTaint.Unknown);
+        }
+
+        private VariableState VisitAnonymousFunctionExpression(AnonymousFunctionExpressionSyntax expression, ExecutionState state)
+        {
+            if (expression.Body is BlockSyntax bodyBlock)
+            {
+                return VisitBlock(bodyBlock, state);
+            }
+            else if (expression.Body is ExpressionSyntax bodyExpression)
+            {
+                return VisitExpression(bodyExpression, state);
+            }
+
+            return new VariableState(expression, VariableTaint.Unknown);
         }
 
         private VariableState VisitForEach(ForEachStatementSyntax node, ExecutionState state)
@@ -625,6 +639,16 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                         return finalState;
                     }
+                case ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpressionSyntax:
+                    if(ProjectConfiguration.AuditMode)
+                    {
+                        TaintParameters(parenthesizedLambdaExpressionSyntax.ParameterList, state); 
+                    }
+
+                    return VisitAnonymousFunctionExpression(parenthesizedLambdaExpressionSyntax, state);
+                case AnonymousFunctionExpressionSyntax anonymousFunctionExpressionSyntax:
+                    return VisitAnonymousFunctionExpression(anonymousFunctionExpressionSyntax, state);
+
             }
 #if DEBUG
             if (Logger.IsConfigured())

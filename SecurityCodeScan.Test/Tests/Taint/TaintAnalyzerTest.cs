@@ -922,6 +922,100 @@ AuditMode: true
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
+        [TestMethod]
+        [Ignore("todo: fix lambdas")]
+        public async Task LambdaSingleLine()
+        {
+            var cSharpTest = @"
+using System;
+using System.Data.SqlClient;
+using System.Web.Mvc;
+
+namespace sample
+{
+    public class TestController : Controller
+    {
+        public void Run(string s)
+        {
+            Func<string, SqlCommand> lambdaExpr = x => new SqlCommand(x);
+            lambdaExpr(s);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System
+Imports System.Data.SqlClient
+Imports System.Web.Mvc
+
+Namespace sample
+    Public Class TestController
+        Inherits Controller
+
+        Public Sub Run(ByVal s As String)
+            Dim lambdaExpr As Func(Of String, SqlCommand) = Function(x) New SqlCommand(x)
+            lambdaExpr(s)
+        End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+        }
+
+        [TestCategory("Detect")]
+        [TestMethod]
+        [Ignore("todo: fix lambdas")]
+        public async Task LambdaMultiline()
+        {
+            var cSharpTest = @"
+using System;
+using System.Data.SqlClient;
+
+namespace sample
+{
+    public class TestController : Controller
+    {
+        public void Run(string s)
+        {
+            Func<string, SqlCommand> lambdaExpr = (x) => {
+                var cmd = new SqlCommand(x);
+                return cmd;
+            };
+            lambdaExpr(s);
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System
+Imports System.Data.SqlClient
+
+Namespace sample
+    Public Class TestController
+        Inherits Controller
+
+        Public Sub Run(ByVal s As String)
+            Dim lambdaExpr As Func(Of String, SqlCommand) = Function(x)
+                                                                Dim cmd = New SqlCommand(x)
+                                                                Return cmd
+                                                            End Function
+
+            lambdaExpr(s)
+        End Sub
+    End Class
+End Namespace
+
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+        }
+
         [TestCategory("Safe")]
         [TestMethod]
         public async Task VariableTransferSimple()

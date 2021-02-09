@@ -144,15 +144,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 case IMemberReferenceOperation memberReference:
                     instance = memberReference.Instance;
                     GetSymbolAndIndicesForMemberReference(memberReference, ref symbol, ref indices);
-
-                    // Workaround for https://github.com/dotnet/roslyn/issues/22736 (IPropertyReferenceExpressions in IAnonymousObjectCreationExpression are missing a receiver).
-                    if (instance == null &&
-                        symbol != null &&
-                        memberReference is IPropertyReferenceOperation propertyReference)
-                    {
-                        instance = propertyReference.GetAnonymousObjectCreation();
-                    }
-
                     break;
 
                 case IArrayElementReferenceOperation arrayElementReference:
@@ -214,6 +205,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         !_captureIdCopyValueMap.ContainsKey(flowCapture.Id) &&
                         analysisEntity.Type.IsValueType == capturedEntity.Type.IsValueType)
                     {
+                        // Skip flow capture for conversions unless we know the points to value
+                        // for conversion and operand is identical.
+                        if (flowCapture.Value is IConversionOperation conversion)
+                        {
+                            if (_getPointsToAbstractValue == null ||
+                                _getPointsToAbstractValue(conversion) != _getPointsToAbstractValue(conversion.Operand))
+                            {
+                                break;
+                            }
+                        }
+
                         var kind = capturedEntity.Type.IsValueType ? CopyAbstractValueKind.KnownValueCopy : CopyAbstractValueKind.KnownReferenceCopy;
                         var copyValue = new CopyAbstractValue(ImmutableHashSet.Create(analysisEntity, capturedEntity), kind);
                         _captureIdCopyValueMap.Add(flowCapture.Id, copyValue);
@@ -301,7 +303,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public bool TryCreateForSymbolDeclaration(ISymbol symbol, [NotNullWhen(returnValue: true)] out AnalysisEntity? analysisEntity)
         {
-            Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Parameter || symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Property);
+            Debug.Assert(symbol.Kind is SymbolKind.Local or SymbolKind.Parameter or SymbolKind.Field or SymbolKind.Property);
 
             var indices = ImmutableArray<AbstractIndex>.Empty;
             IOperation? instance = null;
@@ -436,12 +438,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             if (_getPointsToAbstractValue == null &&
                 symbol?.Kind != SymbolKind.Local &&
                 symbol?.Kind != SymbolKind.Parameter)
-            {
-                return false;
-            }
-
-            // Workaround for https://github.com/dotnet/roslyn-analyzers/issues/1602
-            if (instance != null && instance.Type == null)
             {
                 return false;
             }

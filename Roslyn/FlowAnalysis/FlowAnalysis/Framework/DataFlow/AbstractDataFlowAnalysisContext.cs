@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>? interproceduralAnalysisData,
             InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate)
         {
-            Debug.Assert(owningSymbol.Kind == SymbolKind.Method ||
-                owningSymbol.Kind == SymbolKind.Field ||
-                owningSymbol.Kind == SymbolKind.Property ||
-                owningSymbol.Kind == SymbolKind.Event);
+            Debug.Assert(owningSymbol.Kind is SymbolKind.Method or
+                SymbolKind.Field or
+                SymbolKind.Property or
+                SymbolKind.Event);
             Debug.Assert(Equals(owningSymbol.OriginalDefinition, owningSymbol));
             Debug.Assert(pointsToAnalysisResult == null ||
                 pointsToAnalysisResult.ControlFlowGraph == controlFlowGraph);
@@ -93,7 +93,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public abstract TAnalysisContext ForkForInterproceduralAnalysis(
             IMethodSymbol invokedMethod,
             ControlFlowGraph invokedCfg,
-            IOperation operation,
             PointsToAnalysisResult? pointsToAnalysisResult,
             CopyAnalysisResult? copyAnalysisResult,
             ValueContentAnalysisResult? valueContentAnalysisResult,
@@ -150,7 +149,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        protected abstract void ComputeHashCodePartsSpecific(Action<int> builder);
+        protected abstract void ComputeHashCodePartsSpecific(Action<int> addPart);
 
         protected sealed override void ComputeHashCodeParts(Action<int> addPart)
         {

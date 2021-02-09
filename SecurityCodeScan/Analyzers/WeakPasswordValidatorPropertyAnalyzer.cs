@@ -56,7 +56,7 @@ namespace SecurityCodeScan.Analyzers
                             ISymbol owningSymbol = operationBlockStartContext.OwningSymbol;
                             AnalyzerOptions options = operationBlockStartContext.Options;
                             CancellationToken cancellationToken = operationBlockStartContext.CancellationToken;
-                            if (owningSymbol.IsConfiguredToSkipAnalysis(options, RuleRequiredPasswordValidators, compilation, cancellationToken))
+                            if (options.IsConfiguredToSkipAnalysis(RuleRequiredPasswordValidators, owningSymbol, compilation, cancellationToken))
                             {
                                 return;
                             }

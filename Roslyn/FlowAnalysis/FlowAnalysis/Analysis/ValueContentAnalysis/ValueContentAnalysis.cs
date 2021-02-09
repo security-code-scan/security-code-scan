@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Analyzer.Utilities;
-using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
@@ -51,18 +52,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
             bool pessimisticAnalysis = true,
             bool performCopyAnalysisIfNotUserConfigured = false,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate = null)
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate = null,
+            ImmutableArray<INamedTypeSymbol> additionalSupportedValueTypes = default,
+            Func<IOperation, ValueContentAbstractValue>? getValueContentValueForAdditionalSupportedValueTypeOperation = null)
         {
-            Debug.Assert(!owningSymbol.IsConfiguredToSkipAnalysis(analyzerOptions, rule, wellKnownTypeProvider.Compilation, cancellationToken));
+            if (cfg == null)
+            {
+                throw new ArgumentNullException(nameof(cfg));
+            }
+
+            Debug.Assert(!analyzerOptions.IsConfiguredToSkipAnalysis(rule, owningSymbol, wellKnownTypeProvider.Compilation, cancellationToken));
 
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
-                analyzerOptions, rule, owningSymbol, wellKnownTypeProvider.Compilation, interproceduralAnalysisKind, cancellationToken);
+                analyzerOptions, rule, cfg, wellKnownTypeProvider.Compilation, interproceduralAnalysisKind, cancellationToken);
             return TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
                 pointsToAnalysisKind: analyzerOptions.GetPointsToAnalysisKindOption(rule, owningSymbol, wellKnownTypeProvider.Compilation, defaultPointsToAnalysisKind, cancellationToken),
                 interproceduralAnalysisConfig, out copyAnalysisResult,
                 out pointsToAnalysisResult, pessimisticAnalysis,
                 performCopyAnalysis: analyzerOptions.GetCopyAnalysisOption(rule, owningSymbol, wellKnownTypeProvider.Compilation, defaultValue: performCopyAnalysisIfNotUserConfigured, cancellationToken),
-                interproceduralAnalysisPredicate: interproceduralAnalysisPredicate);
+                interproceduralAnalysisPredicate,
+                additionalSupportedValueTypes,
+                getValueContentValueForAdditionalSupportedValueTypeOperation);
         }
 
         internal static ValueContentAnalysisResult? TryGetOrComputeResult(
@@ -76,24 +86,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             out PointsToAnalysisResult? pointsToAnalysisResult,
             bool pessimisticAnalysis = true,
             bool performCopyAnalysis = false,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate = null)
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate = null,
+            ImmutableArray<INamedTypeSymbol> additionalSupportedValueTypes = default,
+            Func<IOperation, ValueContentAbstractValue>? getValueContentValueForAdditionalSupportedValueTypeOperation = null)
         {
+            if (cfg == null)
+            {
+                throw new ArgumentNullException(nameof(cfg));
+            }
+
             copyAnalysisResult = null;
             pointsToAnalysisResult = pointsToAnalysisKind != PointsToAnalysisKind.None ?
                 PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider, pointsToAnalysisKind, out copyAnalysisResult,
                     interproceduralAnalysisConfig, interproceduralAnalysisPredicate, pessimisticAnalysis, performCopyAnalysis) :
                 null;
 
-            if (cfg == null)
-            {
-                Debug.Fail("Expected non-null CFG");
-                return null;
-            }
-
             var analysisContext = ValueContentAnalysisContext.Create(
                 ValueContentAbstractValueDomain.Default, wellKnownTypeProvider, cfg, owningSymbol, analyzerOptions,
                 interproceduralAnalysisConfig, pessimisticAnalysis, copyAnalysisResult,
-                pointsToAnalysisResult, TryGetOrComputeResultForAnalysisContext, interproceduralAnalysisPredicate);
+                pointsToAnalysisResult, TryGetOrComputeResultForAnalysisContext,
+                additionalSupportedValueTypes, getValueContentValueForAdditionalSupportedValueTypeOperation,
+                interproceduralAnalysisPredicate);
             return TryGetOrComputeResultForAnalysisContext(analysisContext);
         }
 
@@ -109,6 +122,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             => dataFlowAnalysisResult;
 
         protected override ValueContentBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, ValueContentAnalysisData blockAnalysisData)
-            => new ValueContentBlockAnalysisResult(basicBlock, blockAnalysisData);
+            => new(basicBlock, blockAnalysisData);
     }
 }

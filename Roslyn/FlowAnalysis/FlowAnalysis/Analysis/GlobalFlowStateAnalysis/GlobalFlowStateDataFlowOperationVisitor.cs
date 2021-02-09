@@ -5,7 +5,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using static Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis.GlobalFlowStateAnalysis;
 
@@ -24,12 +26,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         private readonly AnalysisEntity _globalEntity;
         private readonly bool _hasPredicatedGlobalState;
 
+        private readonly ImmutableDictionary<IOperation, GlobalFlowStateAnalysisValueSet>.Builder _globalValuesMapBuilder;
+
         protected GlobalFlowStateDataFlowOperationVisitor(GlobalFlowStateAnalysisContext analysisContext, bool hasPredicatedGlobalState)
             : base(analysisContext)
         {
             _globalEntity = GetGlobalEntity(analysisContext);
             _hasPredicatedGlobalState = hasPredicatedGlobalState;
+            _globalValuesMapBuilder = ImmutableDictionary.CreateBuilder<IOperation, GlobalFlowStateAnalysisValueSet>();
         }
+
+        internal ImmutableDictionary<IOperation, GlobalFlowStateAnalysisValueSet> GetGlobalValuesMap()
+            => _globalValuesMapBuilder.ToImmutable();
 
         private static AnalysisEntity GetGlobalEntity(GlobalFlowStateAnalysisContext analysisContext)
         {
@@ -99,7 +107,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         {
             Debug.Assert(_hasPredicatedGlobalState || !negate);
 
-            if (!value.AnalysisValues.IsEmpty)
+            if (value.Kind == GlobalFlowStateAnalysisValueSetKind.Known)
             {
                 var currentGlobalValue = GetAbstractValue(_globalEntity);
                 if (currentGlobalValue.Kind != GlobalFlowStateAnalysisValueSetKind.Unknown)
@@ -155,17 +163,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         protected sealed override GlobalFlowStateAnalysisData MergeAnalysisData(GlobalFlowStateAnalysisData value1, GlobalFlowStateAnalysisData value2)
             => GlobalFlowStateAnalysisDomainInstance.Merge(value1, value2);
         protected sealed override GlobalFlowStateAnalysisData MergeAnalysisData(GlobalFlowStateAnalysisData value1, GlobalFlowStateAnalysisData value2, BasicBlock forBlock)
-            => _hasPredicatedGlobalState && forBlock.DominatesPredecessors() ?
+            => _hasPredicatedGlobalState && forBlock.DominatesPredecessors(DataFlowAnalysisContext.ControlFlowGraph) ?
             GlobalFlowStateAnalysisDomainInstance.Intersect(value1, value2, GlobalFlowStateAnalysisValueSetDomain.Intersect) :
             GlobalFlowStateAnalysisDomainInstance.Merge(value1, value2);
         protected sealed override void UpdateValuesForAnalysisData(GlobalFlowStateAnalysisData targetAnalysisData)
             => UpdateValuesForAnalysisData(targetAnalysisData, CurrentAnalysisData);
         protected sealed override GlobalFlowStateAnalysisData GetClonedAnalysisData(GlobalFlowStateAnalysisData analysisData)
-            => new GlobalFlowStateAnalysisData(analysisData);
+            => new(analysisData);
         public override GlobalFlowStateAnalysisData GetEmptyAnalysisData()
-            => new GlobalFlowStateAnalysisData();
+            => new();
         protected sealed override GlobalFlowStateAnalysisData GetExitBlockOutputData(GlobalFlowStateAnalysisResult analysisResult)
-            => new GlobalFlowStateAnalysisData(analysisResult.ExitBlockOutput.Data);
+            => new(analysisResult.ExitBlockOutput.Data);
         protected sealed override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(GlobalFlowStateAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
             => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException, CurrentAnalysisData, throwBranchWithExceptionType);
         protected sealed override bool Equals(GlobalFlowStateAnalysisData value1, GlobalFlowStateAnalysisData value2)
@@ -174,16 +182,33 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             => ApplyInterproceduralAnalysisResultHelper(resultData);
         protected sealed override GlobalFlowStateAnalysisData GetTrimmedCurrentAnalysisData(IEnumerable<AnalysisEntity> withEntities)
             => GetTrimmedCurrentAnalysisDataHelper(withEntities, CurrentAnalysisData, SetAbstractValue);
-
-        protected GlobalFlowStateAnalysisValueSet GetValueOrDefault(GlobalFlowStateAnalysisValueSet value)
-            => value.Kind == GlobalFlowStateAnalysisValueSetKind.Known ? value : GlobalState;
+        protected override GlobalFlowStateAnalysisData GetInitialInterproceduralAnalysisData(
+            IMethodSymbol invokedMethod,
+            (AnalysisEntity? Instance, PointsToAbstractValue PointsToValue)? invocationInstance,
+            (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? thisOrMeInstanceForCaller,
+            ImmutableDictionary<IParameterSymbol, ArgumentInfo<GlobalFlowStateAnalysisValueSet>> argumentValuesMap,
+            IDictionary<AnalysisEntity, PointsToAbstractValue>? pointsToValues,
+            IDictionary<AnalysisEntity, CopyAbstractValue>? copyValues,
+            IDictionary<AnalysisEntity, ValueContentAbstractValue>? valueContentValues,
+            bool isLambdaOrLocalFunction,
+            bool hasParameterWithDelegateType)
+            => GetClonedCurrentAnalysisData();
 
         #region Visitor methods
 
         public override GlobalFlowStateAnalysisValueSet Visit(IOperation operation, object? argument)
         {
             var value = base.Visit(operation, argument);
-            return GetValueOrDefault(value);
+
+            if (operation != null)
+            {
+                // Store the current global value in a separate global values builder.
+                // These values need to be saved into the base operation value builder in the final analysis result.
+                // This will be done as a post-step after the analysis is complete.
+                _globalValuesMapBuilder[operation] = GlobalState;
+            }
+
+            return value;
         }
 
         public override GlobalFlowStateAnalysisValueSet VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
@@ -203,7 +228,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 MergeAndSetGlobalState(argumentValue);
             }
 
-            return GetValueOrDefault(value);
+            return value;
         }
 
         public override GlobalFlowStateAnalysisValueSet VisitUnaryOperatorCore(IUnaryOperation operation, object? argument)

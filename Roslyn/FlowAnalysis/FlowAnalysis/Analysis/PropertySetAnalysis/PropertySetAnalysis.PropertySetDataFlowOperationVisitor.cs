@@ -79,29 +79,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
             }
 
-            public ImmutableDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult> HazardousUsages
-            {
-                get
-                {
-                    return this._hazardousUsageBuilder.ToImmutable();
-                }
-            }
+            public ImmutableDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult> HazardousUsages => this._hazardousUsageBuilder.ToImmutable();
 
-            public ImmutableHashSet<IMethodSymbol> VisitedLocalFunctions
-            {
-                get
-                {
-                    return this._visitedLocalFunctions.ToImmutable();
-                }
-            }
+            public ImmutableHashSet<IMethodSymbol> VisitedLocalFunctions => this._visitedLocalFunctions.ToImmutable();
 
-            public ImmutableHashSet<IFlowAnonymousFunctionOperation> VisitedLambdas
-            {
-                get
-                {
-                    return this._visitedLambdas.ToImmutable();
-                }
-            }
+            public ImmutableHashSet<IFlowAnonymousFunctionOperation> VisitedLambdas => this._visitedLambdas.ToImmutable();
 
             protected override PropertySetAbstractValue GetAbstractDefaultValue(ITypeSymbol type) => ValueDomain.Bottom;
 
@@ -266,8 +248,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                                 trackedAssignmentData.TrackAssignmentWithAbstractLocation(operation, abstractLocation);
                             }
                         }
-                        else if (pointsToAbstractValue.Kind == PointsToAbstractValueKind.Unknown
-                            || pointsToAbstractValue.Kind == PointsToAbstractValueKind.UnknownNotNull)
+                        else if (pointsToAbstractValue.Kind is PointsToAbstractValueKind.Unknown
+                            or PointsToAbstractValueKind.UnknownNotNull)
                         {
                             trackedAssignmentData.TrackAssignmentWithUnknownLocation(operation);
                         }
@@ -417,8 +399,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                                 Debug.Fail("Expected to have tracked assignment operations with locations");
                             }
                         }
-                        else if (pointsToAbstractValue.Kind == PointsToAbstractValueKind.Unknown
-                                 || pointsToAbstractValue.Kind == PointsToAbstractValueKind.UnknownNotNull)
+                        else if (pointsToAbstractValue.Kind is PointsToAbstractValueKind.Unknown
+                                 or PointsToAbstractValueKind.UnknownNotNull)
                         {
                             if (kvp.Value.AssignmentsWithUnknownLocation != null)
                             {
@@ -570,11 +552,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         (containingType, false),
                         out string containingTypeName))
                 {
-                    if (hazardousUsageTypeNames == null)
-                    {
-                        hazardousUsageTypeNames = PooledHashSet<string>.GetInstance();
-                    }
-
+                    hazardousUsageTypeNames = PooledHashSet<string>.GetInstance();
                     hazardousUsageTypeNames.Add(containingTypeName);
                 }
 

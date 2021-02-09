@@ -19,8 +19,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Cached information if the specified symbol is a Asp.Net Core Controller: (compilation) -> ((class symbol) -> (is Controller))
         /// </summary>
-        private static readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>> s_classIsControllerByCompilation =
-            new BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>>();
+        private static readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>> s_classIsControllerByCompilation = new();
 
         /// <summary>
         /// Statically constructs.
@@ -58,8 +57,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypeNames.SystemObject,
                  new ParameterMatcher[]{
                     (parameter, wellKnownTypeProvider) => {
-                        if (!(parameter.ContainingSymbol is IMethodSymbol methodSymbol)
-                            || !(methodSymbol.ContainingSymbol is INamedTypeSymbol typeSymbol))
+                        if (parameter.ContainingSymbol is not IMethodSymbol methodSymbol
+                            || methodSymbol.ContainingSymbol is not INamedTypeSymbol typeSymbol)
                         {
                             return false;
                         }
@@ -89,6 +88,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         if (methodSymbol.DeclaredAccessibility != Accessibility.Public
                             || methodSymbol.IsConstructor()
                             || methodSymbol.IsStatic
+                            || methodSymbol.MethodKind != MethodKind.Ordinary
                             || methodSymbol.HasDerivedMethodAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonActionAttribute)))
                         {
                             return false;

@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
+using Analyzer.Utilities.Lightup;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
@@ -12,6 +14,8 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
+    using NullableAnnotation = Analyzer.Utilities.Lightup.NullableAnnotation;
+
     public partial class PointsToAnalysis : ForwardDataFlowAnalysis<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToBlockAnalysisResult, PointsToAbstractValue>
     {
         /// <summary>
@@ -40,7 +44,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 _escapedReturnValueLocationsBuilder = PooledDictionary<IOperation, ImmutableHashSet<AbstractLocation>.Builder>.GetInstance();
                 _escapedEntityLocationsBuilder = PooledDictionary<AnalysisEntity, ImmutableHashSet<AbstractLocation>.Builder>.GetInstance();
 
-                analysisContext.InterproceduralAnalysisData?.InitialAnalysisData.AssertValidPointsToAnalysisData();
+                analysisContext.InterproceduralAnalysisData?.InitialAnalysisData?.AssertValidPointsToAnalysisData();
             }
 
             internal TrackedEntitiesBuilder TrackedEntitiesBuilder { get; }
@@ -270,13 +274,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 => PointsToAnalysis.ShouldBeTracked(parameter.Type) ?
                     PointsToAbstractValue.Create(
                         AbstractLocation.CreateSymbolLocation(parameter, DataFlowAnalysisContext.InterproceduralAnalysisData?.CallStack),
-                        mayBeNull: !parameter.IsParams) :
+                        mayBeNull: true) :
                     PointsToAbstractValue.NoLocation;
 
             protected override void EscapeValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
             {
                 // Mark PointsTo values for ref/out parameters in non-interprocedural context as escaped.
-                if (parameter.RefKind == RefKind.Ref || parameter.RefKind == RefKind.Out)
+                if (parameter.RefKind is RefKind.Ref or RefKind.Out)
                 {
                     Debug.Assert(DataFlowAnalysisContext.InterproceduralAnalysisData == null);
                     var pointsToValue = GetAbstractValue(analysisEntity);
@@ -313,7 +317,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             protected override PointsToAbstractValue ComputeAnalysisValueForEscapedRefOrOutArgument(AnalysisEntity analysisEntity, IArgumentOperation operation, PointsToAbstractValue defaultValue)
             {
-                Debug.Assert(operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out);
+                Debug.Assert(operation.Parameter.RefKind is RefKind.Ref or RefKind.Out);
 
                 if (!ShouldBeTracked(analysisEntity))
                 {
@@ -343,7 +347,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         }
                     }
                 }
-                else if (operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out)
+                else if (operation.Parameter.RefKind is RefKind.Ref or RefKind.Out)
                 {
                     if (operation.Parameter.RefKind == RefKind.Ref)
                     {
@@ -376,15 +380,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             #region Predicate analysis
             private static bool IsValidValueForPredicateAnalysis(NullAbstractValue value)
             {
-                switch (value)
+                return value switch
                 {
-                    case NullAbstractValue.Null:
-                    case NullAbstractValue.NotNull:
-                        return true;
-
-                    default:
-                        return false;
-                }
+                    NullAbstractValue.Null
+                    or NullAbstractValue.NotNull => true,
+                    _ => false,
+                };
             }
 
             protected override PredicateValueKind SetValueForEqualsOrNotEqualsComparisonOperator(
@@ -549,9 +550,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             protected override PointsToAnalysisData GetClonedAnalysisData(PointsToAnalysisData analysisData)
                 => (PointsToAnalysisData)analysisData.Clone();
             public override PointsToAnalysisData GetEmptyAnalysisData()
-                => new PointsToAnalysisData();
+                => new();
             protected override PointsToAnalysisData GetExitBlockOutputData(PointsToAnalysisResult analysisResult)
-                => new PointsToAnalysisData(analysisResult.ExitBlockOutput.Data);
+                => new(analysisResult.ExitBlockOutput.Data);
             protected override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(PointsToAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
                 => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData, throwBranchWithExceptionType);
             protected override void AssertValidAnalysisData(PointsToAnalysisData analysisData)
@@ -667,7 +668,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
             }
 
-            private static void HandleEscapingLocations(PointsToAbstractValue pointsToValueOfEscapedInstance, ImmutableHashSet<AbstractLocation>.Builder builder)
+            private void HandleEscapingLocations(PointsToAbstractValue pointsToValueOfEscapedInstance, ImmutableHashSet<AbstractLocation>.Builder builder)
             {
                 foreach (var escapedLocation in pointsToValueOfEscapedInstance.Locations)
                 {
@@ -678,6 +679,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         builder.Add(escapedLocation);
                     }
                 }
+
+                MarkEscapedLambdasAndLocalFunctions(pointsToValueOfEscapedInstance);
             }
 
             private void HandlePossibleEscapingForAssignment(IOperation target, IOperation value, IOperation operation)
@@ -912,7 +915,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
                 var value = VisitInvocationCommon(originalOperation, visitedInstance);
 
-                if (IsSpecialEmptyOrFactoryMethod(method) &&
+                if (IsSpecialMethodReturningNonNullValue(method, DataFlowAnalysisContext.WellKnownTypeProvider) &&
                     !TryGetInterproceduralAnalysisResult(originalOperation, out _))
                 {
                     return value.MakeNonNull();
@@ -921,22 +924,38 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return value;
             }
 
-            private static bool IsSpecialEmptyOrFactoryMethod(IMethodSymbol method)
-                => IsSpecialFactoryMethod(method) || IsSpecialEmptyMember(method);
+            private static bool IsSpecialMethodReturningNonNullValue(IMethodSymbol method, WellKnownTypeProvider wellKnownTypeProvider)
+                => IsSpecialFactoryMethodReturningNonNullValue(method, wellKnownTypeProvider) || IsSpecialEmptyMember(method);
 
             /// <summary>
             /// Returns true if this special static factory method whose name starts with "Create", such that
+            /// method's return type is not nullable, i.e. 'type?', and
             /// method's containing type is static OR a special type OR derives from or is same as the type of the field/property/method return.
             /// For example: class SomeType { static SomeType CreateXXX(...); }
             /// </summary>
-            private static bool IsSpecialFactoryMethod(IMethodSymbol method)
+            private static bool IsSpecialFactoryMethodReturningNonNullValue(IMethodSymbol method, WellKnownTypeProvider wellKnownTypeProvider)
             {
-                return method.IsStatic &&
-                    method.Name.StartsWith("Create", StringComparison.Ordinal) &&
-                    (method.ContainingType.IsStatic ||
+                if (!method.IsStatic ||
+                    !method.Name.StartsWith("Create", StringComparison.Ordinal) ||
+                    method.ReturnType.NullableAnnotation() == NullableAnnotation.Annotated)
+                {
+                    return false;
+                }
+
+                // 'Activator.CreateInstance' can return 'null'.
+                // Even though it is nullable annotated to return 'object?',
+                // the NullableAnnotation check above fails for VB, so we special case it here.
+                if (method.Name.Equals("CreateInstance", StringComparison.Ordinal) &&
+                    wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemActivator) is { } activatorType &&
+                    activatorType.Equals(method.ContainingType))
+                {
+                    return false;
+                }
+
+                return method.ContainingType.IsStatic ||
                      method.ContainingType.SpecialType != SpecialType.None ||
                      method.ReturnType is INamedTypeSymbol namedType &&
-                     method.ContainingType.DerivesFromOrImplementsAnyConstructionOf(namedType.OriginalDefinition));
+                     method.ContainingType.DerivesFromOrImplementsAnyConstructionOf(namedType.OriginalDefinition);
             }
 
             /// <summary>
@@ -994,15 +1013,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
 
                 NullAbstractValue referenceOrInstanceValue = referenceOrInstance != null ? GetNullAbstractValue(referenceOrInstance) : NullAbstractValue.NotNull;
-                switch (referenceOrInstanceValue)
+                return referenceOrInstanceValue switch
                 {
-                    case NullAbstractValue.Invalid:
-                    case NullAbstractValue.Null:
-                        return referenceOrInstanceValue;
-
-                    default:
-                        return defaultValue;
-                }
+                    NullAbstractValue.Invalid
+                    or NullAbstractValue.Null => referenceOrInstanceValue,
+                    _ => defaultValue,
+                };
             }
 
             private PointsToAbstractValue GetValueBasedOnInstanceOrReferenceValue(IOperation? referenceOrInstance, IOperation operation, PointsToAbstractValue defaultValue)
@@ -1154,7 +1170,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     var location = AbstractLocation.CreateAllocationLocation(operation, operation.Type, DataFlowAnalysisContext);
                     return PointsToAbstractValue.Create(location, mayBeNull: false);
                 }
-                else if (inference.IsUnboxing)
+                else if (inference.IsUnboxing && operation.Type.IsNonNullableValueType())
                 {
                     return PointsToAbstractValue.NoLocation;
                 }

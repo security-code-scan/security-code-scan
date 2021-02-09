@@ -66,7 +66,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
         public override ParameterValidationAnalysisContext ForkForInterproceduralAnalysis(
             IMethodSymbol invokedMethod,
             ControlFlowGraph invokedCfg,
-            IOperation operation,
             PointsToAnalysisResult? pointsToAnalysisResult,
             CopyAnalysisResult? copyAnalysisResult,
             ValueContentAnalysisResult? valueContentAnalysisResult,
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
         }
 
         public ParameterValidationAnalysisContext WithTrackHazardousParameterUsages()
-            => new ParameterValidationAnalysisContext(
+            => new(
                 ValueDomain, WellKnownTypeProvider, ControlFlowGraph,
                 OwningSymbol, AnalyzerOptions, NullCheckValidationMethodNames,
                 InterproceduralAnalysisConfiguration, PessimisticAnalysis,

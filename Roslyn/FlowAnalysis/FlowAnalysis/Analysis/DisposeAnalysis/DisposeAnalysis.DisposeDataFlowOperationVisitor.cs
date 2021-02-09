@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 }
 
                 // Handle user option for additional excluded types
-                if (DataFlowAnalysisContext.ExcludedSymbols.Contains(instanceType))
+                if (DataFlowAnalysisContext.IsConfiguredToSkipAnalysis(instanceType))
                 {
                     return defaultValue;
                 }
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
             protected override DisposeAbstractValue ComputeAnalysisValueForEscapedRefOrOutArgument(IArgumentOperation operation, DisposeAbstractValue defaultValue)
             {
-                Debug.Assert(operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out);
+                Debug.Assert(operation.Parameter.RefKind is RefKind.Ref or RefKind.Out);
 
                 // Special case: don't flag "out" arguments for "bool TryGetXXX(..., out value)" invocations.
                 if (operation.Parent is IInvocationOperation invocation &&
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 // they should not be considered as part of current state when possible exception occurs.
                 if (operation != null &&
                     operation.Kind != OperationKind.ObjectCreation &&
-                    (!(operation is IInvocationOperation invocation) ||
+                    (operation is not IInvocationOperation invocation ||
                        invocation.TargetMethod.IsLambdaOrLocalFunctionOrDelegate()))
                 {
                     base.HandlePossibleThrowingOperation(operation);
@@ -262,28 +262,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                     targetMethod.Name.StartsWith("open", StringComparison.OrdinalIgnoreCase));
 
             public override DisposeAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
-                IMethodSymbol targetMethod,
-                IOperation? instance,
-                ImmutableArray<IArgumentOperation> arguments,
+                IMethodSymbol method,
+                IOperation? visitedInstance,
+                ImmutableArray<IArgumentOperation> visitedArguments,
                 bool invokedAsDelegate,
                 IOperation originalOperation,
                 DisposeAbstractValue defaultValue)
             {
-                var value = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(targetMethod, instance,
-                    arguments, invokedAsDelegate, originalOperation, defaultValue);
+                var value = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance,
+                    visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
 
-                var disposeMethodKind = GetDisposeMethodKind(targetMethod);
+                var disposeMethodKind = GetDisposeMethodKind(method);
                 switch (disposeMethodKind)
                 {
                     case DisposeMethodKind.Dispose:
                     case DisposeMethodKind.DisposeBool:
                     case DisposeMethodKind.DisposeAsync:
-                        HandleDisposingOperation(originalOperation, instance);
+                        HandleDisposingOperation(originalOperation, visitedInstance);
                         return value;
 
                     case DisposeMethodKind.Close:
                         // FxCop compat: Calling "this.Close" shouldn't count as disposing the object within the implementation of Dispose.
-                        if (instance?.Kind != OperationKind.InstanceReference)
+                        if (visitedInstance?.Kind != OperationKind.InstanceReference)
                         {
                             goto case DisposeMethodKind.Dispose;
                         }
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
                     default:
                         // FxCop compat: Catches things like static calls to File.Open() and Create()
-                        if (IsDisposableCreationSpecialCase(targetMethod))
+                        if (IsDisposableCreationSpecialCase(method))
                         {
                             var instanceLocation = GetPointsToAbstractValue(originalOperation);
                             return HandleInstanceCreation(originalOperation, instanceLocation, value);
@@ -311,16 +311,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             protected override void ApplyInterproceduralAnalysisResult(
                 DisposeAnalysisData resultData,
                 bool isLambdaOrLocalFunction,
-                bool hasParameterWithDelegateType,
-                DisposeAnalysisResult interproceduralResult)
+                bool hasDelegateTypeArgument,
+                DisposeAnalysisResult analysisResult)
             {
-                base.ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, hasParameterWithDelegateType, interproceduralResult);
+                base.ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, hasDelegateTypeArgument, analysisResult);
 
                 // Apply the tracked instance field locations from interprocedural analysis.
                 if (_trackedInstanceFieldLocations != null &&
-                    interproceduralResult.TrackedInstanceFieldPointsToMap != null)
+                    analysisResult.TrackedInstanceFieldPointsToMap != null)
                 {
-                    foreach (var (field, pointsToValue) in interproceduralResult.TrackedInstanceFieldPointsToMap)
+                    foreach (var (field, pointsToValue) in analysisResult.TrackedInstanceFieldPointsToMap)
                     {
                         if (!_trackedInstanceFieldLocations.ContainsKey(field))
                         {
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 }
 
                 // Ref or out argument values from callee might be escaped by assigning to field.
-                if (operation.Parameter.RefKind == RefKind.Out || operation.Parameter.RefKind == RefKind.Ref)
+                if (operation.Parameter.RefKind is RefKind.Out or RefKind.Ref)
                 {
                     HandlePossibleEscapingOperation(operation, GetEscapedLocations(operation));
                 }
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
                     return operation.Parent switch
                     {
-                        IObjectCreationOperation _ => DisposeOwnershipTransferAtConstructor ||
+                        IObjectCreationOperation => DisposeOwnershipTransferAtConstructor ||
                             DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type),
 
                         IInvocationOperation invocation => DisposeOwnershipTransferAtMethodCall ||

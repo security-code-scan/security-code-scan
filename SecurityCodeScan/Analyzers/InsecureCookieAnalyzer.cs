@@ -72,7 +72,7 @@ namespace SecurityCodeScan.Analyzers
                                 ISymbol owningSymbol = operationBlockStartContext.OwningSymbol;
                                 AnalyzerOptions options = operationBlockStartContext.Options;
                                 CancellationToken cancellationToken = operationBlockStartContext.CancellationToken;
-                                if (owningSymbol.IsConfiguredToSkipAnalysis(options, RuleSecure, compilation, cancellationToken))
+                                if (options.IsConfiguredToSkipAnalysis(RuleSecure, owningSymbol, compilation, cancellationToken))
                                 {
                                     return;
                                 }

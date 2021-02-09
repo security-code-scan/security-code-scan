@@ -36,7 +36,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             uint defaultMaxInterproceduralLambdaOrLocalFunctionCallChain)
         {
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
-                analyzerOptions, rule, containingMethod, compilation, InterproceduralAnalysisKind.ContextSensitive, cancellationToken, defaultMaxInterproceduralMethodCallChain, defaultMaxInterproceduralLambdaOrLocalFunctionCallChain);
+                analyzerOptions, rule, cfg, compilation, InterproceduralAnalysisKind.ContextSensitive, cancellationToken, defaultMaxInterproceduralMethodCallChain, defaultMaxInterproceduralLambdaOrLocalFunctionCallChain);
             return TryGetOrComputeResult(cfg, compilation, containingMethod, analyzerOptions, taintedSourceInfos,
                 taintedSanitizerInfos, taintedSinkInfos, interproceduralAnalysisConfig);
         }

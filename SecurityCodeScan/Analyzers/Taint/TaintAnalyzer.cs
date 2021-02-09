@@ -165,7 +165,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                 ISymbol owningSymbol = operationBlockStartContext.OwningSymbol;
                                 AnalyzerOptions options = operationBlockStartContext.Options;
                                 CancellationToken cancellationToken = operationBlockStartContext.CancellationToken;
-                                if (owningSymbol.IsConfiguredToSkipAnalysis(options, TaintedDataEnteringSinkDescriptor, compilation, cancellationToken))
+                                if (options.IsConfiguredToSkipAnalysis(TaintedDataEnteringSinkDescriptor, owningSymbol, compilation, cancellationToken))
                                 {
                                     return;
                                 }
@@ -300,21 +300,12 @@ namespace SecurityCodeScan.Analyzers.Taint
                                 ISymbol owningSymbol = operationBlockStartContext.OwningSymbol;
                                 AnalyzerOptions options = operationBlockStartContext.Options;
                                 CancellationToken cancellationToken = operationBlockStartContext.CancellationToken;
-                                if (owningSymbol.IsConfiguredToSkipAnalysis(options, TaintedDataEnteringSinkDescriptor, compilation, cancellationToken))
+                                if (options.IsConfiguredToSkipAnalysis(TaintedDataEnteringSinkDescriptor, owningSymbol, compilation, cancellationToken))
                                 {
                                     return;
                                 }
 
                                 WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
-                                InterproceduralAnalysisConfiguration interproceduralAnalysisConfiguration = InterproceduralAnalysisConfiguration.Create(
-                                                                    options,
-                                                                    SupportedDiagnostics,
-                                                                    owningSymbol,
-                                                                    operationBlockStartContext.Compilation,
-                                                                    defaultInterproceduralAnalysisKind: InterproceduralAnalysisKind.ContextSensitive,
-                                                                    cancellationToken: cancellationToken,
-                                                                    defaultMaxInterproceduralMethodCallChain: config.MaxInterproceduralMethodCallChain,
-                                                                    defaultMaxInterproceduralLambdaOrLocalFunctionCallChain: config.MaxInterproceduralLambdaOrLocalFunctionCallChain);
                                 Lazy<ControlFlowGraph?> controlFlowGraphFactory = new Lazy<ControlFlowGraph?>(
                                     () => operationBlockStartContext.OperationBlocks.GetControlFlowGraph());
                                 Lazy<PointsToAnalysisResult?> pointsToFactory = new Lazy<PointsToAnalysisResult?>(
@@ -325,6 +316,15 @@ namespace SecurityCodeScan.Analyzers.Taint
                                             return null;
                                         }
 
+                                        InterproceduralAnalysisConfiguration interproceduralAnalysisConfiguration = InterproceduralAnalysisConfiguration.Create(
+                                                                    options,
+                                                                    SupportedDiagnostics,
+                                                                    controlFlowGraphFactory.Value,
+                                                                    operationBlockStartContext.Compilation,
+                                                                    defaultInterproceduralAnalysisKind: InterproceduralAnalysisKind.ContextSensitive,
+                                                                    cancellationToken: cancellationToken,
+                                                                    defaultMaxInterproceduralMethodCallChain: config.MaxInterproceduralMethodCallChain,
+                                                                    defaultMaxInterproceduralLambdaOrLocalFunctionCallChain: config.MaxInterproceduralLambdaOrLocalFunctionCallChain);
                                         return PointsToAnalysis.TryGetOrComputeResult(
                                                                     controlFlowGraphFactory.Value,
                                                                     owningSymbol,
@@ -342,6 +342,15 @@ namespace SecurityCodeScan.Analyzers.Taint
                                             return (null, null);
                                         }
 
+                                        InterproceduralAnalysisConfiguration interproceduralAnalysisConfiguration = InterproceduralAnalysisConfiguration.Create(
+                                                                    options,
+                                                                    SupportedDiagnostics,
+                                                                    controlFlowGraphFactory.Value,
+                                                                    operationBlockStartContext.Compilation,
+                                                                    defaultInterproceduralAnalysisKind: InterproceduralAnalysisKind.ContextSensitive,
+                                                                    cancellationToken: cancellationToken,
+                                                                    defaultMaxInterproceduralMethodCallChain: config.MaxInterproceduralMethodCallChain,
+                                                                    defaultMaxInterproceduralLambdaOrLocalFunctionCallChain: config.MaxInterproceduralLambdaOrLocalFunctionCallChain);
                                         ValueContentAnalysisResult? valuecontentAnalysisResult = ValueContentAnalysis.TryGetOrComputeResult(
                                                                         controlFlowGraphFactory.Value,
                                                                         owningSymbol,

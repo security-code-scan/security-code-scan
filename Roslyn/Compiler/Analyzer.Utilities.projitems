@@ -11,12 +11,15 @@
   <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' == '' OR '$(MicrosoftCodeAnalysisVersion)' &gt;= '3.3'">
     <DefineConstants>$(DefineConstants),CODEANALYSIS_V3_OR_BETTER</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' == '' OR '$(MicrosoftCodeAnalysisVersion)' &gt;= '3.7'">
+    <DefineConstants>$(DefineConstants),CODEANALYSIS_V3_7_OR_BETTER</DefineConstants>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' != '1.2.1'">
     <DefineConstants>$(DefineConstants);HAS_IOPERATION</DefineConstants>
     <HasIOperation>true</HasIOperation>
     <!-- Explicitly enable nullable for all projects that link Analyzer.Utilities.
 	     This is needed as this project is linked into test projects which don't yet have nullable enabled,
-		 and building the test projects without the explict enable nullable below leads to following warnings:
+		 and building the test projects without the explicit enable nullable below leads to following warnings:
 			"warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context" -->
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
@@ -44,6 +47,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticDescriptorHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DoNotCatchGeneralUnlessRethrown.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ISetExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IPropertySymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperationKinds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ReportDiagnosticExtensions.cs" />
@@ -55,6 +59,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringCompatExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\WellKnownDiagnosticTagsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Index.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IsExternalInit.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\IMethodSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\ITypeSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\LightupHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\NullableAnnotation.cs" />
@@ -73,6 +79,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolNamesWithValueOption.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolModifiers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\Unit.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\ValueUsageInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledConcurrentSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledConcurrentDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledDictionary.cs" />
@@ -107,6 +114,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RoslynString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RuleLevel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RulesetToEditorconfigConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SmallDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolDisplayFormats.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolDisplayStringCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolByDisplayStringComparer.cs" />

@@ -19,7 +19,7 @@ msbuild SecurityCodeScan.sln
 ```
 
 ### Contributing
-* All documentation from the [official site](https://security-code-scan.github.io) is open-source and located in the [website](https://github.com/security-code-scan/security-code-scan/tree/vs2015/website) folder. Feel free to modify the markdown files and contribute to it.
+* All documentation from the [official site](https://security-code-scan.github.io) is open-source and located in the [website](https://github.com/security-code-scan/security-code-scan/tree/vs2019/website) folder. Feel free to modify the markdown files and contribute to it.
 * You may customize the behavior of Security Code Scan by creating a local configuration file as described in [ExternalConfigurationFiles section](https://security-code-scan.github.io/#ExternalConfigurationFiles). It is easy to add new vulnerable functions (sinks) that should trigger a warning, define untrusted sources, etc. Once you think you have working configuration file you are welcome to contribute your changes to the main built-in configuration file. Ideally your Pull Request comes with tests that cover the changes.
 * Review the list of available [issues.](https://github.com/security-code-scan/security-code-scan/issues) The general understanding of Roslyn might be handy:
   - [Use Roslyn to Write a Live Code Analyzer for Your API](https://docs.microsoft.com/en-us/archive/msdn-magazine/2014/special-issue/csharp-and-visual-basic-use-roslyn-to-write-a-live-code-analyzer-for-your-api)

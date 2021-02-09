@@ -1936,6 +1936,58 @@ End Namespace
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
+        [TestCategory("Detect")]
+        [TestMethod]
+        [Ignore("todo: check why")]
+        public async Task VariableTransferModelUnsafe3()
+        {
+            var cSharpTest = @"
+using System.Data.SqlClient;
+using System.Web.Mvc;
+
+namespace sample
+{
+    public class Model
+    {
+        public string Value {get; set;}
+    }
+
+    public class SqlConstantController : Controller
+    {
+        public void Run(string input)
+        {
+            var model = new Model {Value = input};
+            new SqlCommand(model.ToString());
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+Imports System.Web.Mvc
+
+Namespace sample
+    Public Class Model
+        Public Property Value As String
+    End Class
+
+    Public Class SqlConstantController
+        Inherits Controller
+
+        Public Sub Run(ByVal input As String)
+            Dim model = New Model With {.Value = input}
+            Dim sql = New SqlCommand(model.ToString())
+        End Sub
+    End Class
+End Namespace
+
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+        }
+
         [TestCategory("Safe")]
         [TestMethod]
         public async Task VariableTransferModelSafe()
@@ -2028,6 +2080,58 @@ Namespace sample
         Public Sub Run(ByVal model As Model)
             model = New Model()
             Dim sql = New SqlCommand(model.Value)
+        End Sub
+    End Class
+End Namespace
+
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+        }
+
+        [TestCategory("Safe")]
+        [TestMethod]
+        [Ignore("todo: check why")]
+        public async Task VariableTransferModelSafe3()
+        {
+            var cSharpTest = @"
+using System.Data.SqlClient;
+using System.Web.Mvc;
+
+namespace sample
+{
+    public class Model
+    {
+        public string Value {get; set;}
+    }
+
+    public class SqlConstantController : Controller
+    {
+        public void Run(Model model)
+        {
+            model.Value = ""const"";
+            new SqlCommand(model.ToString());
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System.Data.SqlClient
+Imports System.Web.Mvc
+
+Namespace sample
+    Public Class Model
+        Public Property Value As String
+    End Class
+
+    Public Class SqlConstantController
+        Inherits Controller
+
+        Public Sub Run(ByVal model As Model)
+            model.Value = ""const""
+            Dim sql = New SqlCommand(model.ToString())
         End Sub
     End Class
 End Namespace

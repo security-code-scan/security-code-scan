@@ -4,7 +4,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/se4ok0surqu73ob7?svg=true)](https://ci.appveyor.com/project/JarLob/security-code-scan)  
 
 ### Downloading
-Official releases are available as nuget packages ([Master](https://www.nuget.org/packages/SecurityCodeScan/) and [VS2017](https://www.nuget.org/packages/SecurityCodeScan.VS2017/) branches) and as Visual Studio extensions ([Master](https://marketplace.visualstudio.com/items?itemName=JaroslavLobacevski.SecurityCodeScan) and [VS2017](https://marketplace.visualstudio.com/items?itemName=JaroslavLobacevski.SecurityCodeScanVS2017) branches).  
+Official releases are available as nuget packages ([VS2015](https://www.nuget.org/packages/SecurityCodeScan/) and [VS2017](https://www.nuget.org/packages/SecurityCodeScan.VS2017/) branches) and as Visual Studio extensions ([VS2015](https://marketplace.visualstudio.com/items?itemName=JaroslavLobacevski.SecurityCodeScan) and [VS2017](https://marketplace.visualstudio.com/items?itemName=JaroslavLobacevski.SecurityCodeScanVS2017) branches).  
 Nightly builds are available from [appveyor](https://ci.appveyor.com/project/JarLob/security-code-scan) (go to `Configuration: Release` -> `Artifacts`).  
 
 ### Building
@@ -14,12 +14,12 @@ cd security-code-scan
 ```
 Open `SecurityCodeScan.sln` in Visual Studio or build from command line:
 ```
-nuget restore
-msbuild
+nuget restore SecurityCodeScan.sln
+msbuild SecurityCodeScan.sln
 ```
 
 ### Contributing
-* All documentation from the [official site](https://security-code-scan.github.io) is open-source and located in the [website](https://github.com/security-code-scan/security-code-scan/tree/master/website) folder. Feel free to modify the markdown files and contribute to it.
+* All documentation from the [official site](https://security-code-scan.github.io) is open-source and located in the [website](https://github.com/security-code-scan/security-code-scan/tree/vs2015/website) folder. Feel free to modify the markdown files and contribute to it.
 * You may customize the behavior of Security Code Scan by creating a local configuration file as described in [ExternalConfigurationFiles section](https://security-code-scan.github.io/#ExternalConfigurationFiles). It is easy to add new vulnerable functions (sinks) that should trigger a warning, define untrusted sources, etc. Once you think you have working configuration file you are welcome to contribute your changes to the main built-in configuration file. Ideally your Pull Request comes with tests that cover the changes.
 * Review the list of available [issues.](https://github.com/security-code-scan/security-code-scan/issues) The general understanding of Roslyn might be handy:
   - [Use Roslyn to Write a Live Code Analyzer for Your API](https://docs.microsoft.com/en-us/archive/msdn-magazine/2014/special-issue/csharp-and-visual-basic-use-roslyn-to-write-a-live-code-analyzer-for-your-api)

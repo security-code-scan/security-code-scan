@@ -1459,13 +1459,14 @@ Sinks:
 
  # XSS
 
-  - Type: Microsoft.AspNetCore.Mvc.Controller
-    TaintTypes:
-      - SCS0029
-    Methods:
-    - Name: View
-      Arguments:
-        - model
+# too many warnings, disable for now
+#  - Type: Microsoft.AspNetCore.Mvc.Controller
+#    TaintTypes:
+#      - SCS0029
+#    Methods:
+#    - Name: View
+#      Arguments:
+#        - model
 
   - Type: System.Web.Mvc.HtmlHelper
     TaintTypes:

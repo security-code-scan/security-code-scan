@@ -974,6 +974,7 @@ End Namespace
             var cSharpTest = @"
 using System;
 using System.Data.SqlClient;
+using System.Web.Mvc;
 
 namespace sample
 {
@@ -994,6 +995,7 @@ namespace sample
             var visualBasicTest = @"
 Imports System
 Imports System.Data.SqlClient
+Imports System.Web.Mvc
 
 Namespace sample
     Public Class TestController

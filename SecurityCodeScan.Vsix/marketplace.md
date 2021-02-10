@@ -1,4 +1,6 @@
-﻿# Security static code analyzer for .NET
+﻿**_This extension is legacy and is no longer maintained, please use [SecurityCodeScan VS2019](https://marketplace.visualstudio.com/items?itemName=JaroslavLobacevski.SecurityCodeScanVS2019) instead._**
+
+# Security static code analyzer for .NET
 [Website](https://security-code-scan.github.io)
 
 * Detects various [security vulnerability patterns](https://security-code-scan.github.io/#rules): SQL Injection, Cross-Site Scripting (XSS), Cross-Site Request Forgery (CSRF), XML eXternal Entity Injection (XXE), etc.

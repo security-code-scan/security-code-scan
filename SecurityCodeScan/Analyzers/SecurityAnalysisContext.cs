@@ -36,6 +36,7 @@ namespace SecurityCodeScan.Analyzers
         }
 
         private readonly CompilationAnalyzer FinalAnalyzer = new CompilationAnalyzer();
+        private readonly DeprecationAnalyzer DeprecationAnalyzer = new DeprecationAnalyzer();
 
         private readonly List<Action<CompilationStartAnalysisContext, Configuration>> OnCompilationStartActions = new List<Action<CompilationStartAnalysisContext, Configuration>>();
 
@@ -64,6 +65,8 @@ namespace SecurityCodeScan.Analyzers
             {
                 action(context);
             }
+
+            DeprecationAnalyzer.OnCompilationAction(context);
 
             if (ProjectConfiguration.ReportAnalysisCompletion)
                 FinalAnalyzer.OnCompilationAction(context);

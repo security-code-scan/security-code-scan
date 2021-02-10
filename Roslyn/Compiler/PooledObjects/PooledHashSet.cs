@@ -43,7 +43,6 @@ namespace Analyzer.Utilities.PooledObjects
             if (Count == 0)
             {
                 result = ImmutableHashSet<T>.Empty;
-                Debug.Assert(Count == 0);
             }
             else
             {

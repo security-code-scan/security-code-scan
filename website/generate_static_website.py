@@ -16,14 +16,14 @@ def writeGroup(outFile, rulesDir, groupMdFile, group):
         outFile.write('<div id="SCS{}"></div>\n\n'.format(md))
         appendFile(outFile, os.path.join(rulesDir, md + ".md"))
 
-sqliGroup = ["0002", "0014", "0020", "0025", "0026", "0035", "0036", "0037", "0038", "0039"]
-injectionGroup = ["0001", "0003", "0007", "0018", "0029", "0031"]
-cryptoGroup = ["0004", "0005", "0006", "0010", "0011", "0012", "0013"]
+sqliGroup = ["0002"]
+injectionGroup = ["0001", "0003", "0007", "0018", "0029", "0026", "0031"]
+cryptoGroup = ["0004", "0005", "0006", "0010", "0013"]
 cookiesGroup = ["0008", "0009"]
 viewStateGroup = ["0023", "0024"]
 requestValidationGroup = ["0017", "0021", "0030"]
 passwordGroup = ["0015", "0034", "0032", "0033"]
-miscGroup = ["0016", "0019", "0022", "0027", "0028"]
+miscGroup = ["0011", "0012", "0016", "0019", "0022", "0027", "0028"]
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 outFile = open(os.path.join(THIS_DIR, "out_site/readme.md"), "w")

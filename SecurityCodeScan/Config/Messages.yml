@@ -15,6 +15,10 @@ SCS0000:
   title: "Compilation analysis completed."
   description: This a fake warning you may enable in configuration just to have a proof in a log that analyzer did run.
 
+SCS9999:
+  title: "This package is legacy and is no longer maintained."
+  description: Please use SecurityCodeScan.VS2019 NuGet instead.
+
 # Injections
 
 SCS0001:

@@ -15,4 +15,16 @@ namespace SecurityCodeScan.Analyzers
             ctx.ReportDiagnostic(Diagnostic.Create(Rule, Location.None));
         }
     }
+
+    internal class DeprecationAnalyzer
+    {
+        public const string DiagnosticId = "SCS9999";
+
+        public static readonly DiagnosticDescriptor Rule = LocaleUtil.GetDescriptor(DiagnosticId);
+
+        public void OnCompilationAction(CompilationAnalysisContext ctx)
+        {
+            ctx.ReportDiagnostic(Diagnostic.Create(Rule, Location.None));
+        }
+    }
 }

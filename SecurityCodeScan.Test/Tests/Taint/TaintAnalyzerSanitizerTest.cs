@@ -465,8 +465,9 @@ End Namespace
         }
 
         [DataTestMethod]
-        [Ignore("todo: roslyn conditional branches")]
-        [DataRow("using System; using System.Web.Mvc;", "!System.String.IsNullOrWhiteSpace(input) && !Url.IsLocalUrl(input)", "Redirect(input)", false)]
+        //todo: roslyn conditional branches
+        //[DataRow("using System; using System.Web.Mvc;", "!System.String.IsNullOrWhiteSpace(input) && !Url.IsLocalUrl(input)", "Redirect(input)", false)]
+        [DataRow("using System; using System.Web.Mvc;", "!Url.IsLocalUrl(input)", "Redirect(input)", false)]
         public async Task Validator1(string usingNamespace, string validate, string sink, bool warn)
         {
             var cSharpTest = $@"
@@ -542,7 +543,7 @@ End Namespace
 
         [TestCategory("Detect")]
         [TestMethod]
-        [Ignore("roslyn conditional branches")]
+        [Ignore("now it is sanitizing input, but really should calculate possible branches")]
         public async Task Validator2()
         {
             var cSharpTest = @"
@@ -588,7 +589,7 @@ End Namespace
 
         [TestCategory("Detect")]
         [TestMethod]
-        [Ignore("roslyn conditional branches")]
+        [Ignore("now it is sanitizing input, but really should calculate possible branches")]
         public async Task Validator3()
         {
             var cSharpTest = @"

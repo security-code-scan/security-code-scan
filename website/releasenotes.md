@@ -1,4 +1,9 @@
 # Release Notes
+## 5.0.0
+* New inter-procedural taint analysis engine.
+* New sinks and sources.
+* Bug fixes.
+
 ## 3.5.3
 * Removed EntityFramework "Interpolated" sinks that caused false positives.
 * Added configuration entry for Web Config analyzer to allow filtering file names.

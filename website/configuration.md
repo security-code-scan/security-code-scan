@@ -27,23 +27,21 @@ To enable analysis of these files you need to modify all C#(.csproj) and VB.NET(
 ```
 The helper PowerShell script can be used to do it automatically for all projects in a subfolder:
 ```powershell
-Get-ChildItem *.csproj -Recurse | ForEach-Object {
-$content = [xml] (Get-Content $_)
-     
-if (-not $content.Project.PropertyGroup[0].AdditionalFileItemNames)
-    {
-    Write-Host "AdditionalFileItemNames missing in $_"
-    $additionalFileItemNamesElt = $content.CreateElement("AdditionalFileItemNames",
-    "http://schemas.microsoft.com/developer/msbuild/2003")
-    $additionalFileItemNamesElt.set_InnerText('$(AdditionalFileItemNames);Content')
-    $content.Project.PropertyGroup[0].AppendChild($additionalFileItemNamesElt)
+  Get-ChildItem *.csproj -Recurse | ForEach-Object {
+    $content = [xml] (Get-Content $_)
+    $propertyGroups = $content.SelectNodes("//Project/PropertyGroup")
+
+    if (-not $propertyGroups[0].AdditionalFileItemNames) {
+      Write-Host "AdditionalFileItemNames missing in $_"
+      $additionalFileItemNamesElt = $content.CreateElement("AdditionalFileItemNames")
+      $additionalFileItemNamesElt.set_InnerText('$(AdditionalFileItemNames);Content')
+      $propertyGroups[0].AppendChild($additionalFileItemNamesElt)
     }
 
-Set-ItemProperty $_ -name IsReadOnly -value $false
-$content.Save($_)
-# Normalize line endings
-(Get-Content $_ -Encoding UTF8) | Set-Content $_ -Encoding UTF8
-}
+    Set-ItemProperty $_ -name IsReadOnly -value $false
+    $content.Save($_)
+    # Normalize line endings
+    (Get-Content $_ -Encoding UTF8) | Set-Content $_ -Encoding UTF8
 ```
 
 ## External Configuration Files

@@ -4,7 +4,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/se4ok0surqu73ob7?svg=true)](https://ci.appveyor.com/project/JarLob/security-code-scan)  
 
 ### Downloading
-Official releases are available as nuget packages ([VS2015](https://www.nuget.org/packages/SecurityCodeScan/) and [VS2017](https://www.nuget.org/packages/SecurityCodeScan.VS2017/) branches) and as Visual Studio extensions ([VS2015](https://marketplace.visualstudio.com/items?itemName=JaroslavLobacevski.SecurityCodeScan) and [VS2017](https://marketplace.visualstudio.com/items?itemName=JaroslavLobacevski.SecurityCodeScanVS2017) branches).  
+Official releases are available as [nuget package](https://www.nuget.org/packages/SecurityCodeScan.VS2019/) and as [Visual Studio extension](https://marketplace.visualstudio.com/items?itemName=JaroslavLobacevski.SecurityCodeScanVS2019).  
 Nightly builds are available from [appveyor](https://ci.appveyor.com/project/JarLob/security-code-scan) (go to `Configuration: Release` -> `Artifacts`).  
 
 ### Building

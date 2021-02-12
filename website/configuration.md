@@ -42,6 +42,7 @@ The helper PowerShell script can be used to do it automatically for all projects
     $content.Save($_)
     # Normalize line endings
     (Get-Content $_ -Encoding UTF8) | Set-Content $_ -Encoding UTF8
+  }
 ```
 
 ## External Configuration Files

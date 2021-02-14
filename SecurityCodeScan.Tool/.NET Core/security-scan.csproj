@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>security-scan</ToolCommandName>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageId>security-scan</PackageId>
+    <Version>$(AssemblyVersionNumber)</Version>
+    <Authors>Jaroslav Lobačevski</Authors>
+    <Product>Security Code Scan .NET tool</Product>
+    <Company>https://security-code-scan.github.io/</Company>
+    <Copyright>© Security Code Scan</Copyright>
+    <Description>Security static code analyzer for .NET</Description>
+    <PackageReleaseNotes>https://security-code-scan.github.io/#ReleaseNotes</PackageReleaseNotes>
+    <PackageTags>SecurityCodeScan Security.Code.Scan Security Code Scan StaticAnalysis Vulnerability Analyzer .NET Roslyn OWASP Injection XSS CSRF XXE SQLi</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/security-code-scan/security-code-scan</RepositoryUrl>
+    <PackageProjectUrl>https://security-code-scan.github.io/</PackageProjectUrl>
+    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Program.cs" Link="Program.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.4.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.9.0-4.final" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="3.9.0-4.final" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.9.0-4.final" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="MSBuild.AssemblyVersion" Version="1.3.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\SecurityCodeScan\SecurityCodeScan.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\SecurityCodeScan.Vsix\icon.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>

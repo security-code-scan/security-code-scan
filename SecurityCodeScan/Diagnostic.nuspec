@@ -1,18 +1,17 @@
-﻿<?xml version="1.0"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata minClientVersion="2.8">
     <id>SecurityCodeScan.VS2019</id>
     <version>$version$</version>
-    <title>Security Code Scan (for VS2019 and newer)</title>
     <authors>Jaroslav Lobačevski</authors>
-    <owners>Jaroslav Lobačevski</owners>
     <license type="expression">LGPL-3.0-or-later</license>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <projectUrl>https://security-code-scan.github.io</projectUrl>
+    <licenseUrl>https://licenses.nuget.org/LGPL-3.0-or-later</licenseUrl>
     <iconUrl>https://security-code-scan.github.io/images/scs230.png</iconUrl>
+    <projectUrl>https://security-code-scan.github.io</projectUrl>
     <description>Security static code analyzer for .NET</description>
     <releaseNotes>https://security-code-scan.github.io/#ReleaseNotes</releaseNotes>
-    <copyright>Security Code Scan</copyright>
+    <copyright>© Security Code Scan</copyright>
     <tags>SecurityCodeScan Security.Code.Scan Security Code Scan StaticAnalysis Vulnerability Analyzer .NET Roslyn OWASP Injection XSS CSRF XXE SQLi</tags>
     <developmentDependency>true</developmentDependency>
     <repository type="git" url="https://github.com/security-code-scan/security-code-scan" commit="$repositoryCommit$" />

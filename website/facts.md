@@ -6,7 +6,7 @@
 
 <span class="octicon octicon-git-branch"/> Inter-procedural taint analysis for input data.
 
-<span class="octicon octicon-pulse"/> Continuous Integration (CI) with [GitHub action](https://github.com/marketplace/actions/securitycodescan) or through [MSBuild](https://msdn.microsoft.com/en-us/library/dd393574.aspx). See [Continuous Integration Builds section](#continuous-integration-builds) for instructions.
+<span class="octicon octicon-pulse"/> Continuous Integration (CI) support for [GitHub](https://github.com/marketplace/actions/securitycodescan) and [GitLab](https://docs.gitlab.com/ee/user/application_security/sast/analyzers.html) pipelines. [Stand-alone runner](https://www.nuget.org/packages/security-scan/) or through [MSBuild](https://msdn.microsoft.com/en-us/library/dd393574.aspx) for custom integrations.
 
 <span class="octicon octicon-code"/> Analyzes .NET and [.NET Core](https://en.wikipedia.org/wiki/.NET_Framework#.NET_Core) projects in a background (IntelliSense) or during a build.
 

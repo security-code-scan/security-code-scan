@@ -11,10 +11,10 @@
     <PackageId>security-scan</PackageId>
     <Version>$(AssemblyVersionNumber)</Version>
     <Authors>Jaroslav Lobačevski</Authors>
-    <Product>Security Code Scan .NET tool</Product>
+    <Product>Security Code Scan</Product>
     <Company>https://security-code-scan.github.io/</Company>
     <Copyright>© Security Code Scan</Copyright>
-    <Description>Security static code analyzer for .NET</Description>
+    <Description>Standalone .NET tool for https://security-code-scan.github.io</Description>
     <PackageReleaseNotes>https://security-code-scan.github.io/#ReleaseNotes</PackageReleaseNotes>
     <PackageTags>SecurityCodeScan Security.Code.Scan Security Code Scan StaticAnalysis Vulnerability Analyzer .NET Roslyn OWASP Injection XSS CSRF XXE SQLi</PackageTags>
     <RepositoryType>git</RepositoryType>

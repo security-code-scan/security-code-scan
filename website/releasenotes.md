@@ -3,6 +3,7 @@
 * New inter-procedural taint analysis engine.
 * New sinks and sources.
 * Bug fixes.
+* Standalone tool.
 
 ## 3.5.3
 * Removed EntityFramework "Interpolated" sinks that caused false positives.

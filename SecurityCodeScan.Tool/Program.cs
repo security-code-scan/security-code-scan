@@ -283,6 +283,8 @@ namespace SecurityCodeScan.Tool
                 // Attach progress reporter so we print projects as they are loaded.
                 var solution = await workspace.OpenSolutionAsync(parsedOptions.solutionPath, new ConsoleProgressReporter(parsedOptions.verbose)).ConfigureAwait(false);
                 Console.WriteLine($"Finished loading solution '{parsedOptions.solutionPath}'");
+                if (returnCode != 0)
+                    return returnCode;
 
                 var analyzers = new List<DiagnosticAnalyzer>();
                 LoadAnalyzers(parsedOptions, analyzers);
@@ -293,7 +295,7 @@ namespace SecurityCodeScan.Tool
                 Console.WriteLine($@"Completed in {elapsed:hh\:mm\:ss}");
                 Console.WriteLine($@"{count} warnings");
 
-                return returnCode;
+                return 0;
             }
         }
 

@@ -13,6 +13,9 @@ using Microsoft.CodeAnalysis;
 using System.Globalization;
 using Mono.Options;
 using SecurityCodeScan.Config;
+using System.Text.RegularExpressions;
+using System.Collections.Concurrent;
+using Microsoft.CodeAnalysis.Text;
 
 namespace SecurityCodeScan.Tool
 {
@@ -150,6 +153,8 @@ namespace SecurityCodeScan.Tool
                             logger = new SarifV2ErrorLogger(stream, "Security Code Scan", versionString, new Version($"{v.Major}.{v.Minor}.{v.Build}.0"), CultureInfo.CurrentCulture);
                         }
 
+                        var descriptors = new ConcurrentDictionary<string, DiagnosticDescriptor>();
+
                         foreach (var project in solution.Projects)
                         {
                             var compilation = await project.GetCompilationAsync();
@@ -157,15 +162,39 @@ namespace SecurityCodeScan.Tool
                             var diagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
                             foreach (var diag in diagnostics)
                             {
+                                var d = diag;
                                 // Second pass. Analyzers may support more than one diagnostic.
                                 // Filter excluded diagnostics.
-                                if (excludeMap.Contains(diag.Id))
+                                if (excludeMap.Contains(d.Id))
                                     continue;
 
                                 ++count;
-                                Console.WriteLine($"Security Code Scan: {diag}");
+
+                                // fix locations for diagnostics from additional files
+                                if (d.Location == Location.None)
+                                {
+                                    var match = WebConfigMessageRegex.Matches(d.GetMessage());
+                                    if (match.Count > 1)
+                                        throw new Exception("Unexpected");
+
+                                    if (match.Count != 0)
+                                    {
+                                        if (!descriptors.TryGetValue(d.Id, out var descr))
+                                        {
+                                            var msg = $"{match[0].Groups[1].Value}.";
+                                            descr = new DiagnosticDescriptor(d.Id, msg, msg, d.Descriptor.Category, d.Severity, d.Descriptor.IsEnabledByDefault);
+                                            descriptors.TryAdd(d.Id, descr);
+                                        }
+
+                                        var line = new LinePosition(int.Parse(match[0].Groups[3].Value) - 1, 0);
+                                        var capture = match[0].Groups[4].Value.TrimEnd('.');
+                                        d = Diagnostic.Create(descr, Location.Create(match[0].Groups[2].Value, new TextSpan(0, capture.Length), new LinePositionSpan(line, line)));
+                                    }
+                                }
+
+                                Console.WriteLine($"Security Code Scan: {d}");
                                 if (logger != null)
-                                    logger.LogDiagnostic(diag, null);
+                                    logger.LogDiagnostic(d, null);
                             }
                         }
                     }
@@ -188,6 +217,8 @@ namespace SecurityCodeScan.Tool
                 return returnCode;
             }
         }
+
+        private static readonly Regex WebConfigMessageRegex = new Regex(@"(.*) in (.*)\((\d+)\): (.*)", RegexOptions.Compiled);
 
         private class ConsoleProgressReporter : IProgress<ProjectLoadProgress>
         {

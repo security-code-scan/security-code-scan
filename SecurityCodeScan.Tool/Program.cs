@@ -27,21 +27,21 @@ namespace SecurityCodeScan.Tool
     {
         protected int _count;
         private List<DiagnosticAnalyzer> _analyzers;
-        protected Func<ImmutableArray<Diagnostic>, HashSet<string>, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, int> _logDiagnostics;
-        protected HashSet<string> _excludeWarningsMap;
+        protected Func<ImmutableArray<Diagnostic>, ParsedOptions, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, int> _logDiagnostics;
+        protected ParsedOptions _parsedOptions;
         protected ConcurrentDictionary<string, DiagnosticDescriptor> _descriptors;
         protected SarifV2ErrorLogger _logger;
 
         public Runner(
             List<DiagnosticAnalyzer> analyzers,
-            Func<ImmutableArray<Diagnostic>, HashSet<string>, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, int> logDiagnostics,
-            HashSet<string> excludeWarningsMap,
+            Func<ImmutableArray<Diagnostic>, ParsedOptions, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, int> logDiagnostics,
+            ParsedOptions parsedOptions,
             ConcurrentDictionary<string, DiagnosticDescriptor> descriptors,
             SarifV2ErrorLogger logger)
         {
             _analyzers = analyzers;
             _logDiagnostics = logDiagnostics;
-            _excludeWarningsMap = excludeWarningsMap;
+            _parsedOptions = parsedOptions;
             _descriptors = descriptors;
             _logger = logger;
         }
@@ -68,11 +68,11 @@ namespace SecurityCodeScan.Tool
         public SingleThreadRunner(
             bool verbose,
             List<DiagnosticAnalyzer> analyzers,
-            Func<ImmutableArray<Diagnostic>, HashSet<string>, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, int> logDiagnostics,
-            HashSet<string> excludeWarningsMap,
+            Func<ImmutableArray<Diagnostic>, ParsedOptions, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, int> logDiagnostics,
+            ParsedOptions parsedOptions,
             ConcurrentDictionary<string, DiagnosticDescriptor> descriptors,
             SarifV2ErrorLogger logger)
-            : base(analyzers, logDiagnostics, excludeWarningsMap, descriptors, logger)
+            : base(analyzers, logDiagnostics, parsedOptions, descriptors, logger)
         {
             _verbose = verbose;
         }
@@ -82,7 +82,7 @@ namespace SecurityCodeScan.Tool
             if (_verbose)
                 Console.WriteLine($"Starting: {project.FilePath}");
             var diagnostics = await GetDiagnostics(project).ConfigureAwait(false);
-            _count += _logDiagnostics(diagnostics, _excludeWarningsMap, _descriptors, _logger);
+            _count += _logDiagnostics(diagnostics, _parsedOptions, _descriptors, _logger);
         }
     }
 
@@ -94,12 +94,12 @@ namespace SecurityCodeScan.Tool
         public MultiThreadRunner(
             bool verbose,
             List<DiagnosticAnalyzer> analyzers,
-            Func<ImmutableArray<Diagnostic>, HashSet<string>, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, int> logDiagnostics,
-            HashSet<string> excludeWarningsMap,
+            Func<ImmutableArray<Diagnostic>, ParsedOptions, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, int> logDiagnostics,
+            ParsedOptions parsedOptions,
             ConcurrentDictionary<string, DiagnosticDescriptor> descriptors,
             SarifV2ErrorLogger logger,
             int threads)
-            : base(analyzers, logDiagnostics, excludeWarningsMap, descriptors, logger)
+            : base(analyzers, logDiagnostics, parsedOptions, descriptors, logger)
         {
             _scanBlock = new TransformBlock<Project, ImmutableArray<Diagnostic>>(async project =>
             {
@@ -116,7 +116,7 @@ namespace SecurityCodeScan.Tool
 
             _resultsBlock = new ActionBlock<ImmutableArray<Diagnostic>>(diagnostics =>
             {
-                _count += logDiagnostics(diagnostics, excludeWarningsMap, descriptors, logger);
+                _count += logDiagnostics(diagnostics, _parsedOptions, descriptors, logger);
             },
             new ExecutionDataflowBlockOptions
             {
@@ -142,6 +142,75 @@ namespace SecurityCodeScan.Tool
         }
     }
 
+    internal class ParsedOptions
+    {
+        public string solutionPath = null;
+        public string sarifFile = null;
+        public string config = null;
+        public int? threads = null;
+        public bool shouldShowHelp = false;
+        public bool verbose = false;
+        public bool showBanner = true;
+        public int parsedArgCount = 0;
+        public HashSet<string> excludeWarnings = new HashSet<string>();
+        public HashSet<string> includeWarnings = new HashSet<string>();
+        public List<Glob> excludeProjects = new List<Glob>();
+        public List<Glob> includeProjects = new List<Glob>();
+
+        public OptionSet inputOptions = null;
+
+        public void Parse(string[] args)
+        {
+            try
+            {
+                string includeWarningsList = null;
+                string excludeWarningsList = null;
+                string includeProjectsList = null;
+                string excludeProjectsList = null;
+
+                inputOptions = new OptionSet
+                {
+                    { "<>",             "(Required) solution path", r => { solutionPath = r; ++parsedArgCount; } },
+                    { "w|excl-warn=",   "(Optional) semicolon delimited list of warnings to exclude", r => { excludeWarningsList = r; ++parsedArgCount; } },
+                    { "incl-warn=",     "(Optional) semicolon delimited list of warnings to include", r => { includeWarningsList = r; ++parsedArgCount; } },
+                    { "p|excl-proj=",   "(Optional) semicolon delimited list of glob project patterns to exclude", r => { excludeProjectsList = r; ++parsedArgCount; } },
+                    { "incl-proj=",     "(Optional) semicolon delimited list of glob project patterns to include", r => { includeProjectsList = r; ++parsedArgCount; } },
+                    { "x|export=",      "(Optional) SARIF file path", r => { sarifFile = r; ++parsedArgCount; } },
+                    { "c|config=",      "(Optional) path to additional configuration file", r => { config = r; ++parsedArgCount; } },
+                    { "t|threads=",     "(Optional) run analysis in parallel (experimental)", (int r) => { threads = r; ++parsedArgCount; } },
+                    { "n|no-banner",    "(Optional) don't show the banner", r => { showBanner = r == null; ++parsedArgCount; } },
+                    { "v|verbose",      "(Optional) more diagnostic messages", r => { verbose = r != null; ++parsedArgCount; } },
+                    { "h|?|help",        "show this message and exit", h => shouldShowHelp = h != null },
+                };
+
+                inputOptions.Parse(args);
+
+                void SplitBy<T>(bool toUpper, char separator, ICollection<T> outContainer, string delimitedList, Func<string, T> factory)
+                {
+                    if (delimitedList == null)
+                        return;
+
+                    if (toUpper)
+                        delimitedList = delimitedList.ToUpperInvariant();
+
+                    foreach (var item in delimitedList.Split(separator))
+                    {
+                        outContainer.Add(factory(item.Trim()));
+                    }
+                }
+
+                SplitBy(true, ';', excludeWarnings, excludeWarningsList, x => x);
+                SplitBy(true, ';', includeWarnings, includeWarningsList, x => x);
+                SplitBy(false, ';', excludeProjects, excludeProjectsList, x => Glob.Parse(x));
+                SplitBy(false, ';', includeProjects, includeProjectsList, x => Glob.Parse(x));
+            }
+            catch
+            {
+                shouldShowHelp = true;
+            }
+        }
+    }
+
     internal class Program
     {
         private static async Task<int> Main(string[] args)
@@ -150,59 +219,10 @@ namespace SecurityCodeScan.Tool
             var startTime = DateTime.Now;
             var versionString = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileVersion;
 
-            string solutionPath = null;
-            string sarifFile = null;
-            string config = null;
-            int? threads = null;
-            var shouldShowHelp = false;
-            var verbose = false;
-            var showBanner = true;
-            var parsedArgCount = 0;
-            var excludeWarnings = new HashSet<string>();
-            var excludeProjects = new List<Glob>();
+            var parsedOptions = new ParsedOptions();
+            parsedOptions.Parse(args);
 
-            OptionSet options = null;
-            try
-            {
-                string excludeWarningsList = null;
-                string excludeProjectsList = null;
-
-                options = new OptionSet
-                {
-                    { "<>",             "(Required) solution path", r => { solutionPath = r; ++parsedArgCount; } },
-                    { "w|excl-warn=",   "(Optional) semicolon delimited list of warnings to exclude", r => { excludeWarningsList = r; ++parsedArgCount; } },
-                    { "p|excl-proj=",   "(Optional) semicolon delimited list of glob project patterns to exclude", r => { excludeProjectsList = r; ++parsedArgCount; } },
-                    { "x|export=",      "(Optional) SARIF file path", r => { sarifFile = r; ++parsedArgCount; } },
-                    { "c|config=",      "(Optional) path to additional configuration file", r => { config = r; ++parsedArgCount; } },
-                    { "t|threads=",     "(Optional) run analysis in parallel (experimental)", (int r) => { threads = r; ++parsedArgCount; } },
-                    { "n|no-banner",    "(Optional) don't show the banner", r => { showBanner = r == null; ++parsedArgCount; } },
-                    { "v|verbose",      "(Optional) more diagnostic messages", r => { verbose = r != null; ++parsedArgCount; } },
-                    { "h|help",         "show this message and exit", h => shouldShowHelp = h != null },
-                };
-
-                options.Parse(args);
-                if (excludeWarningsList != null)
-                {
-                    foreach (var exclusion in excludeWarningsList.Split(';'))
-                    {
-                        excludeWarnings.Add(exclusion.ToUpperInvariant().Trim());
-                    }
-                }
-
-                if (excludeProjectsList != null)
-                {
-                    foreach (var exclusion in excludeProjectsList.Split(';'))
-                    {
-                        excludeProjects.Add(Glob.Parse(exclusion.Trim()));
-                    }
-                }
-            }
-            catch
-            {
-                shouldShowHelp = true;
-            }
-
-            if (showBanner)
+            if (parsedOptions.showBanner)
             {
                 Console.WriteLine($@"
 ╔═╗┌─┐┌─┐┬ ┬┬─┐┬┌┬┐┬ ┬  ╔═╗┌─┐┌┬┐┌─┐  ╔═╗┌─┐┌─┐┌┐┌
@@ -213,11 +233,23 @@ namespace SecurityCodeScan.Tool
                 Console.WriteLine("\n");
             }
 
-            if (shouldShowHelp || solutionPath == null || parsedArgCount != args.Length)
+            if (parsedOptions.includeWarnings.Any() && parsedOptions.excludeWarnings.Any())
+            {
+                LogError(false, "\nOnly --excl-warn or --incl-warn should be specified.\n");
+                parsedOptions.shouldShowHelp = true;
+            }
+
+            if (parsedOptions.excludeProjects.Any() && parsedOptions.includeProjects.Any())
+            {
+                LogError(false, "\nOnly --excl-proj or --incl-proj should be specified.\n");
+                parsedOptions.shouldShowHelp = true;
+            }
+
+            if (parsedOptions.shouldShowHelp || parsedOptions.solutionPath == null || parsedOptions.parsedArgCount != args.Length)
             {
                 var name = AppDomain.CurrentDomain.FriendlyName;
                 Console.WriteLine("\nUsage:\n");
-                options.WriteOptionDescriptions(Console.Out);
+                parsedOptions.inputOptions.WriteOptionDescriptions(Console.Out);
                 Console.WriteLine("\nExample:\n");
                 Console.WriteLine($"  {name} my.sln --excl-proj=**/*Test*/** --export=out.sarif --exclude=SCS1234;SCS2345 --config=setting.yml");
                 return 1;
@@ -229,7 +261,7 @@ namespace SecurityCodeScan.Tool
             var visualStudioInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
             var instance = visualStudioInstances.OrderByDescending(x => x.Version).First();
 
-            if (verbose)
+            if (parsedOptions.verbose)
                 Console.WriteLine($"Using MSBuild at '{instance.MSBuildPath}' to load projects.");
             MSBuildLocator.RegisterInstance(instance);
 
@@ -240,28 +272,22 @@ namespace SecurityCodeScan.Tool
                 // Print message for WorkspaceFailed event to help diagnosing project load failures.
                 workspace.WorkspaceFailed += (o, e) =>
                 {
-                    if (e.Diagnostic.Kind == WorkspaceDiagnosticKind.Warning && !verbose)
+                    if (e.Diagnostic.Kind == WorkspaceDiagnosticKind.Warning && !parsedOptions.verbose)
                         return;
 
-                    if (e.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure)
-                        Console.ForegroundColor = ConsoleColor.Red;
-                    else
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-
-                    Console.Error.WriteLine(e.Diagnostic.Message);
-                    Console.ForegroundColor = ConsoleColor.White;
+                    LogError(e.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure, e.Diagnostic.Message);
                     returnCode = 2;
                 };
 
-                Console.WriteLine($"Loading solution '{solutionPath}'");
+                Console.WriteLine($"Loading solution '{parsedOptions.solutionPath}'");
                 // Attach progress reporter so we print projects as they are loaded.
-                var solution = await workspace.OpenSolutionAsync(solutionPath, new ConsoleProgressReporter(verbose)).ConfigureAwait(false);
-                Console.WriteLine($"Finished loading solution '{solutionPath}'");
+                var solution = await workspace.OpenSolutionAsync(parsedOptions.solutionPath, new ConsoleProgressReporter(parsedOptions.verbose)).ConfigureAwait(false);
+                Console.WriteLine($"Finished loading solution '{parsedOptions.solutionPath}'");
 
                 var analyzers = new List<DiagnosticAnalyzer>();
-                LoadAnalyzers(config, excludeWarnings, analyzers);
+                LoadAnalyzers(parsedOptions, analyzers);
 
-                var count = await GetDiagnostics(versionString, sarifFile, threads, excludeWarnings, excludeProjects, solution, analyzers, verbose).ConfigureAwait(false);
+                var count = await GetDiagnostics(parsedOptions, versionString, solution, analyzers).ConfigureAwait(false);
 
                 var elapsed = DateTime.Now - startTime;
                 Console.WriteLine($@"Completed in {elapsed:hh\:mm\:ss}");
@@ -271,26 +297,33 @@ namespace SecurityCodeScan.Tool
             }
         }
 
+        private static void LogError(bool error, string msg)
+        {
+            if (error)
+                Console.ForegroundColor = ConsoleColor.Red;
+            else
+                Console.ForegroundColor = ConsoleColor.Yellow;
+
+            Console.Error.WriteLine(msg);
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+
         private static async Task<int> GetDiagnostics(
+            ParsedOptions parsedOptions,
             string versionString,
-            string sarifFile,
-            int? threads,
-            HashSet<string> excludeWarnings,
-            List<Glob> excludeProjects,
             Solution solution,
-            List<DiagnosticAnalyzer> analyzers,
-            bool verbose)
+            List<DiagnosticAnalyzer> analyzers)
         {
             Stream stream = null;
             SarifV2ErrorLogger logger = null;
             try
             {
-                if (sarifFile != null)
+                if (parsedOptions.sarifFile != null)
                 {
-                    if (File.Exists(sarifFile))
-                        File.Delete(sarifFile);
+                    if (File.Exists(parsedOptions.sarifFile))
+                        File.Delete(parsedOptions.sarifFile);
 
-                    stream = File.Open(sarifFile, FileMode.CreateNew);
+                    stream = File.Open(parsedOptions.sarifFile, FileMode.CreateNew);
                 }
 
                 try
@@ -304,23 +337,26 @@ namespace SecurityCodeScan.Tool
                     var descriptors = new ConcurrentDictionary<string, DiagnosticDescriptor>();
 
                     Runner runner;
-                    if (threads.HasValue)
+                    if (parsedOptions.threads.HasValue)
                     {
-                        runner = new MultiThreadRunner(verbose, analyzers, LogDiagnostics, excludeWarnings, descriptors, logger, Debugger.IsAttached ? 1 : threads.Value);
+                        runner = new MultiThreadRunner(parsedOptions.verbose, analyzers, LogDiagnostics, parsedOptions, descriptors, logger, Debugger.IsAttached ? 1 : parsedOptions.threads.Value);
                     }
                     else
                     {
-                        runner = new SingleThreadRunner(verbose, analyzers, LogDiagnostics, excludeWarnings, descriptors, logger);
+                        runner = new SingleThreadRunner(parsedOptions.verbose, analyzers, LogDiagnostics, parsedOptions, descriptors, logger);
                     }
 
+                    var solutionPath = Path.GetDirectoryName(solution.FilePath) + Path.DirectorySeparatorChar;
                     foreach (var project in solution.Projects)
                     {
-                        var solutionPath = Path.GetDirectoryName(solution.FilePath) + Path.DirectorySeparatorChar;
                         var projectPath = project.FilePath;
                         if (projectPath.StartsWith(solutionPath))
                             projectPath = projectPath.Remove(0, solutionPath.Length);
 
-                        if (excludeProjects.Any(x => x.IsMatch(projectPath)))
+
+
+                        if ((parsedOptions.includeProjects.Any() && !parsedOptions.includeProjects.Any(x => x.IsMatch(projectPath))) ||
+                            parsedOptions.excludeProjects.Any(x => x.IsMatch(projectPath)))
                         {
                             Console.WriteLine($"Skipped: {project.FilePath} excluded from analysis");
                             continue;
@@ -344,10 +380,10 @@ namespace SecurityCodeScan.Tool
             }
         }
 
-        private static void LoadAnalyzers(string config, HashSet<string> excludeMap, List<DiagnosticAnalyzer> analyzers)
+        private static void LoadAnalyzers(ParsedOptions parsedOptions, List<DiagnosticAnalyzer> analyzers)
         {
             var types = typeof(PathTraversalTaintAnalyzer).GetTypeInfo().Assembly.DefinedTypes;
-            AdditionalConfiguration.Path = config;
+            AdditionalConfiguration.Path = parsedOptions.config;
 
             foreach (var type in types)
             {
@@ -362,7 +398,9 @@ namespace SecurityCodeScan.Tool
 
                     // First pass. Analyzers may support more than one diagnostic.
                     // If all supported diagnostics are excluded, don't load the analyzer - save CPU time.
-                    if (analyzer.SupportedDiagnostics.All(x => excludeMap.Contains(x.Id)))
+                    if (parsedOptions.includeWarnings.Any() && !analyzer.SupportedDiagnostics.Any(x => parsedOptions.includeWarnings.Contains(x.Id)))
+                        continue;
+                    else if (analyzer.SupportedDiagnostics.All(x => parsedOptions.excludeWarnings.Contains(x.Id)))
                         continue;
 
                     analyzers.Add(analyzer);
@@ -373,7 +411,7 @@ namespace SecurityCodeScan.Tool
 
         private static int LogDiagnostics(
             ImmutableArray<Diagnostic> diagnostics,
-            HashSet<string> excludeMap,
+            ParsedOptions parsedOptions,
             ConcurrentDictionary<string, DiagnosticDescriptor> descriptors,
             SarifV2ErrorLogger logger)
         {
@@ -384,7 +422,9 @@ namespace SecurityCodeScan.Tool
                 var d = diag;
                 // Second pass. Analyzers may support more than one diagnostic.
                 // Filter excluded diagnostics.
-                if (excludeMap.Contains(d.Id))
+                if (parsedOptions.excludeWarnings.Contains(d.Id))
+                    continue;
+                else if (parsedOptions.includeWarnings.Any() && !parsedOptions.includeWarnings.Contains(d.Id))
                     continue;
 
                 ++count;
@@ -432,7 +472,7 @@ namespace SecurityCodeScan.Tool
 
             public void Report(ProjectLoadProgress loadProgress)
             {
-                if (!_verbose && loadProgress.Operation != ProjectLoadOperation.Evaluate)
+                if (!_verbose && loadProgress.Operation != ProjectLoadOperation.Resolve)
                     return;
 
                 var projectDisplay = Path.GetFileName(loadProgress.FilePath);

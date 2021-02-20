@@ -11,6 +11,7 @@ using SecurityCodeScan.Analyzers.Taint;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using System.Globalization;
+using Mono.Options;
 
 namespace SecurityCodeScan.Tool
 {
@@ -20,7 +21,25 @@ namespace SecurityCodeScan.Tool
         {
             var versionString = System.Diagnostics.FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileVersion;
 
-            if (args.Length != 1 && args.Length != 2)
+            string solutionPath = null;
+            string sarifFile = null;
+            var shouldShowHelp = false;
+            var options = new OptionSet {
+                { "<>", "solution path", n => solutionPath = n },
+                { "e|export=", "SARIF file path", r => sarifFile = r },
+                { "h|help", "show this message and exit", h => shouldShowHelp = h != null },
+            };
+
+            try
+            {
+                options.Parse(args);
+            }
+            catch
+            {
+                shouldShowHelp = true;
+            }
+
+            if (shouldShowHelp || solutionPath == null || args.Length > 2)
             {
                 var name = AppDomain.CurrentDomain.FriendlyName;
 
@@ -29,19 +48,15 @@ namespace SecurityCodeScan.Tool
 ╚═╗├┤ │  │ │├┬┘│ │ └┬┘  ║  │ │ ││├┤   ╚═╗│  ├─┤│││
 ╚═╝└─┘└─┘└─┘┴└─┴ ┴  ┴   ╚═╝└─┘─┴┘└─┘  ╚═╝└─┘┴ ┴┘└┘
 
-.NET tool version {versionString}");
+.NET tool v{versionString}");
                 Console.WriteLine("\nUsage:\n");
-                Console.WriteLine($"  {name} <solution path> <SARIF file path>");
+                options.WriteOptionDescriptions(Console.Out);
+                Console.WriteLine("\nExample:\n");
+                Console.WriteLine($"  {name} <solution path> [--export=<SARIF file path>]");
                 return 1;
             }
 
             var returnCode = 0;
-            var solutionPath = args[0];
-            string sarifFile = null;
-            if (args.Length >= 2)
-            {
-                sarifFile = args[1];
-            }
 
             // Attempt to set the version of MSBuild.
             var visualStudioInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();

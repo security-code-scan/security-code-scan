@@ -126,20 +126,25 @@ namespace SecurityCodeScan.Tool
                     }
                 }
 
+                var count = 0;
                 Stream stream = null;
                 SarifV2ErrorLogger logger = null;
                 try
                 {
                     if (sarifFile != null)
                     {
-                        stream = File.OpenWrite(sarifFile);
+                        if (File.Exists(sarifFile))
+                            File.Delete(sarifFile);
+
+                        stream = File.Open(sarifFile, FileMode.CreateNew);
                     }
 
                     try
                     {
                         if (stream != null)
                         {
-                            logger = new SarifV2ErrorLogger(stream, "Security Code Scan", versionString, new Version(versionString), CultureInfo.InvariantCulture);
+                            var v = new Version(versionString);
+                            logger = new SarifV2ErrorLogger(stream, "Security Code Scan", versionString, new Version($"{v.Major}.{v.Minor}.{v.Build}.0"), CultureInfo.CurrentCulture);
                         }
 
                         foreach (var project in solution.Projects)
@@ -152,6 +157,7 @@ namespace SecurityCodeScan.Tool
                                 if (excludeMap.Contains(diag.Id))
                                     continue;
 
+                                ++count;
                                 Console.WriteLine($"Security Code Scan: {diag}");
                                 if (logger != null)
                                     logger.LogDiagnostic(diag, null);
@@ -172,6 +178,7 @@ namespace SecurityCodeScan.Tool
 
                 var elapsed = DateTime.Now - startTime;
                 Console.WriteLine($@"Completed in {elapsed:hh\:mm\:ss}");
+                Console.WriteLine($@"{count} warnings");
 
                 return returnCode;
             }

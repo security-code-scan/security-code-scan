@@ -236,3 +236,6 @@ $RECYCLE.BIN/
 
 *.rar
 /.vs
+/SecurityCodeScan.Tool/.NET Core/Properties/launchSettings.json
+/SecurityCodeScan.Tool/.NET 4.x/Properties/launchSettings.json
+/SecurityCodeScan.Test/SecurityCodeScan.Test.GeneratedMSBuildEditorConfig.editorconfig

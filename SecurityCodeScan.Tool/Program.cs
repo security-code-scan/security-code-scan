@@ -23,23 +23,33 @@ namespace SecurityCodeScan.Tool
 
             string solutionPath = null;
             string sarifFile = null;
+            string excludeList = null;
             var shouldShowHelp = false;
             var options = new OptionSet {
                 { "<>", "solution path", n => solutionPath = n },
-                { "e|export=", "SARIF file path", r => sarifFile = r },
+                { "e|exclude=", "semicolon delimited list of SCS warnings to exclude", r => excludeList = r },
+                { "x|export=", "SARIF file path", r => sarifFile = r },
                 { "h|help", "show this message and exit", h => shouldShowHelp = h != null },
             };
 
+            var excludeMap = new HashSet<string>();
             try
             {
                 options.Parse(args);
+                if (excludeList != null)
+                {
+                    foreach (var exclusion in excludeList.Split(';'))
+                    {
+                        excludeMap.Add(exclusion.ToUpperInvariant().Trim());
+                    }
+                }
             }
             catch
             {
                 shouldShowHelp = true;
             }
 
-            if (shouldShowHelp || solutionPath == null || args.Length > 2)
+            if (shouldShowHelp || solutionPath == null || args.Length > 3)
             {
                 var name = AppDomain.CurrentDomain.FriendlyName;
 
@@ -94,7 +104,11 @@ namespace SecurityCodeScan.Tool
                                             .Cast<DiagnosticAnalyzerAttribute>();
                     foreach (var attribute in secAttributes)
                     {
-                        analyzers.Add((DiagnosticAnalyzer)Activator.CreateInstance(type.AsType()));
+                        var analyzer = (DiagnosticAnalyzer)Activator.CreateInstance(type.AsType());
+                        if (analyzer.SupportedDiagnostics.All(x => excludeMap.Contains(x.Id)))
+                            continue;
+
+                        analyzers.Add(analyzer);
                         break;
                     }
                 }
@@ -123,6 +137,9 @@ namespace SecurityCodeScan.Tool
                             var diagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
                             foreach (var diag in diagnostics)
                             {
+                                if (excludeMap.Contains(diag.Id))
+                                    continue;
+
                                 Console.WriteLine($"Security Code Scan: {diag}");
                                 if (logger != null)
                                     logger.LogDiagnostic(diag, null);

@@ -12,7 +12,7 @@
 # An analyzer may use additional keys to provide a different message in a specific case (LocaleUtil.GetDescriptor(id, titleId: "custom_key"))
 
 SCS0000:
-  title: "Compilation analysis started."
+  title: "Compilation analysis completed for {0}."
   description: This a fake warning you may enable in configuration just to have a proof in a log that analyzer did run.
 
 SCS0001:

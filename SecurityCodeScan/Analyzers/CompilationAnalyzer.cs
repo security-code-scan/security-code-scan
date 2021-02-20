@@ -30,7 +30,7 @@ namespace SecurityCodeScan.Analyzers
                 {
                     ctx.RegisterCompilationEndAction(ctx =>
                     {
-                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, Location.None));
+                        ctx.ReportDiagnostic(Diagnostic.Create(Rule, Location.None, ctx.Compilation.AssemblyName));
                     });
                 }
             });

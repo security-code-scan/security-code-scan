@@ -80,7 +80,11 @@ namespace SecurityCodeScan.Tool
                 // Print message for WorkspaceFailed event to help diagnosing project load failures.
                 workspace.WorkspaceFailed += (o, e) =>
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
+                    if (e.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure)
+                        Console.ForegroundColor = ConsoleColor.Red;
+                    else
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+
                     Console.Error.WriteLine(e.Diagnostic.Message);
                     Console.ForegroundColor = ConsoleColor.White;
                     returnCode = 2;

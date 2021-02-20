@@ -131,16 +131,15 @@ namespace SecurityCodeScan.Tool
                     if (sarifFile != null)
                     {
                         stream = File.OpenWrite(sarifFile);
-                        logger = new SarifV2ErrorLogger(stream, "Security Code Scan", versionString, new Version(versionString), CultureInfo.InvariantCulture);
-                    }
-
-                    if (stream != null)
-                    {
-                        logger = new SarifV2ErrorLogger(stream, "Security Code Scan", versionString, new Version(versionString), CultureInfo.InvariantCulture);
                     }
 
                     try
                     {
+                        if (stream != null)
+                        {
+                            logger = new SarifV2ErrorLogger(stream, "Security Code Scan", versionString, new Version(versionString), CultureInfo.InvariantCulture);
+                        }
+
                         foreach (var project in solution.Projects)
                         {
                             var compilation = await project.GetCompilationAsync();

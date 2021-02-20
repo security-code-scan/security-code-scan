@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <Nullable>enable</Nullable>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -24,8 +25,18 @@
     <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <NoWarn>1701;1702;8601</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
+    <Compile Include="..\ErrorLogger.cs" Link="ErrorLogger.cs" />
+    <Compile Include="..\Hash.cs" Link="Hash.cs" />
+    <Compile Include="..\JsonWriter.cs" Link="JsonWriter.cs" />
     <Compile Include="..\Program.cs" Link="Program.cs" />
+    <Compile Include="..\SarifDiagnosticComparer.cs" Link="SarifDiagnosticComparer.cs" />
+    <Compile Include="..\SarifErrorLogger.cs" Link="SarifErrorLogger.cs" />
+    <Compile Include="..\SarifV2ErrorLogger.cs" Link="SarifV2ErrorLogger.cs" />
   </ItemGroup>
 
   <ItemGroup>

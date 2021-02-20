@@ -9,17 +9,20 @@ using System.Collections.Immutable;
 using System.Collections.Generic;
 using SecurityCodeScan.Analyzers.Taint;
 using System.Reflection;
+using Microsoft.CodeAnalysis;
+using System.Globalization;
 
 namespace SecurityCodeScan.Tool
 {
-    class Program
+    internal class Program
     {
-        static async Task<int> Main(string[] args)
+        private static async Task<int> Main(string[] args)
         {
-            if (args.Length == 0)
+            var versionString = System.Diagnostics.FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileVersion;
+
+            if (args.Length != 1 && args.Length != 2)
             {
                 var name = AppDomain.CurrentDomain.FriendlyName;
-                var versionString = System.Diagnostics.FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileVersion;
 
                 Console.WriteLine($@"
 ╔═╗┌─┐┌─┐┬ ┬┬─┐┬┌┬┐┬ ┬  ╔═╗┌─┐┌┬┐┌─┐  ╔═╗┌─┐┌─┐┌┐┌
@@ -28,12 +31,17 @@ namespace SecurityCodeScan.Tool
 
 .NET tool version {versionString}");
                 Console.WriteLine("\nUsage:\n");
-                Console.WriteLine($"  {name} <solution path>");
+                Console.WriteLine($"  {name} <solution path> <SARIF file path>");
                 return 1;
             }
 
             var returnCode = 0;
             var solutionPath = args[0];
+            string sarifFile = null;
+            if (args.Length >= 2)
+            {
+                sarifFile = args[1];
+            }
 
             // Attempt to set the version of MSBuild.
             var visualStudioInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
@@ -76,15 +84,46 @@ namespace SecurityCodeScan.Tool
                     }
                 }
 
-                foreach (var project in solution.Projects)
+                Stream stream = null;
+                SarifV2ErrorLogger logger = null;
+                try
                 {
-                    var compilation = await project.GetCompilationAsync();
-                    var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers.ToImmutableArray());
-                    var diagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
-                    foreach (var diag in diagnostics)
+                    if (sarifFile != null)
                     {
-                        Console.WriteLine($"Security Code Scan: {diag}");
+                        stream = File.OpenWrite(sarifFile);
+                        logger = new SarifV2ErrorLogger(stream, "Security Code Scan", versionString, new Version(versionString), CultureInfo.InvariantCulture);
                     }
+
+                    if (stream != null)
+                    {
+                        logger = new SarifV2ErrorLogger(stream, "Security Code Scan", versionString, new Version(versionString), CultureInfo.InvariantCulture);
+                    }
+
+                    try
+                    {
+                        foreach (var project in solution.Projects)
+                        {
+                            var compilation = await project.GetCompilationAsync();
+                            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers.ToImmutableArray());
+                            var diagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
+                            foreach (var diag in diagnostics)
+                            {
+                                Console.WriteLine($"Security Code Scan: {diag}");
+                                if (logger != null)
+                                    logger.LogDiagnostic(diag, null);
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        if (logger != null)
+                            logger.Dispose();
+                    }
+                }
+                finally
+                {
+                    if (stream != null)
+                        stream.Close();
                 }
 
                 return returnCode;

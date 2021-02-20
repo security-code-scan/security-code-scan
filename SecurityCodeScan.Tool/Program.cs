@@ -63,7 +63,10 @@ namespace SecurityCodeScan.Tool
 
     internal class SingleThreadRunner : Runner
     {
+        private bool _verbose;
+
         public SingleThreadRunner(
+            bool verbose,
             List<DiagnosticAnalyzer> analyzers,
             Func<ImmutableArray<Diagnostic>, HashSet<string>, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, int> logDiagnostics,
             HashSet<string> excludeWarningsMap,
@@ -71,10 +74,13 @@ namespace SecurityCodeScan.Tool
             SarifV2ErrorLogger logger)
             : base(analyzers, logDiagnostics, excludeWarningsMap, descriptors, logger)
         {
+            _verbose = verbose;
         }
 
         public override async Task Run(Project project)
         {
+            if (_verbose)
+                Console.WriteLine($"Starting: {project.FilePath}");
             var diagnostics = await GetDiagnostics(project).ConfigureAwait(false);
             _count += _logDiagnostics(diagnostics, _excludeWarningsMap, _descriptors, _logger);
         }
@@ -86,6 +92,7 @@ namespace SecurityCodeScan.Tool
         private ActionBlock<ImmutableArray<Diagnostic>>             _resultsBlock;
 
         public MultiThreadRunner(
+            bool verbose,
             List<DiagnosticAnalyzer> analyzers,
             Func<ImmutableArray<Diagnostic>, HashSet<string>, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, int> logDiagnostics,
             HashSet<string> excludeWarningsMap,
@@ -96,7 +103,8 @@ namespace SecurityCodeScan.Tool
         {
             _scanBlock = new TransformBlock<Project, ImmutableArray<Diagnostic>>(async project =>
             {
-                Console.WriteLine($"Starting: {project.FilePath}");
+                if (verbose)
+                    Console.WriteLine($"Starting: {project.FilePath}");
                 return await GetDiagnostics(project).ConfigureAwait(false);
             },
             new ExecutionDataflowBlockOptions
@@ -147,10 +155,11 @@ namespace SecurityCodeScan.Tool
             string config = null;
             int? threads = null;
             var shouldShowHelp = false;
+            var verbose = false;
             var showBanner = true;
             var parsedArgCount = 0;
-            var excludeWarningsMap = new HashSet<string>();
-            var excludeProjectsMap = new List<Glob>();
+            var excludeWarnings = new HashSet<string>();
+            var excludeProjects = new List<Glob>();
 
             OptionSet options = null;
             try
@@ -158,7 +167,8 @@ namespace SecurityCodeScan.Tool
                 string excludeWarningsList = null;
                 string excludeProjectsList = null;
 
-                options = new OptionSet {
+                options = new OptionSet
+                {
                     { "<>",             "(Required) solution path", r => { solutionPath = r; ++parsedArgCount; } },
                     { "w|excl-warn=",   "(Optional) semicolon delimited list of warnings to exclude", r => { excludeWarningsList = r; ++parsedArgCount; } },
                     { "p|excl-proj=",   "(Optional) semicolon delimited list of glob project patterns to exclude", r => { excludeProjectsList = r; ++parsedArgCount; } },
@@ -166,6 +176,7 @@ namespace SecurityCodeScan.Tool
                     { "c|config=",      "(Optional) path to additional configuration file", r => { config = r; ++parsedArgCount; } },
                     { "t|threads=",     "(Optional) run analysis in parallel (experimental)", (int r) => { threads = r; ++parsedArgCount; } },
                     { "n|no-banner",    "(Optional) don't show the banner", r => { showBanner = r == null; ++parsedArgCount; } },
+                    { "v|verbose",      "(Optional) more diagnostic messages", r => { verbose = r != null; ++parsedArgCount; } },
                     { "h|help",         "show this message and exit", h => shouldShowHelp = h != null },
                 };
 
@@ -174,7 +185,7 @@ namespace SecurityCodeScan.Tool
                 {
                     foreach (var exclusion in excludeWarningsList.Split(';'))
                     {
-                        excludeWarningsMap.Add(exclusion.ToUpperInvariant().Trim());
+                        excludeWarnings.Add(exclusion.ToUpperInvariant().Trim());
                     }
                 }
 
@@ -182,7 +193,7 @@ namespace SecurityCodeScan.Tool
                 {
                     foreach (var exclusion in excludeProjectsList.Split(';'))
                     {
-                        excludeProjectsMap.Add(Glob.Parse(exclusion.Trim()));
+                        excludeProjects.Add(Glob.Parse(exclusion.Trim()));
                     }
                 }
             }
@@ -218,7 +229,8 @@ namespace SecurityCodeScan.Tool
             var visualStudioInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
             var instance = visualStudioInstances.OrderByDescending(x => x.Version).First();
 
-            Console.WriteLine($"Using MSBuild at '{instance.MSBuildPath}' to load projects.");
+            if (verbose)
+                Console.WriteLine($"Using MSBuild at '{instance.MSBuildPath}' to load projects.");
             MSBuildLocator.RegisterInstance(instance);
 
             var properties = new Dictionary<string, string>() { { "AdditionalFileItemNames", "$(AdditionalFileItemNames);Content" } };
@@ -228,6 +240,9 @@ namespace SecurityCodeScan.Tool
                 // Print message for WorkspaceFailed event to help diagnosing project load failures.
                 workspace.WorkspaceFailed += (o, e) =>
                 {
+                    if (e.Diagnostic.Kind == WorkspaceDiagnosticKind.Warning && !verbose)
+                        return;
+
                     if (e.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure)
                         Console.ForegroundColor = ConsoleColor.Red;
                     else
@@ -239,15 +254,14 @@ namespace SecurityCodeScan.Tool
                 };
 
                 Console.WriteLine($"Loading solution '{solutionPath}'");
-
                 // Attach progress reporter so we print projects as they are loaded.
-                var solution = await workspace.OpenSolutionAsync(solutionPath, new ConsoleProgressReporter()).ConfigureAwait(false);
+                var solution = await workspace.OpenSolutionAsync(solutionPath, new ConsoleProgressReporter(verbose)).ConfigureAwait(false);
                 Console.WriteLine($"Finished loading solution '{solutionPath}'");
 
                 var analyzers = new List<DiagnosticAnalyzer>();
-                LoadAnalyzers(config, excludeWarningsMap, analyzers);
+                LoadAnalyzers(config, excludeWarnings, analyzers);
 
-                var count = await GetDiagnostics(versionString, sarifFile, threads, excludeWarningsMap, excludeProjectsMap, solution, analyzers).ConfigureAwait(false);
+                var count = await GetDiagnostics(versionString, sarifFile, threads, excludeWarnings, excludeProjects, solution, analyzers, verbose).ConfigureAwait(false);
 
                 var elapsed = DateTime.Now - startTime;
                 Console.WriteLine($@"Completed in {elapsed:hh\:mm\:ss}");
@@ -261,10 +275,11 @@ namespace SecurityCodeScan.Tool
             string versionString,
             string sarifFile,
             int? threads,
-            HashSet<string> excludeWarningsMap,
-            List<Glob> excludeProjectsList,
+            HashSet<string> excludeWarnings,
+            List<Glob> excludeProjects,
             Solution solution,
-            List<DiagnosticAnalyzer> analyzers)
+            List<DiagnosticAnalyzer> analyzers,
+            bool verbose)
         {
             Stream stream = null;
             SarifV2ErrorLogger logger = null;
@@ -291,11 +306,11 @@ namespace SecurityCodeScan.Tool
                     Runner runner;
                     if (threads.HasValue)
                     {
-                        runner = new MultiThreadRunner(analyzers, LogDiagnostics, excludeWarningsMap, descriptors, logger, Debugger.IsAttached ? 1 : threads.Value);
+                        runner = new MultiThreadRunner(verbose, analyzers, LogDiagnostics, excludeWarnings, descriptors, logger, Debugger.IsAttached ? 1 : threads.Value);
                     }
                     else
                     {
-                        runner = new SingleThreadRunner(analyzers, LogDiagnostics, excludeWarningsMap, descriptors, logger);
+                        runner = new SingleThreadRunner(verbose, analyzers, LogDiagnostics, excludeWarnings, descriptors, logger);
                     }
 
                     foreach (var project in solution.Projects)
@@ -305,7 +320,7 @@ namespace SecurityCodeScan.Tool
                         if (projectPath.StartsWith(solutionPath))
                             projectPath = projectPath.Remove(0, solutionPath.Length);
 
-                        if (excludeProjectsList.Any(x => x.IsMatch(projectPath)))
+                        if (excludeProjects.Any(x => x.IsMatch(projectPath)))
                         {
                             Console.WriteLine($"Skipped: {project.FilePath} excluded from analysis");
                             continue;
@@ -408,8 +423,18 @@ namespace SecurityCodeScan.Tool
 
         private class ConsoleProgressReporter : IProgress<ProjectLoadProgress>
         {
+            private bool _verbose;
+
+            public ConsoleProgressReporter(bool verbose)
+            {
+                _verbose = verbose;
+            }
+
             public void Report(ProjectLoadProgress loadProgress)
             {
+                if (!_verbose && loadProgress.Operation != ProjectLoadOperation.Evaluate)
+                    return;
+
                 var projectDisplay = Path.GetFileName(loadProgress.FilePath);
                 if (loadProgress.TargetFramework != null)
                 {

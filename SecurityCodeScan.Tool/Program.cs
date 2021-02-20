@@ -16,6 +16,7 @@ using SecurityCodeScan.Config;
 using System.Text.RegularExpressions;
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.Text;
+using System.Text;
 
 namespace SecurityCodeScan.Tool
 {
@@ -23,6 +24,7 @@ namespace SecurityCodeScan.Tool
     {
         private static async Task<int> Main(string[] args)
         {
+            Console.OutputEncoding = Encoding.UTF8;
             var startTime = DateTime.Now;
             var versionString = System.Diagnostics.FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileVersion;
 
@@ -31,6 +33,7 @@ namespace SecurityCodeScan.Tool
             string excludeList = null;
             string config = null;
             var shouldShowHelp = false;
+            var showBanner = true;
             var parsedArgCount = 0;
 
             var options = new OptionSet {
@@ -38,6 +41,7 @@ namespace SecurityCodeScan.Tool
                 { "e|exclude=", "semicolon delimited list of SCS warnings to exclude", r => { excludeList = r; ++parsedArgCount; } },
                 { "x|export=", "SARIF file path", r => { sarifFile = r; ++parsedArgCount; } },
                 { "c|config=", "additional Security Code Scan configuration path", r => { config = r; ++parsedArgCount; } },
+                { "n|no-banner", "don't show the banner", r => { showBanner = r == null; ++parsedArgCount; } },
                 { "h|help", "show this message and exit", h => shouldShowHelp = h != null },
             };
 
@@ -58,16 +62,20 @@ namespace SecurityCodeScan.Tool
                 shouldShowHelp = true;
             }
 
-            if (shouldShowHelp || solutionPath == null || parsedArgCount != args.Length)
+            if (showBanner)
             {
-                var name = AppDomain.CurrentDomain.FriendlyName;
-
                 Console.WriteLine($@"
 ╔═╗┌─┐┌─┐┬ ┬┬─┐┬┌┬┐┬ ┬  ╔═╗┌─┐┌┬┐┌─┐  ╔═╗┌─┐┌─┐┌┐┌
 ╚═╗├┤ │  │ │├┬┘│ │ └┬┘  ║  │ │ ││├┤   ╚═╗│  ├─┤│││
 ╚═╝└─┘└─┘└─┘┴└─┴ ┴  ┴   ╚═╝└─┘─┴┘└─┘  ╚═╝└─┘┴ ┴┘└┘
 
-.NET tool v{versionString}");
+.NET tool by Jaroslav Lobačevski v{versionString}");
+                Console.WriteLine("\n");
+            }
+
+            if (shouldShowHelp || solutionPath == null || parsedArgCount != args.Length)
+            {
+                var name = AppDomain.CurrentDomain.FriendlyName;
                 Console.WriteLine("\nUsage:\n");
                 options.WriteOptionDescriptions(Console.Out);
                 Console.WriteLine("\nExample:\n");

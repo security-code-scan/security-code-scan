@@ -19,45 +19,170 @@ using Microsoft.CodeAnalysis.Text;
 using System.Text;
 using System.Threading.Tasks.Dataflow;
 using System.Diagnostics;
+using DotNet.Globbing;
 
 namespace SecurityCodeScan.Tool
 {
+    internal abstract class Runner
+    {
+        protected int _count;
+        private List<DiagnosticAnalyzer> _analyzers;
+        protected Func<ImmutableArray<Diagnostic>, HashSet<string>, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, int> _logDiagnostics;
+        protected HashSet<string> _excludeWarningsMap;
+        protected ConcurrentDictionary<string, DiagnosticDescriptor> _descriptors;
+        protected SarifV2ErrorLogger _logger;
+
+        public Runner(
+            List<DiagnosticAnalyzer> analyzers,
+            Func<ImmutableArray<Diagnostic>, HashSet<string>, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, int> logDiagnostics,
+            HashSet<string> excludeWarningsMap,
+            ConcurrentDictionary<string, DiagnosticDescriptor> descriptors,
+            SarifV2ErrorLogger logger)
+        {
+            _analyzers = analyzers;
+            _logDiagnostics = logDiagnostics;
+            _excludeWarningsMap = excludeWarningsMap;
+            _descriptors = descriptors;
+            _logger = logger;
+        }
+
+        public abstract Task Run(Project project);
+
+        public virtual async Task<int> WaitForCompletion()
+        {
+            return await Task.FromResult(_count).ConfigureAwait(false);
+        }
+
+        protected async Task<ImmutableArray<Diagnostic>> GetDiagnostics(Project project)
+        {
+            var compilation = await project.GetCompilationAsync().ConfigureAwait(false);
+            var compilationWithAnalyzers = compilation.WithAnalyzers(_analyzers.ToImmutableArray(), project.AnalyzerOptions);
+            return await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false);
+        }
+    }
+
+    internal class SingleThreadRunner : Runner
+    {
+        public SingleThreadRunner(
+            List<DiagnosticAnalyzer> analyzers,
+            Func<ImmutableArray<Diagnostic>, HashSet<string>, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, int> logDiagnostics,
+            HashSet<string> excludeWarningsMap,
+            ConcurrentDictionary<string, DiagnosticDescriptor> descriptors,
+            SarifV2ErrorLogger logger)
+            : base(analyzers, logDiagnostics, excludeWarningsMap, descriptors, logger)
+        {
+        }
+
+        public override async Task Run(Project project)
+        {
+            var diagnostics = await GetDiagnostics(project).ConfigureAwait(false);
+            _count += _logDiagnostics(diagnostics, _excludeWarningsMap, _descriptors, _logger);
+        }
+    }
+
+    internal class MultiThreadRunner : Runner
+    {
+        private TransformBlock<Project, ImmutableArray<Diagnostic>> _scanBlock;
+        private ActionBlock<ImmutableArray<Diagnostic>>             _resultsBlock;
+
+        public MultiThreadRunner(
+            List<DiagnosticAnalyzer> analyzers,
+            Func<ImmutableArray<Diagnostic>, HashSet<string>, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, int> logDiagnostics,
+            HashSet<string> excludeWarningsMap,
+            ConcurrentDictionary<string, DiagnosticDescriptor> descriptors,
+            SarifV2ErrorLogger logger,
+            int threads)
+            : base(analyzers, logDiagnostics, excludeWarningsMap, descriptors, logger)
+        {
+            _scanBlock = new TransformBlock<Project, ImmutableArray<Diagnostic>>(async project =>
+            {
+                Console.WriteLine($"Starting: {project.FilePath}");
+                return await GetDiagnostics(project).ConfigureAwait(false);
+            },
+            new ExecutionDataflowBlockOptions
+            {
+                MaxDegreeOfParallelism = threads,
+                EnsureOrdered = false,
+                BoundedCapacity = 32
+            });
+
+            _resultsBlock = new ActionBlock<ImmutableArray<Diagnostic>>(diagnostics =>
+            {
+                _count += logDiagnostics(diagnostics, excludeWarningsMap, descriptors, logger);
+            },
+            new ExecutionDataflowBlockOptions
+            {
+                EnsureOrdered = false
+            });
+
+            _scanBlock.LinkTo(_resultsBlock, new DataflowLinkOptions { PropagateCompletion = true });
+        }
+
+        public override async Task Run(Project project)
+        {
+            if (!await _scanBlock.SendAsync(project).ConfigureAwait(false))
+            {
+                throw new Exception("Thread synchronization error.");
+            }
+        }
+
+        public override async Task<int> WaitForCompletion()
+        {
+            _scanBlock.Complete();
+            await _resultsBlock.Completion.ConfigureAwait(false);
+            return await base.WaitForCompletion().ConfigureAwait(false);
+        }
+    }
+
     internal class Program
     {
         private static async Task<int> Main(string[] args)
         {
             Console.OutputEncoding = Encoding.UTF8;
             var startTime = DateTime.Now;
-            var versionString = System.Diagnostics.FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileVersion;
+            var versionString = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileVersion;
 
             string solutionPath = null;
             string sarifFile = null;
-            string excludeList = null;
             string config = null;
             int? threads = null;
             var shouldShowHelp = false;
             var showBanner = true;
             var parsedArgCount = 0;
+            var excludeWarningsMap = new HashSet<string>();
+            var excludeProjectsMap = new List<Glob>();
 
-            var options = new OptionSet {
-                { "<>",             "(Required) solution path", r => { solutionPath = r; ++parsedArgCount; } },
-                { "e|exclude=",     "(Optional) semicolon delimited list of warnings to exclude", r => { excludeList = r; ++parsedArgCount; } },
-                { "x|export=",      "(Optional) SARIF file path", r => { sarifFile = r; ++parsedArgCount; } },
-                { "c|config=",      "(Optional) path to additional configuration file", r => { config = r; ++parsedArgCount; } },
-                { "p|threads=",     "(Optional) run analysis in parallel (experimental)", (int r) => { threads = r; ++parsedArgCount; } },
-                { "n|no-banner",    "(Optional) don't show the banner", r => { showBanner = r == null; ++parsedArgCount; } },
-                { "h|help",         "show this message and exit", h => shouldShowHelp = h != null },
-            };
-
-            var excludeMap = new HashSet<string>();
+            OptionSet options = null;
             try
             {
+                string excludeWarningsList = null;
+                string excludeProjectsList = null;
+
+                options = new OptionSet {
+                    { "<>",             "(Required) solution path", r => { solutionPath = r; ++parsedArgCount; } },
+                    { "w|excl-warn=",   "(Optional) semicolon delimited list of warnings to exclude", r => { excludeWarningsList = r; ++parsedArgCount; } },
+                    { "p|excl-proj=",   "(Optional) semicolon delimited list of glob project patterns to exclude", r => { excludeProjectsList = r; ++parsedArgCount; } },
+                    { "x|export=",      "(Optional) SARIF file path", r => { sarifFile = r; ++parsedArgCount; } },
+                    { "c|config=",      "(Optional) path to additional configuration file", r => { config = r; ++parsedArgCount; } },
+                    { "t|threads=",     "(Optional) run analysis in parallel (experimental)", (int r) => { threads = r; ++parsedArgCount; } },
+                    { "n|no-banner",    "(Optional) don't show the banner", r => { showBanner = r == null; ++parsedArgCount; } },
+                    { "h|help",         "show this message and exit", h => shouldShowHelp = h != null },
+                };
+
                 options.Parse(args);
-                if (excludeList != null)
+                if (excludeWarningsList != null)
                 {
-                    foreach (var exclusion in excludeList.Split(';'))
+                    foreach (var exclusion in excludeWarningsList.Split(';'))
                     {
-                        excludeMap.Add(exclusion.ToUpperInvariant().Trim());
+                        excludeWarningsMap.Add(exclusion.ToUpperInvariant().Trim());
+                    }
+                }
+
+                if (excludeProjectsList != null)
+                {
+                    foreach (var exclusion in excludeProjectsList.Split(';'))
+                    {
+                        excludeProjectsMap.Add(Glob.Parse(exclusion.Trim()));
                     }
                 }
             }
@@ -83,7 +208,7 @@ namespace SecurityCodeScan.Tool
                 Console.WriteLine("\nUsage:\n");
                 options.WriteOptionDescriptions(Console.Out);
                 Console.WriteLine("\nExample:\n");
-                Console.WriteLine($"  {name} my.sln --export=out.sarif --exclude=SCS1234;SCS2345 --config=setting.yml");
+                Console.WriteLine($"  {name} my.sln --excl-proj=**/*Test*/** --export=out.sarif --exclude=SCS1234;SCS2345 --config=setting.yml");
                 return 1;
             }
 
@@ -120,9 +245,9 @@ namespace SecurityCodeScan.Tool
                 Console.WriteLine($"Finished loading solution '{solutionPath}'");
 
                 var analyzers = new List<DiagnosticAnalyzer>();
-                LoadAnalyzers(config, excludeMap, analyzers);
+                LoadAnalyzers(config, excludeWarningsMap, analyzers);
 
-                var count = await GetDiagnostics(versionString, sarifFile, threads, excludeMap, solution, analyzers).ConfigureAwait(false);
+                var count = await GetDiagnostics(versionString, sarifFile, threads, excludeWarningsMap, excludeProjectsMap, solution, analyzers).ConfigureAwait(false);
 
                 var elapsed = DateTime.Now - startTime;
                 Console.WriteLine($@"Completed in {elapsed:hh\:mm\:ss}");
@@ -136,11 +261,11 @@ namespace SecurityCodeScan.Tool
             string versionString,
             string sarifFile,
             int? threads,
-            HashSet<string> excludeMap,
+            HashSet<string> excludeWarningsMap,
+            List<Glob> excludeProjectsList,
             Solution solution,
             List<DiagnosticAnalyzer> analyzers)
         {
-            var count = 0;
             Stream stream = null;
             SarifV2ErrorLogger logger = null;
             try
@@ -163,54 +288,33 @@ namespace SecurityCodeScan.Tool
 
                     var descriptors = new ConcurrentDictionary<string, DiagnosticDescriptor>();
 
-                    if(threads.HasValue)
+                    Runner runner;
+                    if (threads.HasValue)
                     {
-                        var scanBlock = new TransformBlock<Project, ImmutableArray<Diagnostic>>(async project =>
-                        {
-                            var compilation = await project.GetCompilationAsync().ConfigureAwait(false);
-                            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers.ToImmutableArray(), project.AnalyzerOptions);
-                            var diagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false);
-                            return diagnostics;
-                        },
-                        new ExecutionDataflowBlockOptions
-                        {
-                            MaxDegreeOfParallelism = Debugger.IsAttached ? 1 : threads.Value,
-                            EnsureOrdered = false,
-                            BoundedCapacity = 32
-                        });
-
-                        var resultsBlock = new ActionBlock<ImmutableArray<Diagnostic>>(diagnostics =>
-                        {
-                            count += LogDiagnostics(diagnostics, excludeMap, descriptors, logger);
-                        },
-                        new ExecutionDataflowBlockOptions
-                        {
-                            EnsureOrdered = false
-                        });
-
-                        scanBlock.LinkTo(resultsBlock, new DataflowLinkOptions { PropagateCompletion = true });
-
-                        foreach (var project in solution.Projects)
-                        {
-                            if (!await scanBlock.SendAsync(project).ConfigureAwait(false))
-                            {
-                                throw new Exception("Thread synchronization error.");
-                            }
-                        }
-
-                        scanBlock.Complete();
-                        await resultsBlock.Completion.ConfigureAwait(false);
+                        runner = new MultiThreadRunner(analyzers, LogDiagnostics, excludeWarningsMap, descriptors, logger, Debugger.IsAttached ? 1 : threads.Value);
                     }
                     else
                     {
-                        foreach (var project in solution.Projects)
-                        {
-                            var compilation = await project.GetCompilationAsync().ConfigureAwait(false);
-                            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers.ToImmutableArray(), project.AnalyzerOptions);
-                            var diagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false);
-                            count += LogDiagnostics(diagnostics, excludeMap, descriptors, logger);
-                        }
+                        runner = new SingleThreadRunner(analyzers, LogDiagnostics, excludeWarningsMap, descriptors, logger);
                     }
+
+                    foreach (var project in solution.Projects)
+                    {
+                        var solutionPath = Path.GetDirectoryName(solution.FilePath) + Path.DirectorySeparatorChar;
+                        var projectPath = project.FilePath;
+                        if (projectPath.StartsWith(solutionPath))
+                            projectPath = projectPath.Remove(0, solutionPath.Length);
+
+                        if (excludeProjectsList.Any(x => x.IsMatch(projectPath)))
+                        {
+                            Console.WriteLine($"Skipped: {project.FilePath} excluded from analysis");
+                            continue;
+                        }
+
+                        await runner.Run(project).ConfigureAwait(false);
+                    }
+
+                    return await runner.WaitForCompletion().ConfigureAwait(false);
                 }
                 finally
                 {
@@ -223,8 +327,6 @@ namespace SecurityCodeScan.Tool
                 if (stream != null)
                     stream.Close();
             }
-
-            return count;
         }
 
         private static void LoadAnalyzers(string config, HashSet<string> excludeMap, List<DiagnosticAnalyzer> analyzers)

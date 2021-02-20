@@ -52,7 +52,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 if (wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(info.FullTypeName, out INamedTypeSymbol? namedTypeSymbol))
                 {
-                    if (info.IsInterface)
+                    if (namedTypeSymbol.TypeKind == TypeKind.Interface)
+                    //if (info.IsInterface)
                     {
                         interfaceInfosBuilder[namedTypeSymbol] = info;
                     }

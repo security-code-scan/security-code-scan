@@ -728,4 +728,99 @@ Sinks:
             }
         }
     }
+
+    [TestClass]
+    public class CustomEntryPointTainAnalyzerTest : DiagnosticVerifier
+    {
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _)
+        {
+            return new[] { new SqlInjectionTaintAnalyzer() };
+        }
+
+        private static readonly PortableExecutableReference[] References =
+        {
+            MetadataReference.CreateFromFile(typeof(System.Data.SqlClient.SqlCommand).Assembly.Location),
+        };
+
+        private DiagnosticResult Expected = new DiagnosticResult
+        {
+            Id       = "SCS0002",
+            Severity = DiagnosticSeverity.Warning,
+        };
+
+        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
+
+        [DataTestMethod]
+        [DataRow("System.String",   "System.String",    "input")]
+        [DataRow("DTO",             "DTO",              "input")]
+        [DataRow("DTO",             "System.String",    "input.value")]
+        public async Task TaintSourceControllerCore(string inputType, string sinkType, string payload)
+        {
+            var cSharpTest = $@"
+public class DTO
+{{
+    public {sinkType} value;
+}}
+
+public interface IController {{}}
+
+public class MyController : IController
+{{
+    public void Run({inputType} input)
+    {{
+        Sink({payload});
+    }}
+
+    private void Sink({sinkType} input) {{}}
+}}
+";
+
+            var visualBasicTest = $@"
+Public Class DTO
+    Public value As {sinkType}
+End Class
+
+Public Interface IController
+End Interface
+
+Public Class MyController
+    Implements IController
+
+    Public Sub Run(ByVal input As {inputType})
+        Sink({payload})
+    End Sub
+
+    Private Sub Sink(ByVal input As {sinkType})
+    End Sub
+End Class
+
+";
+
+            var testConfig = @"
+TaintEntryPoints:
+  IController:
+    Class:
+      Accessibility:
+        - public
+      Parent: IController
+    Method:
+      Accessibility:
+        - public
+      IncludeConstructor: false
+      Static: false
+Sinks:
+  - Type: MyController
+    TaintTypes:
+      - SCS0002
+    Methods:
+    - Name: Sink
+      Arguments:
+        - input
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+    }
 }

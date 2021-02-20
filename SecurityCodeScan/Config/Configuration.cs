@@ -330,7 +330,7 @@ namespace SecurityCodeScan.Config
                             {
                                 isTaintEntryClass = false;
 
-                                bool IsTaintEntryClass()
+                                bool IsTaintEntryClassBySuffix()
                                 {
                                     if (typeSymbol.Name.EndsWith(type.Value.entryPoint.Class.Suffix.Text, StringComparison.Ordinal))
                                     {
@@ -355,15 +355,18 @@ namespace SecurityCodeScan.Config
                                 else
                                 {
                                     if (type.Value.entryPoint.Class.Suffix != null &&
-                                             type.Value.entryPoint.Class.Parent == null)
+                                        type.Value.entryPoint.Class.Parent == null)
                                     {
-                                        isTaintEntryClass = IsTaintEntryClass();
+                                        isTaintEntryClass = IsTaintEntryClassBySuffix();
                                     }
-                                    else if (type.Value.entryPoint.Class.Suffix != null &&
-                                             type.Value.entryPoint.Class.Parent != null &&
-                                             typeSymbol.GetBaseTypesAndThis().Any(x => x == wellKnownTypeProvider.GetOrCreateTypeByMetadataName(type.Value.entryPoint.Class.Parent)))
+                                    else if (type.Value.entryPoint.Class.Parent != null)
                                     {
-                                        isTaintEntryClass = IsTaintEntryClass();
+                                        var parentType = wellKnownTypeProvider.GetOrCreateTypeByMetadataName(type.Value.entryPoint.Class.Parent);
+                                        if ((parentType.TypeKind == TypeKind.Interface && typeSymbol.AllInterfaces.Any(x => x == parentType)) ||
+                                             typeSymbol.GetBaseTypesAndThis().Any(x => x == parentType))
+                                        {
+                                            isTaintEntryClass = type.Value.entryPoint.Class.Suffix != null ? IsTaintEntryClassBySuffix() : true;
+                                        }
                                     }
 
                                     if (type.Value.entryPoint.Class.Attributes?.Exclude != null &&

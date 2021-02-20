@@ -118,6 +118,9 @@ namespace SecurityCodeScan.Tool
                     foreach (var attribute in secAttributes)
                     {
                         var analyzer = (DiagnosticAnalyzer)Activator.CreateInstance(type.AsType());
+
+                        // First pass. Analyzers may support more than one diagnostic.
+                        // If all supported diagnostics are excluded, don't load the analyzer - save CPU time.
                         if (analyzer.SupportedDiagnostics.All(x => excludeMap.Contains(x.Id)))
                             continue;
 
@@ -154,6 +157,8 @@ namespace SecurityCodeScan.Tool
                             var diagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
                             foreach (var diag in diagnostics)
                             {
+                                // Second pass. Analyzers may support more than one diagnostic.
+                                // Filter excluded diagnostics.
                                 if (excludeMap.Contains(diag.Id))
                                     continue;
 

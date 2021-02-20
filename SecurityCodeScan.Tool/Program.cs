@@ -81,7 +81,9 @@ namespace SecurityCodeScan.Tool
             Console.WriteLine($"Using MSBuild at '{instance.MSBuildPath}' to load projects.");
             MSBuildLocator.RegisterInstance(instance);
 
-            using (var workspace = MSBuildWorkspace.Create())
+            var properties = new Dictionary<string, string>() { { "AdditionalFileItemNames", "$(AdditionalFileItemNames);Content" } };
+
+            using (var workspace = MSBuildWorkspace.Create(properties))
             {
                 // Print message for WorkspaceFailed event to help diagnosing project load failures.
                 workspace.WorkspaceFailed += (o, e) =>
@@ -143,7 +145,7 @@ namespace SecurityCodeScan.Tool
                         foreach (var project in solution.Projects)
                         {
                             var compilation = await project.GetCompilationAsync();
-                            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers.ToImmutableArray());
+                            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers.ToImmutableArray(), project.AnalyzerOptions);
                             var diagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
                             foreach (var diag in diagnostics)
                             {

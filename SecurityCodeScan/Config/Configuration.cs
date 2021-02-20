@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -651,6 +652,11 @@ namespace SecurityCodeScan.Config
         }
     }
 
+    public static class AdditionalConfiguration
+    {
+        public static string Path;
+    }
+
     /// <summary>
     /// Internal configuration optimized for queries
     /// </summary>
@@ -665,8 +671,20 @@ namespace SecurityCodeScan.Config
 
 #pragma warning disable RS1012 // Start action has no registered actions.
             static Configuration CreateConfiguration(CompilationStartAnalysisContext ctx)
-#pragma warning restore RS1012 // Start action has no registered actions.
-                => new Configuration(ConfigurationManager.GetProjectConfiguration(ctx.Options.AdditionalFiles), ctx.Compilation);
+            {
+                var projConfigData = ConfigurationManager.GetProjectConfiguration(ctx.Options.AdditionalFiles);
+
+                if (AdditionalConfiguration.Path != null)
+                {
+                    using (var reader = File.OpenText(AdditionalConfiguration.Path))
+                    {
+                        var additionalConfig = ConfigurationManager.Reader.DeserializeAndValidate<ConfigData>(reader, validate: true);
+                        projConfigData.Merge(additionalConfig);
+                    }
+                }
+
+                return new Configuration(projConfigData, ctx.Compilation);
+            }
         }
 
         private static readonly BoundedCacheWithFactory<AnalysisContext, ConfigData> s_userConfigurationCache =

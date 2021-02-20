@@ -31,7 +31,7 @@ namespace SecurityCodeScan.Config
 
         private static readonly Version ConfigVersion = new Version(3,0);
 
-        private T DeserializeAndValidate<T>(StreamReader reader, bool validate) where T : ConfigData
+        public T DeserializeAndValidate<T>(StreamReader reader, bool validate) where T : ConfigData
         {
             if (validate)
             {

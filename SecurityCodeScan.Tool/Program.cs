@@ -12,6 +12,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using System.Globalization;
 using Mono.Options;
+using SecurityCodeScan.Config;
 
 namespace SecurityCodeScan.Tool
 {
@@ -25,11 +26,15 @@ namespace SecurityCodeScan.Tool
             string solutionPath = null;
             string sarifFile = null;
             string excludeList = null;
+            string config = null;
             var shouldShowHelp = false;
+            var parsedArgCount = 0;
+
             var options = new OptionSet {
-                { "<>", "solution path", n => solutionPath = n },
-                { "e|exclude=", "semicolon delimited list of SCS warnings to exclude", r => excludeList = r },
-                { "x|export=", "SARIF file path", r => sarifFile = r },
+                { "<>", "solution path", r => { solutionPath = r; ++parsedArgCount; } },
+                { "e|exclude=", "semicolon delimited list of SCS warnings to exclude", r => { excludeList = r; ++parsedArgCount; } },
+                { "x|export=", "SARIF file path", r => { sarifFile = r; ++parsedArgCount; } },
+                { "c|config=", "additional Security Code Scan configuration path", r => { config = r; ++parsedArgCount; } },
                 { "h|help", "show this message and exit", h => shouldShowHelp = h != null },
             };
 
@@ -50,7 +55,7 @@ namespace SecurityCodeScan.Tool
                 shouldShowHelp = true;
             }
 
-            if (shouldShowHelp || solutionPath == null || args.Length > 3)
+            if (shouldShowHelp || solutionPath == null || parsedArgCount != args.Length)
             {
                 var name = AppDomain.CurrentDomain.FriendlyName;
 
@@ -63,7 +68,7 @@ namespace SecurityCodeScan.Tool
                 Console.WriteLine("\nUsage:\n");
                 options.WriteOptionDescriptions(Console.Out);
                 Console.WriteLine("\nExample:\n");
-                Console.WriteLine($"  {name} <solution path> [--export=<SARIF file path>]");
+                Console.WriteLine($"  {name} my.sln [--export=out.sarif] [--exclude=SCS1234;SCS2345] [--config=setting.yml]");
                 return 1;
             }
 
@@ -99,6 +104,7 @@ namespace SecurityCodeScan.Tool
 
                 var analyzers = new List<DiagnosticAnalyzer>();
                 var types = typeof(PathTraversalTaintAnalyzer).GetTypeInfo().Assembly.DefinedTypes;
+                AdditionalConfiguration.Path = config;
 
                 foreach (var type in types)
                 {

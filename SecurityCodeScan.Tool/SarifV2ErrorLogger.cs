@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis
             _toolAssemblyVersion = toolAssemblyVersion;
 
             _writer.WriteObjectStart(); // root
-            _writer.Write("$schema", "http://json.schemastore.org/sarif-2.1.0");
+            _writer.Write("$schema", "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json");
             _writer.Write("version", "2.1.0");
             _writer.WriteArrayStart("runs");
             _writer.WriteObjectStart(); // run

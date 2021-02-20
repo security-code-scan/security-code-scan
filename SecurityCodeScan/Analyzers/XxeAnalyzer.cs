@@ -652,8 +652,9 @@ namespace SecurityCodeScan.Analyzers
 
                 if (env == null)
                 {
-                    // symbol for settings is not found => passed in without any change => assume insecure
-                    reportDiagnostic(Diagnostic.Create(XxeDiagnosticAnalyzer.Rule, node.GetLocation()));
+                    // symbol for settings is not found => passed in without any change => assume defaults
+                    if (!AreDefaultsSecure)
+                        reportDiagnostic(Diagnostic.Create(XxeDiagnosticAnalyzer.Rule, node.GetLocation()));
                 }
             }
             else if (ReferenceEquals(method.ContainingType, XmlTypes.ConfigXmlDocument))
@@ -687,8 +688,9 @@ namespace SecurityCodeScan.Analyzers
                 {
                     if (env == null)
                     {
-                        // symbol not found => passed in without any change => assume insecure
-                        reportDiagnostic(Diagnostic.Create(XxeDiagnosticAnalyzer.Rule, node.GetLocation()));
+                        // symbol not found => passed in without any change => assume defaults
+                        if (!AreDefaultsSecure)
+                            reportDiagnostic(Diagnostic.Create(XxeDiagnosticAnalyzer.Rule, node.GetLocation()));
                     }
                     else
                     {

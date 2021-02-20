@@ -1190,7 +1190,7 @@ Public Class Xxe4
 End Class
 ";
 
-            await Verify(cSharpTest4, visualBasicTest4, Expected, Warnings.Always).ConfigureAwait(false);
+            await Verify(cSharpTest4, visualBasicTest4, Expected, Warnings.OnFramework).ConfigureAwait(false);
         }
 
         [TestCategory("False Positive")]
@@ -1231,7 +1231,7 @@ Public Class Xxe4
 End Class
 ";
 
-            await Verify(cSharpTest4, visualBasicTest4, Expected, Warnings.Always).ConfigureAwait(false);
+            await Verify(cSharpTest4, visualBasicTest4, Expected, Warnings.OnFramework).ConfigureAwait(false);
         }
 
         [TestCategory("False Positive")]
@@ -1270,7 +1270,7 @@ Public Class Xxe5
 End Class
 ";
 
-            await Verify(cSharpTest5, visualBasicTest5, Expected, Warnings.Always).ConfigureAwait(false);
+            await Verify(cSharpTest5, visualBasicTest5, Expected, Warnings.OnFramework).ConfigureAwait(false);
         }
 
         [TestCategory("False Positive")]
@@ -1309,7 +1309,7 @@ Public Class Xxe5
 End Class
 ";
 
-            await Verify(cSharpTest5, visualBasicTest5, Expected, Warnings.Always).ConfigureAwait(false);
+            await Verify(cSharpTest5, visualBasicTest5, Expected, Warnings.OnFramework).ConfigureAwait(false);
         }
 
         [TestCategory("False Positive")]
@@ -1348,7 +1348,7 @@ Public Class Xxe5
 End Class
 ";
 
-            await Verify(cSharpTest5, visualBasicTest5, Expected, Warnings.Always).ConfigureAwait(false);
+            await Verify(cSharpTest5, visualBasicTest5, Expected, Warnings.OnFramework).ConfigureAwait(false);
         }
 
         [TestCategory("False Positive")]
@@ -1387,7 +1387,7 @@ Public Class Xxe5
 End Class
 ";
 
-            await Verify(cSharpTest5, visualBasicTest5, Expected, Warnings.Always).ConfigureAwait(false);
+            await Verify(cSharpTest5, visualBasicTest5, Expected, Warnings.OnFramework).ConfigureAwait(false);
         }
 
         [TestCategory("False Positive")]
@@ -1426,7 +1426,7 @@ Public Class Xxe5
 End Class
 ";
 
-            await Verify(cSharpTest5, visualBasicTest5, Expected, Warnings.Always).ConfigureAwait(false);
+            await Verify(cSharpTest5, visualBasicTest5, Expected, Warnings.OnFramework).ConfigureAwait(false);
         }
     }
 }

@@ -19,6 +19,7 @@ namespace SecurityCodeScan.Tool
     {
         private static async Task<int> Main(string[] args)
         {
+            var startTime = DateTime.Now;
             var versionString = System.Diagnostics.FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileVersion;
 
             string solutionPath = null;
@@ -161,6 +162,9 @@ namespace SecurityCodeScan.Tool
                     if (stream != null)
                         stream.Close();
                 }
+
+                var elapsed = DateTime.Now - startTime;
+                Console.WriteLine($@"Completed in {elapsed:hh\:mm\:ss}");
 
                 return returnCode;
             }

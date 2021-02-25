@@ -19,56 +19,82 @@ SCS0001:
   title: "Potential Command Injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
   title_assignment: Potential Command Injection vulnerability.
   description: The untrusted value passed to the command execution should be validated.
+  cwe: CWE-78
+  cwe_url: https://cwe.mitre.org/data/definitions/78.html
 
 SCS0002:
   title: "Potential SQL injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
   description: The untrusted value passed to the SQL query should be validated.
+  cwe: CWE-89
+  cwe_url: https://cwe.mitre.org/data/definitions/89.html
 
 SCS0003:
   title: "Potential XPath injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
   description: The untrusted value passed to the XPath query should be validated.
+  cwe: CWE-643
+  cweurl: https://cwe.mitre.org/data/definitions/643.html
 
 SCS0004:
   title: Certificate Validation has been disabled.
   description: Disabled certificate validation may lead to Person in the Middle attack.
+  cwe: CWE-295
+  cwe_url: https://cwe.mitre.org/data/definitions/295.html
 
 SCS0005:
   title: Weak random number generator.
   description: It is possible to predict the next numbers of a pseudo random generator. Use a cryptographically strong generator for security sensitive purposes.
+  cwe: CWE-338
+  cwe_url: https://cwe.mitre.org/data/definitions/338.html
 
 SCS0006:
   title: Weak hashing function.
   description: "{0} is no longer considered as a strong hashing algorithm."
   title2: Possibly weak hashing function.
   description_unknown: "Unable to determine hashing algorithm statically. Review if it is strong enough (SHA256 for example)."
+  cwe: CWE-327
+  cwe_url: https://cwe.mitre.org/data/definitions/327.html
 
 SCS0007:
   title: Potential XML eXternal Entity (XXE) vulnerability.
   description: Unsafe configuration of the XML parser may lead to XML eXternal Entity (XXE) processing vulnerability.
+  cwe: CWE-611
+  cwe_url: https://cwe.mitre.org/data/definitions/611.html
 
 SCS0008:
   title: The cookie is missing 'Secure' flag.
   description: Cookies without 'Secure' flag may be transmitted over unencrypted connection.
+  cwe: CWE-614
+  cwe_url: https://cwe.mitre.org/data/definitions/614.html
 
 SCS0009:
   title: The cookie is missing 'HttpOnly' flag.
   description: Cookies without 'HttpOnly' may be stolen in case of JavaScript injection (XSS).
+  cwe: CWE-1004
+  cwe_url: https://cwe.mitre.org/data/definitions/1004.html
 
 SCS0010:
   title: Weak cipher algorithm.
   description: "{0} is not considered as a strong modern cipher."
+  cwe: CWE-327
+  cwe_url: https://cwe.mitre.org/data/definitions/327.html
 
 SCS0011:
   title: "Unsafe XSLT setting used."
   description: XSLT scripting should be enabled only if you require script support and you are working in a fully trusted environment.
+  cwe: CWE-611
+  cwe_url: https://cwe.mitre.org/data/definitions/611.html
 
 SCS0012:
   title: Controller method is potentially vulnerable to authorization bypass.
   description: Neither the annotation [Authorize] nor [AllowAnonymous] is present. The warning may be ignored/suppressed if the application is using other authorization checks.
+  cwe: CWE-284
+  cwe_url: https://cwe.mitre.org/data/definitions/284.html
 
 SCS0013:
   title: Potential usage of weak AES mode.
   description: This specific mode is susceptible to a cryptographic attack.
+  cwe: CWE-327
+  cwe_url: https://cwe.mitre.org/data/definitions/327.html
 
 #SCS0014
 
@@ -76,41 +102,59 @@ SCS0015:
   title: "Hardcoded password in {1} argument passed to '{0}'."
   title_assignment: Hardcoded password.
   description: The password configuration to this API appears to be hardcoded. Consider moving the password to externalized configuration to avoid leakage of secret information.
+  cwe: CWE-259
+  cwe_url: https://cwe.mitre.org/data/definitions/259.html
 
 SCS0016:
   title: Controller method is potentially vulnerable to Cross Site Request Forgery (CSRF).
   description: The annotation [ValidateAntiForgeryToken] is missing. The warning may be ignored/suppressed if .NET Core AutoValidateAntiforgeryToken is set up globally.
+  cwe: CWE-352
+  cwe_url: https://cwe.mitre.org/data/definitions/352.html
 
 SCS0017:
   title: Request validation is disabled.
   title_base: Request validation disabled in base class.
   description: Request validation is disabled. Request validation allows the filtering of some XSS patterns submitted to the application.
+  cwe: CWE-554
+  cwe_url: https://cwe.mitre.org/data/definitions/554.html
 
 SCS0018:
   title: "Potential Path Traversal vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
   description: The untrusted value passed to the redirect should be validated.
+  cwe: CWE-22
+  cwe_url: https://cwe.mitre.org/data/definitions/22.html
 
 SCS0019:
   title: OutputCache annotation is disabling authorization checks.
   description: Having the annotation [OutputCache] will disable the annotation [Authorize] for the requests following the first one.
+  cwe: N/A
+  cwe_url: N/A
 
 #SCS0020
 
 SCS0021:
   title: "Request validation has been disabled in {0}({1}): {2}."
   description: Request validation, which provides additional protection against Cross-Site Scripting (XSS), has been disabled.
+  cwe: CWE-554
+  cwe_url: https://cwe.mitre.org/data/definitions/554.html
 
 SCS0022:
   title: "Event validation is disabled in {0}({1}): {2}."
   description: Event validation is disabled. The integrity of client-side control will not be validated on postback.
+  cwe: CWE-554
+  cwe_url: https://cwe.mitre.org/data/definitions/554.html
 
 SCS0023:
   title: "View state is not encrypted in {0}({1}): {2}."
   description: View state is not encrypted. Controls may leak sensitive data that could be read client-side.
+  cwe: CWE-554
+  cwe_url: https://cwe.mitre.org/data/definitions/554.html
   
 SCS0024:
   title: "View state mac is disabled in {0}({1}): {2}."
   description: View state mac is disabled. The view state could be altered by an attacker. (This feature cannot be disabled in the recent version of ASP.net).
+  cwe: CWE-554
+  cwe_url: https://cwe.mitre.org/data/definitions/554.html
 
 #SCS0025
 
@@ -118,11 +162,15 @@ SCS0026:
   title: "Potential LDAP injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
   title_assignment: Potential LDAP injection vulnerability.
   description: The untrusted value passed to the LDAP query should be validated.
+  cwe: CWE-90
+  cwe_url: https://cwe.mitre.org/data/definitions/90.html
 
 SCS0027:
   title: "Potential Open Redirect vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
   title_assignment: Potential Open Redirect vulnerability.
   description: The untrusted value passed to the redirect should be validated.
+  cwe: CWE-601
+  cwe_url: https://cwe.mitre.org/data/definitions/601.html
 
 SCS0028:
   title: "Potential unsafe deserialization vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
@@ -130,29 +178,43 @@ SCS0028:
   title_javascriptserializer_analyzer: "Type information is used. It may lead to deserialization vulnerability"
   title_assignment: "Potential unsafe deserialization setting used."
   description: Deserialization of untrusted data is unsafe.
+  cwe: CWE-502
+  cwe_url: https://cwe.mitre.org/data/definitions/502.html
 
 SCS0029:
   title: "Potential Cross-Site Scripting (XSS) vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
   title_assignment: Potential Cross-Site Scripting (XSS) vulnerability.
   description: The untrusted value used to create a HTML should be validated or properly encoded.
+  cwe: CWE-79
+  cwe_url: https://cwe.mitre.org/data/definitions/79.html
 
 SCS0030:
   title: "Request validation is enabled only for pages, not for all HTTP requests. {0}({1}): {2}."
   description: The RequestValidationMode property specifies which ASP.NET approach to validation will be used.
+  cwe: CWE-554
+  cwe_url: https://cwe.mitre.org/data/definitions/554.html
 
 SCS0031:
   title: "Potential LDAP injection vulnerability was found where '{0}' in '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'."
   title_assignment: Possible LDAP injection vulnerability.
   description: The untrusted value passed in the LDAP query should be validated.
+  cwe: CWE-90
+  cwe_url: https://cwe.mitre.org/data/definitions/90.html
 
 SCS0032:
   title: "The RequiredLength property of PasswordValidator should be set to at least {0}."
   description: "The minimal length of a passwords is too short."
+  cwe: CWE-521
+  cwe_url: https://cwe.mitre.org/data/definitions/521.html
 
 SCS0033:
   title: "Less than {0} properties set in PasswordValidator declaration."
   description: Password requirements are weak. PasswordValidator should have more properties set (RequiredLength, RequireDigit, RequireLowercase, RequireUppercase and/or RequireNonLetterOrDigit).
+  cwe: CWE-521
+  cwe_url: https://cwe.mitre.org/data/definitions/521.html
 
 SCS0034:
   title: "The {0} property must be set."
   description: This property must be set to increase password requirements strength.
+  cwe: CWE-521
+  cwe_url: https://cwe.mitre.org/data/definitions/521.html

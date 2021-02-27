@@ -1168,6 +1168,23 @@ Sinks:
       Arguments:
         - url
 
+  - Type: Microsoft.AspNetCore.Mvc.RazorPages.PageModel
+    TaintTypes:
+      - SCS0027
+    Methods:
+    - Name: Redirect
+      Arguments:
+        - url
+    - Name: RedirectPermanent
+      Arguments:
+        - url
+    - Name: RedirectPreserveMethod
+      Arguments:
+        - url
+    - Name: RedirectPermanentPreserveMethod
+      Arguments:
+        - url
+
   - Type: System.Web.Mvc.RedirectResult
     TaintTypes:
       - SCS0027
@@ -1396,6 +1413,14 @@ Sinks:
         - fileName
     Properties:
       - FileName
+
+  - Type: Microsoft.AspNetCore.Mvc.RazorPages.PageModel
+    TaintTypes:
+      - SCS0018
+    Methods:
+    - Name: PhysicalFile
+      Arguments:
+        - physicalPath
 
   - Type: System.Web.UI.WebControls.FileUpload
     TaintTypes:

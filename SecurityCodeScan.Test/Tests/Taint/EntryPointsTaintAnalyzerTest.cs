@@ -751,21 +751,41 @@ Sinks:
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [DataTestMethod]
-        [DataRow("System.String",   "System.String",    "input")]
-        [DataRow("DTO",             "DTO",              "input")]
-        [DataRow("DTO",             "System.String",    "input.value")]
-        public async Task TaintSourceControllerCore(string inputType, string sinkType, string payload)
+        [DataRow("String", "String", true,  "input")]
+        [DataRow("DTO",    "DTO",    true,  "input")]
+        [DataRow("DTO",    "String", true,  "input.value")]
+        [DataRow("DTO",    "String", false, "input.intValue.ToString()")]
+        [DataRow("DTO",    "String", false, "$\"input.intValue\"")]
+        [DataRow("DTO",    "String", false, "String.Format(\"{0}\", input.intValue)")]
+        [DataRow("DTO",    "String", false, "String.Format(\"{0}\", (Object)input.intValue)")]
+        [DataRow("DTO",    "String", true,  "service.GetBy(input.intValue).value")]
+        [DataRow("Int32",  "String", true,  "service.GetBy(input).value")]
+        public async Task TaintSource(string inputType, string sinkType, bool warn, string payload)
         {
             var cSharpTest = $@"
+#pragma warning disable 8019
+    using System;
+#pragma warning restore 8019
+
 public class DTO
 {{
     public {sinkType} value;
+    public int intValue;
+}}
+
+public interface IService
+{{
+    DTO GetBy(int a);
 }}
 
 public interface IController {{}}
 
 public class MyController : IController
 {{
+#pragma warning disable CS0414
+    private IService service = null;
+#pragma warning restore CS0414
+
     public void Run({inputType} input)
     {{
         Sink({payload});
@@ -776,9 +796,18 @@ public class MyController : IController
 ";
 
             var visualBasicTest = $@"
+#Disable Warning BC50001
+    Imports System
+#Enable Warning BC50001
+
 Public Class DTO
     Public value As {sinkType}
+    Public intValue As System.Int32
 End Class
+
+Interface IService
+    Function GetBy(ByVal a As System.Int32) As DTO
+End Interface
 
 Public Interface IController
 End Interface
@@ -786,8 +815,10 @@ End Interface
 Public Class MyController
     Implements IController
 
+    Private service As IService = Nothing
+
     Public Sub Run(ByVal input As {inputType})
-        Sink({payload})
+        Sink({payload.CSharpReplaceToVBasic()})
     End Sub
 
     Private Sub Sink(ByVal input As {sinkType})
@@ -819,8 +850,17 @@ Sinks:
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
-            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            }
         }
     }
 

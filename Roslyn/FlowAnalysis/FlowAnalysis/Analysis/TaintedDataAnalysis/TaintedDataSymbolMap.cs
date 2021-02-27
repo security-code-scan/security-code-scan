@@ -161,8 +161,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             }
 
             return other != null
+                && this.ConcreteInfos == other.ConcreteInfos
                 && this.InterfaceInfos == other.InterfaceInfos
-                && this.ConcreteInfos == other.ConcreteInfos;
+                && this.RequiresValueContentAnalysis == other.RequiresValueContentAnalysis
+                && this.RequiresParameterReferenceAnalysis == other.RequiresParameterReferenceAnalysis
+                && this.RequiresFieldReferenceAnalysis == other.RequiresFieldReferenceAnalysis;
         }
 
         public override bool Equals(object obj)
@@ -172,9 +175,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(this.InterfaceInfos,
-                HashUtilities.Combine(this.ConcreteInfos,
-                0));
+            var hashCode = new RoslynHashCode();
+            HashUtilities.Combine(this.ConcreteInfos, ref hashCode);
+            HashUtilities.Combine(this.InterfaceInfos, ref hashCode);
+            hashCode.Add(this.RequiresValueContentAnalysis.GetHashCode());
+            hashCode.Add(this.RequiresParameterReferenceAnalysis.GetHashCode());
+            hashCode.Add(this.RequiresFieldReferenceAnalysis.GetHashCode());
+            return hashCode.ToHashCode();
         }
     }
 }

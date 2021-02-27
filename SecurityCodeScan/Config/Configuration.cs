@@ -441,7 +441,8 @@ namespace SecurityCodeScan.Config
                                         ?? ImmutableHashSet<(string, string)>.Empty))
                                 ?.ToImmutableHashSet()
                             ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty : ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
-                        taintConstantArray: false);
+                        taintConstantArray: false,
+                        constantArrayLengthMatcher: null);
                 }
 
                 sourceInfosBuilder.Add(metadata);

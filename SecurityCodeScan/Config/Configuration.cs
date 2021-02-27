@@ -396,7 +396,13 @@ namespace SecurityCodeScan.Config
                                 return false;
 
                             if (type.Value.entryPoint.Method.Name != null)
-                                return type.Value.entryPoint.Method.Name == methodSymbol.Name;
+                            {
+                                if (type.Value.entryPoint.Method.NameRegex == null)
+                                    return type.Value.entryPoint.Method.Name == methodSymbol.Name;
+
+                                if (!type.Value.entryPoint.Method.NameRegex.IsMatch(methodSymbol.Name))
+                                    return false;
+                            }
 
                             if (type.Value.entryPoint.Method.IncludeConstructor.HasValue && type.Value.entryPoint.Method.IncludeConstructor != methodSymbol.IsConstructor())
                                 return false;

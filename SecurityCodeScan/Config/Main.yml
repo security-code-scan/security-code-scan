@@ -54,6 +54,21 @@ TaintEntryPoints:
         Exclude:
           - Type: Microsoft.AspNetCore.Mvc.FromServicesAttribute
 
+  Microsoft.AspNetCore.Mvc.RazorPages.PageModel:
+    Class:
+      Accessibility:
+        - public
+      Parent: Microsoft.AspNetCore.Mvc.RazorPages.PageModel
+    Method:
+      Name: /^On(?:Get|Post)[^\(]*$/
+      Accessibility:
+        - public
+      IncludeConstructor: false
+      Static: false
+      Attributes:
+        Exclude:
+          - Type: Microsoft.AspNetCore.Mvc.RazorPages.NonHandlerAttribute
+
   System.Web.Mvc.ControllerBase:
     Class:
       Accessibility:

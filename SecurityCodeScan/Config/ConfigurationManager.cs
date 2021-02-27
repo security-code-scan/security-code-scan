@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
 using SecurityCodeScan.Analyzers.Taint;
+using System.Text.RegularExpressions;
 
 namespace SecurityCodeScan.Config
 {
@@ -370,7 +371,28 @@ namespace SecurityCodeScan.Config
 
     internal class Method
     {
-        public string Name { get; set; }
+        public Regex NameRegex { get; private set; }
+
+        private string _Name;
+        public string Name
+        {
+            get
+            {
+                return _Name;
+            }
+            set
+            {
+                if (value != null && value[0] == '/')
+                {
+                    if (value.Length < 2 || value[value.Length - 1] != '/')
+                        throw new ArgumentException("Method.Name");
+
+                    NameRegex = new Regex(value.Substring(1, value.Length - 2), RegexOptions.Compiled);
+                }
+
+                _Name = value;
+            }
+        }
 
         public HashSet<Accessibility> Accessibility { get; set; }
 

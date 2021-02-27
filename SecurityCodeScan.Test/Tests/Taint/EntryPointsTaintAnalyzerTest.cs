@@ -823,4 +823,101 @@ Sinks:
             await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
         }
     }
+
+    [TestClass]
+    public class RazorPagesEntryPointTainAnalyzerTest : DiagnosticVerifier
+    {
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _)
+        {
+            return new[] { new SqlInjectionTaintAnalyzer() };
+        }
+
+        private static readonly PortableExecutableReference[] References =
+        {
+            MetadataReference.CreateFromFile(typeof(System.Data.SqlClient.SqlCommand).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.RazorPages.PageModel).Assembly.Location),
+            MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
+                                                     .Location),
+        };
+
+        private DiagnosticResult Expected = new DiagnosticResult
+        {
+            Id       = "SCS0002",
+            Severity = DiagnosticSeverity.Warning,
+        };
+
+        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
+
+        [DataTestMethod]
+        [DataRow("String", "String", false, "NonHandler", "OnGet",          "input")]
+        [DataRow("String", "String", true,  "",           "OnGet",          "input")]
+        [DataRow("String", "String", true,  "",           "OnPost",         "input")]
+        [DataRow("String", "String", true,  "",           "OnPostAsync",    "input")]
+        [DataRow("String", "String", false, "",           "onGet",          "input")]
+        [DataRow("String", "String", false, "",           "OnHead",         "input")]
+        [DataRow("String", "String", true,  "",           "OnGetBla",       "input")]
+        public async Task TaintSource(string inputType, string sinkType, bool warn, string attribute, string handlerName, string payload)
+        {
+            var cSharpTest = $@"
+#pragma warning disable 8019
+    using System;
+    using Microsoft.AspNetCore.Mvc.RazorPages;
+#pragma warning restore 8019
+
+public class MyModel : PageModel
+{{
+    {(attribute != "" ? $"[{attribute}]" : "")}
+    public void {handlerName}({inputType} input)
+    {{
+        Sink({payload});
+    }}
+
+    private void Sink({sinkType} input) {{}}
+}}
+";
+
+            var visualBasicTest = $@"
+#Disable Warning BC50001
+    Imports System
+    Imports Microsoft.AspNetCore.Mvc.RazorPages
+#Enable Warning BC50001
+
+Public Class MyModel
+    Inherits PageModel
+
+    {(attribute != "" ? $"<{attribute}>" : "")}
+    Public Sub {handlerName}(ByVal input As {inputType})
+        Sink({payload})
+    End Sub
+
+    Private Sub Sink(ByVal input As {sinkType})
+    End Sub
+End Class
+";
+
+            var testConfig = @"
+Sinks:
+  - Type: MyModel
+    TaintTypes:
+      - SCS0002
+    Methods:
+    - Name: Sink
+      Arguments:
+        - input
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null, optionsWithProjectConfig).ConfigureAwait(false);
+            }
+        }
+    }
 }

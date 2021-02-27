@@ -67,7 +67,7 @@ SCS0012:
   description: Neither the annotation [Authorize] nor [AllowAnonymous] is present. The warning may be ignored/suppressed if the application is using other authorization checks.
 
 SCS0013:
-  title: Potential usage of weak AES mode.
+  title: Potential usage of weak CipherMode.
   description: This specific mode is susceptible to a cryptographic attack.
 
 #SCS0014

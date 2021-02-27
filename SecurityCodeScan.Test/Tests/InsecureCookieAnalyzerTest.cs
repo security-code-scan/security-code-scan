@@ -24,6 +24,9 @@ namespace SecurityCodeScan.Test.InsecureCookie
         {
             MetadataReference.CreateFromFile(typeof(HttpCookie).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Http.CookieOptions).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Http.HttpResponse).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ControllerBase).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.Controller).Assembly.Location),
             MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
                                                      .Location)
         };
@@ -43,6 +46,42 @@ namespace SecurityCodeScan.Test.InsecureCookie
                 Severity = DiagnosticSeverity.Warning
             }
         };
+
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task CookieAppend()
+        {
+            var cSharpTest = $@"
+using Microsoft.AspNetCore.Mvc;
+
+namespace VulnerableApp
+{{
+    public class TestController : Controller
+    {{
+        public void ControllerMethod()
+        {{
+            Response.Cookies.Append(""aaa"", ""secret"");
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = @"
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace VulnerableApp
+    Public Class TestController
+        Inherits Controller
+
+        Public Sub ControllerMethod()
+            Response.Cookies.Append(""aaa"", ""secret"")
+        End Sub
+    End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+        }
 
         [TestCategory("Detect")]
         [DataTestMethod]
@@ -87,7 +126,6 @@ Namespace VulnerableApp
         End Sub
     End Class
 End Namespace
-
 ";
             await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
             if (vb)

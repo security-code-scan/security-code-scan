@@ -38,20 +38,55 @@ namespace SecurityCodeScan.Analyzers
 
             CookieAnalyzer.Initialize(context, HttpCookieTypeName);
             CookieAnalyzer.Initialize(context, CookieOptionsTypeName);
+
+            context.RegisterCompilationStartAction(
+                (CompilationStartAnalysisContext compilationContext) =>
+                {
+                    Compilation compilation = compilationContext.Compilation;
+                    var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
+
+                    if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName("Microsoft.AspNetCore.Http.IResponseCookies", out var cookieType))
+                    {
+                        return;
+                    }
+
+                    var configuration = Configuration.GetOrCreate(compilationContext);
+
+                    compilationContext.RegisterOperationBlockStartAction(
+                        operationBlockStartContext =>
+                        {
+                            ISymbol owningSymbol = operationBlockStartContext.OwningSymbol;
+                            AnalyzerOptions options = operationBlockStartContext.Options;
+                            CancellationToken cancellationToken = operationBlockStartContext.CancellationToken;
+                            if (options.IsConfiguredToSkipAnalysis(RuleSecure, owningSymbol, compilation, cancellationToken))
+                            {
+                                return;
+                            }
+
+                            operationBlockStartContext.RegisterOperationAction(
+                                operationAnalysisContext =>
+                                {
+                                    IInvocationOperation invocationOperation = (IInvocationOperation)operationAnalysisContext.Operation;
+                                    if (invocationOperation.TargetMethod.Name == "Append" && invocationOperation.TargetMethod.Parameters.Length == 2)
+                                    {
+                                        operationAnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleSecure, invocationOperation.Syntax.GetLocation()));
+                                        operationAnalysisContext.ReportDiagnostic(Diagnostic.Create(RuleHttpOnly, invocationOperation.Syntax.GetLocation()));
+                                    }
+                                },
+                                OperationKind.Invocation);
+                        });
+                });
         }
 
         private class CookieAnalyzer
         {
+// already done by caller
+#pragma warning disable RS1025 // Configure generated code analysis
+#pragma warning disable RS1026 // Enable concurrent execution
             public static void Initialize(AnalysisContext context, string type)
+#pragma warning restore RS1026 // Enable concurrent execution
+#pragma warning restore RS1025 // Configure generated code analysis
             {
-                if (!Debugger.IsAttached) // prefer single thread for debugging in development
-                    context.EnableConcurrentExecution();
-
-                if (context.IsAuditMode())
-                    context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
-                else
-                    context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-
                 context.RegisterCompilationStartAction(
                     (CompilationStartAnalysisContext compilationContext) =>
                     {

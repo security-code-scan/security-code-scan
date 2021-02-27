@@ -532,6 +532,12 @@ Sanitizers:
         ArgumentCount: 4
         InOut: [{"value": "output"}]
 
+  - Type: Microsoft.Extensions.FileProviders.PhysicalFileProvider
+    TaintTypes:
+      - SCS0018
+    Methods:
+      - Name: GetFileInfo # doesn't immediately sanitizes it, but assume all properties including PhysicalPath as safe
+
   - Type: System.Web.HttpServerUtility
     TaintTypes:
       - SCS0018

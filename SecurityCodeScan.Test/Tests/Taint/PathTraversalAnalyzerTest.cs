@@ -20,7 +20,9 @@ namespace SecurityCodeScan.Test.Taint
         private static readonly PortableExecutableReference[] References =
         {
             MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(System.Web.UI.Page).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(System.Web.UI.Page).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.Extensions.FileProviders.PhysicalFileProvider).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.Extensions.FileProviders.IFileInfo).Assembly.Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
@@ -252,16 +254,21 @@ End Class
         [DataTestMethod]
         [DataRow("FS.OpenRead(Server.MapPath(Request[\"file\"]))")]
         [DataRow("FS.OpenRead(Request.MapPath(Request[\"file\"]))")]
+        [DataRow("FS.OpenRead(provider.GetFileInfo(Request[\"file\"]).PhysicalPath)")]
         public async Task PathTraversalMapPath(string payload)
         {
             var cSharpTest = $@"
-using FS = System.IO.File;
-using System.Web.UI;
+#pragma warning disable 8019
+    using FS = System.IO.File;
+    using System.Web.UI;
+    using Microsoft.Extensions.FileProviders;
+#pragma warning restore 8019
 
 public class MyPage : Page
 {{
     public void Run()
     {{
+        var provider = new PhysicalFileProvider(""c:\\temp\\"");
         {payload};
     }}
 }}
@@ -269,13 +276,17 @@ public class MyPage : Page
 
             payload = payload.CSharpReplaceToVBasic();
             var visualBasicTest = $@"
-Imports FS = System.IO.File
-Imports System.Web.UI
+#Disable Warning BC50001
+    Imports FS = System.IO.File
+    Imports System.Web.UI
+    Imports Microsoft.Extensions.FileProviders
+#Enable Warning BC50001
 
 Public Class MyPage
     Inherits Page
 
     Public Sub Run()
+        Dim provider = New PhysicalFileProvider(""c:\\temp\\"")
         {payload}
     End Sub
 End Class

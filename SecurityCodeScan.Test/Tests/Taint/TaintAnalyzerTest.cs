@@ -924,7 +924,6 @@ AuditMode: true
 
         [TestCategory("Detect")]
         [TestMethod]
-        [Ignore("todo: fix lambdas")]
         public async Task LambdaSingleLine()
         {
             var cSharpTest = @"
@@ -968,7 +967,6 @@ End Namespace
 
         [TestCategory("Detect")]
         [TestMethod]
-        [Ignore("todo: fix lambdas")]
         public async Task LambdaMultiline()
         {
             var cSharpTest = @"
@@ -2034,7 +2032,6 @@ End Namespace
 
         [TestCategory("Detect")]
         [TestMethod]
-        [Ignore("todo: check why")]
         public async Task VariableTransferModelUnsafe3()
         {
             var cSharpTest = @"
@@ -2053,7 +2050,7 @@ namespace sample
         public void Run(string input)
         {
             var model = new Model {Value = input};
-            new SqlCommand(model.ToString());
+            new SqlCommand(model.ToString()); // model is still untainted
         }
     }
 }
@@ -2080,8 +2077,8 @@ End Namespace
 
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
         }
 
         [TestCategory("Safe")]
@@ -2188,7 +2185,6 @@ End Namespace
 
         [TestCategory("Safe")]
         [TestMethod]
-        [Ignore("todo: check why")]
         public async Task VariableTransferModelSafe3()
         {
             var cSharpTest = @"
@@ -2207,7 +2203,7 @@ namespace sample
         public void Run(Model model)
         {
             model.Value = ""const"";
-            new SqlCommand(model.ToString());
+            new SqlCommand(model.ToString()); // model is still tainted
         }
     }
 }
@@ -2234,8 +2230,8 @@ End Namespace
 
 ";
 
-            await VerifyCSharpDiagnostic(cSharpTest).ConfigureAwait(false);
-            await VerifyVisualBasicDiagnostic(visualBasicTest).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
         }
 
         [TestCategory("Detect")]

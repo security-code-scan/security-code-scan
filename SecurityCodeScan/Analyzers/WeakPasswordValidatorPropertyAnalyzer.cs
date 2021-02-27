@@ -277,7 +277,7 @@ namespace SecurityCodeScan.Analyzers
         private static void ReportDiagnostics(
             DiagnosticDescriptor descriptor,
             CompilationAnalysisContext compilationAnalysisContext,
-            PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>? allResults,
+            PooledDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult>? allResults,
             bool auditMode,
             params object?[]? messageArgs)
         {

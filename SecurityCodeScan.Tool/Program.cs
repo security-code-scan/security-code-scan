@@ -272,11 +272,21 @@ namespace SecurityCodeScan.Tool
                 // Print message for WorkspaceFailed event to help diagnosing project load failures.
                 workspace.WorkspaceFailed += (o, e) =>
                 {
-                    if (e.Diagnostic.Kind == WorkspaceDiagnosticKind.Warning && !parsedOptions.verbose)
+                    var kind = e.Diagnostic.Kind;
+                    if (kind == WorkspaceDiagnosticKind.Failure &&
+                        (e.Diagnostic.Message.Contains("is out of support and will not receive security updates in the future") ||
+                         e.Diagnostic.Message.Contains("Specifying the version of this package is not recommended")))
+                    {
+                        kind = WorkspaceDiagnosticKind.Warning;
+                    }
+
+                    if (kind == WorkspaceDiagnosticKind.Warning && !parsedOptions.verbose)
                         return;
 
-                    LogError(e.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure, e.Diagnostic.Message);
-                    returnCode = 2;
+                    LogError(kind == WorkspaceDiagnosticKind.Failure, e.Diagnostic.Message);
+
+                    if (kind == WorkspaceDiagnosticKind.Failure)
+                        returnCode = 2;
                 };
 
                 Console.WriteLine($"Loading solution '{parsedOptions.solutionPath}'");

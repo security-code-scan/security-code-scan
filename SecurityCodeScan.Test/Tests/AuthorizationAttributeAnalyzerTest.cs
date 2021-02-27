@@ -83,7 +83,8 @@ AuthorizeCheck:
   Unique:
     Name: ASP.NET MVC
     RequiredAttributes:
-      - Type: VulnerableApp.CustomAuthorizeAttribute
+      Include:
+        - Type: VulnerableApp.CustomAuthorizeAttribute
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -253,6 +254,7 @@ End Namespace
 
 namespace VulnerableApp
 {{
+    [RequireHttps]
     [{AuthorizeAttributeName}]
     public class TestController : Controller
     {{
@@ -346,6 +348,7 @@ namespace VulnerableApp
         public string SomeProp {{ get; }}
 
         [HttpPost]
+        [RequireHttps]
         [CustomAuthorize]
         public ActionResult ControllerMethod(string input)
         {{

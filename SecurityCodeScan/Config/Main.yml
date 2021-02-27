@@ -2426,7 +2426,8 @@ CsrfCheck:
     Dependency:
       - System.Web.Mvc.Controller
     RequiredAttributes:
-      - Type: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
+      Include:
+        - Type: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
     Class:
       Accessibility:
         - public
@@ -2462,8 +2463,9 @@ CsrfCheck:
       - Microsoft.AspNetCore.Mvc.NonActionAttribute
       - Microsoft.AspNetCore.Mvc.FromServicesAttribute
     RequiredAttributes:
-      - Type: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
-      - Type: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+      Include:
+        - Type: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
+        - Type: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
     Class:
       Accessibility:
         - public
@@ -2508,8 +2510,9 @@ CsrfCheck:
       - Microsoft.AspNetCore.Mvc.NonActionAttribute
       - Microsoft.AspNetCore.Mvc.FromServicesAttribute
     RequiredAttributes:
-      - Type: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
-      - Type: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+      Include:
+        - Type: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
+        - Type: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
     Class:
       Accessibility:
         - public
@@ -2550,7 +2553,14 @@ AuthorizeCheck:
     Dependency:
       - System.Web.Mvc.Controller
     RequiredAttributes:
-      - Type: System.Web.Mvc.AuthorizeAttribute
+      Include:
+        - Type: System.Web.Mvc.IAuthorizationFilter
+      Exclude:
+        - Type: System.Web.Mvc.ChildActionOnlyAttribute
+        - Type: System.Web.Mvc.Controller
+        - Type: System.Web.Mvc.RequireHttpsAttribute
+        - Type: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
+        - Type: System.Web.Mvc.ValidateInputAttribute
     Class:
       Accessibility:
         - public
@@ -2581,7 +2591,11 @@ AuthorizeCheck:
       - Microsoft.AspNetCore.Mvc.NonActionAttribute
       - Microsoft.AspNetCore.Mvc.FromServicesAttribute
     RequiredAttributes:
-      - Type: Microsoft.AspNetCore.Authorization.AuthorizeAttribute
+      Include:
+        - Type: Microsoft.AspNetCore.Authorization.IAuthorizeData
+        - Type: Microsoft.AspNetCore.Mvc.Filters.IAuthorizationFilter
+      Exclude:
+        - Type: Microsoft.AspNetCore.Mvc.RequireHttpsAttribute
     Class:
       Accessibility:
         - public

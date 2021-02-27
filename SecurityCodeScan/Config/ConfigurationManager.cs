@@ -30,7 +30,7 @@ namespace SecurityCodeScan.Config
                                  return Path.Combine(path, UserConfigName);
                              });
 
-        private static readonly Version ConfigVersion = new Version(3,0);
+        private static readonly Version ConfigVersion = new Version(3,1);
 
         public T DeserializeAndValidate<T>(StreamReader reader, bool validate) where T : ConfigData
         {
@@ -454,7 +454,7 @@ namespace SecurityCodeScan.Config
         public HashSet<string> Dependency                   { get; set; }
         public string Name                                  { get; set; }
         public AttributeCheckMessage Message                { get; set; }
-        public List<AttributeCheckData> RequiredAttributes  { get; set; }
+        public AttributeCheckIncludeExclude RequiredAttributes { get; set; }
         public Class Class                                  { get; set; }
         public Method Method                                { get; set; }
         public Parameter Parameter                          { get; set; }

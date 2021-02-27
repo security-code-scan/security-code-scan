@@ -36,6 +36,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             string fullTypeName,
             bool isInterface,
             ImmutableHashSet<string> taintedProperties,
+            ImmutableHashSet<string> taintedFields,
             ImmutableHashSet<ParameterMatcher> taintedArguments,
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<string>)> taintedMethods,
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)> taintedMethodsNeedsPointsToAnalysis,
@@ -48,6 +49,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
             IsInterface = isInterface;
             TaintedProperties = taintedProperties ?? throw new ArgumentNullException(nameof(taintedProperties));
+            TaintedFields = taintedFields ?? throw new ArgumentNullException(nameof(taintedFields));
             TaintedArguments = taintedArguments ?? throw new ArgumentNullException(nameof(taintedArguments));
             TaintedMethods = taintedMethods ?? throw new ArgumentNullException(nameof(taintedMethods));
             TaintedMethodsNeedsPointsToAnalysis = taintedMethodsNeedsPointsToAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsPointsToAnalysis));
@@ -74,6 +76,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
             IsInterface = isInterface;
             TaintedProperties = ImmutableHashSet<string>.Empty;
+            TaintedFields = ImmutableHashSet<string>.Empty;
             TaintedArguments = ImmutableHashSet<ParameterMatcher>.Empty;
             TaintedMethods = taintedMethods ?? throw new ArgumentNullException(nameof(taintedMethods));
             TaintedMethodsNeedsPointsToAnalysis = taintedMethodsNeedsPointsToAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsPointsToAnalysis));
@@ -114,6 +117,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Properties that generate tainted data.
         /// </summary>
         public ImmutableHashSet<string> TaintedProperties { get; }
+
+        /// <summary>
+        /// Fields that generate tainted data.
+        /// </summary>
+        public ImmutableHashSet<string> TaintedFields { get; }
 
         /// <summary>
         /// Methods that generate tainted data.
@@ -212,6 +220,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             return HashUtilities.Combine(this.TaintConstantArray.GetHashCode(),
                 HashUtilities.Combine(this.TaintedProperties,
+                HashUtilities.Combine(this.TaintedFields,
                 HashUtilities.Combine(this.TaintedArguments,
                 HashUtilities.Combine(this.TaintedMethods,
                 HashUtilities.Combine(this.TaintedMethodsNeedsPointsToAnalysis,
@@ -220,7 +229,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 HashUtilities.Combine(this.TransferProperties,
                 HashUtilities.Combine(this.DependencyFullTypeNames,
                 HashUtilities.Combine(this.IsInterface.GetHashCode(),
-                    StringComparer.Ordinal.GetHashCode(this.FullTypeName)))))))))));
+                    StringComparer.Ordinal.GetHashCode(this.FullTypeName))))))))))));
         }
 
         public override bool Equals(object obj)
@@ -234,6 +243,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && this.FullTypeName == other.FullTypeName
                 && this.IsInterface == other.IsInterface
                 && this.TaintedProperties == other.TaintedProperties
+                && this.TaintedFields == other.TaintedFields
                 && this.TaintedArguments == other.TaintedArguments
                 && this.TaintedMethods == other.TaintedMethods
                 && this.TaintedMethodsNeedsPointsToAnalysis == other.TaintedMethodsNeedsPointsToAnalysis

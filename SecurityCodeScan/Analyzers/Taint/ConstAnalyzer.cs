@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -9,6 +10,7 @@ using Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -75,24 +77,23 @@ namespace SecurityCodeScan.Analyzers.Taint
                             }
 
                             WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
+                            var warnings = PooledHashSet<Location>.GetInstance();
 
-                            void CreateWarning(OperationAnalysisContext operationAnalysisContext, Location location, ISymbol paramSymbol, ISymbol symbol)
+                            void CreateWarning(OperationAnalysisContext operationAnalysisContext, Location location, ISymbol symbol)
                             {
-                                // Something like:
-                                // CA3001: Potential SQL injection vulnerability was found where '{0}' in method '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'.
+                                warnings.Add(location);
+
                                 Diagnostic diagnostic = Diagnostic.Create(
                                                             this.TaintedDataEnteringSinkDescriptor,
                                                             location,
                                                             additionalLocations: new Location[] { location },
                                                             messageArgs: new object[] {
-                                                                paramSymbol.Name,
                                                                 symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
-                                                                symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
-                                                                symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)});
+                                                            });
                                 operationAnalysisContext.ReportDiagnostic(diagnostic);
                             }
 
-                            bool IsConstant(IOperation operation, IOperation value, OperationAnalysisContext operationAnalysisContext)
+                            bool IsHardcoded(IOperation operation, IOperation value, OperationAnalysisContext operationAnalysisContext)
                             {
                                 bool IsEmptyString(object? value)
                                 {
@@ -101,6 +102,13 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                                 if (value.ConstantValue.HasValue && !IsEmptyString(value.ConstantValue.Value))
                                     return true;
+
+                                if (value.Kind == OperationKind.ArrayCreation &&
+                                    value is IArrayCreationOperation arrayValue &&
+                                    arrayValue.Initializer?.Children.All(x => x.ConstantValue.HasValue) == true)
+                                {
+                                    return true;
+                                }
 
                                 if (!operation.TryGetEnclosingControlFlowGraph(out var cfg))
                                     return false;
@@ -120,24 +128,120 @@ namespace SecurityCodeScan.Analyzers.Taint
                                 return true;
                             }
 
-                            PooledHashSet<IOperation> rootOperationsNeedingAnalysis = PooledHashSet<IOperation>.GetInstance();
+                            var rootOperationsNeedingAnalysis = PooledHashSet<IOperation>.GetInstance();
+                            var sourceInfosBuilder = PooledHashSet<SourceInfo>.GetInstance();
+
+                            Lazy<ControlFlowGraph?> controlFlowGraphFactory = new Lazy<ControlFlowGraph?>(
+                                    () => operationBlockStartContext.OperationBlocks.GetControlFlowGraph());
 
                             operationBlockStartContext.RegisterOperationAction(
                                 operationAnalysisContext =>
                                 {
-                                    IAssignmentOperation operation = (IAssignmentOperation)operationAnalysisContext.Operation;
+                                    var operation = (IFieldReferenceOperation)operationAnalysisContext.Operation;
+                                    if ((operation.Field.IsConst && operation.ConstantValue.HasValue) ||
+                                         operation.Field.IsReadOnly /* huge assumption that it is set to a hardcoded value in initializer or constructor */)
+                                    {
+                                        lock (rootOperationsNeedingAnalysis)
+                                        {
+                                            rootOperationsNeedingAnalysis.Add(operationAnalysisContext.Operation.GetRoot());
+                                            sourceInfosBuilder.AddSourceInfo(
+                                                operation.Field.ContainingType.ToString(),
+                                                isInterface: false,
+                                                taintedProperties: null,
+                                                taintedFields: Enumerable.Repeat(operation.Field.Name, 1),
+                                                taintedMethods: null);
+                                        }
+                                    }
+                                },
+                                OperationKind.FieldReference);
+
+                            operationBlockStartContext.RegisterOperationBlockEndAction(
+                                operationBlockAnalysisContext =>
+                                {
+                                    try
+                                    {
+                                        lock (rootOperationsNeedingAnalysis)
+                                        {
+                                            if (!rootOperationsNeedingAnalysis.Any())
+                                            {
+                                                return;
+                                            }
+
+                                            if (controlFlowGraphFactory.Value == null)
+                                            {
+                                                return;
+                                            }
+
+                                            var sourceInfos = sourceInfosBuilder.ToImmutable();
+
+                                            foreach (IOperation rootOperation in rootOperationsNeedingAnalysis)
+                                            {
+                                                TaintedDataAnalysisResult? taintedDataAnalysisResult = TaintedDataAnalysis.TryGetOrComputeResult(
+                                                    controlFlowGraphFactory.Value,
+                                                    operationBlockAnalysisContext.Compilation,
+                                                    operationBlockAnalysisContext.OwningSymbol,
+                                                    operationBlockAnalysisContext.Options,
+                                                    TaintedDataEnteringSinkDescriptor,
+                                                    new TaintedDataSymbolMap<SourceInfo>(wellKnownTypeProvider, sourceInfos),
+                                                    config.TaintConfiguration.GetSanitizerSymbolMap(this.SinkKind),
+                                                    sinkInfoSymbolMap,
+                                                    operationBlockAnalysisContext.CancellationToken,
+                                                    config.MaxInterproceduralMethodCallChain,
+                                                    config.MaxInterproceduralLambdaOrLocalFunctionCallChain);
+
+                                                if (taintedDataAnalysisResult == null)
+                                                {
+                                                    return;
+                                                }
+
+                                                foreach (TaintedDataSourceSink sourceSink in taintedDataAnalysisResult.TaintedDataSourceSinks)
+                                                {
+                                                    if (!sourceSink.SinkKinds.Contains(this.SinkKind))
+                                                    {
+                                                        continue;
+                                                    }
+
+                                                    foreach (SymbolAccess sourceOrigin in sourceSink.SourceOrigins)
+                                                    {
+                                                        if (warnings.Contains(sourceSink.Sink.Location))
+                                                            continue;
+
+                                                        Diagnostic diagnostic = Diagnostic.Create(
+                                                            this.TaintedDataEnteringSinkDescriptor,
+                                                            sourceSink.Sink.Location,
+                                                            additionalLocations: new Location[] { sourceOrigin.Location },
+                                                            messageArgs: new object[] {
+                                                                sourceSink.Sink.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)
+                                                            });
+                                                        operationBlockAnalysisContext.ReportDiagnostic(diagnostic);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    finally
+                                    {
+                                        warnings.Free(compilationContext.CancellationToken);
+                                        sourceInfosBuilder.Free(compilationContext.CancellationToken);
+                                        rootOperationsNeedingAnalysis.Free(compilationContext.CancellationToken);
+                                    }
+                                });
+
+                            operationBlockStartContext.RegisterOperationAction(
+                                operationAnalysisContext =>
+                                {
+                                    var operation = (IAssignmentOperation)operationAnalysisContext.Operation;
                                     if (!(operation.Target is IPropertyReferenceOperation propertyReferenceOperation))
                                         return;
 
                                     IEnumerable<SinkInfo>? infosForType = sinkInfoSymbolMap.GetInfosForType(propertyReferenceOperation.Member.ContainingType);
                                     if (infosForType != null &&
                                         infosForType.Any(x => x.SinkProperties.Contains(propertyReferenceOperation.Member.MetadataName)) &&
-                                        IsConstant(operation, operation.Value, operationAnalysisContext))
+                                        IsHardcoded(operation, operation.Value, operationAnalysisContext))
                                     {
                                         CreateWarning(
                                             operationAnalysisContext,
                                             propertyReferenceOperation.Syntax.GetLocation(),
-                                            operation.Value.Type,
                                             propertyReferenceOperation.Member);
                                     }
                                 },
@@ -146,19 +250,22 @@ namespace SecurityCodeScan.Analyzers.Taint
                             operationBlockStartContext.RegisterOperationAction(
                                 operationAnalysisContext =>
                                 {
-                                    IInvocationOperation invocationOperation = (IInvocationOperation)operationAnalysisContext.Operation;
+                                    var invocationOperation = (IInvocationOperation)operationAnalysisContext.Operation;
                                     IEnumerable<SinkInfo>? infosForType = sinkInfoSymbolMap.GetInfosForType(invocationOperation.TargetMethod.ContainingType);
                                     if (infosForType == null)
                                         return;
 
                                     foreach (SinkInfo sinkInfo in infosForType)
                                     {
-                                        foreach (IArgumentOperation taintedArgument in invocationOperation.Arguments.Where(x => IsConstant(x, x.Value, operationAnalysisContext)))
+                                        foreach (IArgumentOperation taintedArgument in invocationOperation.Arguments.Where(x => IsHardcoded(x, x.Value, operationAnalysisContext)))
                                         {
                                             if (sinkInfo.SinkMethodParameters.TryGetValue(invocationOperation.TargetMethod.MetadataName, out ImmutableHashSet<string> sinkParameters)
                                                 && sinkParameters.Contains(taintedArgument.Parameter.MetadataName))
                                             {
-                                                CreateWarning(operationAnalysisContext, invocationOperation.Syntax.GetLocation(), taintedArgument.Parameter, invocationOperation.TargetMethod);
+                                                CreateWarning(
+                                                    operationAnalysisContext,
+                                                    invocationOperation.Syntax.GetLocation(),
+                                                    invocationOperation.TargetMethod);
                                                 return;
                                             }
                                         }
@@ -169,25 +276,31 @@ namespace SecurityCodeScan.Analyzers.Taint
                             operationBlockStartContext.RegisterOperationAction(
                                 operationAnalysisContext =>
                                 {
-                                    IObjectCreationOperation invocationOperation = (IObjectCreationOperation)operationAnalysisContext.Operation;
+                                    var invocationOperation = (IObjectCreationOperation)operationAnalysisContext.Operation;
                                     IEnumerable<SinkInfo>? infosForType = sinkInfoSymbolMap.GetInfosForType(invocationOperation.Constructor.ContainingType);
                                     if (infosForType == null)
                                         return;
 
                                     foreach (SinkInfo sinkInfo in infosForType)
                                     {
-                                        foreach (IArgumentOperation taintedArgument in invocationOperation.Arguments.Where(x => IsConstant(x, x.Value, operationAnalysisContext)))
+                                        foreach (IArgumentOperation taintedArgument in invocationOperation.Arguments.Where(x => IsHardcoded(x, x.Value, operationAnalysisContext)))
                                         {
                                             if (sinkInfo.IsAnyStringParameterInConstructorASink
                                                 && taintedArgument.Parameter.Type.SpecialType == SpecialType.System_String)
                                             {
-                                                CreateWarning(operationAnalysisContext, invocationOperation.Syntax.GetLocation(), taintedArgument.Parameter, invocationOperation.Constructor);
+                                                CreateWarning(
+                                                    operationAnalysisContext,
+                                                    invocationOperation.Syntax.GetLocation(),
+                                                    taintedArgument.Parameter);
                                                 return;
                                             }
                                             else if (sinkInfo.SinkMethodParameters.TryGetValue(invocationOperation.Constructor.MetadataName, out ImmutableHashSet<string> sinkParameters)
                                                         && sinkParameters.Contains(taintedArgument.Parameter.MetadataName))
                                             {
-                                                CreateWarning(operationAnalysisContext, invocationOperation.Syntax.GetLocation(), taintedArgument.Parameter, invocationOperation.Constructor);
+                                                CreateWarning(
+                                                    operationAnalysisContext,
+                                                    invocationOperation.Syntax.GetLocation(),
+                                                    taintedArgument.Parameter);
                                                 return;
                                             }
                                         }

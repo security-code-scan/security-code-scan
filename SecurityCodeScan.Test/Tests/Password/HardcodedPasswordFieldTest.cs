@@ -22,6 +22,7 @@ namespace SecurityCodeScan.Test.Password
         [DataRow("null")]
         [DataRow("String.Empty")]
         [DataRow("\"\"")]
+        [DataRow("input")]
         [DataTestMethod]
         public async Task HardCodePasswordFalsePositive(string value)
         {
@@ -34,7 +35,7 @@ namespace VulnerableApp
 {{
     class HardCodedPassword
     {{
-        static void TestCookie()
+        static void TestCookie(string input)
         {{
             var uri = new UriBuilder();
             uri.Password = {value};
@@ -48,7 +49,7 @@ Imports System
 
 Namespace VulnerableApp
     Class HardCodedPassword
-        Private Shared Sub TestCookie()
+        Private Shared Sub TestCookie(input As String)
             Dim uri = New UriBuilder()
             uri.Password = {vbValue}
         End Sub
@@ -66,7 +67,7 @@ namespace VulnerableApp
 {{
     class HardCodedPassword
     {{
-        static void TestCookie()
+        static void TestCookie(string input)
         {{
             var uri = new UriBuilder {{Password = {value}}};
         }}
@@ -79,7 +80,7 @@ Imports System
 
 Namespace VulnerableApp
     Class HardCodedPassword
-        Private Shared Sub TestCookie()
+        Private Shared Sub TestCookie(input As String)
             Dim uri = New UriBuilder With {{.Password = {vbValue}}}
         End Sub
     End Class
@@ -211,7 +212,6 @@ End Namespace
 
         [TestCategory("Detect")]
         [TestMethod]
-        [Ignore("field source readonly tracking")]
         public async Task HardCodePasswordInitializerFromStaticReadonlyMember()
         {
             var cSharpTest = @"
@@ -300,7 +300,56 @@ End Namespace
         }
 
         [TestMethod]
-        [Ignore("Interprocedural readonly tracking")]
+        [Ignore("Const is not really a taint")]
+        public async Task HardCodePasswordInitializerFromConstMemberFlowPlusNonConst()
+        {
+            var cSharpTest = @"
+using System;
+
+namespace VulnerableApp
+{
+    class HardCodedPassword
+    {
+        const string PWD = ""t0ps3cr3t"";
+
+        static void Run(string input)
+        {
+            TestCookie(PWD + input);
+        }
+
+        static void TestCookie(string pwd)
+        {
+            var uri = new UriBuilder {Password = pwd};
+        }
+    }
+}
+";
+
+            var visualBasicTest = @"
+Imports System
+
+Namespace VulnerableApp
+    Class HardCodedPassword
+        Const PWD As String = ""t0ps3cr3t""
+
+        Private Shared Sub Run(input As String)
+            TestCookie(PWD + input)
+        End Sub
+
+        Private Shared Sub TestCookie(ByVal pwd As String)
+            Dim uri = New UriBuilder With {
+                .Password = pwd
+            }
+            End Sub
+    End Class
+End Namespace
+";
+
+            await VerifyCSharpDiagnostic(cSharpTest, null, await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false)).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, null, await AuditTest.GetAuditModeConfigOptions().ConfigureAwait(false)).ConfigureAwait(false);
+        }
+
+        [TestMethod]
         public async Task HardCodePasswordInitializerFromConstMemberFlow()
         {
             var cSharpTest = @"

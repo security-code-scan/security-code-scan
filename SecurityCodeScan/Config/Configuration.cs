@@ -282,6 +282,7 @@ namespace SecurityCodeScan.Config
                         isInterface: isIterface ?? false,
                         taintedProperties: type.Value.source?.Properties?.ToImmutableHashSet(StringComparer.Ordinal)
                             ?? ImmutableHashSet<string>.Empty,
+                        taintedFields: ImmutableHashSet<string>.Empty,
                         dependencyFullTypeNames:
                             type.Value.entryPoint?.Dependency?.ToImmutableArray(),
                         taintedArguments: type.Value.entryPoint != null ?

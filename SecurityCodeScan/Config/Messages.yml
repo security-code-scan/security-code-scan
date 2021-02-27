@@ -73,9 +73,8 @@ SCS0013:
 #SCS0014
 
 SCS0015:
-  title: "Hardcoded password in {1} argument passed to '{0}'."
-  title_assignment: Hardcoded password.
-  description: The password configuration to this API appears to be hardcoded. Consider moving the password to externalized configuration to avoid leakage of secret information.
+  title: "Hardcoded value in '{0}'."
+  description: The secret value to this API appears to be hardcoded. Consider moving the value to externalized configuration to avoid leakage of secret information.
 
 SCS0016:
   title: Controller method is potentially vulnerable to Cross Site Request Forgery (CSRF).

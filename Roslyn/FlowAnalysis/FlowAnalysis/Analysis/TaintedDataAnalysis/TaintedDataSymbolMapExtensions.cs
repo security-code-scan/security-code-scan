@@ -121,7 +121,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     return true;
                 }
 
-                // the list of tainted fields is not implemented yet
+                if (sourceInfo.TaintedFields.Contains(fieldSymbol.MetadataName))
+                {
+                    return true;
+                }
             }
 
             return false;

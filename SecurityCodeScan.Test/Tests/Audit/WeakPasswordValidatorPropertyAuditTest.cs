@@ -26,9 +26,9 @@ namespace SecurityCodeScan.Test.Audit
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [DataTestMethod]
-        [DataRow("RequiredLength", "System.Int32", "SCS0032", false)]
-        [DataRow("RequiredLength", "System.Int32", "SCS0032", true)]
-        public async Task PasswordValidatorRequiredLength(string property, string type, string code, bool auditMode)
+        [DataRow("RequiredLength", "System.Int32", false)]
+        [DataRow("RequiredLength", "System.Int32", true)]
+        public async Task PasswordValidatorRequiredLength(string property, string type, bool auditMode)
         {
             var cSharpTest = $@"
 using Microsoft.AspNet.Identity;
@@ -37,12 +37,13 @@ namespace WebApplicationSandbox.Controllers
 {{
     public class TestApp
     {{
-        public void TestMethod({type} x)
+        public PasswordValidator TestMethod({type} x)
         {{
             var pwdv = new PasswordValidator
             {{
                 {property} = x
             }};
+            return pwdv;
         }}
     }}
 }}
@@ -53,19 +54,33 @@ Imports Microsoft.AspNet.Identity
 
 Namespace WebApplicationSandbox.Controllers
     Public Class TestApp
-        Public Sub TestMethod(x As {type})
+        Public Function TestMethod(x As {type}) As PasswordValidator
             Dim pwdv As New PasswordValidator() With {{ _
                 .{property} = x
             }}
-        End Sub
+            return pwdv
+        End Function
     End Class
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
+            var expected = new[]
             {
-                Id       = code,
-                Severity = DiagnosticSeverity.Warning
+                new DiagnosticResult
+                {
+                    Id       = "SCS0034",
+                    Severity = DiagnosticSeverity.Warning
+                },
+                new DiagnosticResult
+                {
+                    Id       = "SCS0032",
+                    Severity = DiagnosticSeverity.Warning
+                },
+                new DiagnosticResult
+                {
+                    Id       = "SCS0033",
+                    Severity = DiagnosticSeverity.Warning
+                }
             };
 
             var testConfig = $@"
@@ -77,10 +92,10 @@ PasswordValidatorRequiredProperties: [{property}]
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
 
             await VerifyCSharpDiagnostic(cSharpTest,
-                                         auditMode ? new[] { expected } : null,
+                                         auditMode ? expected : null,
                                          optionsWithProjectConfig).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest,
-                                              auditMode ? new[] { expected } : null,
+                                              auditMode ? expected : null,
                                               optionsWithProjectConfig).ConfigureAwait(false);
         }
 
@@ -102,13 +117,14 @@ namespace WebApplicationSandbox.Controllers
 {{
     public class TestApp
     {{
-        public void TestMethod({type} x)
+        public PasswordValidator TestMethod({type} x)
         {{
             var pwdv = new PasswordValidator
             {{
                 RequiredLength = 1,
                 {property} = x
             }};
+            return pwdv;
         }}
     }}
 }}
@@ -119,11 +135,12 @@ Imports Microsoft.AspNet.Identity
 
 Namespace WebApplicationSandbox.Controllers
     Public Class TestApp
-        Public Sub TestMethod(x As {type})
+        Public Function TestMethod(x As {type}) As PasswordValidator
             Dim pwdv As New PasswordValidator() With {{ _
                 .{property} = x, .RequiredLength = 1
             }}
-        End Sub
+            return pwdv
+        End Function
     End Class
 End Namespace
 ";

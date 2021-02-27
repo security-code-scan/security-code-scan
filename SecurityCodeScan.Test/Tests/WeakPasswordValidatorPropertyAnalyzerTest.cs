@@ -44,7 +44,7 @@ namespace WebApplicationSandbox.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public PasswordValidator Index()
         {
             PasswordValidator pwdv = new PasswordValidator
             {
@@ -57,7 +57,7 @@ namespace WebApplicationSandbox.Controllers
             pwdv.RequireNonLetterOrDigit = true;
             pwdv.RequireDigit = true;
 
-            return View();
+            return pwdv;
         }
     }
 }
@@ -70,7 +70,7 @@ Imports System.Web.Mvc
 Namespace WebApplicationSandbox.Controllers
     Public Class HomeController
         Inherits Controller
-        Public Function Index() As ActionResult
+        Public Function Index() As PasswordValidator
             Dim pwdv As New PasswordValidator() With { _
                 .RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @", _
                 .RequireNonLetterOrDigit = True, _
@@ -81,7 +81,7 @@ Namespace WebApplicationSandbox.Controllers
             pwdv.RequireNonLetterOrDigit = True
             pwdv.RequireDigit = True
 
-            Return View()
+            Return pwdv
         End Function
     End Class
 End Namespace
@@ -106,7 +106,7 @@ namespace WebApplicationSandbox.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public PasswordValidator Index()
         {
             PasswordValidator pwdv = new PasswordValidator
             {
@@ -117,7 +117,7 @@ namespace WebApplicationSandbox.Controllers
                 RequireUppercase = true,
             };
 
-            return View();
+            return pwdv;
         }
     }
 }
@@ -130,7 +130,7 @@ Imports System.Web.Mvc
 Namespace WebApplicationSandbox.Controllers
     Public Class HomeController
         Inherits Controller
-        Public Function Index() As ActionResult
+        Public Function Index() As PasswordValidator
             Dim pwdv As New PasswordValidator() With { _
                 .RequiredLength = " + (DefaultPasswordValidatorRequiredLenght - 1) + @", _
                 .RequireNonLetterOrDigit = True, _
@@ -139,7 +139,7 @@ Namespace WebApplicationSandbox.Controllers
                 .RequireUppercase = True _
             }
 
-            Return View()
+            Return pwdv
         End Function
     End Class
 End Namespace
@@ -160,7 +160,6 @@ End Namespace
         /// </summary>
         [TestCategory("Detect")]
         [TestMethod]
-        [Ignore("Needs PointsTo analysis?")]
         public async Task PasswordValidatorTooShort()
         {
             var cSharpTest = @"
@@ -171,7 +170,7 @@ namespace WebApplicationSandbox.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public PasswordValidator Index()
         {
             PasswordValidator pwdv = new PasswordValidator
             {
@@ -181,7 +180,7 @@ namespace WebApplicationSandbox.Controllers
 
             pwdv.RequiredLength = " + (DefaultPasswordValidatorRequiredLenght - 1) + @";
 
-            return View();
+            return pwdv;
         }
     }
 }
@@ -194,7 +193,7 @@ Imports System.Web.Mvc
 Namespace WebApplicationSandbox.Controllers
     Public Class HomeController
         Inherits Controller
-        Public Function Index() As ActionResult
+        Public Function Index() As PasswordValidator
             Dim pwdv As New PasswordValidator() With { _
                 .RequireNonLetterOrDigit = True, _
                 .RequireDigit = True _
@@ -202,7 +201,7 @@ Namespace WebApplicationSandbox.Controllers
 
             pwdv.RequiredLength = " + (DefaultPasswordValidatorRequiredLenght - 1) + @"
 
-            Return View()
+            Return pwdv
         End Function
     End Class
 End Namespace
@@ -234,7 +233,7 @@ namespace WebApplicationSandbox.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public PasswordValidator Index()
         {
             int reqLen = " + DefaultPasswordValidatorRequiredLenght + @";
 
@@ -247,7 +246,7 @@ namespace WebApplicationSandbox.Controllers
                 RequireUppercase = true,
             };
 
-            return View();
+            return pwdv;
         }
     }
 }
@@ -260,7 +259,7 @@ Imports System.Web.Mvc
 Namespace WebApplicationSandbox.Controllers
     Public Class HomeController
         Inherits Controller
-        Public Function Index() As ActionResult
+        Public Function Index() As PasswordValidator
             Dim reqLen As Integer = " + DefaultPasswordValidatorRequiredLenght + @"
 
             Dim pwdv As New PasswordValidator() With { _
@@ -271,7 +270,7 @@ Namespace WebApplicationSandbox.Controllers
                 .RequireUppercase = True _
             }
 
-            Return View()
+            Return pwdv
         End Function
     End Class
 End Namespace
@@ -286,7 +285,6 @@ End Namespace
         /// </summary>
         [TestCategory("Safe")]
         [TestMethod]
-        [Ignore("Needs PointsTo analysis?")]
         public async Task PasswordValidatorOutOfDeclarationOK()
         {
             var cSharpTest = @"
@@ -297,7 +295,7 @@ namespace WebApplicationSandbox.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public PasswordValidator Index()
         {
             PasswordValidator pwdv = new PasswordValidator
             {
@@ -306,7 +304,7 @@ namespace WebApplicationSandbox.Controllers
             pwdv.RequireNonLetterOrDigit = true;
             pwdv.RequireDigit = true;
 
-            return View();
+            return pwdv;
         }
     }
 }
@@ -319,14 +317,14 @@ Imports System.Web.Mvc
 Namespace WebApplicationSandbox.Controllers
     Public Class HomeController
         Inherits Controller
-        Public Function Index() As ActionResult
+        Public Function Index() As PasswordValidator
             Dim pwdv As New PasswordValidator() With { _
                 .RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @" _
             }
             pwdv.RequireNonLetterOrDigit = True
             pwdv.RequireDigit = True
 
-            Return View()
+            Return pwdv
         End Function
     End Class
 End Namespace
@@ -351,7 +349,7 @@ namespace WebApplicationSandbox.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public PasswordValidator Index()
         {
             PasswordValidator pwdv = new PasswordValidator
             {
@@ -359,7 +357,7 @@ namespace WebApplicationSandbox.Controllers
             };
             pwdv.RequireDigit = true;
 
-            return View();
+            return pwdv;
         }
     }
 }
@@ -372,13 +370,13 @@ Imports System.Web.Mvc
 Namespace WebApplicationSandbox.Controllers
     Public Class HomeController
         Inherits Controller
-        Public Function Index() As ActionResult
+        Public Function Index() As PasswordValidator
             Dim pwdv As New PasswordValidator() With { _
                 .RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @" _
             }
             pwdv.RequireDigit = True
 
-            Return View()
+            Return pwdv
         End Function
     End Class
 End Namespace
@@ -409,7 +407,7 @@ namespace WebApplicationSandbox.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public PasswordValidator Index()
         {
             PasswordValidator pwdv = new PasswordValidator
         {
@@ -418,7 +416,7 @@ namespace WebApplicationSandbox.Controllers
                 RequireLowercase = true,
                 RequireUppercase = true,
             };
-            return View();
+            return pwdv;
         }
     }
 }
@@ -431,23 +429,31 @@ Imports System.Web.Mvc
 Namespace WebApplicationSandbox.Controllers
     Public Class HomeController
         Inherits Controller
-        Public Function Index() As ActionResult
+        Public Function Index() As PasswordValidator
             Dim pwdv As New PasswordValidator() With { _
                 .RequireNonLetterOrDigit = True, _
                 .RequireDigit = True, _
                 .RequireLowercase = True, _
                 .RequireUppercase = True _
             }
-            Return View()
+            Return pwdv
         End Function
     End Class
 End Namespace
 ";
 
-            var expected = new DiagnosticResult
+            var expected = new[]
             {
-                Id       = "SCS0034",
-                Severity = DiagnosticSeverity.Warning
+                new DiagnosticResult
+                {
+                    Id       = "SCS0034",
+                    Severity = DiagnosticSeverity.Warning
+                },
+                new DiagnosticResult
+                {
+                    Id       = "SCS0032",
+                    Severity = DiagnosticSeverity.Warning
+                }
             };
 
             await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
@@ -466,7 +472,7 @@ namespace WebApplicationSandbox.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public PasswordValidator Index()
         {
             PasswordValidator pwdv = new PasswordValidator
             {
@@ -477,7 +483,7 @@ namespace WebApplicationSandbox.Controllers
                 RequireUppercase = false,
             };
 
-            return View();
+            return pwdv;
         }
     }
 }
@@ -490,7 +496,7 @@ Imports System.Web.Mvc
 Namespace WebApplicationSandbox.Controllers
     Public Class HomeController
         Inherits Controller
-        Public Function Index() As ActionResult
+        Public Function Index() As PasswordValidator
             Dim pwdv As New PasswordValidator() With { _
                 .RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @", _
                 .RequireNonLetterOrDigit = False, _
@@ -499,7 +505,7 @@ Namespace WebApplicationSandbox.Controllers
                 .RequireUppercase = False _
             }
 
-            Return View()
+            Return pwdv
         End Function
     End Class
 End Namespace
@@ -516,7 +522,6 @@ End Namespace
 
         [TestCategory("Safe")]
         [TestMethod]
-        [Ignore("Needs PointsTo analysis?")]
         public async Task PasswordValidatorDeclarationReAssignOK()
         {
             var cSharpTest = @"
@@ -527,7 +532,7 @@ namespace WebApplicationSandbox.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public PasswordValidator Index()
         {
             PasswordValidator pwdv = new PasswordValidator
             {
@@ -543,7 +548,7 @@ namespace WebApplicationSandbox.Controllers
             pwdv.RequireLowercase = true;
             pwdv.RequireUppercase = true;
 
-            return View();
+            return pwdv;
         }
     }
 }
@@ -556,7 +561,7 @@ Imports System.Web.Mvc
 Namespace WebApplicationSandbox.Controllers
     Public Class HomeController
         Inherits Controller
-        Public Function Index() As ActionResult
+        Public Function Index() As PasswordValidator
             Dim pwdv As New PasswordValidator() With { _
                 .RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @", _
                 .RequireNonLetterOrDigit = False, _
@@ -570,7 +575,7 @@ Namespace WebApplicationSandbox.Controllers
             pwdv.RequireLowercase = True
             pwdv.RequireUppercase = True
 
-            Return View()
+            Return pwdv
         End Function
     End Class
 End Namespace
@@ -582,7 +587,6 @@ End Namespace
 
         [TestCategory("Detect")]
         [TestMethod]
-        [Ignore("Needs PointsTo analysis?")]
         public async Task PasswordValidatorDeclarationReAssignFalse()
         {
             var cSharpTest = @"
@@ -593,7 +597,7 @@ namespace WebApplicationSandbox.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public PasswordValidator Index()
         {
             PasswordValidator pwdv = new PasswordValidator
             {
@@ -609,7 +613,7 @@ namespace WebApplicationSandbox.Controllers
             pwdv.RequireLowercase = false;
             pwdv.RequireUppercase = false;
 
-            return View();
+            return pwdv;
         }
     }
 }
@@ -622,7 +626,7 @@ Imports System.Web.Mvc
 Namespace WebApplicationSandbox.Controllers
     Public Class HomeController
         Inherits Controller
-        Public Function Index() As ActionResult
+        Public Function Index() As PasswordValidator
             Dim pwdv As New PasswordValidator() With { _
                 .RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @", _
                 .RequireNonLetterOrDigit = True, _
@@ -636,7 +640,7 @@ Namespace WebApplicationSandbox.Controllers
             pwdv.RequireLowercase = False
             pwdv.RequireUppercase = False
 
-            Return View()
+            Return pwdv
         End Function
     End Class
 End Namespace
@@ -653,7 +657,6 @@ End Namespace
 
         [TestCategory("Safe")]
         [TestMethod]
-        [Ignore("Needs PointsTo analysis?")]
         public async Task PasswordValidatorDeclarationReAssignRequiredLenght()
         {
             var cSharpTest = @"
@@ -664,7 +667,7 @@ namespace WebApplicationSandbox.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public PasswordValidator Index()
         {
             PasswordValidator pwdv = new PasswordValidator
             {
@@ -677,7 +680,7 @@ namespace WebApplicationSandbox.Controllers
 
             pwdv.RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @";
 
-            return View();
+            return pwdv;
         }
     }
 }
@@ -690,7 +693,7 @@ Imports System.Web.Mvc
 Namespace WebApplicationSandbox.Controllers
     Public Class HomeController
         Inherits Controller
-        Public Function Index() As ActionResult
+        Public Function Index() As PasswordValidator
             Dim pwdv As New PasswordValidator() With { _
                 .RequiredLength = " + (DefaultPasswordValidatorRequiredLenght - 1) + @", _
                 .RequireNonLetterOrDigit = True, _
@@ -701,7 +704,7 @@ Namespace WebApplicationSandbox.Controllers
 
             pwdv.RequiredLength = " + (DefaultPasswordValidatorRequiredLenght + 1) + @"
 
-            Return View()
+            Return pwdv
         End Function
     End Class
 End Namespace
@@ -723,7 +726,7 @@ namespace WebApplicationSandbox.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index(int requiredLenght, bool require)
+        public PasswordValidator Index(int requiredLenght, bool require)
         {
             PasswordValidator pwdv = new PasswordValidator
             {
@@ -734,7 +737,7 @@ namespace WebApplicationSandbox.Controllers
                 RequireUppercase = require,
             };
 
-            return View();
+            return pwdv;
         }
     }
 }
@@ -747,7 +750,7 @@ Imports System.Web.Mvc
 Namespace WebApplicationSandbox.Controllers
     Public Class HomeController
         Inherits Controller
-        Public Function Index(requiredLenght As Integer, require As Boolean) As ActionResult
+        Public Function Index(requiredLenght As Integer, require As Boolean) As PasswordValidator
             Dim pwdv As New PasswordValidator() With { _
                 .RequiredLength = requiredLenght, _
                 .RequireNonLetterOrDigit = require, _
@@ -756,7 +759,7 @@ Namespace WebApplicationSandbox.Controllers
                 .RequireUppercase = require _
             }
 
-            Return View()
+            Return pwdv
         End Function
     End Class
 End Namespace
@@ -782,14 +785,14 @@ namespace WebApplicationSandbox.Controllers
 
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public PasswordValidator Index()
         {
             PasswordValidator pwdv = new PasswordValidator
             {
                 RequiredLength = 1
             };
 
-            return View();
+            return pwdv;
         }
     }
 }
@@ -806,11 +809,11 @@ Namespace WebApplicationSandbox.Controllers
     Public Class HomeController
         Inherits Controller
 
-        Public Function Index() As ActionResult
+        Public Function Index() As PasswordValidator
             Dim pwdv As PasswordValidator = New PasswordValidator With {
                 .RequiredLength = 1
             }
-            Return View()
+            Return pwdv
         End Function
     End Class
 End Namespace
@@ -822,7 +825,6 @@ End Namespace
 
         [TestCategory("Detect")]
         [TestMethod]
-        [Ignore("Needs PointsTo analysis?")]
         public async Task GivenAliasDirective_DetectDiagnostic()
         {
             var cSharpTest = @"
@@ -833,7 +835,7 @@ namespace WebApplicationSandbox.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public PV Index()
         {
             PV pwdv = new PV
             {
@@ -844,7 +846,7 @@ namespace WebApplicationSandbox.Controllers
                 RequireUppercase = true,
             };
 
-            return View();
+            return pwdv;
         }
     }
 }
@@ -857,7 +859,7 @@ Imports System.Web.Mvc
 Namespace WebApplicationSandbox.Controllers
     Public Class HomeController
         Inherits Controller
-        Public Function Index() As ActionResult
+        Public Function Index() As PV
             Dim pwdv As New PV() With { _
                 .RequireNonLetterOrDigit = True, _
                 .RequireDigit = True _
@@ -865,7 +867,7 @@ Namespace WebApplicationSandbox.Controllers
 
             pwdv.RequiredLength = 6
 
-            Return View()
+            Return pwdv
         End Function
     End Class
 End Namespace

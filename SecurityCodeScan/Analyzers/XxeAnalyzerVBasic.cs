@@ -8,8 +8,8 @@ namespace SecurityCodeScan.Analyzers
 {
     internal class XxeAnalyzerVBasic : XxeAnalyzer
     {
-        public XxeAnalyzerVBasic(XxeSecurityTypes xmlTypes, Version frameworkVersion) :
-            base(xmlTypes, VBSyntaxNodeHelper.Default, frameworkVersion) { }
+        public XxeAnalyzerVBasic(XxeSecurityTypes xmlTypes, bool areDefaultsSecure) :
+            base(xmlTypes, VBSyntaxNodeHelper.Default, areDefaultsSecure) { }
 
         public void RegisterSyntaxNodeAction(CodeBlockStartAnalysisContext<SyntaxKind> c)
         {

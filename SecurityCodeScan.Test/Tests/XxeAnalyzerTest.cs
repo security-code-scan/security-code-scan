@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -9,6 +10,92 @@ using SecurityCodeScan.Test.Helpers;
 
 namespace SecurityCodeScan.Test.XXE
 {
+    [TestClass]
+    public class XxeAnalyzerDotNetCoreTest : XxeAnalyzerTestBase
+    {
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string language)
+        {
+            if (language == LanguageNames.CSharp)
+                return new DiagnosticAnalyzer[] { new XxeDiagnosticAnalyzerCSharp() };
+            else
+                return new DiagnosticAnalyzer[] { new XxeDiagnosticAnalyzerVisualBasic() };
+        }
+
+        private static readonly PortableExecutableReference[] References =
+        {
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Http.HttpContext).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ControllerBase).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.Controller).Assembly.Location),
+            MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
+                                                     .Location)
+        };
+
+        /// <summary> XML parsing vulnerable to XXE </summary>
+        private readonly DiagnosticResult[] Expected =
+        {
+            new DiagnosticResult { Id = "SCS0007", Severity = DiagnosticSeverity.Warning }
+        };
+
+        protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
+
+        [TestCategory("Detect")]
+        [TestMethod]
+        public async Task DetectUnsafeResolver()
+        {
+            var cSharpTest = $@"
+using Microsoft.AspNetCore.Mvc;
+using System.IO;
+using System.Xml;
+
+namespace VulnerableApp
+{{
+    public class TestController : Controller
+    {{
+        public void ControllerMethod()
+        {{
+            var xml = """";
+
+            using (var streamReader = new StreamReader(HttpContext.Request.Body))
+            {{
+                xml = streamReader.ReadToEnd();
+            }}
+
+            var xmlDoc = new XmlDocument();
+            xmlDoc.XmlResolver = new XmlUrlResolver();
+            xmlDoc.LoadXml(xml);
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = @"
+Imports Microsoft.AspNetCore.Mvc
+Imports System.IO
+Imports System.Xml
+
+Namespace VulnerableApp
+    Public Class TestController
+        Inherits Controller
+
+        Public Sub ControllerMethod()
+            Dim xml = """"
+
+            Using streamReader = New StreamReader(HttpContext.Request.Body)
+                xml = streamReader.ReadToEnd()
+            End Using
+
+            Dim xmlDoc = New XmlDocument()
+            xmlDoc.XmlResolver = New XmlUrlResolver()
+            xmlDoc.LoadXml(xml)
+        End Sub
+    End Class
+End Namespace
+";
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected).ConfigureAwait(false);
+        }
+    }
+
     [TestClass]
     public class XxeAnalyzerTest : XxeAnalyzerTestBase
     {

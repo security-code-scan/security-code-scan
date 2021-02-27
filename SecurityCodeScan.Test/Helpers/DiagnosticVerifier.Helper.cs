@@ -249,6 +249,8 @@ namespace SecurityCodeScan.Test.Helpers
             var solution = new AdhocWorkspace()
                            .CurrentSolution
                            .AddProject(projectId, TestProjectName, TestProjectName, language)
+                           // Todo: rework assembly references for .NET Core, because currently mscorlib is always referenced
+                           // need to reference nuget packages like .AddPackages in https://github.com/dotnet/roslyn-analyzers/blob/master/src/Test.Utilities/AdditionalMetadataReferences.cs
                            .AddMetadataReference(projectId, refAssemblies.GetMetadata("mscorlib.dll"))
                            .AddMetadataReference(projectId, refAssemblies.GetMetadata("System.Core.dll"))
                            .AddMetadataReference(projectId, refAssemblies.GetMetadata("System.dll"))

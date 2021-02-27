@@ -789,6 +789,13 @@ Sinks:
     Properties:
       - Password
 
+  - Type: System.Security.Cryptography.SymmetricAlgorithm
+    TaintTypes:
+      - SCS0015
+    Properties:
+      - IV
+      - Key
+
  # Process
 
   - Type: System.Diagnostics.Process

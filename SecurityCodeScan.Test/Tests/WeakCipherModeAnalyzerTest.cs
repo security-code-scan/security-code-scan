@@ -248,7 +248,6 @@ public class WeakCipherMode
                 {
                     using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
                     {
-
                         //Write all data to the stream.
                         swEncrypt.Write(plainText);
                     }

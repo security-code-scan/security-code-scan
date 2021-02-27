@@ -19,7 +19,7 @@ namespace SecurityCodeScan.Analyzers
     public class AthorizationAttributeDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         public const           string               DiagnosticId = "SCS0012";
-        public static readonly DiagnosticDescriptor Rule         = LocaleUtil.GetDescriptor(DiagnosticId);
+        public static readonly DiagnosticDescriptor Rule         = LocaleUtil.GetDescriptor(DiagnosticId, isEnabledByDefault: false);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 

@@ -141,7 +141,14 @@ namespace SecurityCodeScan.Test.Helpers
             var diagnostics = new List<Diagnostic>();
             foreach (var project in projects)
             {
-                var compilation              = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation  = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var specOptions = compilation.Options.SpecificDiagnosticOptions;
+                foreach (var analyzer in analyzers)
+                {
+                    specOptions = specOptions.AddRange(analyzer.SupportedDiagnostics.Select(x => new KeyValuePair<string, ReportDiagnostic>(x.Id, ReportDiagnostic.Warn)));
+                }
+                compilation = compilation.WithOptions(compilation.Options.WithSpecificDiagnosticOptions(specOptions));
+
                 var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, options);
                 var diags                    = includeCompilerDiagnostics
                                                    ? await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false)

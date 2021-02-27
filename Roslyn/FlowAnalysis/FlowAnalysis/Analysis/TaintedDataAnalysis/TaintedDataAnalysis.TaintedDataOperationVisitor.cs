@@ -203,18 +203,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 }
             }
 
-            public override TaintedDataAbstractValue VisitConversion(IConversionOperation operation, object? argument)
+            private bool ShouldSanitizeConversion(SpecialType type, IOperation operand)
             {
-                TaintedDataAbstractValue operandValue = Visit(operation.Operand, argument);
-
-                if (!operation.Conversion.Exists)
+                if (type == SpecialType.System_Object || type == SpecialType.System_String)
                 {
-                    return ValueDomain.UnknownOrMayBeValue;
-                }
-
-                if (operation.Type.SpecialType == SpecialType.System_Object || operation.Type.SpecialType == SpecialType.System_String)
-                {
-                    switch (operation.Operand.Type?.SpecialType)
+                    switch (operand.Type?.SpecialType)
                     {
                         case SpecialType.System_Enum:
                         case SpecialType.System_MulticastDelegate:
@@ -233,15 +226,57 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         case SpecialType.System_Double:
                         case SpecialType.System_IntPtr:
                         case SpecialType.System_UIntPtr:
-                            return ValueDomain.UnknownOrMayBeValue;
+                            return true;
                         case SpecialType.None:
-                        {
-                            if (Equals(operation.Operand.Type, WellKnownTypeProvider.GetOrCreateTypeByMetadataName("System.Guid")))
-                                return ValueDomain.UnknownOrMayBeValue;
-                        }
+                            {
+                                if (Equals(operand.Type, WellKnownTypeProvider.GetOrCreateTypeByMetadataName("System.Guid")))
+                                    return true;
+                            }
                             break;
                     }
                 }
+
+                return false;
+            }
+
+            public override TaintedDataAbstractValue? VisitInterpolatedString(IInterpolatedStringOperation operation, object? argument)
+            {
+                var ret = base.VisitInterpolatedString(operation, argument);
+
+                if (ret.Kind == TaintedDataAbstractValueKind.Tainted)
+                {
+                    foreach (var interpolation in operation.Children)
+                    {
+                        if (interpolation.Type != null)
+                            throw new Exception($"interpolation.Type was not null but {interpolation.Type}");
+
+                        bool shouldSanitize = true;
+                        foreach (var child in interpolation.Children)
+                        {
+                            shouldSanitize = ShouldSanitizeConversion(SpecialType.System_String, child);
+                            if (!shouldSanitize)
+                                break;
+                        }
+
+                        if (shouldSanitize)
+                            return ValueDomain.UnknownOrMayBeValue;
+                    }
+                }
+
+                return ret;
+            }
+
+            public override TaintedDataAbstractValue VisitConversion(IConversionOperation operation, object? argument)
+            {
+                TaintedDataAbstractValue operandValue = Visit(operation.Operand, argument);
+
+                if (!operation.Conversion.Exists)
+                {
+                    return ValueDomain.UnknownOrMayBeValue;
+                }
+
+                if (ShouldSanitizeConversion(operation.Type.SpecialType, operation.Operand))
+                    return ValueDomain.UnknownOrMayBeValue;
 
                 if (operation.Conversion.IsImplicit)
                 {

@@ -755,7 +755,7 @@ Sinks:
         [DataRow("DTO",    "DTO",    true,  "input")]
         [DataRow("DTO",    "String", true,  "input.value")]
         [DataRow("DTO",    "String", false, "input.intValue.ToString()")]
-        [DataRow("DTO",    "String", false, "$\"input.intValue\"")]
+        [DataRow("DTO",    "String", false, "$\"{input.intValue}\"")]
         [DataRow("DTO",    "String", false, "String.Format(\"{0}\", input.intValue)")]
         [DataRow("DTO",    "String", false, "String.Format(\"{0}\", (Object)input.intValue)")]
         [DataRow("DTO",    "String", true,  "service.GetBy(input.intValue).value")]

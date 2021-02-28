@@ -16,8 +16,7 @@ def writeGroup(outFile, rulesDir, groupMdFile, group):
         outFile.write('<div id="SCS{}"></div>\n\n'.format(md))
         appendFile(outFile, os.path.join(rulesDir, md + ".md"))
 
-sqliGroup = ["0002"]
-injectionGroup = ["0001", "0003", "0007", "0018", "0029", "0026", "0031"]
+injectionGroup = ["0001", "0002", "0003", "0007", "0018", "0029", "0026", "0031"]
 cryptoGroup = ["0004", "0005", "0006", "0010", "0013"]
 cookiesGroup = ["0008", "0009"]
 viewStateGroup = ["0023", "0024"]
@@ -34,7 +33,6 @@ appendFile(outFile, os.path.join(THIS_DIR, "configuration.md"))
 outFile.write("# Rules\n")
 rulesDir = os.path.join(THIS_DIR, "rules")
 writeGroup(outFile, rulesDir, "injection.md", injectionGroup)
-writeGroup(outFile, rulesDir, "sqli.md", sqliGroup)
 writeGroup(outFile, rulesDir, "cryptography.md", cryptoGroup)
 writeGroup(outFile, rulesDir, "cookies.md", cookiesGroup)
 writeGroup(outFile, rulesDir, "viewstate.md", viewStateGroup)

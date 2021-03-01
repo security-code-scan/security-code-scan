@@ -127,8 +127,8 @@ SCS0018:
 SCS0019:
   title: OutputCache annotation is disabling authorization checks.
   description: Having the annotation [OutputCache] will disable the annotation [Authorize] for the requests following the first one.
-  cwe: N/A
-  cwe_url: N/A
+  cwe: CWE-524
+  cwe_url: https://cwe.mitre.org/data/definitions/524.html
 
 #SCS0020
 

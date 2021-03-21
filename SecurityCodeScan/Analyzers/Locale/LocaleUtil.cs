@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis;
 
 namespace SecurityCodeScan.Analyzers.Locale
 {
-    internal class LocaleUtil
+    public class LocaleUtil
     {
         private static YamlResourceManager ResourceManager => ResourceManagerCached.Value;
         private static readonly Lazy<YamlResourceManager> ResourceManagerCached = new Lazy<YamlResourceManager>(() => new YamlResourceManager());
@@ -57,7 +57,7 @@ namespace SecurityCodeScan.Analyzers.Locale
             return localeIds.Select(localeId => GetDescriptor(localeId));
         }
 
-        private static LocalizableString GetLocalString(string id)
+        public static LocalizableString GetLocalString(string id)
         {
             return new LocalizableResourceString(id, ResourceManager, typeof(LocaleUtil));
         }

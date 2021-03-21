@@ -20,6 +20,7 @@ using System.Text;
 using System.Threading.Tasks.Dataflow;
 using System.Diagnostics;
 using DotNet.Globbing;
+using SecurityCodeScan.Analyzers.Locale;
 
 namespace SecurityCodeScan.Tool
 {
@@ -151,6 +152,7 @@ namespace SecurityCodeScan.Tool
         public bool shouldShowHelp = false;
         public bool verbose = false;
         public bool showBanner = true;
+        public bool cwe = false;
         public HashSet<string> excludeWarnings = new HashSet<string>();
         public HashSet<string> includeWarnings = new HashSet<string>();
         public List<Glob> excludeProjects = new List<Glob>();
@@ -176,6 +178,7 @@ namespace SecurityCodeScan.Tool
                     { "incl-proj=",     "(Optional) semicolon delimited list of glob project patterns to include", r => { includeProjectsList = r; } },
                     { "x|export=",      "(Optional) SARIF file path", r => { sarifFile = r; } },
                     { "c|config=",      "(Optional) path to additional configuration file", r => { config = r; } },
+                    { "cwe",            "(Optional) show CWE IDs", r => { cwe = r != null; } },
                     { "t|threads=",     "(Optional) run analysis in parallel (experimental)", (int r) => { threads = r; } },
                     { "n|no-banner",    "(Optional) don't show the banner", r => { showBanner = r == null; } },
                     { "v|verbose",      "(Optional) more diagnostic messages", r => { verbose = r != null; } },
@@ -250,7 +253,7 @@ namespace SecurityCodeScan.Tool
                 Console.WriteLine("\nUsage:\n");
                 parsedOptions.inputOptions.WriteOptionDescriptions(Console.Out);
                 Console.WriteLine("\nExample:\n");
-                Console.WriteLine($"  {name} my.sln --excl-proj=**/*Test*/** --export=out.sarif --exclude=SCS1234;SCS2345 --config=setting.yml");
+                Console.WriteLine($"  {name} my.sln --excl-proj=**/*Test*/** --export=out.sarif --excl-warn=SCS1234;SCS2345 --config=setting.yml");
                 return 1;
             }
 
@@ -462,7 +465,22 @@ namespace SecurityCodeScan.Tool
                     }
                 }
 
-                Console.WriteLine($"Found: {d}");
+                if (parsedOptions.cwe)
+                {
+                    var cwe = LocaleUtil.GetLocalString($"{d.Id}_cwe");
+                    var msg = d.ToString();
+                    if (!cwe.ToString().StartsWith("??")) // overall all IDs must have corresponding CWE, but some are special like SCS0000
+                    {
+                        msg = msg.Replace($"{d.Id}:", $"{d.Id}: CWE-{cwe}:");
+                    }
+
+                    Console.WriteLine($"Found: {msg}");
+                }
+                else
+                {
+                    Console.WriteLine($"Found: {d}");
+                }
+
                 if (logger != null)
                     logger.LogDiagnostic(d, null);
             }

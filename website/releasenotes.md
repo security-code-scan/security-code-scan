@@ -1,4 +1,9 @@
 # Release Notes
+
+## 5.1.0
+* Standalone runner improved. My favorite way to run SCS!
+* Bug fixes and improvements.
+
 ## 5.0.0
 * New inter-procedural taint analysis engine.
 * New sinks and sources.

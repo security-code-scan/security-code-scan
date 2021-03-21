@@ -151,7 +151,6 @@ namespace SecurityCodeScan.Tool
         public bool shouldShowHelp = false;
         public bool verbose = false;
         public bool showBanner = true;
-        public int parsedArgCount = 0;
         public HashSet<string> excludeWarnings = new HashSet<string>();
         public HashSet<string> includeWarnings = new HashSet<string>();
         public List<Glob> excludeProjects = new List<Glob>();
@@ -170,16 +169,16 @@ namespace SecurityCodeScan.Tool
 
                 inputOptions = new OptionSet
                 {
-                    { "<>",             "(Required) solution path", r => { solutionPath = r; ++parsedArgCount; } },
-                    { "w|excl-warn=",   "(Optional) semicolon delimited list of warnings to exclude", r => { excludeWarningsList = r; ++parsedArgCount; } },
-                    { "incl-warn=",     "(Optional) semicolon delimited list of warnings to include", r => { includeWarningsList = r; ++parsedArgCount; } },
-                    { "p|excl-proj=",   "(Optional) semicolon delimited list of glob project patterns to exclude", r => { excludeProjectsList = r; ++parsedArgCount; } },
-                    { "incl-proj=",     "(Optional) semicolon delimited list of glob project patterns to include", r => { includeProjectsList = r; ++parsedArgCount; } },
-                    { "x|export=",      "(Optional) SARIF file path", r => { sarifFile = r; ++parsedArgCount; } },
-                    { "c|config=",      "(Optional) path to additional configuration file", r => { config = r; ++parsedArgCount; } },
-                    { "t|threads=",     "(Optional) run analysis in parallel (experimental)", (int r) => { threads = r; ++parsedArgCount; } },
-                    { "n|no-banner",    "(Optional) don't show the banner", r => { showBanner = r == null; ++parsedArgCount; } },
-                    { "v|verbose",      "(Optional) more diagnostic messages", r => { verbose = r != null; ++parsedArgCount; } },
+                    { "<>",             "(Required) solution path", r => { solutionPath = r; } },
+                    { "w|excl-warn=",   "(Optional) semicolon delimited list of warnings to exclude", r => { excludeWarningsList = r; } },
+                    { "incl-warn=",     "(Optional) semicolon delimited list of warnings to include", r => { includeWarningsList = r; } },
+                    { "p|excl-proj=",   "(Optional) semicolon delimited list of glob project patterns to exclude", r => { excludeProjectsList = r; } },
+                    { "incl-proj=",     "(Optional) semicolon delimited list of glob project patterns to include", r => { includeProjectsList = r; } },
+                    { "x|export=",      "(Optional) SARIF file path", r => { sarifFile = r; } },
+                    { "c|config=",      "(Optional) path to additional configuration file", r => { config = r; } },
+                    { "t|threads=",     "(Optional) run analysis in parallel (experimental)", (int r) => { threads = r; } },
+                    { "n|no-banner",    "(Optional) don't show the banner", r => { showBanner = r == null; } },
+                    { "v|verbose",      "(Optional) more diagnostic messages", r => { verbose = r != null; } },
                     { "h|?|help",        "show this message and exit", h => shouldShowHelp = h != null },
                 };
 
@@ -245,7 +244,7 @@ namespace SecurityCodeScan.Tool
                 parsedOptions.shouldShowHelp = true;
             }
 
-            if (parsedOptions.shouldShowHelp || parsedOptions.solutionPath == null || parsedOptions.parsedArgCount != args.Length)
+            if (parsedOptions.shouldShowHelp || parsedOptions.solutionPath == null)
             {
                 var name = AppDomain.CurrentDomain.FriendlyName;
                 Console.WriteLine("\nUsage:\n");

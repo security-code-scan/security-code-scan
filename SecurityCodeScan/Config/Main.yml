@@ -115,6 +115,16 @@ TaintSources:
     Methods:
       - ReadLine
 
+  - Type: System.Net.Sockets.TcpClient
+    Methods:
+      - GetStream
+
+  - Type: System.Net.Sockets.UdpClient
+    Methods:
+      - EndReceive
+      - Receive
+      - ReceiveAsync
+
   - Type: System.Web.HttpPostedFile
     Properties:
       - ContentType

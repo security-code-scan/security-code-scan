@@ -3148,6 +3148,297 @@ Sinks:
         }
 
         [TestMethod]
+        public async Task TaintSourceUpdReceiveAsync()
+        {
+            var cSharpTest = @"
+using System.Threading.Tasks;
+using System.Net.Sockets;
+using System.Net;
+using System.Text;
+
+public class MyClass
+{
+    private static void Sink(string input) {}
+
+    public static async Task ReceiveMessages()
+    {
+        UdpClient receivingUdpClient = new UdpClient(11000);
+        IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
+        UdpReceiveResult result = await receivingUdpClient.ReceiveAsync();
+        string returnData = Encoding.ASCII.GetString(result.Buffer);
+        Sink(returnData);
+    }
+}
+";
+
+            var visualBasicTest = $@"
+Imports System.Threading.Tasks
+Imports System.Net.Sockets
+Imports System.Net
+Imports System.Text
+
+Public Class [MyClass]
+    Private Shared Sub Sink(ByVal input As String)
+    End Sub
+
+    Public Shared Async Function ReceiveMessages() As Task
+        Dim receivingUdpClient As UdpClient = New UdpClient(11000)
+        Dim RemoteIpEndPoint As IPEndPoint = New IPEndPoint(IPAddress.Any, 0)
+        Dim result As UdpReceiveResult = Await receivingUdpClient.ReceiveAsync()
+        Dim returnData As String = Encoding.ASCII.GetString(result.Buffer)
+        Sink(returnData)
+    End Function
+End Class
+";
+
+            var testConfig = @"
+Sinks:
+  - Type: MyClass
+    TaintTypes:
+      - SCS0002
+    Methods:
+    - Name: Sink
+      Arguments:
+        - input
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task TaintSourceUpdClientReceive()
+        {
+            var cSharpTest = @"
+using System;
+using System.Net.Sockets;
+using System.Net;
+using System.Text;
+
+public class MyClass
+{
+    private static void Sink(string input) {}
+
+    public static void ReceiveMessages()
+    {
+        UdpClient receivingUdpClient = new UdpClient(11000);
+        IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
+        Byte[] receiveBytes = receivingUdpClient.Receive(ref RemoteIpEndPoint);
+        string returnData = Encoding.ASCII.GetString(receiveBytes);
+        Sink(returnData);
+    }
+}
+";
+
+            var visualBasicTest = $@"
+Imports System.Net.Sockets
+Imports System.Net
+Imports System.Text
+
+Public Class [MyClass]
+    Private Shared Sub Sink(ByVal input As String)
+    End Sub
+
+    Public Shared Sub ReceiveMessages()
+        Dim receivingUdpClient As UdpClient = New UdpClient(11000)
+        Dim RemoteIpEndPoint As IPEndPoint = New IPEndPoint(IPAddress.Any, 0)
+        Dim receiveBytes As Byte() = receivingUdpClient.Receive(RemoteIpEndPoint)
+        Dim returnData As String = Encoding.ASCII.GetString(receiveBytes)
+        Sink(returnData)
+    End Sub
+End Class
+";
+
+            var testConfig = @"
+Sinks:
+  - Type: MyClass
+    TaintTypes:
+      - SCS0002
+    Methods:
+    - Name: Sink
+      Arguments:
+        - input
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task TaintSourceUpdClientEndReceive()
+        {
+            var cSharpTest = @"
+using System;
+using System.Net.Sockets;
+using System.Net;
+using System.Text;
+using System.Threading;
+
+public struct UdpState
+{
+    public UdpClient u;
+    public IPEndPoint e;
+}
+
+public class MyClass
+{
+    public static bool messageReceived = false;
+
+    public static void ReceiveCallback(IAsyncResult ar)
+    {
+        UdpClient u = ((UdpState)(ar.AsyncState)).u;
+        IPEndPoint e = ((UdpState)(ar.AsyncState)).e;
+
+        byte[] receiveBytes = u.EndReceive(ar, ref e);
+        string receiveString = Encoding.ASCII.GetString(receiveBytes);
+
+        Sink(receiveString);
+        messageReceived = true;
+    }
+
+    private static void Sink(string input) {}
+
+    public static void ReceiveMessages()
+    {
+        IPEndPoint e = new IPEndPoint(IPAddress.Any, 123);
+        UdpClient u = new UdpClient(e);
+
+        UdpState s = new UdpState();
+        s.e = e;
+        s.u = u;
+
+        u.BeginReceive(new AsyncCallback(ReceiveCallback), s);
+
+        // Do some work while we wait for a message. For this example, we'll just sleep
+        while (!messageReceived)
+        {
+            Thread.Sleep(100);
+        }
+    }
+}
+";
+
+            var visualBasicTest = $@"
+Imports System
+Imports System.Net.Sockets
+Imports System.Net
+Imports System.Text
+Imports System.Threading
+
+Public Structure UdpState
+    Public u As UdpClient
+    Public e As IPEndPoint
+End Structure
+
+Public Class [MyClass]
+    Public Shared messageReceived As Boolean = False
+
+    Public Shared Sub ReceiveCallback(ByVal ar As IAsyncResult)
+        Dim u As UdpClient = (CType((ar.AsyncState), UdpState)).u
+        Dim e As IPEndPoint = (CType((ar.AsyncState), UdpState)).e
+        Dim receiveBytes As Byte() = u.EndReceive(ar, e)
+        Dim receiveString As String = Encoding.ASCII.GetString(receiveBytes)
+        Sink(receiveString)
+        messageReceived = True
+    End Sub
+
+    Private Shared Sub Sink(ByVal input As String)
+    End Sub
+
+    Public Shared Sub ReceiveMessages()
+        Dim e As IPEndPoint = New IPEndPoint(IPAddress.Any, 123)
+        Dim u As UdpClient = New UdpClient(e)
+        Dim s As UdpState = New UdpState()
+        s.e = e
+        s.u = u
+        u.BeginReceive(New AsyncCallback(AddressOf ReceiveCallback), s)
+
+        While Not messageReceived
+            Thread.Sleep(100)
+        End While
+    End Sub
+End Class
+";
+
+            var testConfig = @"
+Sinks:
+  - Type: MyClass
+    TaintTypes:
+      - SCS0002
+    Methods:
+    - Name: Sink
+      Arguments:
+        - input
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task TaintSourceTcpClient()
+        {
+            var cSharpTest = @"
+using System.IO;
+using System.Net.Sockets;
+
+public class MyClass
+{
+    private void Foo()
+    {
+        using (var tcpConn = new TcpClient(""host.example.org"", 39544))
+        {
+            /* read input from socket */
+            using (StreamReader sr = new StreamReader(tcpConn.GetStream()))
+            {
+                Sink(sr.ReadLine());
+            }
+        }
+    }
+
+    private void Sink(string input) {}
+}
+";
+
+            var visualBasicTest = $@"
+Imports System.IO
+Imports System.Net.Sockets
+
+Public Class [MyClass]
+    Private Sub Foo()
+        Using tcpConn = New TcpClient(""host.example.org"", 39544)
+
+            Using sr As StreamReader = New StreamReader(tcpConn.GetStream())
+                Sink(sr.ReadLine())
+            End Using
+        End Using
+    End Sub
+
+    Private Sub Sink(ByVal input As String)
+    End Sub
+End Class
+";
+
+            var testConfig = @"
+Sinks:
+  - Type: MyClass
+    TaintTypes:
+      - SCS0002
+    Methods:
+    - Name: Sink
+      Arguments:
+        - input
+";
+
+            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, Expected, optionsWithProjectConfig).ConfigureAwait(false);
+        }
+
+        [TestMethod]
         public async Task TaintSourceConsole()
         {
             var cSharpTest = @"

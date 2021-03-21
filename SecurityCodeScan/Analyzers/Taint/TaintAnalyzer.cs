@@ -440,7 +440,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                         {
                                             IArrayInitializerOperation arrayInitializerOperation = (IArrayInitializerOperation)operationAnalysisContext.Operation;
                                             if (arrayInitializerOperation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation)?.Type is IArrayTypeSymbol arrayTypeSymbol
-                                                && sourceInfoSymbolMap.IsSourceConstantArrayOfType(arrayTypeSymbol))
+                                                && sourceInfoSymbolMap.IsSourceConstantArrayOfType(arrayTypeSymbol, arrayInitializerOperation))
                                             {
                                                 lock (rootOperationsNeedingAnalysis)
                                                 {

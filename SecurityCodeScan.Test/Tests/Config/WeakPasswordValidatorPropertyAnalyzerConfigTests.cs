@@ -30,7 +30,7 @@ namespace SecurityCodeScan.Test.Config
         [DataRow("static ", "Manager.Validator",                  "",  true)]
         [DataRow("",        "var m = new Manager(); m.Validator", "",  true)]
         [DataRow("",        "new Manager().Validator",            "",  false)]
-        // [DataRow("",        "new Manager { Validator",            "}", false)] todo: fix to work as in the previous line
+        [DataRow("",        "new Manager { Validator",            "}", false)]
         public async Task PasswordValidatorAsMember(string modifier, string payload, string payload2, bool vb)
         {
             var cSharpTest = $@"
@@ -113,7 +113,7 @@ namespace WebApplicationSandbox.Controllers
 {
     public class TestApp
     {
-        public void TestMethod()
+        public PasswordValidator TestMethod()
         {
             PasswordValidator pwdv = new PasswordValidator
             {
@@ -123,6 +123,7 @@ namespace WebApplicationSandbox.Controllers
                 RequireLowercase = true,
                 RequireUppercase = true,
             };
+            return pwdv;
         }
     }
 }
@@ -133,7 +134,7 @@ Imports Microsoft.AspNet.Identity
 
 Namespace WebApplicationSandbox.Controllers
     Public Class TestApp
-        Public Sub TestMethod()
+        Public Function TestMethod() As PasswordValidator
             Dim pwdv As New PasswordValidator() With { _
                 .RequiredLength = " + 8 + @", _
                 .RequireNonLetterOrDigit = True, _
@@ -141,7 +142,8 @@ Namespace WebApplicationSandbox.Controllers
                 .RequireLowercase = True, _
                 .RequireUppercase = True _
             }
-        End Sub
+            Return pwdv
+        End Function
     End Class
 End Namespace
 ";
@@ -175,7 +177,7 @@ namespace WebApplicationSandbox.Controllers
 {
     public class TestApp
     {
-        public void TestMethod()
+        public PasswordValidator TestMethod()
         {
             PasswordValidator pwdv = new PasswordValidator
             {
@@ -185,6 +187,7 @@ namespace WebApplicationSandbox.Controllers
                 RequireLowercase = true,
                 RequireUppercase = true,
             };
+            return pwdv;
         }
     }
 }
@@ -195,7 +198,7 @@ Imports Microsoft.AspNet.Identity
 
 Namespace WebApplicationSandbox.Controllers
     Public Class TestApp
-        Public Sub TestMethod()
+        Public Function TestMethod() As PasswordValidator
             Dim pwdv As New PasswordValidator() With { _
                 .RequiredLength = " + 7 + @", _
                 .RequireNonLetterOrDigit = True, _
@@ -203,7 +206,8 @@ Namespace WebApplicationSandbox.Controllers
                 .RequireLowercase = True, _
                 .RequireUppercase = True _
             }
-        End Sub
+            Return pwdv
+        End Function
     End Class
 End Namespace
 ";
@@ -238,7 +242,7 @@ namespace WebApplicationSandbox.Controllers
 {
     public class TestApp
     {
-        public void TestMethod()
+        public PasswordValidator TestMethod()
         {
             PasswordValidator pwdv = new PasswordValidator
             {
@@ -246,6 +250,7 @@ namespace WebApplicationSandbox.Controllers
                 RequireNonLetterOrDigit = true,
                 RequireDigit = true,
             };
+            return pwdv;
         }
     }
 }
@@ -256,13 +261,14 @@ Imports Microsoft.AspNet.Identity
 
 Namespace WebApplicationSandbox.Controllers
     Public Class TestApp
-        Public Sub TestMethod()
+        Public Function TestMethod() As PasswordValidator
             Dim pwdv As New PasswordValidator() With { _
                 .RequiredLength = " + 8 + @", _
                 .RequireNonLetterOrDigit = True, _
                 .RequireDigit = True _
             }
-        End Sub
+            Return pwdv
+        End Function
     End Class
 End Namespace
 ";
@@ -296,13 +302,14 @@ namespace WebApplicationSandbox.Controllers
 {
     public class TestApp
     {
-        public void TestMethod()
+        public PasswordValidator TestMethod()
         {
             PasswordValidator pwdv = new PasswordValidator
             {
                 RequiredLength = " + 8 + @",
                 RequireNonLetterOrDigit = true,
             };
+            return pwdv;
         }
     }
 }
@@ -313,12 +320,13 @@ Imports Microsoft.AspNet.Identity
 
 Namespace WebApplicationSandbox.Controllers
     Public Class TestApp
-        Public Sub TestMethod()
+        Public Function TestMethod() As PasswordValidator
             Dim pwdv As New PasswordValidator() With { _
                 .RequiredLength = " + 8 + @", _
                 .RequireNonLetterOrDigit = True _
             }
-        End Sub
+            Return pwdv
+        End Function
     End Class
 End Namespace
 ";
@@ -358,12 +366,13 @@ namespace WebApplicationSandbox.Controllers
 {
     public class TestApp
     {
-        public void TestMethod()
+        public PasswordValidator TestMethod()
         {
             PasswordValidator pwdv = new PasswordValidator
             {
                 RequiredLength = " + 8 + @"
             };
+            return pwdv;
         }
     }
 }
@@ -374,11 +383,12 @@ Imports Microsoft.AspNet.Identity
 
 Namespace WebApplicationSandbox.Controllers
     Public Class TestApp
-        Public Sub TestMethod()
+        Public Function TestMethod() As PasswordValidator
             Dim pwdv As New PasswordValidator() With { _
                 .RequiredLength = " + 8 + @"
             }
-        End Sub
+            return pwdv
+        End Function
     End Class
 End Namespace
 ";

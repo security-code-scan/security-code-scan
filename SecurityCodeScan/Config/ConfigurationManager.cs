@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
 using SecurityCodeScan.Analyzers.Taint;
+using System.Text.RegularExpressions;
 
 namespace SecurityCodeScan.Config
 {
@@ -29,9 +30,9 @@ namespace SecurityCodeScan.Config
                                  return Path.Combine(path, UserConfigName);
                              });
 
-        private static readonly Version ConfigVersion = new Version(3,0);
+        private static readonly Version ConfigVersion = new Version(3,1);
 
-        private T DeserializeAndValidate<T>(StreamReader reader, bool validate) where T : ConfigData
+        public T DeserializeAndValidate<T>(StreamReader reader, bool validate) where T : ConfigData
         {
             if (validate)
             {
@@ -370,7 +371,28 @@ namespace SecurityCodeScan.Config
 
     internal class Method
     {
-        public string Name { get; set; }
+        public Regex NameRegex { get; private set; }
+
+        private string _Name;
+        public string Name
+        {
+            get
+            {
+                return _Name;
+            }
+            set
+            {
+                if (value != null && value[0] == '/')
+                {
+                    if (value.Length < 2 || value[value.Length - 1] != '/')
+                        throw new ArgumentException("Method.Name");
+
+                    NameRegex = new Regex(value.Substring(1, value.Length - 2), RegexOptions.Compiled);
+                }
+
+                _Name = value;
+            }
+        }
 
         public HashSet<Accessibility> Accessibility { get; set; }
 
@@ -432,7 +454,7 @@ namespace SecurityCodeScan.Config
         public HashSet<string> Dependency                   { get; set; }
         public string Name                                  { get; set; }
         public AttributeCheckMessage Message                { get; set; }
-        public List<AttributeCheckData> RequiredAttributes  { get; set; }
+        public AttributeCheckIncludeExclude RequiredAttributes { get; set; }
         public Class Class                                  { get; set; }
         public Method Method                                { get; set; }
         public Parameter Parameter                          { get; set; }

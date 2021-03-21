@@ -15,6 +15,7 @@ namespace SecurityCodeScan.Analyzers.Locale
                                                          string titleId = "title",
                                                          string descriptionId = "description",
                                                          DiagnosticSeverity severity = DiagnosticSeverity.Warning,
+                                                         bool isEnabledByDefault = true,
                                                          string[] args = null)
         {
             var localTitle = GetLocalString($"{id}_{titleId}");
@@ -24,7 +25,7 @@ namespace SecurityCodeScan.Analyzers.Locale
                                             localTitle,
                                             "Security",
                                             severity,
-                                            isEnabledByDefault: true,
+                                            isEnabledByDefault,
                                             helpLinkUri: "https://security-code-scan.github.io/#" + id,
                                             description: args == null ?
                                                              localDesc :
@@ -35,6 +36,7 @@ namespace SecurityCodeScan.Analyzers.Locale
                                                                string localTitle,
                                                                string localDesc,
                                                                DiagnosticSeverity severity = DiagnosticSeverity.Warning,
+                                                               bool isEnabledByDefault = true,
                                                                string[] args = null)
         {
             return new DiagnosticDescriptor(id,
@@ -42,7 +44,7 @@ namespace SecurityCodeScan.Analyzers.Locale
                                             localTitle,
                                             "Security",
                                             severity,
-                                            isEnabledByDefault: true,
+                                            isEnabledByDefault,
                                             helpLinkUri: "https://security-code-scan.github.io/#" + id,
                                             description: args == null ?
                                                              localDesc :

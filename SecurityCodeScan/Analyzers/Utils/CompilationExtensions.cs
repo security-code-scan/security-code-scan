@@ -23,7 +23,7 @@ namespace SecurityCodeScan.Analyzers.Utils
         /// Gets the version of the target .NET framework of the compilation.
         /// </summary>
         /// <returns>
-        /// Null if the target framework is not .NET Framework.
+        /// Version is Null if the target framework is not .NET Framework.
         /// </returns>
         /// <remarks>
         /// This method returns the assembly version of mscorlib for .NET Framework prior version 4.0. 
@@ -32,50 +32,53 @@ namespace SecurityCodeScan.Analyzers.Utils
         /// For .NET Framework 4.X, this method returns the actual framework version instead of assembly version of mscorlib,
         /// i.e. for .NET framework 4.5.2, this method return 4.5.2 instead of 4.0.0.0.
         /// </remarks>
-        public static Version GetDotNetFrameworkVersion(this Compilation compilation)
+        public static (bool dotnetCore, Version version) GetDotNetFrameworkVersion(this Compilation compilation)
         {
-            if (compilation == null || !IsTypeDeclaredInExpectedAssembly(compilation, "System.String", "mscorlib").GetValueOrDefault())
+            if (IsTypeDeclaredInExpectedAssembly(compilation, "System.String", "System.Runtime").GetValueOrDefault())
+                return (true, null); // ideally would get .NET Core version, but not implemented since not needed yet
+
+            if (!IsTypeDeclaredInExpectedAssembly(compilation, "System.String", "mscorlib").GetValueOrDefault())
             {
-                return null;
+                return (false, null);
             }
 
             IAssemblySymbol mscorlibAssembly = compilation.GetTypeByMetadataName("System.String").ContainingAssembly;
             if (mscorlibAssembly.Identity.Version.Major < 4)
             {
-                return mscorlibAssembly.Identity.Version;
+                return (false, mscorlibAssembly.Identity.Version);
             }
 
             if (mscorlibAssembly.GetTypeByMetadataName("System.Diagnostics.Tracing.EventSourceCreatedEventArgs") != null)
             {
-                return new Version(4, 6, 2);
+                return (false, new Version(4, 6, 2));
             }
 
             if (!IsTypeDeclaredInExpectedAssembly(compilation, "System.Net.TransportContext", "System").GetValueOrDefault())
             {
-                return null;
+                return (false, null);
             }
             IAssemblySymbol systemAssembly = compilation.GetTypeByMetadataName("System.Net.TransportContext").ContainingAssembly;
             INamedTypeSymbol typeSymbol = systemAssembly.GetTypeByMetadataName("System.Net.TransportContext");
             if (!typeSymbol.GetMembers("GetTlsTokenBindings").IsEmpty)
             {
-                return new Version(4, 6, 1);
+                return (false, new Version(4, 6, 1));
             }
 
             if (mscorlibAssembly.GetTypeByMetadataName("System.AppContext") != null)
             {
-                return new Version(4, 6);
+                return (false, new Version(4, 6));
             }
             typeSymbol = mscorlibAssembly.GetTypeByMetadataName("System.IO.UnmanagedMemoryStream");
             if (!typeSymbol.GetMembers("FlushAsync").IsEmpty)
             {
-                return new Version(4, 5, 2);
+                return (false, new Version(4, 5, 2));
             }
             typeSymbol = mscorlibAssembly.GetTypeByMetadataName("System.Diagnostics.Tracing.EventSource");
             if (typeSymbol != null)
             {
-                return typeSymbol.GetMembers("CurrentThreadActivityId").IsEmpty ? new Version(4, 5) : new Version(4, 5, 1);
+                return (false, typeSymbol.GetMembers("CurrentThreadActivityId").IsEmpty ? new Version(4, 5) : new Version(4, 5, 1));
             }
-            return new Version(4, 0);
+            return (false, new Version(4, 0));
         }
     }
 }

@@ -82,12 +82,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(this.SinkProperties,
-                HashUtilities.Combine(this.SinkMethodParameters,
-                HashUtilities.Combine(StringComparer.Ordinal.GetHashCode(this.FullTypeName),
-                HashUtilities.Combine(this.SinkKinds,
-                HashUtilities.Combine(this.IsInterface.GetHashCode(),
-                this.IsAnyStringParameterInConstructorASink.GetHashCode())))));
+            var hashCode = new RoslynHashCode();
+            hashCode.Add(StringComparer.Ordinal.GetHashCode(this.FullTypeName));
+            HashUtilities.Combine(this.SinkKinds, ref hashCode);
+            hashCode.Add(this.IsInterface.GetHashCode());
+            hashCode.Add(this.IsAnyStringParameterInConstructorASink.GetHashCode());
+            HashUtilities.Combine(this.SinkProperties, ref hashCode);
+            HashUtilities.Combine(this.SinkMethodParameters, ref hashCode);
+            HashUtilities.Combine(this.SinkMethodMatchingParameters, ref hashCode);
+            return hashCode.ToHashCode();
         }
 
         public override bool Equals(object obj)
@@ -103,7 +106,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && this.IsInterface == other.IsInterface
                 && this.IsAnyStringParameterInConstructorASink == other.IsAnyStringParameterInConstructorASink
                 && this.SinkProperties == other.SinkProperties
-                && this.SinkMethodParameters == other.SinkMethodParameters;
+                && this.SinkMethodParameters == other.SinkMethodParameters
+                && this.SinkMethodMatchingParameters == other.SinkMethodMatchingParameters;
         }
     }
 }

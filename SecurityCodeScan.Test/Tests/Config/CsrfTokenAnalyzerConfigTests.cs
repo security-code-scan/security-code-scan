@@ -91,7 +91,8 @@ CsrfCheck:
   Test:
     Name: ASP.NET MVC
     RequiredAttributes:
-      - Type: VulnerableApp.TestAttribute
+      Include:
+        - Type: VulnerableApp.TestAttribute
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -163,7 +164,8 @@ CsrfCheck:
   Test:
     Name: ASP.NET Core MVC
     RequiredAttributes:
-      - Type: VulnerableApp.TestAttribute
+      Include:
+        - Type: VulnerableApp.TestAttribute
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
@@ -247,9 +249,10 @@ CsrfCheck:
             Condition:
               - {0: {Value: 2}}
     RequiredAttributes:
-      - Type: VulnerableApp.TestAttribute
-        Condition:
-          - {1: {Value: true}}
+      Include:
+        - Type: VulnerableApp.TestAttribute
+          Condition:
+            - {1: {Value: true}}
 ";
 
             var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);

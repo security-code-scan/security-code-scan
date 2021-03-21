@@ -37,14 +37,14 @@ namespace SecurityCodeScan.Analyzers
             if (!xmlTypes.IsAnyTypeReferenced())
                 return;
 
-            Version version = compilation.GetDotNetFrameworkVersion();
-            if (version == null)
+            (bool dotnetCore, Version version) = compilation.GetDotNetFrameworkVersion();
+            if (!dotnetCore && version == null)
                 return;
 
             context.RegisterCodeBlockStartAction<CSharp.SyntaxKind>(
                 c =>
                 {
-                    var analyzer = new XxeAnalyzerCSharp(xmlTypes, version);
+                    var analyzer = new XxeAnalyzerCSharp(xmlTypes, dotnetCore || version >= new Version(4, 5, 2));
                     analyzer.RegisterSyntaxNodeAction(c);
                     c.RegisterCodeBlockEndAction(analyzer.AnalyzeCodeBlockEnd);
                 });
@@ -75,14 +75,14 @@ namespace SecurityCodeScan.Analyzers
             if (!xmlTypes.IsAnyTypeReferenced())
                 return;
 
-            Version version = compilation.GetDotNetFrameworkVersion();
-            if (version == null)
+            (bool dotnetCore, Version version) = compilation.GetDotNetFrameworkVersion();
+            if (!dotnetCore && version == null)
                 return;
 
             context.RegisterCodeBlockStartAction<VB.SyntaxKind>(
                 c =>
                 {
-                    var analyzer = new XxeAnalyzerVBasic(xmlTypes, version);
+                    var analyzer = new XxeAnalyzerVBasic(xmlTypes, dotnetCore || version >= new Version(4, 5, 2));
                     analyzer.RegisterSyntaxNodeAction(c);
                     c.RegisterCodeBlockEndAction(analyzer.AnalyzeCodeBlockEnd);
                 });
@@ -145,11 +145,11 @@ namespace SecurityCodeScan.Analyzers
 
     internal class XxeAnalyzer
     {
-        protected XxeAnalyzer(XxeSecurityTypes xmlTypes, SyntaxNodeHelper helper, Version frameworkVersion)
+        protected XxeAnalyzer(XxeSecurityTypes xmlTypes, SyntaxNodeHelper helper, bool areDefaultsSecure)
         {
             XmlTypes = xmlTypes;
             SyntaxNodeHelper = helper;
-            AreDefaultsSecure = frameworkVersion >= new Version(4, 5, 2);
+            AreDefaultsSecure = areDefaultsSecure;
         }
 
         private readonly XxeSecurityTypes XmlTypes;
@@ -652,8 +652,9 @@ namespace SecurityCodeScan.Analyzers
 
                 if (env == null)
                 {
-                    // symbol for settings is not found => passed in without any change => assume insecure
-                    reportDiagnostic(Diagnostic.Create(XxeDiagnosticAnalyzer.Rule, node.GetLocation()));
+                    // symbol for settings is not found => passed in without any change => assume defaults
+                    if (!AreDefaultsSecure)
+                        reportDiagnostic(Diagnostic.Create(XxeDiagnosticAnalyzer.Rule, node.GetLocation()));
                 }
             }
             else if (ReferenceEquals(method.ContainingType, XmlTypes.ConfigXmlDocument))
@@ -687,8 +688,9 @@ namespace SecurityCodeScan.Analyzers
                 {
                     if (env == null)
                     {
-                        // symbol not found => passed in without any change => assume insecure
-                        reportDiagnostic(Diagnostic.Create(XxeDiagnosticAnalyzer.Rule, node.GetLocation()));
+                        // symbol not found => passed in without any change => assume defaults
+                        if (!AreDefaultsSecure)
+                            reportDiagnostic(Diagnostic.Create(XxeDiagnosticAnalyzer.Rule, node.GetLocation()));
                     }
                     else
                     {

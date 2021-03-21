@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -281,6 +282,7 @@ namespace SecurityCodeScan.Config
                         isInterface: isIterface ?? false,
                         taintedProperties: type.Value.source?.Properties?.ToImmutableHashSet(StringComparer.Ordinal)
                             ?? ImmutableHashSet<string>.Empty,
+                        taintedFields: ImmutableHashSet<string>.Empty,
                         dependencyFullTypeNames:
                             type.Value.entryPoint?.Dependency?.ToImmutableArray(),
                         taintedArguments: type.Value.entryPoint != null ?
@@ -289,34 +291,6 @@ namespace SecurityCodeScan.Config
                         if (!(parameter.ContainingSymbol is IMethodSymbol methodSymbol) || methodSymbol.IsPropertyAccessor())
                         {
                             return false;
-                        }
-
-                        switch (parameter.Type.SpecialType)
-                        {
-                            case SpecialType.System_Enum:
-                            case SpecialType.System_MulticastDelegate:
-                            case SpecialType.System_Delegate:
-                            case SpecialType.System_Boolean:
-                            case SpecialType.System_SByte:
-                            case SpecialType.System_Byte:
-                            case SpecialType.System_Int16:
-                            case SpecialType.System_Int32:
-                            case SpecialType.System_Int64:
-                            case SpecialType.System_UInt16:
-                            case SpecialType.System_UInt32:
-                            case SpecialType.System_UInt64:
-                            case SpecialType.System_Decimal:
-                            case SpecialType.System_Single:
-                            case SpecialType.System_Double:
-                            case SpecialType.System_IntPtr:
-                            case SpecialType.System_UIntPtr:
-                                return false;
-                            case SpecialType.None:
-                            {
-                                if (Equals(parameter.Type, wellKnownTypeProvider.GetOrCreateTypeByMetadataName("System.Guid")))
-                                    return false;
-                            }
-                                break;
                         }
 
                         if (type.Value.entryPoint.Class != null)
@@ -329,7 +303,7 @@ namespace SecurityCodeScan.Config
                             {
                                 isTaintEntryClass = false;
 
-                                bool IsTaintEntryClass()
+                                bool IsTaintEntryClassBySuffix()
                                 {
                                     if (typeSymbol.Name.EndsWith(type.Value.entryPoint.Class.Suffix.Text, StringComparison.Ordinal))
                                     {
@@ -354,15 +328,18 @@ namespace SecurityCodeScan.Config
                                 else
                                 {
                                     if (type.Value.entryPoint.Class.Suffix != null &&
-                                             type.Value.entryPoint.Class.Parent == null)
+                                        type.Value.entryPoint.Class.Parent == null)
                                     {
-                                        isTaintEntryClass = IsTaintEntryClass();
+                                        isTaintEntryClass = IsTaintEntryClassBySuffix();
                                     }
-                                    else if (type.Value.entryPoint.Class.Suffix != null &&
-                                             type.Value.entryPoint.Class.Parent != null &&
-                                             typeSymbol.GetBaseTypesAndThis().Any(x => x == wellKnownTypeProvider.GetOrCreateTypeByMetadataName(type.Value.entryPoint.Class.Parent)))
+                                    else if (type.Value.entryPoint.Class.Parent != null)
                                     {
-                                        isTaintEntryClass = IsTaintEntryClass();
+                                        var parentType = wellKnownTypeProvider.GetOrCreateTypeByMetadataName(type.Value.entryPoint.Class.Parent);
+                                        if ((parentType.TypeKind == TypeKind.Interface && typeSymbol.AllInterfaces.Any(x => x == parentType)) ||
+                                             typeSymbol.GetBaseTypesAndThis().Any(x => x == parentType))
+                                        {
+                                            isTaintEntryClass = type.Value.entryPoint.Class.Suffix != null ? IsTaintEntryClassBySuffix() : true;
+                                        }
                                     }
 
                                     if (type.Value.entryPoint.Class.Attributes?.Exclude != null &&
@@ -392,7 +369,13 @@ namespace SecurityCodeScan.Config
                                 return false;
 
                             if (type.Value.entryPoint.Method.Name != null)
-                                return type.Value.entryPoint.Method.Name == methodSymbol.Name;
+                            {
+                                if (type.Value.entryPoint.Method.NameRegex == null)
+                                    return type.Value.entryPoint.Method.Name == methodSymbol.Name;
+
+                                if (!type.Value.entryPoint.Method.NameRegex.IsMatch(methodSymbol.Name))
+                                    return false;
+                            }
 
                             if (type.Value.entryPoint.Method.IncludeConstructor.HasValue && type.Value.entryPoint.Method.IncludeConstructor != methodSymbol.IsConstructor())
                                 return false;
@@ -458,7 +441,8 @@ namespace SecurityCodeScan.Config
                                         ?? ImmutableHashSet<(string, string)>.Empty))
                                 ?.ToImmutableHashSet()
                             ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty : ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
-                        taintConstantArray: false);
+                        taintConstantArray: false,
+                        constantArrayLengthMatcher: null);
                 }
 
                 sourceInfosBuilder.Add(metadata);
@@ -651,6 +635,11 @@ namespace SecurityCodeScan.Config
         }
     }
 
+    public static class AdditionalConfiguration
+    {
+        public static string Path;
+    }
+
     /// <summary>
     /// Internal configuration optimized for queries
     /// </summary>
@@ -665,8 +654,20 @@ namespace SecurityCodeScan.Config
 
 #pragma warning disable RS1012 // Start action has no registered actions.
             static Configuration CreateConfiguration(CompilationStartAnalysisContext ctx)
-#pragma warning restore RS1012 // Start action has no registered actions.
-                => new Configuration(ConfigurationManager.GetProjectConfiguration(ctx.Options.AdditionalFiles), ctx.Compilation);
+            {
+                var projConfigData = ConfigurationManager.GetProjectConfiguration(ctx.Options.AdditionalFiles);
+
+                if (AdditionalConfiguration.Path != null)
+                {
+                    using (var reader = File.OpenText(AdditionalConfiguration.Path))
+                    {
+                        var additionalConfig = ConfigurationManager.Reader.DeserializeAndValidate<ConfigData>(reader, validate: true);
+                        projConfigData.Merge(additionalConfig);
+                    }
+                }
+
+                return new Configuration(projConfigData, ctx.Compilation);
+            }
         }
 
         private static readonly BoundedCacheWithFactory<AnalysisContext, ConfigData> s_userConfigurationCache =

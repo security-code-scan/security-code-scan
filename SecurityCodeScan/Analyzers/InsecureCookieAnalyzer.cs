@@ -1,10 +1,16 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
+using Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using SecurityCodeScan.Analyzers.Locale;
 using SecurityCodeScan.Analyzers.Utils;
@@ -13,7 +19,7 @@ using SecurityCodeScan.Config;
 namespace SecurityCodeScan.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class InsecureCookieAnalyzer : DiagnosticAnalyzer
+    public class CookieAnalyzer : DiagnosticAnalyzer
     {
         public const            string               DiagnosticIdSecure = "SCS0008";
         private static readonly DiagnosticDescriptor RuleSecure         = LocaleUtil.GetDescriptor(DiagnosticIdSecure);
@@ -21,10 +27,20 @@ namespace SecurityCodeScan.Analyzers
         public const            string               DiagnosticIdHttpOnly = "SCS0009";
         private static readonly DiagnosticDescriptor RuleHttpOnly         = LocaleUtil.GetDescriptor(DiagnosticIdHttpOnly);
 
-        private const string HttpCookieTypeName = "System.Web.HttpCookie";
-        private const string CookieOptionsTypeName = "Microsoft.AspNetCore.Http.CookieOptions";
-
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(RuleSecure, RuleHttpOnly);
+
+        private static readonly ConstructorMapper ConstructorMapper = new(ImmutableArray.Create(PropertySetAbstractValueKind.Flagged));
+
+        private static readonly HazardousUsageEvaluatorCollection HazardousUsageEvaluators = new HazardousUsageEvaluatorCollection(
+            new HazardousUsageEvaluator(
+                HazardousUsageEvaluatorKind.Return,
+                PropertySetCallbacks.HazardousIfAllFlaggedAndAtLeastOneKnown),
+            new HazardousUsageEvaluator(
+                HazardousUsageEvaluatorKind.Initialization,
+                PropertySetCallbacks.HazardousIfAllFlaggedAndAtLeastOneKnown),
+            new HazardousUsageEvaluator(
+                HazardousUsageEvaluatorKind.Argument,
+                PropertySetCallbacks.HazardousIfAllFlaggedAndAtLeastOneKnown));
 
         public override void Initialize(AnalysisContext context)
         {
@@ -36,110 +52,199 @@ namespace SecurityCodeScan.Analyzers
             else
                 context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
-            CookieAnalyzer.Initialize(context, HttpCookieTypeName);
-            CookieAnalyzer.Initialize(context, CookieOptionsTypeName);
-        }
-
-        private class CookieAnalyzer
-        {
-            public static void Initialize(AnalysisContext context, string type)
+            void Initialize(
+                AnalysisContext context,
+                DiagnosticDescriptor descriptor,
+                string propertyName,
+                string cookieTypeName,
+                Action<DiagnosticDescriptor, OperationBlockStartAnalysisContext, WellKnownTypeProvider, PooledHashSet<(IOperation, ISymbol)>> checkSink = null)
             {
-                if (!Debugger.IsAttached) // prefer single thread for debugging in development
-                    context.EnableConcurrentExecution();
-
-                if (context.IsAuditMode())
-                    context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
-                else
-                    context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-
                 context.RegisterCompilationStartAction(
-                    (CompilationStartAnalysisContext compilationContext) =>
+                    (CompilationStartAnalysisContext compilationStartAnalysisContext) =>
                     {
-                        Compilation compilation = compilationContext.Compilation;
-                        var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
-
-                        if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(type, out var cookieType))
-                        {
+                        var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilationStartAnalysisContext.Compilation);
+                        if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(cookieTypeName, out var cookieOptionsTypeSymbol))
                             return;
-                        }
 
-                        var configuration = Configuration.GetOrCreate(compilationContext);
+                        var rootOperationsNeedingAnalysis = PooledHashSet<(IOperation, ISymbol)>.GetInstance();
 
-                        compilationContext.RegisterOperationBlockStartAction(
-                            operationBlockStartContext =>
+                        compilationStartAnalysisContext.RegisterOperationBlockStartAction(
+                            (OperationBlockStartAnalysisContext operationBlockStartAnalysisContext) =>
                             {
-                                ISymbol owningSymbol = operationBlockStartContext.OwningSymbol;
-                                AnalyzerOptions options = operationBlockStartContext.Options;
-                                CancellationToken cancellationToken = operationBlockStartContext.CancellationToken;
-                                if (options.IsConfiguredToSkipAnalysis(RuleSecure, owningSymbol, compilation, cancellationToken))
+                                if (operationBlockStartAnalysisContext.Options.IsConfiguredToSkipAnalysis(
+                                        descriptor,
+                                        operationBlockStartAnalysisContext.OwningSymbol,
+                                        operationBlockStartAnalysisContext.Compilation,
+                                        operationBlockStartAnalysisContext.CancellationToken))
                                 {
                                     return;
                                 }
 
-                                operationBlockStartContext.RegisterOperationAction(
-                                    ctx =>
+                                if (checkSink != null)
+                                    checkSink(descriptor, operationBlockStartAnalysisContext, wellKnownTypeProvider, rootOperationsNeedingAnalysis);
+
+                                operationBlockStartAnalysisContext.RegisterOperationAction(
+                                    (OperationAnalysisContext operationAnalysisContext) =>
                                     {
-                                        IObjectCreationOperation invocationOperation = (IObjectCreationOperation)ctx.Operation;
-                                        if (invocationOperation.Constructor.ContainingType != cookieType)
-                                        {
-                                            return;
-                                        }
+                                        IReturnOperation returnOperation = (IReturnOperation)operationAnalysisContext.Operation;
 
-                                        IAssignmentOperation TryGetInitializerAssignment(string name)
+                                        if (cookieOptionsTypeSymbol.Equals(returnOperation.ReturnedValue?.Type))
                                         {
-                                            return (IAssignmentOperation)invocationOperation.Initializer
-                                                                                            ?.Initializers
-                                                                                            .FirstOrDefault(initializer => initializer is IAssignmentOperation assignmentOperaiton &&
-                                            assignmentOperaiton.Target is IPropertyReferenceOperation propertyReferenceOperation &&
-                                            propertyReferenceOperation.Property.Name == name);
+                                            lock (rootOperationsNeedingAnalysis)
+                                            {
+                                                rootOperationsNeedingAnalysis.Add(
+                                                    (returnOperation.GetRoot(), operationAnalysisContext.ContainingSymbol));
+                                            }
                                         }
+                                    },
+                                    OperationKind.Return);
 
-                                        var isSecureInitializer = TryGetInitializerAssignment("Secure");
-                                        if (isSecureInitializer == null)
+                                operationBlockStartAnalysisContext.RegisterOperationAction(
+                                    (OperationAnalysisContext operationAnalysisContext) =>
+                                    {
+                                        var argumentOperation = (IArgumentOperation)operationAnalysisContext.Operation;
+
+                                        if (argumentOperation.Parameter.Type.Equals(cookieOptionsTypeSymbol))
                                         {
-                                            ctx.ReportDiagnostic(Diagnostic.Create(RuleSecure, invocationOperation.Syntax.GetLocation()));
+                                            lock (rootOperationsNeedingAnalysis)
+                                            {
+                                                rootOperationsNeedingAnalysis.Add((argumentOperation.GetRoot(), operationAnalysisContext.ContainingSymbol));
+                                            }
                                         }
+                                    },
+                                    OperationKind.Argument);
 
-                                        var isHttpOnlyInitializer = TryGetInitializerAssignment("HttpOnly");
-                                        if (isHttpOnlyInitializer == null)
+                                operationBlockStartAnalysisContext.RegisterOperationAction(
+                                    (OperationAnalysisContext operationAnalysisContext) =>
+                                    {
+                                        var operation = (IObjectCreationOperation)operationAnalysisContext.Operation;
+                                        if (cookieOptionsTypeSymbol.Equals(operation.Type))
                                         {
-                                            ctx.ReportDiagnostic(Diagnostic.Create(RuleHttpOnly, invocationOperation.Syntax.GetLocation()));
+                                            lock (rootOperationsNeedingAnalysis)
+                                            {
+                                                rootOperationsNeedingAnalysis.Add((operation.GetRoot(), operationAnalysisContext.ContainingSymbol));
+                                            }
                                         }
                                     },
                                     OperationKind.ObjectCreation);
-
-                                operationBlockStartContext.RegisterOperationAction(
-                                    ctx =>
-                                    {
-                                        IAssignmentOperation operation = (IAssignmentOperation)ctx.Operation;
-                                        if (!(operation.Target is IPropertyReferenceOperation propertyReferenceOperation))
-                                            return;
-
-                                        if (propertyReferenceOperation.Member.ContainingType != cookieType)
-                                        {
-                                            return;
-                                        }
-
-                                        if (propertyReferenceOperation.Member.Name == "Secure" &&
-                                            ((operation.Value.ConstantValue.HasValue &&
-                                             operation.Value.ConstantValue.Value is bool isSecure && !isSecure) ||
-                                            !operation.Value.ConstantValue.HasValue && configuration.AuditMode))
-                                        {
-                                            ctx.ReportDiagnostic(Diagnostic.Create(RuleSecure, operation.Syntax.GetLocation()));
-                                        }
-
-                                        if (propertyReferenceOperation.Member.Name == "HttpOnly" &&
-                                            ((operation.Value.ConstantValue.HasValue &&
-                                             operation.Value.ConstantValue.Value is bool isHttpOnly && !isHttpOnly) ||
-                                            !operation.Value.ConstantValue.HasValue && configuration.AuditMode))
-                                        {
-                                            ctx.ReportDiagnostic(Diagnostic.Create(RuleHttpOnly, operation.Syntax.GetLocation()));
-                                        }
-                                    },
-                                    OperationKind.SimpleAssignment);
                             });
+
+                        compilationStartAnalysisContext.RegisterCompilationEndAction(
+                            (CompilationAnalysisContext compilationAnalysisContext) =>
+                            {
+                                PooledDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult>? allResults = null;
+
+                                try
+                                {
+                                    lock (rootOperationsNeedingAnalysis)
+                                    {
+                                        if (!rootOperationsNeedingAnalysis.Any())
+                                        {
+                                            return;
+                                        }
+
+                                        var configuration = Configuration.GetOrCreate(compilationStartAnalysisContext);
+
+                                        PropertyMapperCollection propertyMappers = new(
+                                            new PropertyMapper(
+                                                propertyName,
+                                                (ValueContentAbstractValue valueContentAbstractValue) =>
+                                                {
+                                                    var val = PropertySetCallbacks.EvaluateLiteralValues(valueContentAbstractValue, o => o != null && o.Equals(false));
+                                                    return (val == PropertySetAbstractValueKind.Unknown && configuration.AuditMode) ? PropertySetAbstractValueKind.MaybeFlagged : val;
+                                                }));
+
+                                        allResults = PropertySetAnalysis.BatchGetOrComputeHazardousUsages(
+                                            compilationAnalysisContext.Compilation,
+                                            rootOperationsNeedingAnalysis,
+                                            compilationAnalysisContext.Options,
+                                            cookieTypeName,
+                                            ConstructorMapper,
+                                            propertyMappers,
+                                            HazardousUsageEvaluators,
+                                            InterproceduralAnalysisConfiguration.Create(
+                                                compilationAnalysisContext.Options,
+                                                SupportedDiagnostics,
+                                                rootOperationsNeedingAnalysis.First().Item1,
+                                                compilationAnalysisContext.Compilation,
+                                                defaultInterproceduralAnalysisKind: InterproceduralAnalysisKind.ContextSensitive,
+                                                cancellationToken: compilationAnalysisContext.CancellationToken));
+                                    }
+
+                                    if (allResults == null)
+                                    {
+                                        return;
+                                    }
+
+                                    foreach (KeyValuePair<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult> kvp in allResults)
+                                    {
+                                        DiagnosticDescriptor d;
+                                        switch (kvp.Value)
+                                        {
+                                            case HazardousUsageEvaluationResult.Flagged:
+                                            d = descriptor;
+                                            break;
+
+                                            case HazardousUsageEvaluationResult.MaybeFlagged:
+                                            d = descriptor;
+                                            break;
+
+                                            default:
+                                            Debug.Fail($"Unhandled result value {kvp.Value}");
+                                            continue;
+                                        }
+
+                                        compilationAnalysisContext.ReportDiagnostic(Diagnostic.Create(d, kvp.Key.Location));
+                                    }
+                                }
+                                finally
+                                {
+                                    rootOperationsNeedingAnalysis.Free(compilationAnalysisContext.CancellationToken);
+                                    allResults?.Free(compilationAnalysisContext.CancellationToken);
+                                }
+                            });
+
                     });
             }
+
+            Initialize(context, RuleSecure,   "Secure",   WellKnownTypeNames.MicrosoftAspNetCoreHttpCookieOptions, CheckSink);
+            Initialize(context, RuleHttpOnly, "HttpOnly", WellKnownTypeNames.MicrosoftAspNetCoreHttpCookieOptions, CheckSink);
+            Initialize(context, RuleSecure,   "Secure",   WellKnownTypeNames.SystemWebHttpCookie);
+            Initialize(context, RuleHttpOnly, "HttpOnly", WellKnownTypeNames.SystemWebHttpCookie);
+        }
+
+        private static void CheckSink(
+            DiagnosticDescriptor descriptor,
+            OperationBlockStartAnalysisContext operationBlockStartAnalysisContext,
+            WellKnownTypeProvider wellKnownTypeProvider,
+            PooledHashSet<(IOperation, ISymbol)> rootOperationsNeedingAnalysis)
+        {
+            if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreHttpIResponseCookies, out var iResponseCookiesTypeSymbol))
+                return;
+
+            operationBlockStartAnalysisContext.RegisterOperationAction(
+                (OperationAnalysisContext operationAnalysisContext) =>
+                {
+                    var invocationOperation = (IInvocationOperation)operationAnalysisContext.Operation;
+                    var methodSymbol = invocationOperation.TargetMethod;
+
+                    if (methodSymbol.ContainingType is INamedTypeSymbol namedTypeSymbol &&
+                        namedTypeSymbol.Equals(iResponseCookiesTypeSymbol))
+                    {
+                        if (methodSymbol.Parameters.Length < 3)
+                        {
+                            operationAnalysisContext.ReportDiagnostic(invocationOperation.CreateDiagnostic(descriptor));
+                        }
+                        else
+                        {
+                            lock (rootOperationsNeedingAnalysis)
+                            {
+                                rootOperationsNeedingAnalysis.Add((invocationOperation.GetRoot(), operationAnalysisContext.ContainingSymbol));
+                            }
+                        }
+                    }
+                },
+                OperationKind.Invocation);
         }
     }
 }

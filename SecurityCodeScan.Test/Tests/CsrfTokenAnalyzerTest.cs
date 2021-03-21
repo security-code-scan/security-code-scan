@@ -1536,16 +1536,17 @@ CsrfCheck:
   Test:
     Name: Stack Overflow Example Config
     RequiredAttributes:
-      - Type: VulnerableApp.CustomRouteAttribute
-        Condition:
-          - { 1: { Value:  2 }, EnsureCSRFSafe: { Value: true } }  # Post
-          - { 1: { Value:  2 }, EnsureCSRFSafe: { Value: none } }  # Post
-          - { 1: { Value:  4 }, EnsureCSRFSafe: { Value: true } }  # Put
-          - { 1: { Value:  4 }, EnsureCSRFSafe: { Value: none } }  # Put
-          - { 1: { Value:  8 }, EnsureCSRFSafe: { Value: true } }  # Delete
-          - { 1: { Value:  8 }, EnsureCSRFSafe: { Value: none } }  # Delete
-          - { 1: { Value: 32 }, EnsureCSRFSafe: { Value: true } }  # Patch
-          - { 1: { Value: 32 }, EnsureCSRFSafe: { Value: none } }  # Patch
+      Include:
+        - Type: VulnerableApp.CustomRouteAttribute
+          Condition:
+            - { 1: { Value:  2 }, EnsureCSRFSafe: { Value: true } }  # Post
+            - { 1: { Value:  2 }, EnsureCSRFSafe: { Value: none } }  # Post
+            - { 1: { Value:  4 }, EnsureCSRFSafe: { Value: true } }  # Put
+            - { 1: { Value:  4 }, EnsureCSRFSafe: { Value: none } }  # Put
+            - { 1: { Value:  8 }, EnsureCSRFSafe: { Value: true } }  # Delete
+            - { 1: { Value:  8 }, EnsureCSRFSafe: { Value: none } }  # Delete
+            - { 1: { Value: 32 }, EnsureCSRFSafe: { Value: true } }  # Patch
+            - { 1: { Value: 32 }, EnsureCSRFSafe: { Value: none } }  # Patch
     Class:
       Accessibility:
         - public

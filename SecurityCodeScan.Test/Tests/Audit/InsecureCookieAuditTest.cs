@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.CodeAnalysis;
@@ -15,52 +16,59 @@ namespace SecurityCodeScan.Test.Audit
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers(string _)
         {
-            return new[] { new InsecureCookieAnalyzer() };
+            return new DiagnosticAnalyzer[] { new CookieAnalyzer()};
         }
 
         private static readonly PortableExecutableReference[] References =
         {
-            MetadataReference.CreateFromFile(typeof(HttpCookie).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(HttpCookie).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Http.CookieOptions).Assembly.Location),
+            MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [TestCategory("Detect")]
         [DataTestMethod]
-        [DataRow("Secure",   "HttpOnly", "SCS0008", false)]
-        [DataRow("Secure",   "HttpOnly", "SCS0008", true)]
-        [DataRow("HttpOnly", "Secure",   "SCS0009", false)]
-        [DataRow("HttpOnly", "Secure",   "SCS0009", true)]
-        [Ignore("analyze properties in the end of the block")]
-        public async Task CookiePropertyDynamicValue(string property, string constProperty, string code, bool auditMode)
+        [DataRow("System.Web", "HttpCookie", "(\"\")", "Secure",   "HttpOnly", "SCS0008", false)]
+        [DataRow("System.Web", "HttpCookie", "(\"\")", "Secure",   "HttpOnly", "SCS0008", true)]
+        [DataRow("System.Web", "HttpCookie", "(\"\")", "HttpOnly", "Secure",   "SCS0009", false)]
+        [DataRow("System.Web", "HttpCookie", "(\"\")", "HttpOnly", "Secure",   "SCS0009", true)]
+        [DataRow("Microsoft.AspNetCore.Http", "CookieOptions", "()", "Secure", "HttpOnly", "SCS0008", false)]
+        [DataRow("Microsoft.AspNetCore.Http", "CookieOptions", "()", "Secure", "HttpOnly", "SCS0008", true)]
+        [DataRow("Microsoft.AspNetCore.Http", "CookieOptions", "()", "HttpOnly", "Secure", "SCS0009", false)]
+        [DataRow("Microsoft.AspNetCore.Http", "CookieOptions", "()", "HttpOnly", "Secure", "SCS0009", true)]
+        public async Task CookiePropertyDynamicValue(string @namespace, string type, string constructor, string property, string constProperty, string code, bool auditMode)
         {
             var cSharpTest = $@"
-using System.Web;
+using {@namespace};
 
 namespace VulnerableApp
 {{
     class CookieCreation
     {{
-        static void TestCookie(bool x)
+        static {type} TestCookie(bool x)
         {{
-            var cookie = new HttpCookie(""test"");
+            var cookie = new {type}{constructor};
             cookie.{property} = x;
             cookie.{constProperty} = true;
+            return cookie;
         }}
     }}
 }}
 ";
 
             var visualBasicTest = $@"
-Imports System.Web
+Imports {@namespace}
 
 Namespace VulnerableApp
     Class CookieCreation
-        Private Shared Sub TestCookie(x As Boolean)
-            Dim cookie = New HttpCookie(""test"")
+        Private Shared Function TestCookie(x As Boolean) As {type}
+            Dim cookie = New {type}{constructor}
             cookie.{property} = x
             cookie.{constProperty} = True
-        End Sub
+            Return cookie
+        End Function
     End Class
 End Namespace
 ";

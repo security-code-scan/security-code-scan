@@ -102,7 +102,74 @@ End Namespace
         }
 
         [TestCategory("Detect")]
-        [Ignore("hardcoded array const as const")]
+        [DataTestMethod]
+        //[DataRow("DESCryptoServiceProvider", "IV = System.Text.Encoding.Default.GetBytes(\"abc\")", true)] // todo:
+        [DataRow("DESCryptoServiceProvider", "IV = new byte[] { 5, 17, 29, 41, 53, 65, 77, 89 }",   true)]
+        //[DataRow("DESCryptoServiceProvider", "Key = System.Text.Encoding.Default.GetBytes(\"abc\")", true)] // todo:
+        [DataRow("DESCryptoServiceProvider", "Key = new byte[] { 5, 17, 29, 41, 53, 65, 77, 89 }",   true)]
+        [DataRow("DESCryptoServiceProvider", "Key = new byte[] { b, b, b, b, b, b, b, 89 }", false)]
+        public async Task HardcodedIV(string type, string payload, bool warn)
+        {
+            var cSharpTest = $@"
+using System.Security.Cryptography;
+
+namespace VulnerableApp
+{{
+    class HardCodedPassword
+    {{
+        static string TestHardcodedValue(byte[] cipher, byte[] key, byte b)
+        {{
+            var desService = new {type}();
+
+            desService.{payload};
+
+            using (var transform = desService.CreateDecryptor())
+            {{
+                byte[] decryptedBytes = transform.TransformFinalBlock(cipher, 0, cipher.Length);
+                return System.Text.Encoding.Default.GetString(decryptedBytes);
+            }}
+        }}
+    }}
+}}
+";
+
+            var visualBasicTest = $@"
+Imports System.Security.Cryptography
+
+Namespace VulnerableApp
+    Class HardCodedPassword
+        Private Shared Function TestHardcodedValue(ByVal cipher As Byte(), ByVal key As Byte(), ByVal b As Byte) As String
+            Dim desService = New {type}()
+            desService.{payload.CSharpReplaceToVBasic()}
+
+            Using transform = desService.CreateDecryptor()
+                Dim decryptedBytes As Byte() = transform.TransformFinalBlock(cipher, 0, cipher.Length)
+                Return System.Text.Encoding.[Default].GetString(decryptedBytes)
+            End Using
+        End Function
+    End Class
+End Namespace
+";
+
+            var expected = new DiagnosticResult
+            {
+                Id       = "SCS0015",
+                Severity = DiagnosticSeverity.Warning
+            };
+
+            if (warn)
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, expected).ConfigureAwait(false);
+            }
+            else
+            {
+                await VerifyCSharpDiagnostic(cSharpTest, null).ConfigureAwait(false);
+                await VerifyVisualBasicDiagnostic(visualBasicTest, null).ConfigureAwait(false);
+            }
+        }
+
+        [TestCategory("Detect")]
         [TestMethod]
         public async Task HardCodePasswordDerivedBytesSalt()
         {

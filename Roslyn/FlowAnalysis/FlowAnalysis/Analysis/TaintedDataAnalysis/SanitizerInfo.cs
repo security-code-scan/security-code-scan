@@ -88,10 +88,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(this.SanitizingMethods,
-                HashUtilities.Combine(this.SanitizingInstanceMethods,
-                HashUtilities.Combine(StringComparer.Ordinal.GetHashCode(this.FullTypeName),
-                this.IsConstructorSanitizing.GetHashCode())));
+            var hashCode = new RoslynHashCode();
+            hashCode.Add(StringComparer.Ordinal.GetHashCode(this.FullTypeName));
+            hashCode.Add(this.IsInterface.GetHashCode());
+            hashCode.Add(this.IsConstructorSanitizing.GetHashCode());
+            HashUtilities.Combine(this.SanitizingMethods, ref hashCode);
+            HashUtilities.Combine(this.SanitizingMethodsNeedsValueContentAnalysis, ref hashCode);
+            HashUtilities.Combine(this.SanitizingInstanceMethods, ref hashCode);
+            return hashCode.ToHashCode();
         }
 
         public override bool Equals(object obj)
@@ -103,8 +107,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             return other != null
                 && this.FullTypeName == other.FullTypeName
+                && this.IsInterface == other.IsInterface
                 && this.IsConstructorSanitizing == other.IsConstructorSanitizing
                 && this.SanitizingMethods == other.SanitizingMethods
+                && this.SanitizingMethodsNeedsValueContentAnalysis == other.SanitizingMethodsNeedsValueContentAnalysis
                 && this.SanitizingInstanceMethods == other.SanitizingInstanceMethods;
         }
     }

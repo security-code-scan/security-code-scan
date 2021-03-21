@@ -1,6 +1,6 @@
 ﻿# IMPORTANT: YML is very strict about indentation and white spaces
 
-# Set to 'true' to get fake SCS0000 warning when analysis is started. Useful for grepping logs for a proof that analyzer did run.
+# Set to 'true' to get fake SCS0000 warning when analysis is completed. Useful for grepping logs for a proof that analyzer did run.
 ReportAnalysisCompletion: false
 
 # Set to 'true' to see more warnings
@@ -53,6 +53,21 @@ TaintEntryPoints:
       Attributes:
         Exclude:
           - Type: Microsoft.AspNetCore.Mvc.FromServicesAttribute
+
+  Microsoft.AspNetCore.Mvc.RazorPages.PageModel:
+    Class:
+      Accessibility:
+        - public
+      Parent: Microsoft.AspNetCore.Mvc.RazorPages.PageModel
+    Method:
+      Name: /^On(?:Get|Post)[^\(]*$/
+      Accessibility:
+        - public
+      IncludeConstructor: false
+      Static: false
+      Attributes:
+        Exclude:
+          - Type: Microsoft.AspNetCore.Mvc.RazorPages.NonHandlerAttribute
 
   System.Web.Mvc.ControllerBase:
     Class:
@@ -517,6 +532,12 @@ Sanitizers:
         ArgumentCount: 4
         InOut: [{"value": "output"}]
 
+  - Type: Microsoft.Extensions.FileProviders.PhysicalFileProvider
+    TaintTypes:
+      - SCS0018
+    Methods:
+      - Name: GetFileInfo # doesn't immediately sanitizes it, but assume all properties including PhysicalPath as safe
+
   - Type: System.Web.HttpServerUtility
     TaintTypes:
       - SCS0018
@@ -788,6 +809,13 @@ Sinks:
       - SCS0015
     Properties:
       - Password
+
+  - Type: System.Security.Cryptography.SymmetricAlgorithm
+    TaintTypes:
+      - SCS0015
+    Properties:
+      - IV
+      - Key
 
  # Process
 
@@ -1168,6 +1196,23 @@ Sinks:
       Arguments:
         - url
 
+  - Type: Microsoft.AspNetCore.Mvc.RazorPages.PageModel
+    TaintTypes:
+      - SCS0027
+    Methods:
+    - Name: Redirect
+      Arguments:
+        - url
+    - Name: RedirectPermanent
+      Arguments:
+        - url
+    - Name: RedirectPreserveMethod
+      Arguments:
+        - url
+    - Name: RedirectPermanentPreserveMethod
+      Arguments:
+        - url
+
   - Type: System.Web.Mvc.RedirectResult
     TaintTypes:
       - SCS0027
@@ -1396,6 +1441,14 @@ Sinks:
         - fileName
     Properties:
       - FileName
+
+  - Type: Microsoft.AspNetCore.Mvc.RazorPages.PageModel
+    TaintTypes:
+      - SCS0018
+    Methods:
+    - Name: PhysicalFile
+      Arguments:
+        - physicalPath
 
   - Type: System.Web.UI.WebControls.FileUpload
     TaintTypes:
@@ -2379,7 +2432,8 @@ CsrfCheck:
     Dependency:
       - System.Web.Mvc.Controller
     RequiredAttributes:
-      - Type: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
+      Include:
+        - Type: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
     Class:
       Accessibility:
         - public
@@ -2415,8 +2469,9 @@ CsrfCheck:
       - Microsoft.AspNetCore.Mvc.NonActionAttribute
       - Microsoft.AspNetCore.Mvc.FromServicesAttribute
     RequiredAttributes:
-      - Type: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
-      - Type: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+      Include:
+        - Type: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
+        - Type: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
     Class:
       Accessibility:
         - public
@@ -2461,8 +2516,9 @@ CsrfCheck:
       - Microsoft.AspNetCore.Mvc.NonActionAttribute
       - Microsoft.AspNetCore.Mvc.FromServicesAttribute
     RequiredAttributes:
-      - Type: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
-      - Type: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
+      Include:
+        - Type: Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute
+        - Type: Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute
     Class:
       Accessibility:
         - public
@@ -2503,7 +2559,14 @@ AuthorizeCheck:
     Dependency:
       - System.Web.Mvc.Controller
     RequiredAttributes:
-      - Type: System.Web.Mvc.AuthorizeAttribute
+      Include:
+        - Type: System.Web.Mvc.IAuthorizationFilter
+      Exclude:
+        - Type: System.Web.Mvc.ChildActionOnlyAttribute
+        - Type: System.Web.Mvc.Controller
+        - Type: System.Web.Mvc.RequireHttpsAttribute
+        - Type: System.Web.Mvc.ValidateAntiForgeryTokenAttribute
+        - Type: System.Web.Mvc.ValidateInputAttribute
     Class:
       Accessibility:
         - public
@@ -2534,7 +2597,11 @@ AuthorizeCheck:
       - Microsoft.AspNetCore.Mvc.NonActionAttribute
       - Microsoft.AspNetCore.Mvc.FromServicesAttribute
     RequiredAttributes:
-      - Type: Microsoft.AspNetCore.Authorization.AuthorizeAttribute
+      Include:
+        - Type: Microsoft.AspNetCore.Authorization.IAuthorizeData
+        - Type: Microsoft.AspNetCore.Mvc.Filters.IAuthorizationFilter
+      Exclude:
+        - Type: Microsoft.AspNetCore.Mvc.RequireHttpsAttribute
     Class:
       Accessibility:
         - public

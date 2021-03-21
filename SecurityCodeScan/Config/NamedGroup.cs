@@ -185,7 +185,8 @@ namespace SecurityCodeScan.Config
         private readonly HashSet<string> _Dependency;
 
         public readonly DiagnosticDescriptor Message;
-        public readonly Dictionary<string, List<AttributeCondition>> RequiredAttributes = new Dictionary<string, List<AttributeCondition>>();
+        public readonly Dictionary<string, List<AttributeCondition>> IncludedRequiredAttributes = new Dictionary<string, List<AttributeCondition>>();
+        public readonly Dictionary<string, List<AttributeCondition>> ExcludedRequiredAttributes = new Dictionary<string, List<AttributeCondition>>();
 
         public AttributeController Class { get; private set; }
 
@@ -206,7 +207,8 @@ namespace SecurityCodeScan.Config
             if (configData.Message != null)
                 Message = LocaleUtil.GetDescriptorByText(diagnosticId, configData.Message.Title, configData.Message.Description);
 
-            AttributeCondition.AddAttributes(RequiredAttributes, configData.RequiredAttributes);
+            AttributeCondition.AddAttributes(IncludedRequiredAttributes, configData.RequiredAttributes?.Include);
+            AttributeCondition.AddAttributes(ExcludedRequiredAttributes, configData.RequiredAttributes?.Exclude);
 
             if (configData.Class != null)
                 Class = new AttributeController(configData.Class);
@@ -220,7 +222,8 @@ namespace SecurityCodeScan.Config
 
         public void AddFrom(AttributeCheck configData)
         {
-            AttributeCondition.AddAttributes(RequiredAttributes, configData.RequiredAttributes);
+            AttributeCondition.AddAttributes(IncludedRequiredAttributes, configData.RequiredAttributes?.Include);
+            AttributeCondition.AddAttributes(ExcludedRequiredAttributes, configData.RequiredAttributes?.Exclude);
 
             if (configData.Class?.Parent != null)
             {

@@ -9,6 +9,7 @@ using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
@@ -203,6 +204,69 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 }
             }
 
+            private bool ShouldSanitizeConversion(SpecialType type, IOperation operand)
+            {
+                if (type == SpecialType.System_Object || type == SpecialType.System_String)
+                {
+                    switch (operand.Type?.SpecialType)
+                    {
+                        case SpecialType.System_Enum:
+                        case SpecialType.System_MulticastDelegate:
+                        case SpecialType.System_Delegate:
+                        case SpecialType.System_Boolean:
+                        case SpecialType.System_SByte:
+                        case SpecialType.System_Byte:
+                        case SpecialType.System_Int16:
+                        case SpecialType.System_Int32:
+                        case SpecialType.System_Int64:
+                        case SpecialType.System_UInt16:
+                        case SpecialType.System_UInt32:
+                        case SpecialType.System_UInt64:
+                        case SpecialType.System_Decimal:
+                        case SpecialType.System_Single:
+                        case SpecialType.System_Double:
+                        case SpecialType.System_IntPtr:
+                        case SpecialType.System_UIntPtr:
+                            return true;
+                        case SpecialType.None:
+                            {
+                                if (Equals(operand.Type, WellKnownTypeProvider.GetOrCreateTypeByMetadataName("System.Guid")))
+                                    return true;
+                            }
+                            break;
+                    }
+                }
+
+                return false;
+            }
+
+            public override TaintedDataAbstractValue? VisitInterpolatedString(IInterpolatedStringOperation operation, object? argument)
+            {
+                var ret = base.VisitInterpolatedString(operation, argument);
+
+                if (ret.Kind == TaintedDataAbstractValueKind.Tainted)
+                {
+                    foreach (var interpolation in operation.Children)
+                    {
+                        if (interpolation.Type != null)
+                            throw new Exception($"interpolation.Type was not null but {interpolation.Type}");
+
+                        bool shouldSanitize = true;
+                        foreach (var child in interpolation.Children)
+                        {
+                            shouldSanitize = ShouldSanitizeConversion(SpecialType.System_String, child);
+                            if (!shouldSanitize)
+                                break;
+                        }
+
+                        if (shouldSanitize)
+                            return ValueDomain.UnknownOrMayBeValue;
+                    }
+                }
+
+                return ret;
+            }
+
             public override TaintedDataAbstractValue VisitConversion(IConversionOperation operation, object? argument)
             {
                 TaintedDataAbstractValue operandValue = Visit(operation.Operand, argument);
@@ -211,6 +275,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     return ValueDomain.UnknownOrMayBeValue;
                 }
+
+                if (ShouldSanitizeConversion(operation.Type.SpecialType, operation.Operand))
+                    return ValueDomain.UnknownOrMayBeValue;
 
                 if (operation.Conversion.IsImplicit)
                 {
@@ -434,6 +501,20 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return baseValue;
             }
 
+            public override TaintedDataAbstractValue VisitInvocation_Lambda(IFlowAnonymousFunctionOperation lambda, ImmutableArray<IArgumentOperation> visitedArguments, IOperation originalOperation, TaintedDataAbstractValue defaultValue)
+            {
+                // Always invoke base visit.
+                TaintedDataAbstractValue baseValue = base.VisitInvocation_Lambda(lambda, visitedArguments, originalOperation, defaultValue);
+
+                IEnumerable<IArgumentOperation> taintedArguments = GetTaintedArguments(visitedArguments);
+                if (taintedArguments.Any())
+                {
+                    ProcessTaintedDataEnteringInvocationOrCreation(lambda.Symbol, visitedArguments, taintedArguments, originalOperation);
+                }
+
+                return baseValue;
+            }
+
             /// <summary>
             /// Computes abstract value for out or ref arguments when not performing interprocedural analysis.
             /// </summary>
@@ -494,7 +575,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 IArrayCreationOperation? arrayCreationOperation = operation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation);
                 if (arrayCreationOperation?.Type is IArrayTypeSymbol arrayTypeSymbol
-                    && this.DataFlowAnalysisContext.SourceInfos.IsSourceConstantArrayOfType(arrayTypeSymbol)
+                    && this.DataFlowAnalysisContext.SourceInfos.IsSourceConstantArrayOfType(arrayTypeSymbol, operation)
                     && operation.ElementValues.All(s => GetValueContentAbstractValue(s).IsLiteralState))
                 {
                     TaintedDataAbstractValue taintedDataAbstractValue = TaintedDataAbstractValue.CreateTainted(arrayTypeSymbol, arrayCreationOperation.Syntax, this.OwningSymbol);

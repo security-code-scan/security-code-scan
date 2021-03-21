@@ -19,7 +19,7 @@ namespace SecurityCodeScan.Analyzers
     public class AthorizationAttributeDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         public const           string               DiagnosticId = "SCS0012";
-        public static readonly DiagnosticDescriptor Rule         = LocaleUtil.GetDescriptor(DiagnosticId);
+        public static readonly DiagnosticDescriptor Rule         = LocaleUtil.GetDescriptor(DiagnosticId, isEnabledByDefault: false);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
@@ -183,7 +183,7 @@ namespace SecurityCodeScan.Analyzers
             if (!(classSymbol is INamedTypeSymbol typeSymbol))
                 return;
 
-            if (RequiredAttributeExists((c) => typeSymbol.TryGetDerivedAttribute(c), group.RequiredAttributes))
+            if (RequiredAttributeExists((c) => typeSymbol.TryGetDerivedAttribute(c), group.IncludedRequiredAttributes, group.ExcludedRequiredAttributes))
                 return;
 
             if (group.Class != null)
@@ -280,7 +280,7 @@ namespace SecurityCodeScan.Analyzers
                     }
                 }
 
-                if (RequiredAttributeExists((c) => methodSymbol.TryGetDerivedAttribute(c), group.RequiredAttributes))
+                if (RequiredAttributeExists((c) => methodSymbol.TryGetDerivedAttribute(c), group.IncludedRequiredAttributes, group.ExcludedRequiredAttributes))
                     continue;
 
                 if (group.Parameter != null && AreParametersExcluded(methodSymbol, group))
@@ -309,15 +309,19 @@ namespace SecurityCodeScan.Analyzers
             return group.Parameter.Include.Any();
         }
 
-        private bool RequiredAttributeExists(Func<Func<AttributeData, bool>, AttributeData> tryGetDerivedAttribute, Dictionary<string, List<AttributeCondition>> attributes)
+        private bool RequiredAttributeExists(
+            Func<Func<AttributeData, bool>,
+            AttributeData> tryGetDerivedAttribute,
+            Dictionary<string, List<AttributeCondition>> includedAttributes,
+            Dictionary<string, List<AttributeCondition>> excludedAttributes = null)
         {
-            foreach (var requiredAttribute in attributes)
+            foreach (var requiredAttribute in includedAttributes)
             {
                 var type = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(requiredAttribute.Key);
                 if (type == null)
                     continue;
 
-                (bool found, bool satisfies) = RequiredAttributeExists(tryGetDerivedAttribute, type, requiredAttribute.Value);
+                (bool found, bool satisfies) = RequiredAttributeExists(tryGetDerivedAttribute, type, requiredAttribute.Value, excludedAttributes);
                 if (found)
                     return satisfies;
             }
@@ -325,7 +329,11 @@ namespace SecurityCodeScan.Analyzers
             return false;
         }
 
-        private (bool found, bool satisfies) RequiredAttributeExists(Func<Func<AttributeData, bool>, AttributeData> tryGetDerivedAttribute, INamedTypeSymbol type, List<AttributeCondition> conditions)
+        private (bool found, bool satisfies) RequiredAttributeExists(
+            Func<Func<AttributeData, bool>, AttributeData> tryGetDerivedAttribute,
+            INamedTypeSymbol type,
+            List<AttributeCondition> conditions,
+            Dictionary<string, List<AttributeCondition>> excludedAttributes)
         {
             var hasConditions = conditions.Any(x => x.MustMatch.Count != 0);
 
@@ -335,12 +343,26 @@ namespace SecurityCodeScan.Analyzers
                     return Equals(c.AttributeClass, type);
 
                 var attributeClass = c.AttributeClass;
-                while (attributeClass != null)
+                if (type.TypeKind == TypeKind.Interface)
                 {
-                    if (Equals(attributeClass, type))
-                        return true;
+                    if (attributeClass.AllInterfaces.Any(x => Equals(x, type)))
+                    {
+                        if (excludedAttributes == null || !excludedAttributes.Any(x => WellKnownTypeProvider.GetOrCreateTypeByMetadataName(x.Key).Equals(attributeClass)))
+                            return true;
+                    }
+                }
+                else
+                {
+                    while (attributeClass != null)
+                    {
+                        if (Equals(attributeClass, type) &&
+                        (excludedAttributes == null || !excludedAttributes.Any(x => WellKnownTypeProvider.GetOrCreateTypeByMetadataName(x.Key).Equals(attributeClass))))
+                        {
+                            return true;
+                        }
 
-                    attributeClass = attributeClass.BaseType;
+                        attributeClass = attributeClass.BaseType;
+                    }
                 }
 
                 return false;

@@ -20,7 +20,7 @@ However it requires discipline to install SCS into every solution a developer wo
 
 The NuGet version runs during a build and in background as IntelliSense (VS extension provides IntelliSense only) and can be integrated to any Continuous Integration (CI) server that supports [MSBuild](https://msdn.microsoft.com/en-us/library/dd393574.aspx).
 
-However as SCS become more powerful and requires more computation done in a background when installed as Visual Studio extension or added to a project as NuGet package, running SCS as stand-alone tool allows controlling when static analysis starts and finishes. Running the stand-alone tool allows customizing different parameters and exclude unit test projects:
+When SCS is installed as Visual Studio extension or added to a project as NuGet package it does static analysis in background as you type. Running SCS as stand-alone tool gives more control when the analysis starts and finishes. The stand-alone tool allows customizing different parameters and, for example, exclude unit test projects:
 
 ![Stand-alone tool options](images/security-scan-tool.png)
 

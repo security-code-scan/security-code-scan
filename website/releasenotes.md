@@ -3,6 +3,7 @@
 ## 5.1.0
 * Standalone runner improved. My favorite way to run SCS!
 * Bug fixes and improvements.
+* A [script](https://github.com/SPoint42/SecurityTools/tree/main/SCDotNet2DefectDojo) was made by [Sebastien gioria](https://github.com/SPoint42) for importing the analysis results into [DefectDojo](https://github.com/DefectDojo/django-DefectDojo).
 
 ## 5.0.0
 * New inter-procedural taint analysis engine.

@@ -24,7 +24,9 @@ When SCS is installed as Visual Studio extension or added to a project as NuGet 
 
 ![Stand-alone tool options](images/security-scan-tool.png)
 
-## Continuous Integration Builds
-Continuous Integration (CI) support for [GitHub](https://github.com/marketplace/actions/securitycodescan) and [GitLab](https://docs.gitlab.com/ee/user/application_security/sast/analyzers.html) pipelines. [Stand-alone runner](https://www.nuget.org/packages/security-scan/) or through [MSBuild](https://msdn.microsoft.com/en-us/library/dd393574.aspx) for custom integrations.
+## Integration with Continuous Integration (CI) builds and third-party tools
+CI support for [GitHub](https://github.com/marketplace/actions/securitycodescan) and [GitLab](https://docs.gitlab.com/ee/user/application_security/sast/analyzers.html) pipelines. [Stand-alone runner](https://www.nuget.org/packages/security-scan/) or through [MSBuild](https://msdn.microsoft.com/en-us/library/dd393574.aspx) for custom integrations.
 For custom integrations SCS is capable of producing results in SARIF format and displaying warnings with other build messages in the build output. SCS warnings are in the form of  
-`[source file](line,column): warning SCS[rule id]: [warning description] [project_file]`  
+`[source file](line,column): warning SCS[rule id]: [warning description] [project_file]`
+
+A [script](https://github.com/SPoint42/SecurityTools/tree/main/SCDotNet2DefectDojo) is available for importing the analysis results into [DefectDojo](https://github.com/DefectDojo/django-DefectDojo).  

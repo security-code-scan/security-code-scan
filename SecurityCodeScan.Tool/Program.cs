@@ -183,7 +183,7 @@ namespace SecurityCodeScan.Tool
                     { "t|threads=",     "(Optional) run analysis in parallel (experimental)", (int r) => { threads = r; } },
                     { "n|no-banner",    "(Optional) don't show the banner", r => { showBanner = r == null; } },
                     { "v|verbose",      "(Optional) more diagnostic messages", r => { verbose = r != null; } },
-                    { "ignore-msbuild-errors", "(Optional) more diagnostic messages", r => { ignoreMsBuildErrors = r != null; } },
+                    { "ignore-msbuild-errors", "(Optional) Don't stop on MSBuild errors", r => { ignoreMsBuildErrors = r != null; } },
                     { "h|?|help",       "show this message and exit", h => shouldShowHelp = h != null },
                 };
 

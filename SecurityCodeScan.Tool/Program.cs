@@ -151,6 +151,7 @@ namespace SecurityCodeScan.Tool
         public int? threads = null;
         public bool shouldShowHelp = false;
         public bool verbose = false;
+        public bool ignoreMsBuildErrors = false;
         public bool showBanner = true;
         public bool cwe = false;
         public HashSet<string> excludeWarnings = new HashSet<string>();
@@ -182,7 +183,8 @@ namespace SecurityCodeScan.Tool
                     { "t|threads=",     "(Optional) run analysis in parallel (experimental)", (int r) => { threads = r; } },
                     { "n|no-banner",    "(Optional) don't show the banner", r => { showBanner = r == null; } },
                     { "v|verbose",      "(Optional) more diagnostic messages", r => { verbose = r != null; } },
-                    { "h|?|help",        "show this message and exit", h => shouldShowHelp = h != null },
+                    { "ignore-msbuild-errors", "(Optional) more diagnostic messages", r => { ignoreMsBuildErrors = r != null; } },
+                    { "h|?|help",       "show this message and exit", h => shouldShowHelp = h != null },
                 };
 
                 inputOptions.Parse(args);
@@ -275,19 +277,13 @@ namespace SecurityCodeScan.Tool
                 workspace.WorkspaceFailed += (o, e) =>
                 {
                     var kind = e.Diagnostic.Kind;
-                    if (kind == WorkspaceDiagnosticKind.Failure &&
-                        (e.Diagnostic.Message.Contains("is out of support and will not receive security updates in the future") ||
-                         e.Diagnostic.Message.Contains("Specifying the version of this package is not recommended")))
-                    {
-                        kind = WorkspaceDiagnosticKind.Warning;
-                    }
 
                     if (kind == WorkspaceDiagnosticKind.Warning && !parsedOptions.verbose)
                         return;
 
                     LogError(kind == WorkspaceDiagnosticKind.Failure, e.Diagnostic.Message);
 
-                    if (kind == WorkspaceDiagnosticKind.Failure)
+                    if (kind == WorkspaceDiagnosticKind.Failure && !parsedOptions.ignoreMsBuildErrors)
                         returnCode = 2;
                 };
 

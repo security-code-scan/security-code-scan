@@ -703,6 +703,7 @@ Sanitizers:
 
   - Type: System.Guid
     Methods:
+      - Name: .ctor
       - Name: ToString
       - Name: Parse
       - Name: ParseExact

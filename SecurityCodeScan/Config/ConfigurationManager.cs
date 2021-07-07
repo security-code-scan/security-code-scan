@@ -32,7 +32,7 @@ namespace SecurityCodeScan.Config
 
         private static readonly Version ConfigVersion = new Version(3,1);
 
-        public T DeserializeAndValidate<T>(StreamReader reader, bool validate) where T : ConfigData
+        public T DeserializeAndValidate<T>(StreamReader reader, bool validate)
         {
             if (validate)
             {
@@ -41,14 +41,11 @@ namespace SecurityCodeScan.Config
                 reader.BaseStream.Seek(0, SeekOrigin.Begin);
             }
 
-            using (var reader2 = new StreamReader(reader.BaseStream))
-            {
-                var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties()
+            var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties()
                                                             .WithNodeDeserializer(new ValueTupleNodeDeserializer())
                                                             .Build();
-                var data = deserializer.Deserialize<T>(reader2);
-                return data;
-            }
+            var data = deserializer.Deserialize<T>(reader);
+            return data;
         }
 
         public ConfigData GetBuiltinConfiguration()
@@ -104,10 +101,11 @@ namespace SecurityCodeScan.Config
                     }
 
                     if (projectConfigVersion != ConfigVersion)
-                        throw new ArgumentException($"Version mismatch in the project configuration file '{file.Path}'. Please read https://security-code-scan.github.io/#ReleaseNotes for the information what has changed in the configuration format.",
+                        throw new ArgumentException($"Version mismatch in the project configuration file '{file.Path}'. Please see https://github.com/security-code-scan/security-code-scan/blob/vs2019/SecurityCodeScan/Config/Main.yml for an example of the latest configuration format.",
                                                     "Version");
 
-                    return projectConfig;
+                    reader.BaseStream.Seek(0, SeekOrigin.Begin);
+                    return DeserializeAndValidate<ConfigData>(reader, validate: true);
                 }
             }
 
@@ -281,7 +279,7 @@ namespace SecurityCodeScan.Config
         }
     }
 
-    internal class ProjectConfigData : ConfigData
+    internal class ProjectConfigData
     {
         public string Version { get; set; }
     }

@@ -46,11 +46,11 @@ The helper PowerShell script can be used to do it automatically for all projects
 ```
 
 ## External Configuration Files
-There are two types of external configuration files that can be used together: per user account and per project. It allows you to customize settings from [built-in configuration](https://github.com/security-code-scan/security-code-scan/blob/vs2019/SecurityCodeScan/Config/Main.yml) or add new rules. Global settings file location is `%LocalAppData%\SecurityCodeScan\config-3.0.yml` on Windows and `$XDG_DATA_HOME/.local/share` on Unix.  
+There are two types of external configuration files that can be used together: per user account and per project. It allows you to customize settings from [built-in configuration](https://github.com/security-code-scan/security-code-scan/blob/vs2019/SecurityCodeScan/Config/Main.yml) or add new rules. Global settings file location is `%LocalAppData%\SecurityCodeScan\config-3.1.yml` on Windows and `$XDG_DATA_HOME/.local/share` on Unix.  
 
 For project specific settings add a file named SecurityCodeScan.config.yml into a project.
 > ⚠️Note:
-> The file name doesn't have '3.0'. Instead it **must** have `Version: 3.0` configuration setting in it's content. If the setting is missing you will get a runtime analysis exception.
+> The file doesn't have a version number in the name. Instead it **must** have `Version: 3.1` configuration setting in it's content. If the setting is missing you will get a runtime analysis exception.
 
 Go to file properties and set the Build Action to AdditionalFiles:
 
@@ -58,20 +58,23 @@ Go to file properties and set the Build Action to AdditionalFiles:
 
 ### Custom taint source, sinks, sanitizers and validators
 
-An example of user's (per OS user) config-3.0.yml with custom Anti CSRF token:
+An example of user's (per OS user) config-3.1.yml with custom sink function (method that shouldn't be called with untrusted data without first being sanitized):
 
 ```yaml
-AuthorizeCheck:
-  MyRuleName:
-    Name: ASP.NET MVC
-    RequiredAttributes:
-      - Type: MyNamespace.MyAuthorizationCheckAttribute
+Sinks:
+  - Type: System.Messaging.BinaryMessageFormatter
+    TaintTypes:
+      - SCS0028
+    Methods:
+    - Name: Read
+      Arguments:
+        - message
 ```
 
-An example of SecurityCodeScan.config.yml (per project) with custom sink function (method that shouldn't be called with untrusted data without first being sanitized):
+An example of the same rule in SecurityCodeScan.config.yml (per project):
 
 ```yaml
-Version: 3.0
+Version: 3.1
 
 Sinks:
   - Type: System.Messaging.BinaryMessageFormatter

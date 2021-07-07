@@ -457,7 +457,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         {
                             this.EvaluatePotentialHazardousUsage(
                                 visitedArgument.Value.Syntax,
-                                null,
+                                method,
                                 visitedArgument.Value,
                                 (PropertySetAbstractValue abstractValue) => argumentHazardousUsageEvaluator.ValueEvaluator!(abstractValue));
                         }

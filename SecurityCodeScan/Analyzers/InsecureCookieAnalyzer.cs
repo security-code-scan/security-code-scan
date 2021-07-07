@@ -33,12 +33,6 @@ namespace SecurityCodeScan.Analyzers
 
         private static readonly HazardousUsageEvaluatorCollection HazardousUsageEvaluators = new HazardousUsageEvaluatorCollection(
             new HazardousUsageEvaluator(
-                HazardousUsageEvaluatorKind.Return,
-                PropertySetCallbacks.HazardousIfAllFlaggedAndAtLeastOneKnown),
-            new HazardousUsageEvaluator(
-                HazardousUsageEvaluatorKind.Initialization,
-                PropertySetCallbacks.HazardousIfAllFlaggedAndAtLeastOneKnown),
-            new HazardousUsageEvaluator(
                 HazardousUsageEvaluatorKind.Argument,
                 PropertySetCallbacks.HazardousIfAllFlaggedAndAtLeastOneKnown));
 
@@ -57,7 +51,7 @@ namespace SecurityCodeScan.Analyzers
                 DiagnosticDescriptor descriptor,
                 string propertyName,
                 string cookieTypeName,
-                Action<DiagnosticDescriptor, OperationBlockStartAnalysisContext, WellKnownTypeProvider, PooledHashSet<(IOperation, ISymbol)>> checkSink = null)
+                Action<DiagnosticDescriptor, OperationBlockStartAnalysisContext, WellKnownTypeProvider> checkSink = null)
             {
                 context.RegisterCompilationStartAction(
                     (CompilationStartAnalysisContext compilationStartAnalysisContext) =>
@@ -81,38 +75,7 @@ namespace SecurityCodeScan.Analyzers
                                 }
 
                                 if (checkSink != null)
-                                    checkSink(descriptor, operationBlockStartAnalysisContext, wellKnownTypeProvider, rootOperationsNeedingAnalysis);
-
-                                operationBlockStartAnalysisContext.RegisterOperationAction(
-                                    (OperationAnalysisContext operationAnalysisContext) =>
-                                    {
-                                        IReturnOperation returnOperation = (IReturnOperation)operationAnalysisContext.Operation;
-
-                                        if (cookieOptionsTypeSymbol.Equals(returnOperation.ReturnedValue?.Type))
-                                        {
-                                            lock (rootOperationsNeedingAnalysis)
-                                            {
-                                                rootOperationsNeedingAnalysis.Add(
-                                                    (returnOperation.GetRoot(), operationAnalysisContext.ContainingSymbol));
-                                            }
-                                        }
-                                    },
-                                    OperationKind.Return);
-
-                                operationBlockStartAnalysisContext.RegisterOperationAction(
-                                    (OperationAnalysisContext operationAnalysisContext) =>
-                                    {
-                                        var argumentOperation = (IArgumentOperation)operationAnalysisContext.Operation;
-
-                                        if (argumentOperation.Parameter.Type.Equals(cookieOptionsTypeSymbol))
-                                        {
-                                            lock (rootOperationsNeedingAnalysis)
-                                            {
-                                                rootOperationsNeedingAnalysis.Add((argumentOperation.GetRoot(), operationAnalysisContext.ContainingSymbol));
-                                            }
-                                        }
-                                    },
-                                    OperationKind.Argument);
+                                    checkSink(descriptor, operationBlockStartAnalysisContext, wellKnownTypeProvider);
 
                                 operationBlockStartAnalysisContext.RegisterOperationAction(
                                     (OperationAnalysisContext operationAnalysisContext) =>
@@ -143,6 +106,12 @@ namespace SecurityCodeScan.Analyzers
                                             return;
                                         }
 
+                                        if (rootOperationsNeedingAnalysis.Count() != 1)
+                                        {
+                                            Debug.Assert(false);
+                                            return;
+                                        }
+
                                         var configuration = Configuration.GetOrCreate(compilationStartAnalysisContext);
 
                                         PropertyMapperCollection propertyMappers = new(
@@ -165,7 +134,7 @@ namespace SecurityCodeScan.Analyzers
                                             InterproceduralAnalysisConfiguration.Create(
                                                 compilationAnalysisContext.Options,
                                                 SupportedDiagnostics,
-                                                rootOperationsNeedingAnalysis.First().Item1,
+                                                rootOperationsNeedingAnalysis.Single().Item1,
                                                 compilationAnalysisContext.Compilation,
                                                 defaultInterproceduralAnalysisKind: InterproceduralAnalysisKind.ContextSensitive,
                                                 cancellationToken: compilationAnalysisContext.CancellationToken));
@@ -176,26 +145,8 @@ namespace SecurityCodeScan.Analyzers
                                         return;
                                     }
 
-                                    foreach (KeyValuePair<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult> kvp in allResults)
-                                    {
-                                        DiagnosticDescriptor d;
-                                        switch (kvp.Value)
-                                        {
-                                            case HazardousUsageEvaluationResult.Flagged:
-                                            d = descriptor;
-                                            break;
-
-                                            case HazardousUsageEvaluationResult.MaybeFlagged:
-                                            d = descriptor;
-                                            break;
-
-                                            default:
-                                            Debug.Fail($"Unhandled result value {kvp.Value}");
-                                            continue;
-                                        }
-
-                                        compilationAnalysisContext.ReportDiagnostic(Diagnostic.Create(d, kvp.Key.Location));
-                                    }
+                                    CheckSink(allResults, descriptor, compilationAnalysisContext, "System.Web.HttpCookieCollection", SystemWebCookieMethods, wellKnownTypeProvider);
+                                    CheckSink(allResults, descriptor, compilationAnalysisContext, WellKnownTypeNames.MicrosoftAspNetCoreHttpIResponseCookies, NetCoreCookieMethods, wellKnownTypeProvider);
                                 }
                                 finally
                                 {
@@ -213,11 +164,49 @@ namespace SecurityCodeScan.Analyzers
             Initialize(context, RuleHttpOnly, "HttpOnly", WellKnownTypeNames.SystemWebHttpCookie);
         }
 
+        private static readonly ImmutableArray<string> SystemWebCookieMethods = new []{ "Set", "Add" }.ToImmutableArray();
+        private static readonly ImmutableArray<string> NetCoreCookieMethods   = new []{ "Append" }.ToImmutableArray();
+
+        private static void CheckSink(
+            PooledDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult>? allResults,
+            DiagnosticDescriptor descriptor,
+            CompilationAnalysisContext compilationAnalysisContext,
+            string typeName,
+            ImmutableArray<string> methodNames,
+            WellKnownTypeProvider wellKnownTypeProvider)
+        {
+            if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(typeName, out var symbol))
+                return;
+
+            foreach (KeyValuePair<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult> kvp in allResults)
+            {
+                DiagnosticDescriptor d;
+                switch (kvp.Value)
+                {
+                    case HazardousUsageEvaluationResult.Flagged:
+                    case HazardousUsageEvaluationResult.MaybeFlagged:
+                        d = descriptor;
+                    break;
+
+                    default:
+                        Debug.Fail($"Unhandled result value {kvp.Value}");
+                    continue;
+                }
+
+                if (kvp.Key.Method.ContainingType != symbol)
+                    continue;
+
+                if (!methodNames.Contains(kvp.Key.Method.Name))
+                    continue;
+
+                compilationAnalysisContext.ReportDiagnostic(Diagnostic.Create(d, kvp.Key.Location));
+            }
+        }
+
         private static void CheckSink(
             DiagnosticDescriptor descriptor,
             OperationBlockStartAnalysisContext operationBlockStartAnalysisContext,
-            WellKnownTypeProvider wellKnownTypeProvider,
-            PooledHashSet<(IOperation, ISymbol)> rootOperationsNeedingAnalysis)
+            WellKnownTypeProvider wellKnownTypeProvider)
         {
             if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreHttpIResponseCookies, out var iResponseCookiesTypeSymbol))
                 return;
@@ -229,18 +218,12 @@ namespace SecurityCodeScan.Analyzers
                     var methodSymbol = invocationOperation.TargetMethod;
 
                     if (methodSymbol.ContainingType is INamedTypeSymbol namedTypeSymbol &&
-                        namedTypeSymbol.Equals(iResponseCookiesTypeSymbol))
+                        namedTypeSymbol.Equals(iResponseCookiesTypeSymbol) &&
+                        methodSymbol.Name == "Append")
                     {
                         if (methodSymbol.Parameters.Length < 3)
                         {
                             operationAnalysisContext.ReportDiagnostic(invocationOperation.CreateDiagnostic(descriptor));
-                        }
-                        else
-                        {
-                            lock (rootOperationsNeedingAnalysis)
-                            {
-                                rootOperationsNeedingAnalysis.Add((invocationOperation.GetRoot(), operationAnalysisContext.ContainingSymbol));
-                            }
                         }
                     }
                 },

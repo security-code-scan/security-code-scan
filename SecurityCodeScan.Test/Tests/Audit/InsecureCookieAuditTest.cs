@@ -22,53 +22,66 @@ namespace SecurityCodeScan.Test.Audit
         private static readonly PortableExecutableReference[] References =
         {
             MetadataReference.CreateFromFile(typeof(HttpCookie).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Web.Mvc.Controller).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Http.CookieOptions).Assembly.Location),
-            MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").Location)
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Http.HttpResponse).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ControllerBase).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.Controller).Assembly.Location),
+            MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
+                                                     .Location)
         };
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
         [TestCategory("Detect")]
         [DataTestMethod]
-        [DataRow("System.Web", "HttpCookie", "(\"\")", "Secure",   "HttpOnly", "SCS0008", false)]
-        [DataRow("System.Web", "HttpCookie", "(\"\")", "Secure",   "HttpOnly", "SCS0008", true)]
-        [DataRow("System.Web", "HttpCookie", "(\"\")", "HttpOnly", "Secure",   "SCS0009", false)]
-        [DataRow("System.Web", "HttpCookie", "(\"\")", "HttpOnly", "Secure",   "SCS0009", true)]
-        [DataRow("Microsoft.AspNetCore.Http", "CookieOptions", "()", "Secure", "HttpOnly", "SCS0008", false)]
-        [DataRow("Microsoft.AspNetCore.Http", "CookieOptions", "()", "Secure", "HttpOnly", "SCS0008", true)]
-        [DataRow("Microsoft.AspNetCore.Http", "CookieOptions", "()", "HttpOnly", "Secure", "SCS0009", false)]
-        [DataRow("Microsoft.AspNetCore.Http", "CookieOptions", "()", "HttpOnly", "Secure", "SCS0009", true)]
-        public async Task CookiePropertyDynamicValue(string @namespace, string type, string constructor, string property, string constProperty, string code, bool auditMode)
+        [DataRow("Response.Cookies.Add(cookie)", "System.Web.Mvc", "System.Web", "HttpCookie", "(\"\")", "Secure",   "HttpOnly", "SCS0008", false)]
+        [DataRow("Response.Cookies.Add(cookie)", "System.Web.Mvc", "System.Web", "HttpCookie", "(\"\")", "Secure",   "HttpOnly", "SCS0008", true)]
+        [DataRow("Response.Cookies.Add(cookie)", "System.Web.Mvc", "System.Web", "HttpCookie", "(\"\")", "HttpOnly", "Secure",   "SCS0009", false)]
+        [DataRow("Response.Cookies.Add(cookie)", "System.Web.Mvc", "System.Web", "HttpCookie", "(\"\")", "HttpOnly", "Secure",   "SCS0009", true)]
+        [DataRow(@"Response.Cookies.Append(""aaa"", ""secret"", cookie)", "Microsoft.AspNetCore.Mvc", "Microsoft.AspNetCore.Http", "CookieOptions", "()", "Secure", "HttpOnly", "SCS0008", false)]
+        [DataRow(@"Response.Cookies.Append(""aaa"", ""secret"", cookie)", "Microsoft.AspNetCore.Mvc", "Microsoft.AspNetCore.Http", "CookieOptions", "()", "Secure", "HttpOnly", "SCS0008", true)]
+        [DataRow(@"Response.Cookies.Append(""aaa"", ""secret"", cookie)", "Microsoft.AspNetCore.Mvc", "Microsoft.AspNetCore.Http", "CookieOptions", "()", "HttpOnly", "Secure", "SCS0009", false)]
+        [DataRow(@"Response.Cookies.Append(""aaa"", ""secret"", cookie)", "Microsoft.AspNetCore.Mvc", "Microsoft.AspNetCore.Http", "CookieOptions", "()", "HttpOnly", "Secure", "SCS0009", true)]
+        public async Task CookiePropertyDynamicValue(string sink, string namespace1, string namespace2, string type, string constructor, string property, string constProperty, string code, bool auditMode)
         {
             var cSharpTest = $@"
-using {@namespace};
+#pragma warning disable 8019
+    using {namespace1};
+    using {namespace2};
+#pragma warning restore 8019
 
 namespace VulnerableApp
 {{
-    class CookieCreation
+    class CookieCreation : Controller
     {{
-        static {type} TestCookie(bool x)
+        void TestCookie(bool x)
         {{
             var cookie = new {type}{constructor};
             cookie.{property} = x;
             cookie.{constProperty} = true;
-            return cookie;
+            {sink};
         }}
     }}
 }}
 ";
 
             var visualBasicTest = $@"
-Imports {@namespace}
+#Disable Warning BC50001
+    Imports {namespace1}
+    Imports {namespace2}
+#Enable Warning BC50001
 
 Namespace VulnerableApp
     Class CookieCreation
-        Private Shared Function TestCookie(x As Boolean) As {type}
+        Inherits Controller
+
+        Private Sub TestCookie(x As Boolean)
             Dim cookie = New {type}{constructor}
             cookie.{property} = x
             cookie.{constProperty} = True
-            Return cookie
-        End Function
+            {sink}
+        End Sub
     End Class
 End Namespace
 ";

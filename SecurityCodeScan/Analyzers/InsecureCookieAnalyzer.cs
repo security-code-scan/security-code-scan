@@ -106,12 +106,6 @@ namespace SecurityCodeScan.Analyzers
                                             return;
                                         }
 
-                                        if (rootOperationsNeedingAnalysis.Count() != 1)
-                                        {
-                                            Debug.Assert(false);
-                                            return;
-                                        }
-
                                         var configuration = Configuration.GetOrCreate(compilationStartAnalysisContext);
 
                                         PropertyMapperCollection propertyMappers = new(
@@ -134,7 +128,7 @@ namespace SecurityCodeScan.Analyzers
                                             InterproceduralAnalysisConfiguration.Create(
                                                 compilationAnalysisContext.Options,
                                                 SupportedDiagnostics,
-                                                rootOperationsNeedingAnalysis.Single().Item1,
+                                                rootOperationsNeedingAnalysis.First().Item1, // really uses only SyntaxTree that is the same for all operations
                                                 compilationAnalysisContext.Compilation,
                                                 defaultInterproceduralAnalysisKind: InterproceduralAnalysisKind.ContextSensitive,
                                                 cancellationToken: compilationAnalysisContext.CancellationToken));

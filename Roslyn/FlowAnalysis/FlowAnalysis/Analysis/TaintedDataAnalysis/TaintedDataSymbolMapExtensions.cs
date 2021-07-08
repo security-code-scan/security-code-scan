@@ -120,11 +120,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     return true;
                 }
-
-                if (sourceInfo.TaintedFields.Contains(fieldSymbol.MetadataName))
-                {
-                    return true;
-                }
             }
 
             return false;

@@ -95,7 +95,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 fullTypeName,
                 isInterface: false,
                 taintedProperties: ImmutableHashSet<string>.Empty,
-                taintedFields: ImmutableHashSet<string>.Empty,
                 transferProperties: ImmutableHashSet<string>.Empty,
                 taintedArguments:
                     taintedArguments.ToImmutableHashSet(),
@@ -123,7 +122,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 dependencyFullTypeNames: dependencyFullTypeNames,
                 isInterface: false,
                 taintedProperties: ImmutableHashSet<string>.Empty,
-                taintedFields: ImmutableHashSet<string>.Empty,
                 transferProperties: ImmutableHashSet<string>.Empty,
                 taintedArguments:
                     taintedArguments.ToImmutableHashSet(),
@@ -146,16 +144,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             string fullTypeName,
             bool isInterface,
             IEnumerable<string>? taintedProperties,
-            IEnumerable<string>? taintedMethods,
-            IEnumerable<string>? taintedFields = null
+            IEnumerable<string>? taintedMethods
             )
         {
             SourceInfo metadata = new SourceInfo(
                 fullTypeName,
                 isInterface: isInterface,
                 taintedProperties: taintedProperties?.ToImmutableHashSet(StringComparer.Ordinal)
-                    ?? ImmutableHashSet<string>.Empty,
-                taintedFields: taintedFields?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty,
                 transferProperties: ImmutableHashSet<string>.Empty,
                 taintedArguments:
@@ -207,7 +202,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 isInterface: isInterface,
                 taintedProperties: taintedProperties?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty,
-                taintedFields: ImmutableHashSet<string>.Empty,
                 transferProperties: transferProperties?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty,
                 taintedArguments:
@@ -265,7 +259,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 isInterface: isInterface,
                 taintedProperties: taintedProperties?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty,
-                taintedFields: ImmutableHashSet<string>.Empty,
                 transferProperties: ImmutableHashSet<string>.Empty,
                 taintedArguments:
                     ImmutableHashSet<ParameterMatcher>.Empty,

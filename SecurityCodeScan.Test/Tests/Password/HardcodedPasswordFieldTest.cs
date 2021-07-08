@@ -212,6 +212,7 @@ End Namespace
 
         [TestCategory("Detect")]
         [TestMethod]
+        [Ignore("Const is not really a taint")]
         public async Task HardCodePasswordInitializerFromStaticReadonlyMember()
         {
             var cSharpTest = @"
@@ -350,6 +351,7 @@ End Namespace
         }
 
         [TestMethod]
+        [Ignore("Const is not really a taint")]
         public async Task HardCodePasswordInitializerFromConstMemberFlow()
         {
             var cSharpTest = @"

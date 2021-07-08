@@ -38,7 +38,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             string fullTypeName,
             bool isInterface,
             ImmutableHashSet<string> taintedProperties,
-            ImmutableHashSet<string> taintedFields,
             ImmutableHashSet<ParameterMatcher> taintedArguments,
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<string>)> taintedMethods,
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)> taintedMethodsNeedsPointsToAnalysis,
@@ -52,7 +51,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
             IsInterface = isInterface;
             TaintedProperties = taintedProperties ?? throw new ArgumentNullException(nameof(taintedProperties));
-            TaintedFields = taintedFields ?? throw new ArgumentNullException(nameof(taintedFields));
             TaintedArguments = taintedArguments ?? throw new ArgumentNullException(nameof(taintedArguments));
             TaintedMethods = taintedMethods ?? throw new ArgumentNullException(nameof(taintedMethods));
             TaintedMethodsNeedsPointsToAnalysis = taintedMethodsNeedsPointsToAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsPointsToAnalysis));
@@ -84,7 +82,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
             IsInterface = isInterface;
             TaintedProperties = ImmutableHashSet<string>.Empty;
-            TaintedFields = ImmutableHashSet<string>.Empty;
             TaintedArguments = ImmutableHashSet<ParameterMatcher>.Empty;
             TaintedMethods = taintedMethods ?? throw new ArgumentNullException(nameof(taintedMethods));
             TaintedMethodsNeedsPointsToAnalysis = taintedMethodsNeedsPointsToAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsPointsToAnalysis));
@@ -125,11 +122,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Properties that generate tainted data.
         /// </summary>
         public ImmutableHashSet<string> TaintedProperties { get; }
-
-        /// <summary>
-        /// Fields that generate tainted data.
-        /// </summary>
-        public ImmutableHashSet<string> TaintedFields { get; }
 
         /// <summary>
         /// Methods that generate tainted data.
@@ -239,7 +231,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             hashCode.Add(this.IsInterface.GetHashCode());
             HashUtilities.Combine(this.TransferProperties, ref hashCode);
             HashUtilities.Combine(this.TaintedProperties, ref hashCode);
-            HashUtilities.Combine(this.TaintedFields, ref hashCode);
             HashUtilities.Combine(this.TaintedMethods, ref hashCode);
             HashUtilities.Combine(this.TaintedArguments, ref hashCode);
             HashUtilities.Combine(this.TaintedMethodsNeedsPointsToAnalysis, ref hashCode);
@@ -265,7 +256,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && this.IsInterface == other.IsInterface
                 && this.TransferProperties == other.TransferProperties
                 && this.TaintedProperties == other.TaintedProperties
-                && this.TaintedFields == other.TaintedFields
                 && this.TaintedMethods == other.TaintedMethods
                 && this.TaintedArguments == other.TaintedArguments
                 && this.TaintedMethodsNeedsPointsToAnalysis == other.TaintedMethodsNeedsPointsToAnalysis

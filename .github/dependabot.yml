@@ -1,0 +1,8 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/SecurityCodeScan.Test"
+    schedule:
+      interval: "daily"
+    ignore:
+      - dependency-name: "*"

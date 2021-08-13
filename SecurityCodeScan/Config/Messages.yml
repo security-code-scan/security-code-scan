@@ -188,7 +188,7 @@ SCS0029:
   cwe_url: https://cwe.mitre.org/data/definitions/79.html
 
 SCS0030:
-  title: "Request validation is enabled only for pages, not for all HTTP requests. {0}({1}): {2}."
+  title: "Request validation is enabled only for pages, not for all HTTP requests in {0}({1}): {2}."
   description: The RequestValidationMode property specifies which ASP.NET approach to validation will be used.
   cwe: 554
   cwe_url: https://cwe.mitre.org/data/definitions/554.html

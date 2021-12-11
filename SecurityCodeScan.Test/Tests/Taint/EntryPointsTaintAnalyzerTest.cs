@@ -36,7 +36,7 @@ namespace SecurityCodeScan.Test.Taint
         [DataTestMethod]
         [DataRow("System.Web.Http", "public ", "MyController", "ApiController", true)]
         [DataRow("System.Web.Http", "internal ", "MyController", "ApiController", false)]
-        [DataRow("System.Web.Http", "public ", "My",           "ApiController", false)]
+        [DataRow("System.Web.Http", "public ", "Mu",           "ApiController", false)]
         [DataRow("System.Web.Http", "public ", "MyController", "System.Object", false)]
         [DataRow("System.Web.Http", "public ", "MyController", "ApiController", false, "", "NonAction")]
         public async Task TaintSourceControllerRules(string @namespace,
@@ -275,7 +275,7 @@ Sinks:
         [DataTestMethod]
         [DataRow("System.Web.Mvc", "public ", "MyController", "Controller", true)]
         [DataRow("System.Web.Mvc", "public ", "MyController", "System.Object", false)]
-        [DataRow("System.Web.Mvc", "public ", "My", "Controller", false)]
+        [DataRow("System.Web.Mvc", "public ", "Mu", "Controller", false)]
         [DataRow("System.Web.Mvc", "public ", "MyController", "Controller", false, "", "NonAction")]
         public async Task TaintSourceControllerRules(string @namespace,
                                                      string classsAccessibility,
@@ -489,13 +489,13 @@ Sinks:
         [DataRow("Microsoft.AspNetCore.Mvc", "public ",   "MyController", "Controller", true)]
         [DataRow("Microsoft.AspNetCore.Mvc", "internal ", "MyController", "Controller", false)]
         [DataRow("Microsoft.AspNetCore.Mvc", "public ", "MyController", "System.Object", true)]
-        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "My", "Controller", true)]
-        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "My", "JustController", true)]
-        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "My", "System.Object", false)]
-        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "My", "System.Object", true, "Controller")]
-        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "My", "Controller", false, "NonController")]
-        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "My", "Controller", false, "", "NonAction")]
-        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "My", "Controller", false, "", "", "FromServices")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "Mu", "Controller", true)]
+        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "Mu", "JustController", true)]
+        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "Mu", "System.Object", false)]
+        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "Mu", "System.Object", true, "Controller")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "Mu", "Controller", false, "NonController")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "Mu", "Controller", false, "", "NonAction")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "Mu", "Controller", false, "", "", "FromServices")]
         public async Task TaintSourceControllerRules(string @namespace, string classsAccessibility, string @class, string baseClass, bool warn, string classAttr = "", string methodAttr = "", string paramAttr = "")
         {
             string csClassAttribute = "", vbClassAttribute = "", csParamAttribute = "", vbParamAttribute = "", csMethodAttr = "", vbMethodAttr = "";
@@ -616,16 +616,16 @@ Sinks:
         [DataRow("Microsoft.AspNetCore.Mvc", "internal ", "MyController", "ControllerBase", false, "ApiController")]
 
         [DataRow("Microsoft.AspNetCore.Mvc", "public ", "MyController", "System.Object", true)]
-        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "My",           "System.Object", false)]
-        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "My",           "System.Object", true, "ApiController")]
-        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "My",           "System.Object", true, "Controller")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "Mu",           "System.Object", false)]
+        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "Mu",           "System.Object", true, "ApiController")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "Mu",           "System.Object", true, "Controller")]
 
-        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "My",           "ControllerBase", true, "")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "Mu",           "ControllerBase", true, "")]
         // todo:? same rule is used for aspNetCoreController because we can't have two rules for System.Object
         // however the difference is ApiController doesn't check if parent name suffix is 'Controller'
-        //[DataRow("Microsoft.AspNetCore.Mvc", "public ", "My",           "JustController", false, "")]
-        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "My",           "JustController", true, "", "ApiController")]
-        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "My",           "JustController", true, "", "Controller")]
+        //[DataRow("Microsoft.AspNetCore.Mvc", "public ", "Mu",           "JustController", false, "")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "Mu",           "JustController", true, "", "ApiController")]
+        [DataRow("Microsoft.AspNetCore.Mvc", "public ", "Mu",           "JustController", true, "", "Controller")]
 
         [DataRow("Microsoft.AspNetCore.Mvc", "public ", "MyController", "ControllerBase", false, "ApiController", "", "NonAction")]
         [DataRow("Microsoft.AspNetCore.Mvc", "public ", "MyController", "ControllerBase", false, "ApiController", "", "",       "FromServices")]

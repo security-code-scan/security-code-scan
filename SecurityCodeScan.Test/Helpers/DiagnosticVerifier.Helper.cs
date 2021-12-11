@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
@@ -19,58 +20,6 @@ namespace SecurityCodeScan.Test.Helpers
     /// </summary>
     public abstract partial class DiagnosticVerifier
     {
-        private class ReferenceAssemblies
-        {
-            private readonly        string                                   AssemblyPath;
-            private readonly        Dictionary<string, MetadataReference>    Assemblies = new Dictionary<string, MetadataReference>();
-            private static readonly Dictionary<Version, ReferenceAssemblies> Cache      = new Dictionary<Version, ReferenceAssemblies>();
-
-            private ReferenceAssemblies(Version dotNetVersion)
-            {
-                AssemblyPath = BuildPath(dotNetVersion);
-            }
-
-            private string BuildPath(Version dotNetVersion)
-            {
-                var build   = dotNetVersion.Build != -1 ? $".{dotNetVersion.Build}" : "";
-                var version = $"v{dotNetVersion.Major}.{dotNetVersion.Minor}{build}";
-                var programFiles = Environment.Is64BitOperatingSystem
-                                       ? Environment.SpecialFolder.ProgramFilesX86
-                                       : Environment.SpecialFolder.ProgramFiles;
-
-                return $@"{Environment.GetFolderPath(programFiles)}\Reference Assemblies\Microsoft\Framework\.NETFramework\{version}\";
-            }
-
-            public MetadataReference GetMetadata(string assemblyName)
-            {
-                MetadataReference ret;
-                string            name = assemblyName.ToUpperInvariant();
-                lock (Assemblies)
-                {
-                    if (Assemblies.TryGetValue(name, out ret))
-                        return ret;
-
-                    ret = MetadataReference.CreateFromFile($"{AssemblyPath}{name}");
-                    Assemblies.Add(name, ret);
-                }
-                return ret;
-            }
-
-            public static ReferenceAssemblies GetCache(Version dotNetVersion)
-            {
-                ReferenceAssemblies ret;
-                lock (Cache)
-                {
-                    if (Cache.TryGetValue(dotNetVersion, out ret))
-                        return ret;
-
-                    ret = new ReferenceAssemblies(dotNetVersion);
-                    Cache.Add(dotNetVersion, ret);
-                }
-                return ret;
-            }
-        }
-
         private static readonly MetadataReference CodeAnalysisReference = MetadataReference.CreateFromFile(typeof(Compilation).Assembly.Location);
 
         private static readonly CompilationOptions CSharpDefaultOptions      = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
@@ -108,7 +57,7 @@ namespace SecurityCodeScan.Test.Helpers
                 Logger.LogMessage("{0}", source);
             }
 
-            var documents = GetDocuments(sources, dotNetVersion, language, references);
+            var documents = await GetDocuments(sources, dotNetVersion, language, cancellationToken, references).ConfigureAwait(false);
             return (await GetSortedDiagnosticsFromDocuments(analyzers,
                                                            options,
                                                            documents,
@@ -205,17 +154,19 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="language">The language the source code is in</param>
         /// <returns>A Tuple containing the Documents
         ///  produced from the sources and their TextSpans if relevant</returns>
-        private static IEnumerable<Document> GetDocuments(string[]                       sources,
-                                                          Version                        dotNetVersion,
-                                                          string                         language,
-                                                          IEnumerable<MetadataReference> references = null)
+        private static async Task<IEnumerable<Document>> GetDocuments(
+            string[]                       sources,
+            Version                        dotNetVersion,
+            string                         language,
+            CancellationToken              cancellationToken,
+            IEnumerable<MetadataReference> references = null)
         {
             if (language != LanguageNames.CSharp && language != LanguageNames.VisualBasic)
             {
                 throw new ArgumentException("Unsupported Language");
             }
 
-            var project   = CreateProject(sources, dotNetVersion, language, references);
+            var project = await CreateProject(sources, dotNetVersion, cancellationToken, language, references).ConfigureAwait(false);
             return project.Documents;
         }
 
@@ -225,12 +176,46 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="source">Classes in the form of a string</param>
         /// <param name="language">The language the source code is in</param>
         /// <returns>A Document created from the source string</returns>
-        protected static Document CreateDocument(string                         source,
-                                                 Version                        dotNetVersion,
-                                                 string                         language   = LanguageNames.CSharp,
-                                                 IEnumerable<MetadataReference> references = null)
+        protected static async Task<Document> CreateDocument(
+            string                         source,
+            Version                        dotNetVersion,
+            CancellationToken              cancellationToken,
+            string                         language   = LanguageNames.CSharp,
+            IEnumerable<MetadataReference> references = null)
         {
-            return CreateProject(new[] { source }, dotNetVersion, language, references).Documents.First();
+            return (await CreateProject(new[] { source },
+                                        dotNetVersion,
+                                        cancellationToken,
+                                        language,
+                                        references).ConfigureAwait(false)).Documents.First();
+        }
+
+        private static ReferenceAssemblies GetReferenceAssemblies(Version version)
+        {
+            if (version == new Version(2, 0, 0))
+                return ReferenceAssemblies.NetFramework.Net20.Default;
+            else if (version == new Version(4, 0, 0))
+                return ReferenceAssemblies.NetFramework.Net40.Default;
+            else if (version == new Version(4, 5, 0))
+                return ReferenceAssemblies.NetFramework.Net45.Default;
+            else if (version == new Version(4, 5, 1))
+                return ReferenceAssemblies.NetFramework.Net451.Default;
+            else if (version == new Version(4, 6, 0))
+                return ReferenceAssemblies.NetFramework.Net46.Default;
+            else if (version == new Version(4, 6, 1))
+                return ReferenceAssemblies.NetFramework.Net461.Default;
+            else if (version == new Version(4, 6, 2))
+                return ReferenceAssemblies.NetFramework.Net462.Default;
+            else if (version == new Version(4, 7, 0))
+                return ReferenceAssemblies.NetFramework.Net47.Default;
+            else if (version == new Version(4, 7, 1))
+                return ReferenceAssemblies.NetFramework.Net471.Default;
+            else if (version == new Version(4, 7, 2))
+                return ReferenceAssemblies.NetFramework.Net472.Default;
+            else if (version == new Version(4, 8, 0))
+                return ReferenceAssemblies.NetFramework.Net48.Default;
+            else
+                return ReferenceAssemblies.NetFramework.Net452.Default;
         }
 
         /// <summary>
@@ -239,10 +224,12 @@ namespace SecurityCodeScan.Test.Helpers
         /// <param name="sources">Classes in the form of strings</param>
         /// <param name="language">The language the source code is in</param>
         /// <returns>A Project created out of the Documents created from the source strings</returns>
-        private static Project CreateProject(string[]                           sources,
-                                             Version                            dotNetVersion,
-                                             string                             language        = LanguageNames.CSharp,
-                                             IEnumerable<MetadataReference>     references      = null)
+        private static async Task<Project> CreateProject(
+            string[]                           sources,
+            Version                            dotNetVersion,
+            CancellationToken                  cancellationToken,
+            string                             language        = LanguageNames.CSharp,
+            IEnumerable<MetadataReference>     references      = null)
         {
             string fileNamePrefix = DefaultFilePathPrefix;
             string fileExt        = language == LanguageNames.CSharp ? CSharpDefaultFileExt : VisualBasicDefaultExt;
@@ -251,18 +238,12 @@ namespace SecurityCodeScan.Test.Helpers
 
             var projectId = ProjectId.CreateNewId(debugName: TestProjectName);
 
-            var refAssemblies = ReferenceAssemblies.GetCache(dotNetVersion ?? new Version(4, 5, 2));
+            var refAssemblies = await GetReferenceAssemblies(dotNetVersion).ResolveAsync(language, cancellationToken).ConfigureAwait(false);
 
             var solution = new AdhocWorkspace()
                            .CurrentSolution
                            .AddProject(projectId, TestProjectName, TestProjectName, language)
-                           // Todo: rework assembly references for .NET Core, because currently mscorlib is always referenced
-                           // need to reference nuget packages like .AddPackages in https://github.com/dotnet/roslyn-analyzers/blob/master/src/Test.Utilities/AdditionalMetadataReferences.cs
-                           .AddMetadataReference(projectId, refAssemblies.GetMetadata("mscorlib.dll"))
-                           .AddMetadataReference(projectId, refAssemblies.GetMetadata("System.Core.dll"))
-                           .AddMetadataReference(projectId, refAssemblies.GetMetadata("System.dll"))
-                           .AddMetadataReference(projectId, refAssemblies.GetMetadata("System.Xml.dll"))
-                           .AddMetadataReference(projectId, refAssemblies.GetMetadata("System.Data.dll"))
+                           .AddMetadataReferences(projectId, refAssemblies)
                            .AddMetadataReference(projectId, CodeAnalysisReference)
                            .WithProjectCompilationOptions(projectId, options);
 

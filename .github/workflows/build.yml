@@ -81,7 +81,7 @@ jobs:
         path: security-scan4x.zip
         if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
         
-    - name: Release draft release
+    - name: Create draft release
       uses: softprops/action-gh-release@8a65c813553f4d05769635eb1b70180d25b9b61b
       with:
         draft: true

@@ -80,12 +80,15 @@ jobs:
         name: security-scan4x
         path: security-scan4x.zip
         if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
-
-    - name: Create Release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        
+    - name: Release draft release
+      uses: softprops/action-gh-release@8a65c813553f4d05769635eb1b70180d25b9b61b
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{github.event.inputs.version}}
         draft: true
+        name: ${{github.event.inputs.version}}
+        fail_on_unmatched_files: true
+        files: |
+          ./SecurityCodeScan/bin/${{ matrix.configuration }}/**/*.nupkg
+          ./SecurityCodeScan.Vsix/bin/${{ matrix.configuration }}/*.vsix
+          ./SecurityCodeScan.Tool/.NET Core/bin/${{ matrix.configuration }}/*.nupkg
+          security-scan4x.zip

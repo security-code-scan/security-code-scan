@@ -23,14 +23,13 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: |
+          v4.6.1
           5.0.x
           6.0.x
         include-prerelease: false
 
     - name: Setup MSBuild.exe
       uses: microsoft/setup-msbuild@v1.1
-      with:
-        vs-version: '[17.0,18.0)'
 
     - name: Restore
       run: nuget restore $env:Solution_Name

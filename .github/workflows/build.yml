@@ -78,6 +78,7 @@ jobs:
         $vsix = Get-ChildItem -File .\SecurityCodeScan.Vsix\bin -recurse | Where-Object { $_.Extension -eq ".vsix" } | Select-Object -First 1 -ExpandProperty FullName
         $ManifestPath = ".\SecurityCodeScan.Vsix\marketplace.json"
         & $vsixPublisher publish -payload $vsix -publishManifest $ManifestPath -personalAccessToken $env:marketplace_token
+        [Environment]::Exit(0)
         
     - name: Publish nugets
       env:

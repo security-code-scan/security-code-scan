@@ -80,3 +80,12 @@ jobs:
         name: security-scan4x
         path: security-scan4x.zip
         if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{github.event.inputs.version}}
+        draft: true

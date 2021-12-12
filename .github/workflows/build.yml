@@ -7,7 +7,7 @@ jobs:
       matrix:
         configuration: [Release]
 
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     env:
       Solution_Name: SecurityCodeScan.sln

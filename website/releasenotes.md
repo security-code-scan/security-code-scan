@@ -1,5 +1,8 @@
 # Release Notes
 
+## 5.6.0
+* Added support for .NET 6.0 and VS2022
+
 ## 5.2.1
 * New parameter `--ignore-msbuild-errors` for standalone runner to ignore errors from incompatible projects.
 * Bug fixes and improvements.

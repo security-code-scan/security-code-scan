@@ -1,5 +1,8 @@
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        required: true
 
 jobs:
   build:
@@ -11,6 +14,7 @@ jobs:
 
     env:
       Solution_Name: SecurityCodeScan.sln
+      APPVEYOR_REPO_TAG_NAME: github.event.inputs.version
 
     steps:
     - name: Checkout
@@ -19,7 +23,7 @@ jobs:
         fetch-depth: 0
         persist-credentials: false
         
-    - name: Setup .NET Core
+    - name: Setup .NET SDK
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: |
@@ -39,9 +43,30 @@ jobs:
       run: msbuild -m $env:Solution_Name /p:Configuration=$env:Configuration
       env:
         Configuration: ${{ matrix.configuration }}
-
-    - name: Upload build artifacts
+        
+    - name: Upload nuget package artifact
       uses: actions/upload-artifact@v2
       with:
-        name: Nuget tool
-        path: "./SecurityCodeScan.Tool/.NET Core/bin/Release/*.nupkg"
+        name: SecurityCodeScan.nupkg
+        path: "./SecurityCodeScan/bin/${{ matrix.configuration }}/**/*.nupkg"
+        
+    - name: Upload vsix artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: SecurityCodeScan.vsix
+        path: "./SecurityCodeScan.Vsix/bin/${{ matrix.configuration }}/*.vsix"
+
+    - name: Upload security-scan nuget tool artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: security-scan.nupkg
+        path: "./SecurityCodeScan.Tool/.NET Core/bin/${{ matrix.configuration }}/*.nupkg"
+        
+    - name: Zip security-scan 4.x
+      run: 7z a security-scan4x.zip "./SecurityCodeScan.Tool/.NET 4.x/bin/${{ matrix.configuration }}\net48/*"
+        
+    - name: Upload security-scan 4.x artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: security-scan4x
+        path: security-scan4x.zip

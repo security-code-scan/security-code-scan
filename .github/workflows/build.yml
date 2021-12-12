@@ -48,19 +48,22 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: SecurityCodeScan.nupkg
-        path: "./SecurityCodeScan/bin/${{ matrix.configuration }}/**/*.nupkg"
+        path: "./SecurityCodeScan/bin/${{ matrix.configuration }}/netstandard2.0/*.nupkg"
+        if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
         
     - name: Upload vsix artifact
       uses: actions/upload-artifact@v2
       with:
         name: SecurityCodeScan.vsix
         path: "./SecurityCodeScan.Vsix/bin/${{ matrix.configuration }}/*.vsix"
+        if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
 
     - name: Upload security-scan nuget tool artifact
       uses: actions/upload-artifact@v2
       with:
         name: security-scan.nupkg
         path: "./SecurityCodeScan.Tool/.NET Core/bin/${{ matrix.configuration }}/*.nupkg"
+        if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
         
     - name: Zip security-scan 4.x
       run: 7z a security-scan4x.zip "./SecurityCodeScan.Tool/.NET 4.x/bin/${{ matrix.configuration }}\net48/*"
@@ -70,3 +73,4 @@ jobs:
       with:
         name: security-scan4x
         path: security-scan4x.zip
+        if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`

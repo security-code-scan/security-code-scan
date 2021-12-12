@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30225.117
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31919.166
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SecurityCodeScan", "SecurityCodeScan\SecurityCodeScan.csproj", "{D7034F4A-4741-4493-8E1E-0A6D3BE9734E}"
 EndProject
@@ -26,6 +26,11 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "security-scan", "SecurityCodeScan.Tool\.NET Core\security-scan.csproj", "{45D6A226-F2A4-476F-8D3D-264E4195C073}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "security-scan", "SecurityCodeScan.Tool\.NET 4.x\security-scan.csproj", "{D697AA62-A7E1-43F5-ADD3-D691D5C05859}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CB773D3E-CEC4-45EE-A76C-7CE7C44D88D7}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -75,7 +80,7 @@ Global
 		{D697AA62-A7E1-43F5-ADD3-D691D5C05859} = {4AEA00DB-C7E7-4047-A3B8-9D2B5119B20D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {4890F503-884C-48F5-982B-41C1DB7472F5}
 		EnterpriseLibraryConfigurationToolBinariesPathV6 = packages\EnterpriseLibrary.Common.6.0.1304.0\lib\NET45;packages\EnterpriseLibrary.Data.6.0.1304.0\lib\NET45
+		SolutionGuid = {4890F503-884C-48F5-982B-41C1DB7472F5}
 	EndGlobalSection
 EndGlobal

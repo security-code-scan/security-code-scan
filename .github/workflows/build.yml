@@ -82,6 +82,8 @@ jobs:
         [Environment]::Exit(0)
         
     - name: Publish nugets
+      env:
+        nuget_token: ${{ secrets.nuget_token }}
       run: |
-        dotnet nuget push "./SecurityCodeScan/bin/${{ matrix.configuration }}/netstandard2.0/SecurityCodeScan.VS2019.${{github.event.inputs.version}}.nupkg" -k ${{ secrets.NUGET_TOKEN }} -s https://api.nuget.org/v3/index.json
-        dotnet nuget push "./SecurityCodeScan.Tool/.NET Core/bin/${{ matrix.configuration }}/security-scan.${{github.event.inputs.version}}.nupkg" -k ${{ secrets.NUGET_TOKEN }} -s https://api.nuget.org/v3/index.json
+        dotnet nuget push "./SecurityCodeScan/bin/${{ matrix.configuration }}/netstandard2.0/SecurityCodeScan.VS2019.${{github.event.inputs.version}}.nupkg" -k $nuget_token -s https://api.nuget.org/v3/index.json
+        dotnet nuget push "./SecurityCodeScan.Tool/.NET Core/bin/${{ matrix.configuration }}/security-scan.${{github.event.inputs.version}}.nupkg" -k $nuget_token -s https://api.nuget.org/v3/index.json

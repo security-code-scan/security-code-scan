@@ -14,7 +14,6 @@ jobs:
 
     env:
       Solution_Name: SecurityCodeScan.sln
-      APPVEYOR_REPO_TAG_NAME: github.event.inputs.version
 
     steps:
     - name: Checkout

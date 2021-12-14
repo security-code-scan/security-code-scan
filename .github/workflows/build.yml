@@ -7,6 +7,10 @@ on:
       configuration:
         required: true
         type: string
+      publish:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -50,3 +54,9 @@ jobs:
  
     - name: Run Tests
       run: vstest.console.exe ./SecurityCodeScan.Test/bin/${{ inputs.configuration }}/SecurityCodeScan.Test.dll
+
+    - name: Publish
+      if: ${{ inputs.publish }}
+      uses: .github/actions/publish@vs2019
+      with: 
+        version: ${{ inputs.version }}

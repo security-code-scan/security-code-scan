@@ -3,6 +3,7 @@ on:
 
 jobs:
   deploy:
+    runs-on: ubuntu-latest
     steps:
       - shell: pwsh
         run: |

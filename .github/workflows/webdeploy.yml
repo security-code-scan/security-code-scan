@@ -5,6 +5,7 @@ jobs:
   deploy:
     steps:
       - shell: pwsh
+        run: |
           $ErrorActionPreference = "Stop";
 
           Write-Host "Checking out website repository"

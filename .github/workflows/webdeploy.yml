@@ -20,10 +20,10 @@ jobs:
           cd ..
           $env:GIT_REDIRECT_STDERR = '2>&1'
           git config --global credential.helper store
-          Add-Content -Path "$HOME/.git-credentials" -Value "https://$(${{ secrets.WEBREPO_TOKEN }}):x-oauth-basic@github.com`n" -NoNewline
+          Add-Content -Path "$HOME/.git-credentials" -Value "https://${{ secrets.WEBREPO_TOKEN }}:x-oauth-basic@github.com`n" -NoNewline
           git config --global user.email "donotreply@Appveyor.com"
           git config --global user.name "Appveyor"
-          git clone -q --branch=master https://$(${{ secrets.WEBREPO_TOKEN }}):x-oauth-basic@github.com/security-code-scan/security-code-scan.github.io.git --depth=1
+          git clone -q --branch=master https://${{ secrets.WEBREPO_TOKEN }}:x-oauth-basic@github.com/security-code-scan/security-code-scan.github.io.git --depth=1
           cd security-code-scan.github.io
           git checkout
           cd ..

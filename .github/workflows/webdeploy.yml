@@ -1,0 +1,32 @@
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    steps:
+      - shell: pwsh
+          $ErrorActionPreference = "Stop";
+
+          Write-Host "Checking out website repository"
+          cd ..
+          $env:GIT_REDIRECT_STDERR = '2>&1'
+          git config --global credential.helper store
+          Add-Content -Path "$HOME/.git-credentials" -Value "https://$($env:WEBREPO_TOKEN):x-oauth-basic@github.com`n" -NoNewline
+          git config --global user.email "donotreply@Appveyor.com"
+          git config --global user.name "Appveyor"
+          git clone -q --branch=master https://$($env:WEBREPO_TOKEN):x-oauth-basic@github.com/security-code-scan/security-code-scan.github.io.git --depth=1
+          cd security-code-scan.github.io
+          git checkout
+          cd ..
+          python security-code-scan/website/generate_static_website.py
+          Copy-Item security-code-scan/website/out_site/readme.md security-code-scan.github.io/README.md -Force
+          Copy-Item security-code-scan/website/images/* security-code-scan.github.io/images/ -Force
+          cd security-code-scan.github.io
+          
+          $ErrorActionPreference = "Continue";
+          git add .
+          git commit -a -m "Automatic merge with https://github.com/security-code-scan/security-code-scan/tree/master/website"
+          if($LastExitCode -eq 0) {
+            Write-Host "Pushing to the website repo"
+            git push
+          }

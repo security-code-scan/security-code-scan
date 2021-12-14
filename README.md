@@ -1,11 +1,10 @@
 [![Security Code Scan](website/images/logo.png)](https://security-code-scan.github.io)  
 *Vulnerability Patterns Detector for C# and VB.NET* - [Website](https://security-code-scan.github.io)  
 
-[![.github/workflows/ci.yml](https://github.com/security-code-scan/security-code-scan/actions/workflows/ci.yml/badge.svg)](https://github.com/security-code-scan/security-code-scan/actions/workflows/ci.yml)
+[![Build](https://github.com/security-code-scan/security-code-scan/actions/workflows/ci.yml/badge.svg)](https://github.com/security-code-scan/security-code-scan/actions/workflows/ci.yml)
 
 ### Downloading
 Official releases are available as [nuget package](https://www.nuget.org/packages/SecurityCodeScan.VS2019/) and as [Visual Studio extension](https://marketplace.visualstudio.com/items?itemName=JaroslavLobacevski.SecurityCodeScanVS2019).  
-Nightly builds are available from [appveyor](https://ci.appveyor.com/project/JarLob/security-code-scan) (go to `Configuration: Release` -> `Artifacts`).  
 
 ### Building
 ```

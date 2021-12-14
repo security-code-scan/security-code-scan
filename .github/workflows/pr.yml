@@ -1,0 +1,12 @@
+on:
+  pull_request:
+
+jobs:
+  debug:
+    uses: security-code-scan/security-code-scan/.github/workflows/build.yml@vs2019
+    with:
+      configuration: Debug
+  release:
+    uses: security-code-scan/security-code-scan/.github/workflows/build.yml@vs2019
+    with:
+      configuration: Release

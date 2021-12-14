@@ -4,10 +4,10 @@ on:
 
 jobs:
   debug:
-    uses: .github/workflows/build.yml@vs2019
+    uses: security-code-scan/security-code-scan/.github/workflows/build.yml@vs2019
     with:
       configuration: Debug
   release:
-    uses: .github/workflows/build.yml@vs2019
+    uses: security-code-scan/security-code-scan/.github/workflows/build.yml@vs2019
     with:
       configuration: Release

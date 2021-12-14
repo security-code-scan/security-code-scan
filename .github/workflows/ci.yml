@@ -4,10 +4,10 @@ on:
 
 jobs:
   debug:
-    uses: build.yml
+    uses: build.yml@vs2019
     with:
       configuration: Debug
   release:
-    uses: build.yml
+    uses: build.yml@vs2019
     with:
       configuration: Release

@@ -4,7 +4,7 @@
 [![Build](https://github.com/security-code-scan/security-code-scan/actions/workflows/ci.yml/badge.svg)](https://github.com/security-code-scan/security-code-scan/actions/workflows/ci.yml)
 
 ### Downloading
-Official releases are available as [nuget package](https://www.nuget.org/packages/SecurityCodeScan.VS2019/) and as [Visual Studio extension](https://marketplace.visualstudio.com/items?itemName=JaroslavLobacevski.SecurityCodeScanVS2019).  
+Official releases are available as [nuget package](https://www.nuget.org/packages/SecurityCodeScan.VS2019/), [Visual Studio extension](https://marketplace.visualstudio.com/items?itemName=JaroslavLobacevski.SecurityCodeScanVS2019) and [stand-alone runner](https://www.nuget.org/packages/security-scan/).  
 
 ### Building
 ```

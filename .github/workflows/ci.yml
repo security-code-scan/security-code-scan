@@ -1,3 +1,5 @@
+# Separate from pr.yml for the badge in readme.md
+# The name 'Build' is used by the same badge to generate a SVG
 name: Build
 on:
   push:

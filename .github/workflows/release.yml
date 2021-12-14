@@ -1,0 +1,15 @@
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Three digits version like 5.6.0'
+        required: true
+        type: string
+
+jobs:
+  release:
+    uses: security-code-scan/security-code-scan/.github/workflows/build.yml@vs2019
+    with:
+      version: ${{ inputs.version }}
+      configuration: Release
+      publish: true

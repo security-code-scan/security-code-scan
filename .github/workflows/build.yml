@@ -1,15 +1,15 @@
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       version:
+        required: false
+        type: string
+      configuration:
         required: true
+        type: string
 
 jobs:
   build:
-    strategy:
-      matrix:
-        configuration: [Release]
-
     runs-on: windows-2022
 
     env:
@@ -23,7 +23,7 @@ jobs:
       with:
         fetch-depth: 0
         persist-credentials: false
-        
+
     - name: Setup .NET SDK
       uses: actions/setup-dotnet@v1
       with:
@@ -41,49 +41,12 @@ jobs:
     - name: Restore
       run: nuget restore $env:Solution_Name
       env:
-        Configuration: ${{ matrix.configuration }}
-        
+        Configuration: ${{ github.event.inputs.configuration }}
+
     - name: Build
       run: msbuild -m $env:Solution_Name /p:Configuration=$env:Configuration
       env:
-        Configuration: ${{ matrix.configuration }}
-        
+        Configuration: ${{ github.event.inputs.configuration }}
+ 
     - name: Run Tests
-      run: vstest.console.exe ./SecurityCodeScan.Test/bin/${{ matrix.configuration }}/SecurityCodeScan.Test.dll
-        
-    - name: Zip security-scan 4.x
-      run: 7z a security-scan4x.zip "./SecurityCodeScan.Tool/.NET 4.x/bin/${{ matrix.configuration }}\net48/*"
-        
-    - name: Create draft release
-      uses: softprops/action-gh-release@8a65c813553f4d05769635eb1b70180d25b9b61b
-      with:
-        draft: true
-        name: ${{github.event.inputs.version}}
-        tag_name: ${{github.event.inputs.version}}
-        fail_on_unmatched_files: true
-        files: |
-          ./SecurityCodeScan/bin/${{ matrix.configuration }}/**/*.nupkg
-          ./SecurityCodeScan.Vsix/bin/${{ matrix.configuration }}/*.vsix
-          ./SecurityCodeScan.Tool/.NET Core/bin/${{ matrix.configuration }}/*.nupkg
-          security-scan4x.zip
-
-    - name: Publish vsix
-      shell: powershell
-      env:
-        marketplace_token: ${{ secrets.marketplace_token }}
-      run: |
-        Write-Host "Pushing to visual studio market place"
-        $visualStudioInstallation = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VSSDK -property installationPath
-        $vsixPublisher = Join-Path $visualStudioInstallation 'VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe'
-        & $vsixPublisher login -publisherName JaroslavLobacevski -personalAccessToken $env:marketplace_token
-        $vsix = Get-ChildItem -File .\SecurityCodeScan.Vsix\bin -recurse | Where-Object { $_.Extension -eq ".vsix" } | Select-Object -First 1 -ExpandProperty FullName
-        $ManifestPath = ".\SecurityCodeScan.Vsix\marketplace.json"
-        & $vsixPublisher publish -payload $vsix -publishManifest $ManifestPath -personalAccessToken $env:marketplace_token
-        [Environment]::Exit(0)
-        
-    - name: Publish nugets
-      env:
-        nuget_token: ${{ secrets.nuget_token }}
-      run: |
-        dotnet nuget push "./SecurityCodeScan/bin/${{ matrix.configuration }}/netstandard2.0/SecurityCodeScan.VS2019.${{github.event.inputs.version}}.nupkg" -k $nuget_token -s https://api.nuget.org/v3/index.json
-        dotnet nuget push "./SecurityCodeScan.Tool/.NET Core/bin/${{ matrix.configuration }}/security-scan.${{github.event.inputs.version}}.nupkg" -k $nuget_token -s https://api.nuget.org/v3/index.json
+      run: vstest.console.exe ./SecurityCodeScan.Test/bin/${{ github.event.inputs.configuration }}/SecurityCodeScan.Test.dll

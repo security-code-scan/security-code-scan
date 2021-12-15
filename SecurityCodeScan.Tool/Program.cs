@@ -263,11 +263,13 @@ namespace SecurityCodeScan.Tool
 
             // Attempt to set the version of MSBuild.
             var visualStudioInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
-            var instance = visualStudioInstances.OrderByDescending(x => x.Version).First();
-
-            if (parsedOptions.verbose)
-                Console.WriteLine($"Using MSBuild at '{instance.MSBuildPath}' to load projects.");
-            MSBuildLocator.RegisterInstance(instance);
+            var instance = visualStudioInstances.OrderByDescending(x => x.Version).FirstOrDefault();
+            if (instance != null)
+            {
+                if (parsedOptions.verbose)
+                    Console.WriteLine($"Using MSBuild at '{instance.MSBuildPath}' to load projects.");
+                MSBuildLocator.RegisterInstance(instance);
+            }
 
             var properties = new Dictionary<string, string>() { { "AdditionalFileItemNames", "$(AdditionalFileItemNames);Content" } };
 

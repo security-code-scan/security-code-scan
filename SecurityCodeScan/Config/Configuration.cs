@@ -637,6 +637,7 @@ namespace SecurityCodeScan.Config
     public static class AdditionalConfiguration
     {
         public static string Path;
+        public static bool   Loaded;
     }
 
     /// <summary>
@@ -656,12 +657,13 @@ namespace SecurityCodeScan.Config
             {
                 var projConfigData = ConfigurationManager.GetProjectConfiguration(ctx.Options.AdditionalFiles);
 
-                if (AdditionalConfiguration.Path != null)
+                if (AdditionalConfiguration.Path != null && !AdditionalConfiguration.Loaded)
                 {
                     using (var reader = File.OpenText(AdditionalConfiguration.Path))
                     {
                         var additionalConfig = ConfigurationManager.Reader.DeserializeAndValidate<ConfigData>(reader, validate: true);
                         projConfigData.Merge(additionalConfig);
+                        AdditionalConfiguration.Loaded = true;
                     }
                 }
 

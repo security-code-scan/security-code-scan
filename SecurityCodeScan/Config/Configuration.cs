@@ -655,16 +655,6 @@ namespace SecurityCodeScan.Config
             static Configuration CreateConfiguration(CompilationStartAnalysisContext ctx)
             {
                 var projConfigData = ConfigurationManager.GetProjectConfiguration(ctx.Options.AdditionalFiles);
-
-                if (AdditionalConfiguration.Path != null)
-                {
-                    using (var reader = File.OpenText(AdditionalConfiguration.Path))
-                    {
-                        var additionalConfig = ConfigurationManager.Reader.DeserializeAndValidate<ConfigData>(reader, validate: true);
-                        projConfigData.Merge(additionalConfig);
-                    }
-                }
-
                 return new Configuration(projConfigData, ctx.Compilation);
             }
         }

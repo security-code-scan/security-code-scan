@@ -122,28 +122,37 @@ namespace SecurityCodeScan.Config
         public static ConfigData GetBuiltInAndUserConfiguration(ConfigData project = null)
         {
             var configuration = CachedBuiltInConfiguration.Value;
-
             var userConfig = Reader.GetUserConfiguration();
-            if (userConfig != null)
+            if (userConfig == null && project == null && AdditionalConfiguration.Path == null)
+            {
+                // happy path - no `new ConfigData` is needed
+                return configuration;
+            }
+            else
             {
                 var ret = new ConfigData();
                 ret.Merge(configuration);
-                ret.Merge(userConfig);
+
+                if (userConfig != null)
+                {
+                    ret.Merge(userConfig);
+                }
+
                 if (project != null)
+                {
                     ret.Merge(project);
+                }
+
+                if (AdditionalConfiguration.Path != null)
+                {
+                    using (var reader = File.OpenText(AdditionalConfiguration.Path))
+                    {
+                        ret.Merge(ConfigurationManager.Reader.DeserializeAndValidate<ConfigData>(reader, validate: true));
+                    }
+                }
 
                 return ret;
             }
-
-            if (project != null)
-            {
-                var ret = new ConfigData();
-                ret.Merge(configuration);
-                ret.Merge(project);
-                return ret;
-            }
-
-            return configuration;
         }
 
         public static ConfigData GetProjectConfiguration(ImmutableArray<AdditionalText> additionalFiles)

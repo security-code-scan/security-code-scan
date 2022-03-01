@@ -57,6 +57,6 @@ jobs:
 
     - name: Publish
       if: ${{ inputs.publish }}
-      uses: ./.github/actions/publish@vs2019
+      uses: ./.github/actions/publish
       with: 
         version: ${{ inputs.version }}

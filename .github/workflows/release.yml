@@ -10,6 +10,6 @@ jobs:
   release:
     uses: security-code-scan/security-code-scan/.github/workflows/build.yml@vs2019
     with:
-      version: ${{ inputs.version }}
+      version: ${{ github.event.inputs.version }}
       configuration: Release
       publish: true

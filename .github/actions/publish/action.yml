@@ -3,6 +3,12 @@ inputs:
     required: true
     type: string
     description: 'Three digits version like 5.6.0'
+  MARKETPLACE_TOKEN:
+    required: true
+    type: string
+  NUGET_TOKEN:
+    required: true
+    type: string
 
 runs:
   using: "composite"
@@ -33,7 +39,7 @@ runs:
     - name: Publish vsix
       shell: powershell
       env:
-        marketplace_token: ${{ github.event.secrets.MARKETPLACE_TOKEN }}
+        marketplace_token: ${{ inputs.MARKETPLACE_TOKEN }}
       run: |
         Write-Host "Pushing to visual studio market place"
         $visualStudioInstallation = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VSSDK -property installationPath
@@ -49,7 +55,7 @@ runs:
     - name: Publish nugets
       shell: bash
       env:
-        nuget_token: ${{ github.event.secrets.NUGET_TOKEN }}
+        nuget_token: ${{ inputs.NUGET_TOKEN }}
       run: |
         dotnet nuget push "./SecurityCodeScan/bin/Release/netstandard2.0/SecurityCodeScan.VS2019.${{inputs.version}}.nupkg" -k $nuget_token -s https://api.nuget.org/v3/index.json
         dotnet nuget push "./SecurityCodeScan.Tool/.NET Core/bin/Release/security-scan.${{inputs.version}}.nupkg" -k $nuget_token -s https://api.nuget.org/v3/index.json

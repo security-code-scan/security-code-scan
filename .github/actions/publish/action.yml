@@ -27,7 +27,7 @@ runs:
     - name: Publish vsix
       shell: powershell
       env:
-        marketplace_token: ${{ github.event.secrets.marketplace_token }}
+        marketplace_token: ${{ secrets.marketplace_token }}
       run: |
         Write-Host "Pushing to visual studio market place"
         $visualStudioInstallation = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VSSDK -property installationPath
@@ -43,7 +43,7 @@ runs:
     - name: Publish nugets
       shell: bash
       env:
-        nuget_token: ${{ github.event.secrets.nuget_token }}
+        nuget_token: ${{ secrets.nuget_token }}
       run: |
         dotnet nuget push "./SecurityCodeScan/bin/Release/netstandard2.0/SecurityCodeScan.VS2019.${{inputs.version}}.nupkg" -k $nuget_token -s https://api.nuget.org/v3/index.json
         dotnet nuget push "./SecurityCodeScan.Tool/.NET Core/bin/Release/security-scan.${{inputs.version}}.nupkg" -k $nuget_token -s https://api.nuget.org/v3/index.json

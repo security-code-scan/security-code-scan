@@ -60,5 +60,5 @@ jobs:
       uses: ./.github/actions/publish
       with: 
         version: ${{ inputs.version }}
-        MARKETPLACE_TOKEN: ${{ inputs.MARKETPLACE_TOKEN }}
-        NUGET_TOKEN: ${{ inputs.NUGET_TOKEN }}
+        MARKETPLACE_TOKEN: ${{ secrets.MARKETPLACE_TOKEN }}
+        NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}

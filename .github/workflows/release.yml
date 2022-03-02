@@ -13,3 +13,5 @@ jobs:
       version: ${{ github.event.inputs.version }}
       configuration: Release
       publish: true
+      MARKETPLACE_TOKEN: ${{ secrets.MARKETPLACE_TOKEN }}
+      NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}

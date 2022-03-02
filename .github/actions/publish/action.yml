@@ -6,7 +6,12 @@ inputs:
 
 runs:
   using: "composite"
-  steps: 
+  steps:
+    - name: Dump GitHub context
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+      run: echo "$GITHUB_CONTEXT"
+        
     - name: Zip security-scan 4.x
       shell: bash
       run: 7z a security-scan4x.zip "./SecurityCodeScan.Tool/.NET 4.x/bin/Release/net48/*"
@@ -27,7 +32,7 @@ runs:
     - name: Publish vsix
       shell: powershell
       env:
-        marketplace_token: ${{ secrets.marketplace_token }}
+        marketplace_token: ${{ github.event.secrets.MARKETPLACE_TOKEN }}
       run: |
         Write-Host "Pushing to visual studio market place"
         $visualStudioInstallation = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VSSDK -property installationPath
@@ -43,7 +48,7 @@ runs:
     - name: Publish nugets
       shell: bash
       env:
-        nuget_token: ${{ secrets.nuget_token }}
+        nuget_token: ${{ github.event.secrets.NUGET_TOKEN }}
       run: |
         dotnet nuget push "./SecurityCodeScan/bin/Release/netstandard2.0/SecurityCodeScan.VS2019.${{inputs.version}}.nupkg" -k $nuget_token -s https://api.nuget.org/v3/index.json
         dotnet nuget push "./SecurityCodeScan.Tool/.NET Core/bin/Release/security-scan.${{inputs.version}}.nupkg" -k $nuget_token -s https://api.nuget.org/v3/index.json

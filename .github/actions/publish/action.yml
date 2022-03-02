@@ -12,13 +12,7 @@ inputs:
 
 runs:
   using: "composite"
-  steps:
-    - name: Dump GitHub context
-      shell: bash
-      env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
-      run: echo "$GITHUB_CONTEXT"
-        
+  steps:        
     - name: Zip security-scan 4.x
       shell: bash
       run: 7z a security-scan4x.zip "./SecurityCodeScan.Tool/.NET 4.x/bin/Release/net48/*"

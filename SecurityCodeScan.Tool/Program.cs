@@ -154,6 +154,7 @@ namespace SecurityCodeScan.Tool
         public bool ignoreMsBuildErrors = false;
         public bool showBanner = true;
         public bool cwe = false;
+        public bool failOnWarning = false;
         public HashSet<string> excludeWarnings = new HashSet<string>();
         public HashSet<string> includeWarnings = new HashSet<string>();
         public List<Glob> excludeProjects = new List<Glob>();
@@ -184,6 +185,7 @@ namespace SecurityCodeScan.Tool
                     { "n|no-banner",    "(Optional) don't show the banner", r => { showBanner = r == null; } },
                     { "v|verbose",      "(Optional) more diagnostic messages", r => { verbose = r != null; } },
                     { "ignore-msbuild-errors", "(Optional) Don't stop on MSBuild errors", r => { ignoreMsBuildErrors = r != null; } },
+                    { "f|fail-any-warn","(Optional) fail on any warnings with non-zero exit code", r => { failOnWarning = r != null; } },
                     { "h|?|help",       "show this message and exit", h => shouldShowHelp = h != null },
                 };
 
@@ -304,6 +306,13 @@ namespace SecurityCodeScan.Tool
                 var elapsed = DateTime.Now - startTime;
                 Console.WriteLine($@"Completed in {elapsed:hh\:mm\:ss}");
                 Console.WriteLine($@"{count} warnings");
+
+                if (parsedOptions.failOnWarning && count > 0)
+                {
+                    const int exitCode = 1;
+                    Console.WriteLine($@"Exiting with {exitCode} due to warnings.");
+                    return exitCode;
+                }
 
                 return 0;
             }

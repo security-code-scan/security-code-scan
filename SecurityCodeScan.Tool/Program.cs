@@ -219,6 +219,10 @@ namespace SecurityCodeScan.Tool
 
     internal class Program
     {
+        private delegate bool TryGetAbsoluteSolutionPath(string path, string baseDirectory, int reportingMode, out string? absolutePath);
+
+        private static TryGetAbsoluteSolutionPath? tryGetAbsoluteSolutionPath;
+
         private static async Task<int> Main(string[] args)
         {
             Console.OutputEncoding = Encoding.UTF8;
@@ -273,10 +277,46 @@ namespace SecurityCodeScan.Tool
                 MSBuildLocator.RegisterInstance(instance);
             }
 
+            var msCodeAnalyisBuildAssembly = typeof(MSBuildProjectLoader).Assembly;
+            var msBuildAssembly = Assembly.Load("Microsoft.Build");
+
+            var pathResolverType = msCodeAnalyisBuildAssembly.GetType("Microsoft.CodeAnalysis.MSBuild.PathResolver");
+            ConstructorInfo pathResolverCtor = pathResolverType.GetConstructor(
+                BindingFlags.Instance | BindingFlags.Public,
+                null,
+                new[] { msCodeAnalyisBuildAssembly.GetType("Microsoft.CodeAnalysis.MSBuild.DiagnosticReporter") },
+                null);
+            var reporterField = typeof(MSBuildWorkspace).GetField("_reporter", BindingFlags.Instance | BindingFlags.NonPublic);
+            var solutionFileType = msBuildAssembly.GetType("Microsoft.Build.Construction.SolutionFile");
+            var constructionParseMethod = solutionFileType.GetMethod("Parse", BindingFlags.Static | BindingFlags.Public);
+            var pathResolverTryGetAbsoluteSolutionPathMethod = pathResolverType.GetMethod("TryGetAbsoluteSolutionPath", BindingFlags.Public | BindingFlags.Instance);
+            var projectsInOrderProperty = solutionFileType.GetProperty("ProjectsInOrder", BindingFlags.Instance | BindingFlags.Public);
+            var projectInSolutionType = msBuildAssembly.GetType("Microsoft.Build.Construction.ProjectInSolution");
+            var absolutePathProperty = projectInSolutionType.GetProperty("AbsolutePath", BindingFlags.Instance | BindingFlags.Public);
+
             var properties = new Dictionary<string, string>() { { "AdditionalFileItemNames", "$(AdditionalFileItemNames);Content" } };
 
             using (var workspace = MSBuildWorkspace.Create(properties))
             {
+                var pathResolver = pathResolverCtor.Invoke( new object[] { reporterField.GetValue(workspace) });
+                tryGetAbsoluteSolutionPath = (TryGetAbsoluteSolutionPath)Delegate.CreateDelegate(
+                    typeof(TryGetAbsoluteSolutionPath),
+                    pathResolver,
+                    pathResolverTryGetAbsoluteSolutionPathMethod);
+                if (tryGetAbsoluteSolutionPath == null)
+                    return -1;
+
+                Console.WriteLine($"Loading solution '{parsedOptions.solutionPath}'");
+                if (!tryGetAbsoluteSolutionPath(parsedOptions.solutionPath, Directory.GetCurrentDirectory(), 0, out var absoluteSolutionPath))
+                {
+                    // TryGetAbsoluteSolutionPath should throw before we get here.
+                    return -1;
+                }
+
+                var parsedSolution = constructionParseMethod.Invoke(null, new object[] { absoluteSolutionPath });
+                var projectsInOrder = (IReadOnlyList<object>)projectsInOrderProperty.GetValue(parsedSolution);
+                var projectPaths = projectsInOrder.Select(x => (string)absolutePathProperty.GetValue(x));
+
                 // Print message for WorkspaceFailed event to help diagnosing project load failures.
                 workspace.WorkspaceFailed += (o, e) =>
                 {
@@ -291,9 +331,30 @@ namespace SecurityCodeScan.Tool
                         returnCode = 2;
                 };
 
-                Console.WriteLine($"Loading solution '{parsedOptions.solutionPath}'");
-                // Attach progress reporter so we print projects as they are loaded.
-                var solution = await workspace.OpenSolutionAsync(parsedOptions.solutionPath, new ConsoleProgressReporter(parsedOptions.verbose)).ConfigureAwait(false);
+                var solutionDirectory = Path.GetDirectoryName(absoluteSolutionPath) + Path.DirectorySeparatorChar;
+                List<Project> projects = new List<Project>(projectPaths.Count());
+                foreach (var projectPath in projectPaths)
+                {
+                    if (projectPath.EndsWith(".shproj") || projectPath.EndsWith(".sqlproj") || projectPath.EndsWith(".fsproj"))
+                    {
+                        Console.WriteLine($"Skipped: {projectPath} excluded from analysis");
+                        continue;
+                    }
+
+                    var path = projectPath;
+                    if (projectPath.StartsWith(solutionDirectory))
+                        path = projectPath.Remove(0, solutionDirectory.Length);
+
+                    if ((parsedOptions.includeProjects.Any() && !parsedOptions.includeProjects.Any(x => x.IsMatch(path))) ||
+                        parsedOptions.excludeProjects.Any(x => x.IsMatch(path)))
+                    {
+                        Console.WriteLine($"Skipped: {projectPath} excluded from analysis");
+                        continue;
+                    }
+
+                    // Attach progress reporter so we print projects as they are loaded.
+                    projects.Add(await workspace.OpenProjectAsync(projectPath, new ConsoleProgressReporter(parsedOptions.verbose)).ConfigureAwait(false));
+                }
                 Console.WriteLine($"Finished loading solution '{parsedOptions.solutionPath}'");
                 if (returnCode != 0)
                     return returnCode;
@@ -301,7 +362,7 @@ namespace SecurityCodeScan.Tool
                 var analyzers = new List<DiagnosticAnalyzer>();
                 LoadAnalyzers(parsedOptions, analyzers);
 
-                var count = await GetDiagnostics(parsedOptions, versionString, solution, analyzers).ConfigureAwait(false);
+                var count = await GetDiagnostics(parsedOptions, versionString, projects, analyzers).ConfigureAwait(false);
 
                 var elapsed = DateTime.Now - startTime;
                 Console.WriteLine($@"Completed in {elapsed:hh\:mm\:ss}");
@@ -332,7 +393,7 @@ namespace SecurityCodeScan.Tool
         private static async Task<int> GetDiagnostics(
             ParsedOptions parsedOptions,
             string versionString,
-            Solution solution,
+            IEnumerable<Project> projects,
             List<DiagnosticAnalyzer> analyzers)
         {
             Stream stream = null;
@@ -367,22 +428,8 @@ namespace SecurityCodeScan.Tool
                         runner = new SingleThreadRunner(parsedOptions.verbose, analyzers, LogDiagnostics, parsedOptions, descriptors, logger);
                     }
 
-                    var solutionPath = Path.GetDirectoryName(solution.FilePath) + Path.DirectorySeparatorChar;
-                    foreach (var project in solution.Projects)
+                    foreach (var project in projects)
                     {
-                        var projectPath = project.FilePath;
-                        if (projectPath.StartsWith(solutionPath))
-                            projectPath = projectPath.Remove(0, solutionPath.Length);
-
-
-
-                        if ((parsedOptions.includeProjects.Any() && !parsedOptions.includeProjects.Any(x => x.IsMatch(projectPath))) ||
-                            parsedOptions.excludeProjects.Any(x => x.IsMatch(projectPath)))
-                        {
-                            Console.WriteLine($"Skipped: {project.FilePath} excluded from analysis");
-                            continue;
-                        }
-
                         await runner.Run(project).ConfigureAwait(false);
                     }
 

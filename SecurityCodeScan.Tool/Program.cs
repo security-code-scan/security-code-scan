@@ -261,7 +261,7 @@ namespace SecurityCodeScan.Tool
                 Console.WriteLine("\nUsage:\n");
                 parsedOptions.inputOptions.WriteOptionDescriptions(Console.Out);
                 Console.WriteLine("\nExample:\n");
-                Console.WriteLine($"  {name} my.sln --excl-proj=**/*Test*/** --export=out.sarif --excl-warn=SCS1234;SCS2345 --config=setting.yml");
+                Console.WriteLine($"  {name} my.sln/my.csproj --excl-proj=**/*Test*/** --export=out.sarif --excl-warn=SCS1234;SCS2345 --config=setting.yml");
                 return 1;
             }
 

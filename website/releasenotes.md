@@ -1,5 +1,10 @@
 # Release Notes
 
+## 5.6.4
+* Support running dotnet tool against a single project
+* Better filtering by projects in the dotnet tool
+* [#246](https://github.com/security-code-scan/security-code-scan/issues/246) Package security-scan is not compatible with netcoreapp3.1
+
 ## 5.6.3
 * [#248](https://github.com/security-code-scan/security-code-scan/pull/248) Be able to exit with non-zero error code when warnings are found
 

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
 {
     public static class AttributeDataExtensions
     {
-        public static T? DecodeNamedArgument<T>(this AttributeData data, string name, SpecialType specialType, T? defaultValue = default)
+        public static T DecodeNamedArgument<T>(this AttributeData data, string name, SpecialType specialType, T defaultValue = default)
         {
             var namedArguments = data.NamedArguments;
             int index = IndexOfNamedArgument(namedArguments, name);
@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis
 
     public static class TypedConstantExtensions
     {
-        public static T? DecodeValue<T>(this TypedConstant c, SpecialType specialType)
+        public static T DecodeValue<T>(this TypedConstant c, SpecialType specialType)
         {
-            c.TryDecodeValue(specialType, out T? value);
+            c.TryDecodeValue(specialType, out T value);
             return value;
         }
 

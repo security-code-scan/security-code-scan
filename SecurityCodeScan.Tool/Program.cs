@@ -173,7 +173,7 @@ namespace SecurityCodeScan.Tool
 
                 inputOptions = new OptionSet
                 {
-                    { "<>",             "(Required) solution path", r => { solutionPath = r; } },
+                    { "<>",             "(Required) solution or project path", r => { solutionPath = r; } },
                     { "w|excl-warn=",   "(Optional) semicolon delimited list of warnings to exclude", r => { excludeWarningsList = r; } },
                     { "incl-warn=",     "(Optional) semicolon delimited list of warnings to include", r => { includeWarningsList = r; } },
                     { "p|excl-proj=",   "(Optional) semicolon delimited list of glob project patterns to exclude", r => { excludeProjectsList = r; } },
@@ -313,9 +313,17 @@ namespace SecurityCodeScan.Tool
                     return -1;
                 }
 
-                var parsedSolution = constructionParseMethod.Invoke(null, new object[] { absoluteSolutionPath });
-                var projectsInOrder = (IReadOnlyList<object>)projectsInOrderProperty.GetValue(parsedSolution);
-                var projectPaths = projectsInOrder.Select(x => (string)absolutePathProperty.GetValue(x));
+                IEnumerable<string?> projectPaths = null;
+                if (absoluteSolutionPath.EndsWith(".sln"))
+                {
+                    var parsedSolution = constructionParseMethod.Invoke(null, new object[] { absoluteSolutionPath });
+                    var projectsInOrder = (IReadOnlyList<object>)projectsInOrderProperty.GetValue(parsedSolution);
+                    projectPaths = projectsInOrder.Select(x => (string)absolutePathProperty.GetValue(x));
+                }
+                else
+                {
+                    projectPaths = Enumerable.Repeat(absoluteSolutionPath, 1);
+                }
 
                 // Print message for WorkspaceFailed event to help diagnosing project load failures.
                 workspace.WorkspaceFailed += (o, e) =>

@@ -12,7 +12,7 @@
 * Blue-yellow edition in support of Ukraine.
 
 ## 5.6.1
-* Fixed #239 "Adding custom sanitizers to a config file in stand-alone runner".
+* Fixed [#239](https://github.com/security-code-scan/security-code-scan/issues/239) "Adding custom sanitizers to a config file in stand-alone runner".
 
 ## 5.6.0
 * Added support for .NET 6.0 and VS2022

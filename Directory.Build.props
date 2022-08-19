@@ -10,7 +10,7 @@
     </When>
     <Otherwise>
       <PropertyGroup>
-        <AssemblyVersionNumber>5.6.6.0</AssemblyVersionNumber>
+        <AssemblyVersionNumber>5.6.7.0</AssemblyVersionNumber>
       </PropertyGroup>
     </Otherwise>
   </Choose>

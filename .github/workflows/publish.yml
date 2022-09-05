@@ -53,7 +53,7 @@ jobs:
         file: 'SecurityCodeScan.VS2019.Vsix.vsix'
 
     - name: Publish vsix
-      shell: powershell
+      shell: pwsh
       env:
         marketplace_token: ${{ secrets.MARKETPLACE_TOKEN }}
       run: |

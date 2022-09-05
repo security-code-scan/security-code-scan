@@ -159,6 +159,7 @@ namespace SecurityCodeScan.Tool
         public HashSet<string> includeWarnings = new HashSet<string>();
         public List<Glob> excludeProjects = new List<Glob>();
         public List<Glob> includeProjects = new List<Glob>();
+        public string sdkPath = null;
 
         public OptionSet inputOptions = null;
 
@@ -185,6 +186,7 @@ namespace SecurityCodeScan.Tool
                     { "n|no-banner",    "(Optional) don't show the banner", r => { showBanner = r == null; } },
                     { "v|verbose",      "(Optional) more diagnostic messages", r => { verbose = r != null; } },
                     { "ignore-msbuild-errors", "(Optional) Don't stop on MSBuild errors", r => { ignoreMsBuildErrors = r != null; } },
+                    { "sdk-path=",      "(Optional) Path to .NET SDK to use.",  r => { sdkPath = r; } },
                     { "f|fail-any-warn","(Optional) fail on any warnings with non-zero exit code", r => { failOnWarning = r != null; } },
                     { "h|?|help",       "show this message and exit", h => shouldShowHelp = h != null },
                 };
@@ -266,13 +268,53 @@ namespace SecurityCodeScan.Tool
             var returnCode = 0;
 
             // Attempt to set the version of MSBuild.
-            var visualStudioInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
-            var instance = visualStudioInstances.OrderByDescending(x => x.Version).FirstOrDefault();
-            if (instance != null)
+            if (parsedOptions.sdkPath != null)
             {
-                if (parsedOptions.verbose)
-                    Console.WriteLine($"Using MSBuild at '{instance.MSBuildPath}' to load projects.");
-                MSBuildLocator.RegisterInstance(instance);
+                void ApplyDotNetSdkEnvironmentVariables(string dotNetSdkPath)
+                {
+                    const string MSBUILD_EXE_PATH = nameof(MSBUILD_EXE_PATH);
+                    const string MSBuildExtensionsPath = nameof(MSBuildExtensionsPath);
+                    const string MSBuildSDKsPath = nameof(MSBuildSDKsPath);
+
+                    var variables = new Dictionary<string, string>
+                    {
+                        [MSBUILD_EXE_PATH] = Path.Combine(dotNetSdkPath, "MSBuild.dll"),
+                        [MSBuildExtensionsPath] = dotNetSdkPath,
+                        [MSBuildSDKsPath] = Path.Combine(dotNetSdkPath, "Sdks")
+                    };
+
+                    foreach (var kvp in variables)
+                    {
+                        Environment.SetEnvironmentVariable(kvp.Key, kvp.Value);
+                    }
+                }
+                ApplyDotNetSdkEnvironmentVariables(parsedOptions.sdkPath);
+                // Find and load NuGet assemblies if msbuildPath is in a VS installation
+                string nugetPath = Path.GetFullPath(Path.Combine(parsedOptions.sdkPath, "..", "..", "..", "Common7", "IDE", "CommonExtensions", "Microsoft", "NuGet"));
+                if (Directory.Exists(nugetPath))
+                {
+                    MSBuildLocator.RegisterMSBuildPath(new string[] { parsedOptions.sdkPath, nugetPath });
+                }
+                else
+                {
+                    MSBuildLocator.RegisterMSBuildPath(parsedOptions.sdkPath);
+                }
+            }
+            else
+            {
+                var visualStudioInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
+                var instance = visualStudioInstances.OrderByDescending(x => x.Version).FirstOrDefault();
+                if (instance != null)
+                {
+                    if (parsedOptions.verbose)
+                        Console.WriteLine($"Using MSBuild at '{instance.MSBuildPath}' to load projects.");
+                    MSBuildLocator.RegisterInstance(instance);
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to find MSBuild path. Try specifying `sdk-path=` as a command line parameter.");
+                    return 1;
+                }
             }
 
             var properties = new Dictionary<string, string>() { { "AdditionalFileItemNames", "$(AdditionalFileItemNames);Content" } };

@@ -4,6 +4,10 @@ name: Build
 on:
   push:
 
+concurrency: 
+  group: onpush
+  cancel-in-progress: true
+
 jobs:
   debug:
     uses: security-code-scan/security-code-scan/.github/workflows/build.yml@vs2019

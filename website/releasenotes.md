@@ -1,7 +1,7 @@
 # Release Notes
 
 ## 5.6.7
-* sln were not analyzed by standalone tool fix by @matteo-tosi in https://github.com/security-code-scan/security-code-scan/pull/262
+* sln were not analyzed by standalone tool fix by [@matteo-tosi](https://github.com/matteo-tosi) in [#262](https://github.com/security-code-scan/security-code-scan/pull/262)
 * added --sdk-path parameter
 
 **[Full Changelog](https://github.com/security-code-scan/security-code-scan/compare/5.6.6…5.6.7)**

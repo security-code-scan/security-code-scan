@@ -4,7 +4,7 @@
 * sln were not analyzed by standalone tool fix by @matteo-tosi in https://github.com/security-code-scan/security-code-scan/pull/262
 * added --sdk-path parameter
 
-**Full Changelog**: https://github.com/security-code-scan/security-code-scan/compare/5.6.6...5.6.7
+**[Full Changelog](https://github.com/security-code-scan/security-code-scan/compare/5.6.6…5.6.7)**
 
 ## 5.6.6
 * Fixed [#258](https://github.com/security-code-scan/security-code-scan/issues/258) "Standalone scanner throws exception: 'ProjectName' is already part of the workspace"

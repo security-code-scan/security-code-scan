@@ -1,15 +1,15 @@
 # Separate from pr.yml for the badge in readme.md
 # The name 'Build' is used by the same badge to generate a SVG
-# name: Build
-# on:
-#   push:
+name: Build
+on:
+  push:
 
-# jobs:
-#   debug:
-#     uses: security-code-scan/security-code-scan/.github/workflows/build.yml@vs2019
-#     with:
-#       configuration: Debug
-#   release:
-#     uses: security-code-scan/security-code-scan/.github/workflows/build.yml@vs2019
-#     with:
-#       configuration: Release
+jobs:
+  debug:
+    uses: security-code-scan/security-code-scan/.github/workflows/build.yml@vs2019
+    with:
+      configuration: Debug
+  release:
+    uses: security-code-scan/security-code-scan/.github/workflows/build.yml@vs2019
+    with:
+      configuration: Release

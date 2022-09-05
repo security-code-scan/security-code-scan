@@ -13,20 +13,23 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Append release body to release notes
+      env:
+        release_notes: ${{github.event.release.body}}
       run: |
         git config --global user.email "octokit@github.com"
         git config --global user.name "Octokit"
-        cd security-code-scan
         head --lines=2 website/releasenotes.md > website/new_releasenotes.md
-        echo "${{github.event.release.body}}" >> website/new_releasenotes.md
+        echo "$release_notes" >> website/new_releasenotes.md
         tail --lines=+2 website/releasenotes.md >> website/new_releasenotes.md
         mv website/new_releasenotes.md website/releasenotes.md
+        sed -i 's/<AssemblyVersionNumber>[0-9]\.[0-9]\.[0-9]\.[0-9]<\/AssemblyVersionNumber>/<AssemblyVersionNumber>${{github.event.release.tag_name}}.9<\/AssemblyVersionNumber>/g' Directory.Build.props
         git add .
-        git commit -a -m "Update release notes"
+        git commit -a -m "Update release notes & bump dev version"
         git push
       shell: bash
 
   publish:
+    needs: [release-notes]
     runs-on: ubuntu-latest
     steps:
 
@@ -45,26 +48,26 @@ jobs:
       with:
         file: 'SecurityCodeScan.VS2019.Vsix.vsix'
 
-    # - name: Publish vsix
-    #   shell: powershell
-    #   env:
-    #     marketplace_token: ${{ secrets.MARKETPLACE_TOKEN }}
-    #   run: |
-    #     Write-Host "Pushing to visual studio market place"
-    #     $visualStudioInstallation = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VSSDK -property installationPath
-    #     $vsixPublisher = Join-Path $visualStudioInstallation 'VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe'
-    #     & $vsixPublisher login -publisherName JaroslavLobacevski -personalAccessToken $env:marketplace_token
-    #     $vsix = Get-ChildItem -File .\SecurityCodeScan.Vsix\bin -recurse | Where-Object { $_.Extension -eq ".vsix" } | Select-Object -First 1 -ExpandProperty FullName
-    #     $ManifestPath = ".\SecurityCodeScan.Vsix\marketplace.json"
-    #     & $vsixPublisher publish -payload $vsix -publishManifest $ManifestPath -personalAccessToken $env:marketplace_token
-    #     # currently vsixpublisher.exe throws non critical telemetry exception but does the job done
-    #     # force successful exit code
-    #     [Environment]::Exit(0)
+    - name: Publish vsix
+      shell: powershell
+      env:
+        marketplace_token: ${{ secrets.MARKETPLACE_TOKEN }}
+      run: |
+        Write-Host "Pushing to visual studio market place"
+        $visualStudioInstallation = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VSSDK -property installationPath
+        $vsixPublisher = Join-Path $visualStudioInstallation 'VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe'
+        & $vsixPublisher login -publisherName JaroslavLobacevski -personalAccessToken $env:marketplace_token
+        $vsix =  Get-ChildItem -File SecurityCodeScan.VS2019.Vsix.vsix -recurse | Select-Object -First 1 -ExpandProperty FullName
+        $ManifestPath = ".\SecurityCodeScan.Vsix\marketplace.json"
+        & $vsixPublisher publish -payload $vsix -publishManifest $ManifestPath -personalAccessToken $env:marketplace_token
+        # currently vsixpublisher.exe throws non critical telemetry exception but does the job done
+        # force successful exit code
+        [Environment]::Exit(0)
 
-    # - name: Publish nugets
-    #   shell: bash
-    #   env:
-    #     nuget_token: ${{ secrets.NUGET_TOKEN }}
-    #   run: |
-    #     dotnet nuget push "./SecurityCodeScan/bin/Release/netstandard2.0/SecurityCodeScan.VS2019.${{inputs.version}}.nupkg" -k $nuget_token -s https://api.nuget.org/v3/index.json
-    #     dotnet nuget push "./SecurityCodeScan.Tool/.NET Core/bin/Release/security-scan.${{inputs.version}}.nupkg" -k $nuget_token -s https://api.nuget.org/v3/index.json
+    - name: Publish nugets
+      shell: bash
+      env:
+        nuget_token: ${{ secrets.NUGET_TOKEN }}
+      run: |
+        dotnet nuget push "SecurityCodeScan.VS2019.${{github.event.release.tag_name}}.nupkg" -k $nuget_token -s https://api.nuget.org/v3/index.json
+        dotnet nuget push "security-scan.${{github.event.release.tag_name}}.nupkg" -k $nuget_token -s https://api.nuget.org/v3/index.json

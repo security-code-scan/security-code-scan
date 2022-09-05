@@ -340,6 +340,8 @@ namespace SecurityCodeScan.Tool
                             Console.WriteLine($"Skipped: {project.FilePath} excluded from analysis");
                             continue;
                         }
+
+                        projects.Add(project);
                     }
                 }
                 else

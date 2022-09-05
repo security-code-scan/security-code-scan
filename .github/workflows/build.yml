@@ -1,3 +1,4 @@
+name: "Reusable build"
 on:
   workflow_call:
     inputs:
@@ -7,15 +8,12 @@ on:
       configuration:
         required: true
         type: string
-      publish:
+      makeartifacts:
         required: false
         type: boolean
         default: false
-    secrets:
-      MARKETPLACE_TOKEN:
-        required: false
-      NUGET_TOKEN:
-        required: false
+
+permissions: {}
 
 jobs:
   build:
@@ -27,6 +25,7 @@ jobs:
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
     steps:
+
     - name: Checkout
       uses: actions/checkout@v2
       with:
@@ -37,6 +36,7 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: |
+          3.1.x
           5.0.x
           6.0.x
         include-prerelease: false
@@ -56,14 +56,23 @@ jobs:
       run: msbuild -m $env:Solution_Name /p:Configuration=$env:Configuration
       env:
         Configuration: ${{ inputs.configuration }}
- 
+
     - name: Run Tests
       run: vstest.console.exe ./SecurityCodeScan.Test/bin/${{ inputs.configuration }}/SecurityCodeScan.Test.dll
 
-    - name: Publish
-      if: ${{ inputs.publish }}
-      uses: ./.github/actions/publish
-      with: 
-        version: ${{ inputs.version }}
-        MARKETPLACE_TOKEN: ${{ secrets.MARKETPLACE_TOKEN }}
-        NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+    - name: Zip security-scan 4.x
+      if: ${{ inputs.makeartifacts }}
+      shell: bash
+      run: 7z a security-scan4x.zip "./SecurityCodeScan.Tool/.NET 4.x/bin/Release/net48/*"
+
+    - name: Upload artifacts
+      if: ${{ inputs.makeartifacts }}
+      uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
+      with:
+        retention-days: 1
+        name: packages
+        path: |
+          security-scan4x.zip
+          ./SecurityCodeScan/bin/Release/**/*.nupkg
+          ./SecurityCodeScan.Vsix/bin/Release/*.vsix
+          ./SecurityCodeScan.Tool/.NET Core/bin/Release/*.nupkg

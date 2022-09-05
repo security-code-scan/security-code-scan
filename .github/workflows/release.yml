@@ -1,3 +1,4 @@
+name: "1. Make release draft"
 on:
   workflow_dispatch:
     inputs:
@@ -6,13 +7,39 @@ on:
         required: true
         type: string
 
+permissions: {}
+
 jobs:
-  release:
+  build:
     uses: security-code-scan/security-code-scan/.github/workflows/build.yml@vs2019
     with:
-      version: ${{ github.event.inputs.version }}
       configuration: Release
-      publish: true
-    secrets:
-      MARKETPLACE_TOKEN: ${{ secrets.MARKETPLACE_TOKEN }}
-      NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+      version: ${{inputs.version}}
+      makeartifacts: true
+
+  release:
+    permissions:
+      contents: write
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Download artifacts
+      uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741
+      with:
+        name: packages
+        path: artifacts
+
+    - name: Create draft release
+      uses: softprops/action-gh-release@8a65c813553f4d05769635eb1b70180d25b9b61b
+      with:
+        draft: true
+        name: ${{inputs.version}}
+        tag_name: ${{inputs.version}}
+        fail_on_unmatched_files: true
+        generate_release_notes: false
+        files: |
+          ./artifacts/security-scan4x.zip
+          ./artifacts/SecurityCodeScan/bin/Release/**/*.nupkg
+          ./artifacts/SecurityCodeScan.Vsix/bin/Release/*.vsix
+          ./artifacts/SecurityCodeScan.Tool/.NET Core/bin/Release/*.nupkg

@@ -58,7 +58,7 @@
     <GetAssemblyIdentity AssemblyFiles="$(OutDir)\$(AssemblyName).dll">
       <Output TaskParameter="Assemblies" ItemName="AnalyzerAssemblyInfo" />
     </GetAssemblyIdentity>
-    <Exec Command="$(SolutionDir)nuget.exe pack Diagnostic.nuspec -NoPackageAnalysis -Version %(AnalyzerAssemblyInfo.Version) -Properties repositoryCommit=$(SourceRevisionId) -OutputDirectory ." WorkingDirectory="$(OutDir)" LogStandardErrorAsError="true" ConsoleToMSBuild="true">
+    <Exec Command="nuget pack Diagnostic.nuspec -NoPackageAnalysis -Version %(AnalyzerAssemblyInfo.Version) -Properties repositoryCommit=$(SourceRevisionId) -OutputDirectory ." WorkingDirectory="$(OutDir)" LogStandardErrorAsError="true" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
     </Exec>
   </Target>

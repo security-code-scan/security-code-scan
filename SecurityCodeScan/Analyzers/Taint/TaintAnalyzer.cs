@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
@@ -494,6 +495,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                             continue;
                                                         }
 
+                                                        
                                                         foreach (SymbolAccess sourceOrigin in sourceSink.SourceOrigins)
                                                         {
                                                         // Something like:
@@ -507,6 +509,85 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                                 sourceSink.Sink.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
                                                                 sourceOrigin.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
                                                                 sourceOrigin.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)});
+                                                            operationBlockAnalysisContext.ReportDiagnostic(diagnostic);
+                                                        }
+                                                        //break;
+                                                        
+
+                                                        // https://github.com/dotnet/roslyn-analyzers/blob/main/docs/Writing%20dataflow%20analysis%20based%20analyzers.md
+
+                                                        foreach (SymbolAccess sourceOrigin in sourceSink.SourceOrigins)
+                                                        {
+                                                            var initialTaintedOperations = taintedDataAnalysisResult.GetTaintedOperations(sourceOrigin);
+                                                            List<IOperation> taintedOperations = new();
+                                                            AddCurrentLevelResults(initialTaintedOperations, taintedDataAnalysisResult, sourceSink);
+
+                                                            void AddCurrentLevelResults(List<IOperation> operations, DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> taintedResult, TaintedDataSourceSink sourceSink)
+                                                            {
+                                                                var invocationOperation = operations.FirstOrDefault(op => op.Kind is OperationKind.Invocation or OperationKind.DynamicInvocation);
+                                                                var downLevelExpression = invocationOperation?.Parent;
+
+                                                                var topLevelExpressions = operations.Where(o => o.Kind == OperationKind.ExpressionStatement && o.Parent == null && o != downLevelExpression);
+
+                                                                var topLevelSink = topLevelExpressions.FirstOrDefault(o => o.Syntax.GetLocation().SourceSpan.OverlapsWith(sourceSink.Sink.Location.SourceSpan));
+
+                                                                taintedOperations.AddRange(operations.Where(i => i.Parent == null).Except(topLevelExpressions));
+                                                                if (topLevelSink != null)
+                                                                {
+                                                                    // consider to check instead
+                                                                    // !taintedResult.InterproceduralResultAvailable()
+                                                                    // invocationOperation == null
+                                                                    return;
+                                                                }
+
+
+                                                                if (taintedResult.InterproceduralResultAvailable())
+                                                                {
+                                                                    var r = taintedResult.TryGetInterproceduralResult(invocationOperation);
+                                                                    if (r != null)
+                                                                    {
+                                                                        var taintedOps = r.GetTaintedOperations(sourceOrigin);
+
+                                                                        AddCurrentLevelResults(taintedOps, r, sourceSink);
+                                                                    }
+                                                                }
+
+                                                            }
+
+                                                            // prepare a list of addional locations starting from the source
+                                                            var additionalLocations = new Location[taintedOperations.Count + 1];
+                                                            additionalLocations[0] = sourceOrigin.Location;
+                                                            var sb = new StringBuilder();
+
+                                                            for (int i = 0; i < taintedOperations.Count; i++)
+                                                            {
+                                                                additionalLocations[i + 1] = taintedOperations[i].Syntax.GetLocation();
+                                                                sb.AppendLine(taintedOperations[i].Syntax.ToFullString());
+                                                            }
+
+                                                            var messageArgs = new object[4 + additionalLocations.Length];
+                                                            messageArgs[0] = sourceSink.Sink.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+                                                            messageArgs[1] = sourceSink.Sink.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+                                                            messageArgs[2] = sourceOrigin.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+                                                            messageArgs[3] = sourceOrigin.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+
+                                                            for (int i = 0; i < additionalLocations.Length; i++)
+                                                            {
+                                                                messageArgs[i + 4] = additionalLocations[i].SourceTree.GetText().GetSubText(additionalLocations[i].SourceSpan).ToString();
+                                                            }
+                                                            // multiple arguments for additional locations but it is unclear how to use in a static message file
+                                                            // messageArgs[i + 4] = additionalLocations[i].SourceTree.GetText().GetSubText(additionalLocations[i].SourceSpan).ToString();
+
+
+                                                            var dd = new DiagnosticDescriptor(TaintedDataEnteringSinkDescriptor.Id, TaintedDataEnteringSinkDescriptor.Title, TaintedDataEnteringSinkDescriptor.MessageFormat, TaintedDataEnteringSinkDescriptor.Category, TaintedDataEnteringSinkDescriptor.DefaultSeverity, TaintedDataEnteringSinkDescriptor.IsEnabledByDefault, sb.ToString());
+
+                                                            // Something like:
+                                                            // CA3001: Potential SQL injection vulnerability was found where '{0}' in method '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'.
+                                                            Diagnostic diagnostic = Diagnostic.Create(
+                                                            dd,
+                                                            sourceSink.Sink.Location,
+                                                            additionalLocations: additionalLocations,
+                                                            messageArgs: messageArgs);
                                                             operationBlockAnalysisContext.ReportDiagnostic(diagnostic);
                                                         }
                                                     }

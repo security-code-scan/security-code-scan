@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
@@ -142,9 +143,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        internal bool InterproceduralResultAvailable()
+        internal int InterproceduralResultCount()
         {
-            return _interproceduralResultsMap.Count > 0;
+            return _interproceduralResultsMap.Count;
         }
 
         internal List<IOperation> GetTaintedOperations(SymbolAccess sourceOrigin)
@@ -162,6 +163,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return list;
         }
 
+        internal DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>? GetInterproceduralResultByIndex(int index)
+        {
+            var element = _interproceduralResultsMap.ElementAt(index);
+
+            return (DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>)element.Value;
+        }
 
         internal DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>? TryGetInterproceduralResult(IOperation operation)
         {

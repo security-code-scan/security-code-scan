@@ -495,7 +495,7 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                             continue;
                                                         }
 
-                                                        
+                                                        /*
                                                         foreach (SymbolAccess sourceOrigin in sourceSink.SourceOrigins)
                                                         {
                                                         // Something like:
@@ -511,7 +511,8 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                                 sourceOrigin.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)});
                                                             operationBlockAnalysisContext.ReportDiagnostic(diagnostic);
                                                         }
-                                                        //break;
+                                                        break;
+                                                        */
                                                         
 
                                                         // https://github.com/dotnet/roslyn-analyzers/blob/main/docs/Writing%20dataflow%20analysis%20based%20analyzers.md
@@ -524,15 +525,15 @@ namespace SecurityCodeScan.Analyzers.Taint
 
                                                             void AddCurrentLevelResults(List<IOperation> operations, DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> taintedResult, TaintedDataSourceSink sourceSink)
                                                             {
+                                                                var ops = operations.OrderBy(o => o.Syntax.GetLocation().SourceSpan.Start).ToArray();
                                                                 var invocationOperation = operations.FirstOrDefault(op => op.Kind is OperationKind.Invocation or OperationKind.DynamicInvocation);
                                                                 var downLevelExpression = invocationOperation?.Parent;
 
                                                                 var topLevelExpressions = operations.Where(o => o.Kind == OperationKind.ExpressionStatement && o.Parent == null && o != downLevelExpression);
 
                                                                 var topLevelSink = topLevelExpressions.FirstOrDefault(o => o.Syntax.GetLocation().SourceSpan.OverlapsWith(sourceSink.Sink.Location.SourceSpan));
-
-                                                                taintedOperations.AddRange(operations.Where(i => i.Parent == null).Except(topLevelExpressions));
-                                                                if (topLevelSink != null)
+                                                                taintedOperations.AddRange(ops.Where(i => i.Parent == null)); //.Except(topLevelExpressions));
+                                                                if (taintedResult.InterproceduralResultCount() == 0)
                                                                 {
                                                                     // consider to check instead
                                                                     // !taintedResult.InterproceduralResultAvailable()
@@ -540,19 +541,34 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                                     return;
                                                                 }
 
+                                                                DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>? interoprocResults = null;
 
-                                                                if (taintedResult.InterproceduralResultAvailable())
+                                                                for (int i = 0; i < taintedResult.InterproceduralResultCount(); i++)
                                                                 {
-                                                                    var r = taintedResult.TryGetInterproceduralResult(invocationOperation);
-                                                                    if (r != null)
+                                                                    interoprocResults = taintedResult.GetInterproceduralResultByIndex(i);
+                                                                    var r = (TaintedDataAnalysisResult)interoprocResults;
+                                                                    //if (r.TaintedDataSourceSinks.Contains(sourceSink))
+                                                                    if (r.TaintedDataSourceSinks.Length > 0)
                                                                     {
-                                                                        var taintedOps = r.GetTaintedOperations(sourceOrigin);
-
-                                                                        AddCurrentLevelResults(taintedOps, r, sourceSink);
+                                                                        // found sink
+                                                                        break;
                                                                     }
                                                                 }
 
+                                                                //interoprocResults = taintedResult.TryGetInterproceduralResult(invocationOperation);
+
+
+                                                                if (interoprocResults != null)
+                                                                {
+                                                                    var taintedOps = interoprocResults.GetTaintedOperations(sourceOrigin);
+
+                                                                    AddCurrentLevelResults(taintedOps, interoprocResults, sourceSink);
+                                                                }
+
+
                                                             }
+
+                                                        
 
                                                             // prepare a list of addional locations starting from the source
                                                             var additionalLocations = new Location[taintedOperations.Count + 1];

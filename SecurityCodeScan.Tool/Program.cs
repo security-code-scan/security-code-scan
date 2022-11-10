@@ -26,16 +26,19 @@ namespace SecurityCodeScan.Tool
 {
     internal abstract class Runner
     {
-        protected int _count;
+        protected int _analysis_warnings = 0;
+        protected int _errors = 0;
+        protected int _warnings = 0;
+
         private List<DiagnosticAnalyzer> _analyzers;
-        protected Func<ImmutableArray<Diagnostic>, ParsedOptions, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, int> _logDiagnostics;
+        protected Func<ImmutableArray<Diagnostic>, ParsedOptions, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, (int, int, int)> _logDiagnostics;
         protected ParsedOptions _parsedOptions;
         protected ConcurrentDictionary<string, DiagnosticDescriptor> _descriptors;
         protected SarifV2ErrorLogger _logger;
 
         public Runner(
             List<DiagnosticAnalyzer> analyzers,
-            Func<ImmutableArray<Diagnostic>, ParsedOptions, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, int> logDiagnostics,
+            Func<ImmutableArray<Diagnostic>, ParsedOptions, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, (int, int, int)> logDiagnostics,
             ParsedOptions parsedOptions,
             ConcurrentDictionary<string, DiagnosticDescriptor> descriptors,
             SarifV2ErrorLogger logger)
@@ -49,16 +52,16 @@ namespace SecurityCodeScan.Tool
 
         public abstract Task Run(Project project);
 
-        public virtual async Task<int> WaitForCompletion()
+        public virtual async Task<(int, int, int)> WaitForCompletion()
         {
-            return await Task.FromResult(_count).ConfigureAwait(false);
+            return await Task.FromResult((_analysis_warnings, _errors, _warnings)).ConfigureAwait(false);
         }
 
         protected async Task<ImmutableArray<Diagnostic>> GetDiagnostics(Project project)
         {
             var compilation = await project.GetCompilationAsync().ConfigureAwait(false);
             var compilationWithAnalyzers = compilation.WithAnalyzers(_analyzers.ToImmutableArray(), project.AnalyzerOptions);
-            return await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false);
+            return await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
         }
     }
 
@@ -69,7 +72,7 @@ namespace SecurityCodeScan.Tool
         public SingleThreadRunner(
             bool verbose,
             List<DiagnosticAnalyzer> analyzers,
-            Func<ImmutableArray<Diagnostic>, ParsedOptions, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, int> logDiagnostics,
+            Func<ImmutableArray<Diagnostic>, ParsedOptions, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, (int, int, int)> logDiagnostics,
             ParsedOptions parsedOptions,
             ConcurrentDictionary<string, DiagnosticDescriptor> descriptors,
             SarifV2ErrorLogger logger)
@@ -83,7 +86,10 @@ namespace SecurityCodeScan.Tool
             if (_verbose)
                 Console.WriteLine($"Starting: {project.FilePath}");
             var diagnostics = await GetDiagnostics(project).ConfigureAwait(false);
-            _count += _logDiagnostics(diagnostics, _parsedOptions, _descriptors, _logger);
+            (var analysisWarnings, var errors, var warnings) = _logDiagnostics(diagnostics, _parsedOptions, _descriptors, _logger);
+            _analysis_warnings += analysisWarnings;
+            _errors += errors;
+            _warnings += warnings;
         }
     }
 
@@ -95,7 +101,7 @@ namespace SecurityCodeScan.Tool
         public MultiThreadRunner(
             bool verbose,
             List<DiagnosticAnalyzer> analyzers,
-            Func<ImmutableArray<Diagnostic>, ParsedOptions, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, int> logDiagnostics,
+            Func<ImmutableArray<Diagnostic>, ParsedOptions, ConcurrentDictionary<string, DiagnosticDescriptor>, SarifV2ErrorLogger, (int, int, int)> logDiagnostics,
             ParsedOptions parsedOptions,
             ConcurrentDictionary<string, DiagnosticDescriptor> descriptors,
             SarifV2ErrorLogger logger,
@@ -117,7 +123,10 @@ namespace SecurityCodeScan.Tool
 
             _resultsBlock = new ActionBlock<ImmutableArray<Diagnostic>>(diagnostics =>
             {
-                _count += logDiagnostics(diagnostics, _parsedOptions, descriptors, logger);
+                (var analysisWarnings, var errors, var warnings) = logDiagnostics(diagnostics, _parsedOptions, descriptors, logger);
+                _analysis_warnings += analysisWarnings;
+                _errors += errors;
+                _warnings += warnings;
             },
             new ExecutionDataflowBlockOptions
             {
@@ -135,7 +144,7 @@ namespace SecurityCodeScan.Tool
             }
         }
 
-        public override async Task<int> WaitForCompletion()
+        public override async Task<(int, int, int)> WaitForCompletion()
         {
             _scanBlock.Complete();
             await _resultsBlock.Completion.ConfigureAwait(false);
@@ -399,11 +408,16 @@ namespace SecurityCodeScan.Tool
                 var analyzers = new List<DiagnosticAnalyzer>();
                 LoadAnalyzers(parsedOptions, analyzers);
 
-                var count = await GetDiagnostics(parsedOptions, versionString, projects, analyzers).ConfigureAwait(false);
+                (var count, var errors, _) = await GetDiagnostics(parsedOptions, versionString, projects, analyzers).ConfigureAwait(false);
 
                 var elapsed = DateTime.Now - startTime;
                 Console.WriteLine($@"Completed in {elapsed:hh\:mm\:ss}");
-                Console.WriteLine($@"{count} warnings");
+                Console.WriteLine($@"Found {count} security issues.");
+
+                if (errors > 0)
+                {
+                    return 1;
+                }
 
                 if (parsedOptions.failOnWarning && count > 0)
                 {
@@ -427,7 +441,7 @@ namespace SecurityCodeScan.Tool
             Console.ForegroundColor = ConsoleColor.White;
         }
 
-        private static async Task<int> GetDiagnostics(
+        private static async Task<(int, int, int)> GetDiagnostics(
             ParsedOptions parsedOptions,
             string versionString,
             IEnumerable<Project> projects,
@@ -514,17 +528,33 @@ namespace SecurityCodeScan.Tool
             }
         }
 
-        private static int LogDiagnostics(
+        private static (int, int, int) LogDiagnostics(
             ImmutableArray<Diagnostic> diagnostics,
             ParsedOptions parsedOptions,
             ConcurrentDictionary<string, DiagnosticDescriptor> descriptors,
             SarifV2ErrorLogger logger)
         {
-            var count = 0;
+            var analysis_issues = 0;
+            var errors = 0;
+            var warnings = 0;
 
             foreach (var diag in diagnostics)
             {
                 var d = diag;
+                if (d.Severity == DiagnosticSeverity.Hidden || d.Severity == DiagnosticSeverity.Info)
+                    continue;
+
+                if (!d.Id.StartsWith("SCS"))
+                {
+                    LogError(d.Severity == DiagnosticSeverity.Error, d.ToString());
+                    if (d.Severity == DiagnosticSeverity.Error)
+                        ++errors;
+                    else
+                        ++warnings;
+
+                    continue;
+                }
+
                 // Second pass. Analyzers may support more than one diagnostic.
                 // Filter excluded diagnostics.
                 if (parsedOptions.excludeWarnings.Contains(d.Id))
@@ -532,7 +562,7 @@ namespace SecurityCodeScan.Tool
                 else if (parsedOptions.includeWarnings.Any() && !parsedOptions.includeWarnings.Contains(d.Id))
                     continue;
 
-                ++count;
+                ++analysis_issues;
 
                 // fix locations for diagnostics from additional files
                 if (d.Location == Location.None)
@@ -576,7 +606,7 @@ namespace SecurityCodeScan.Tool
                     logger.LogDiagnostic(d, null);
             }
 
-            return count;
+            return (analysis_issues, errors, warnings);
         }
 
         private static readonly Regex WebConfigMessageRegex = new Regex(@"(.*) in (.*)\((\d+)\): (.*)", RegexOptions.Compiled);

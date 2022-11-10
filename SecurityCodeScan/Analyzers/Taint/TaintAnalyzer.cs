@@ -137,6 +137,10 @@ namespace SecurityCodeScan.Analyzers.Taint
 
         public override void Initialize(AnalysisContext context)
         {
+            //// uncomment for debugging visual studio extension
+            //if (!Debugger.IsAttached)
+            //    Debugger.Launch();
+
             if (!Debugger.IsAttached) // prefer single thread for debugging in development
                 context.EnableConcurrentExecution();
 

@@ -153,6 +153,7 @@ namespace SecurityCodeScan.Tool
         public bool verbose = false;
         public bool ignoreMsBuildErrors = false;
         public bool showBanner = true;
+		public bool showFindingPrefix = true;
         public bool cwe = false;
         public bool failOnWarning = false;
         public HashSet<string> excludeWarnings = new HashSet<string>();
@@ -184,6 +185,7 @@ namespace SecurityCodeScan.Tool
                     { "cwe",            "(Optional) show CWE IDs", r => { cwe = r != null; } },
                     { "t|threads=",     "(Optional) run analysis in parallel (experimental)", (int r) => { threads = r; } },
                     { "n|no-banner",    "(Optional) don't show the banner", r => { showBanner = r == null; } },
+                    { "no-finding-prefix",    "(Optional) don't show the 'Found: ' prefix on findings", r => { showFindingPrefix = r == null; } },
                     { "v|verbose",      "(Optional) more diagnostic messages", r => { verbose = r != null; } },
                     { "ignore-msbuild-errors", "(Optional) Don't stop on MSBuild errors", r => { ignoreMsBuildErrors = r != null; } },
                     { "sdk-path=",      "(Optional) Path to .NET SDK to use.",  r => { sdkPath = r; } },
@@ -565,11 +567,11 @@ namespace SecurityCodeScan.Tool
                         msg = msg.Replace($"{d.Id}:", $"{d.Id}: CWE-{cwe}:");
                     }
 
-                    Console.WriteLine($"Found: {msg}");
+                    Console.WriteLine(parsedOptions.showFindingPrefix ? $"Found: {msg}" : msg);
                 }
                 else
                 {
-                    Console.WriteLine($"Found: {d}");
+                    Console.WriteLine(parsedOptions.showFindingPrefix ? $"Found: {d}" : $"{d}");
                 }
 
                 if (logger != null)

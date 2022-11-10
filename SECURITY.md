@@ -8,4 +8,4 @@
 
 ## Reporting a Vulnerability
 
-Please report potential vulnerabilities to jarlob+scs(eta)gmail.com
+Please report potential vulnerabilities [here](https://github.com/security-code-scan/security-code-scan/security/advisories/new).

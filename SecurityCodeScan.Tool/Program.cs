@@ -161,6 +161,7 @@ namespace SecurityCodeScan.Tool
         public bool shouldShowHelp = false;
         public bool verbose = false;
         public bool ignoreMsBuildErrors = false;
+        public bool ignoreCompilerErrors = false;
         public bool showBanner = true;
         public bool cwe = false;
         public bool failOnWarning = false;
@@ -192,11 +193,12 @@ namespace SecurityCodeScan.Tool
                     { "c|config=",      "(Optional) path to additional configuration file", r => { config = r; } },
                     { "cwe",            "(Optional) show CWE IDs", r => { cwe = r != null; } },
                     { "t|threads=",     "(Optional) run analysis in parallel (experimental)", (int r) => { threads = r; } },
+                    { "sdk-path=",      "(Optional) Path to .NET SDK to use.",  r => { sdkPath = r; } },
+                    { "ignore-msbuild-errors", "(Optional) Don't stop on MSBuild errors", r => { ignoreMsBuildErrors = r != null; } },
+                    { "ignore-compiler-errors", "(Optional) Don't exit with non-zero code on compilation errors", r => { ignoreCompilerErrors = r != null; } },
+                    { "f|fail-any-warn","(Optional) fail on security warnings with non-zero exit code", r => { failOnWarning = r != null; } },
                     { "n|no-banner",    "(Optional) don't show the banner", r => { showBanner = r == null; } },
                     { "v|verbose",      "(Optional) more diagnostic messages", r => { verbose = r != null; } },
-                    { "ignore-msbuild-errors", "(Optional) Don't stop on MSBuild errors", r => { ignoreMsBuildErrors = r != null; } },
-                    { "sdk-path=",      "(Optional) Path to .NET SDK to use.",  r => { sdkPath = r; } },
-                    { "f|fail-any-warn","(Optional) fail on any warnings with non-zero exit code", r => { failOnWarning = r != null; } },
                     { "h|?|help",       "show this message and exit", h => shouldShowHelp = h != null },
                 };
 
@@ -411,19 +413,22 @@ namespace SecurityCodeScan.Tool
                 (var count, var errors, _) = await GetDiagnostics(parsedOptions, versionString, projects, analyzers).ConfigureAwait(false);
 
                 var elapsed = DateTime.Now - startTime;
-                Console.WriteLine($@"Completed in {elapsed:hh\:mm\:ss}");
+                if (parsedOptions.verbose)
+                    Console.WriteLine($@"Completed in {elapsed:hh\:mm\:ss}");
                 Console.WriteLine($@"Found {count} security issues.");
 
-                if (errors > 0)
+                if (errors > 0 && !parsedOptions.ignoreCompilerErrors)
                 {
-                    return 1;
+                    if (parsedOptions.verbose)
+                        Console.WriteLine($@"Exiting with 2 due to compilation errors.");
+                    return 2;
                 }
 
                 if (parsedOptions.failOnWarning && count > 0)
                 {
-                    const int exitCode = 1;
-                    Console.WriteLine($@"Exiting with {exitCode} due to warnings.");
-                    return exitCode;
+                    if (parsedOptions.verbose)
+                        Console.WriteLine($@"Exiting with 1 due to warnings.");
+                    return 1;
                 }
 
                 return 0;

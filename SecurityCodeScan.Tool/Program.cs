@@ -595,11 +595,11 @@ namespace SecurityCodeScan.Tool
                         msg = msg.Replace($"{d.Id}:", $"{d.Id}: CWE-{cwe}:");
                     }
 
-                    Console.WriteLine($"Found: {msg}");
+                    Console.WriteLine(msg);
                 }
                 else
                 {
-                    Console.WriteLine($"Found: {d}");
+                    Console.WriteLine(d.ToString());
                 }
 
                 if (logger != null)

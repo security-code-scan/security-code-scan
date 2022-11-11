@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <MicrosoftCodeAnalysisVersion>3.8.0</MicrosoftCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisVersion>3.11.0</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
   <Choose>
     <When Condition=" '$(APPVEYOR_REPO_TAG_NAME)' != '' ">

@@ -32,7 +32,7 @@ jobs:
         persist-credentials: false
 
     - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: |
           3.1.x

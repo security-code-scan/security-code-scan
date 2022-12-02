@@ -526,49 +526,46 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                             void AddCurrentLevelResults(List<IOperation> operations, DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> taintedResult, TaintedDataSourceSink sourceSink)
                                                             {
                                                                 var ops = operations.OrderBy(o => o.Syntax.GetLocation().SourceSpan.Start).ToArray();
-                                                                var invocationOperation = operations.FirstOrDefault(op => op.Kind is OperationKind.Invocation or OperationKind.DynamicInvocation);
-                                                                var downLevelExpression = invocationOperation?.Parent;
-
-                                                                var topLevelExpressions = operations.Where(o => o.Kind == OperationKind.ExpressionStatement && o.Parent == null && o != downLevelExpression);
-
-                                                                var topLevelSink = topLevelExpressions.FirstOrDefault(o => o.Syntax.GetLocation().SourceSpan.OverlapsWith(sourceSink.Sink.Location.SourceSpan));
-                                                                taintedOperations.AddRange(ops.Where(i => i.Parent == null)); //.Except(topLevelExpressions));
+                                                                taintedOperations.AddRange(ops.Where(i => i.Parent == null));
                                                                 if (taintedResult.InterproceduralResultCount() == 0)
                                                                 {
-                                                                    // consider to check instead
-                                                                    // !taintedResult.InterproceduralResultAvailable()
-                                                                    // invocationOperation == null
                                                                     return;
                                                                 }
 
                                                                 DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>? interoprocResults = null;
+                                                                TaintedDataAnalysisResult taintedInteroprocResults = null;
 
                                                                 for (int i = 0; i < taintedResult.InterproceduralResultCount(); i++)
                                                                 {
                                                                     interoprocResults = taintedResult.GetInterproceduralResultByIndex(i);
-                                                                    var r = (TaintedDataAnalysisResult)interoprocResults;
-                                                                    //if (r.TaintedDataSourceSinks.Contains(sourceSink))
-                                                                    if (r.TaintedDataSourceSinks.Length > 0)
+                              
+                                                                    if ((interoprocResults as TaintedDataAnalysisResult).TaintedDataSourceSinks.Length > 0)
                                                                     {
-                                                                        // found sink
-                                                                        break;
+                                                                        taintedInteroprocResults = (TaintedDataAnalysisResult)interoprocResults;
                                                                     }
-                                                                }
+                                                                    else
+                                                                    {
+                                                                        // remove from taintedOperations
+                                                                        var notLeadToSinkOps = interoprocResults.GetTaintedOperations(sourceOrigin);
+                                                                        foreach (var notLeadToSinkOp in notLeadToSinkOps)
+                                                                        {
+                                                                            // we should have a value from ArgumentOperation that is tainted but a part of InvocationOperation that doesn't lead to the specific sink
+                                                                            var whatToExclude = notLeadToSinkOp.Syntax.ToString();
+                                                                            taintedOperations = taintedOperations.Where(op => !op.Syntax.ToFullString().Contains(whatToExclude)).ToList();                                              
+                                                                        }
 
-                                                                //interoprocResults = taintedResult.TryGetInterproceduralResult(invocationOperation);
+                                                                    }
+                                                                }                                                          
 
-
-                                                                if (interoprocResults != null)
+                                                                if (taintedInteroprocResults != null)
                                                                 {
-                                                                    var taintedOps = interoprocResults.GetTaintedOperations(sourceOrigin);
+                                                                    var taintedOps = taintedInteroprocResults.GetTaintedOperations(sourceOrigin);
 
-                                                                    AddCurrentLevelResults(taintedOps, interoprocResults, sourceSink);
+                                                                    AddCurrentLevelResults(taintedOps, taintedInteroprocResults, sourceSink);
                                                                 }
-
-
                                                             }
 
-                                                        
+
 
                                                             // prepare a list of addional locations starting from the source
                                                             var additionalLocations = new Location[taintedOperations.Count + 1];
@@ -579,6 +576,9 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                             {
                                                                 additionalLocations[i + 1] = taintedOperations[i].Syntax.GetLocation();
                                                                 sb.AppendLine(taintedOperations[i].Syntax.ToFullString());
+
+                                                                //var node = additionalLocations[i + 1].SourceTree?.GetRoot()?.FindNode(additionalLocations[i + 1].SourceSpan);
+                                                                //var s = node.ToFullString();
                                                             }
 
                                                             var messageArgs = new object[4 + additionalLocations.Length];

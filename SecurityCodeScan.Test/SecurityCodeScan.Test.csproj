@@ -634,6 +634,7 @@
     <Compile Include="Tests\Taint\EntryPointsTaintAnalyzerTest.cs" />
     <Compile Include="Tests\Taint\OpenRedirectAnalyzerTest.cs" />
     <Compile Include="Tests\Taint\LdapInjectionAnalyzerTest.cs" />
+    <Compile Include="Tests\Taint\TaintFlowVisualizationTests.cs" />
     <Compile Include="Tests\Taint\SqlInjectionAnalyzerTest.cs" />
     <Compile Include="Tests\Taint\TaintAnalyzerSanitizerTest.cs" />
     <Compile Include="Tests\Taint\TaintTransferTest.cs" />

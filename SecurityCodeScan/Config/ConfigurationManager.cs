@@ -313,6 +313,8 @@ namespace SecurityCodeScan.Config
         public Dictionary<string, AttributeCheck>      CsrfCheck                           { get; set; }
         public Dictionary<string, AttributeCheck>      AuthorizeCheck                      { get; set; }
         public string                                  WebConfigFiles                      { get; set; }
+        public bool?                                   TaintFlowVisualizationEnabled       { get; set; }
+        
     }
 
     internal class Transfer

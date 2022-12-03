@@ -697,6 +697,7 @@ namespace SecurityCodeScan.Config
             PasswordValidatorRequiredLength    = configData.PasswordValidatorRequiredLength    ?? 0;
             MaxInterproceduralMethodCallChain  = configData.MaxInterproceduralMethodCallChain ?? 3;
             MaxInterproceduralLambdaOrLocalFunctionCallChain = configData.MaxInterproceduralLambdaOrLocalFunctionCallChain ?? 3;
+            TaintFlowVisualizationEnabled = configData.TaintFlowVisualizationEnabled ?? false;
 
             if (configData.PasswordValidatorRequiredProperties != null)
             {
@@ -803,6 +804,7 @@ namespace SecurityCodeScan.Config
         public uint MaxInterproceduralLambdaOrLocalFunctionCallChain { get; private set; }
         public int  PasswordValidatorRequiredLength    { get; private set; }
         public int  MinimumPasswordValidatorProperties { get; private set; }
+        public bool TaintFlowVisualizationEnabled { get; private set; }
 
         private readonly HashSet<string>         _PasswordValidatorRequiredProperties;
         public           ReadOnlyHashSet<string> PasswordValidatorRequiredProperties { get; }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 
 namespace SecurityCodeScan.Test.Helpers
@@ -76,5 +77,30 @@ namespace SecurityCodeScan.Test.Helpers
             result.LocationsField.Add(new DiagnosticResultLocation(path, line, column));
             return result;
         }
+
+        public DiagnosticResult WithAdditionalLocations(List<ResultLocation> resultLocations)
+        {
+            DiagnosticResult result = this;
+            var path = $"{DiagnosticVerifier.DefaultFilePathPrefix}0";
+            if (result.LocationsField == null)
+                result.LocationsField = new List<DiagnosticResultLocation>();
+
+            result.LocationsField.AddRange(resultLocations.Select(l => new DiagnosticResultLocation(path, l.Line, l.Column)));
+            
+            return result;
+        }
+
+    }
+
+    public struct ResultLocation
+    {
+        public ResultLocation(int line, int column)
+        {
+            Line = line;
+            Column = column;
+        }
+
+        public int Line { get; }
+        public int Column { get; }
     }
 }

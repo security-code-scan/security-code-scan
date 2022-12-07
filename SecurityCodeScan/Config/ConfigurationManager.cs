@@ -172,6 +172,9 @@ namespace SecurityCodeScan.Config
             if (config2.AuditMode.HasValue)
                 config1.AuditMode = config2.AuditMode.Value;
 
+            if (config2.TaintFlowVisualizationEnabled.HasValue)
+                config1.TaintFlowVisualizationEnabled = config2.TaintFlowVisualizationEnabled.Value;
+
             if (config2.MinimumPasswordValidatorProperties.HasValue)
                 config1.MinimumPasswordValidatorProperties = config2.MinimumPasswordValidatorProperties.Value;
 

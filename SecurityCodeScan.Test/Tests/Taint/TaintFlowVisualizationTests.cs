@@ -41,6 +41,12 @@ namespace SecurityCodeScan.Test.Taint
 
         protected override IEnumerable<MetadataReference> GetAdditionalReferences() => References;
 
+        private DiagnosticResult Expected = new DiagnosticResult
+        {
+            Id       = "SCS0002",
+            Severity = DiagnosticSeverity.Warning,
+        };
+
         [TestMethod]
         public async Task TaintedVizSimpleTest()
         {
@@ -74,18 +80,16 @@ namespace sample
     }}
 }}
 ";
-            var expected = new DiagnosticResult
-            {
-                Id = "SCS0002",
-                Severity = DiagnosticSeverity.Warning,
-            };
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
 
         }
 
         [TestMethod]
         public async Task TaintedVizOpsNotLeadingToSinkTest()
         {
+            var testConfig = @"
+TaintFlowVisualizationEnabled: true";
+
             var cSharpTest = $@"
 #pragma warning disable 8019
     using System;
@@ -125,12 +129,28 @@ namespace sample
     }}
 }}
 ";
-            var expected = new DiagnosticResult
-            {
-                Id = "SCS0002",
-                Severity = DiagnosticSeverity.Warning,
-            };
-            await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+
+            //await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+
+            var expectedCSharp =
+                new[]
+                {
+                    Expected.WithLocation(28,31).WithAdditionalLocations(new List<ResultLocation>()
+                    {
+                        new ResultLocation(19, 25),
+                        new ResultLocation(23, 13),
+                        new ResultLocation(28, 13),
+                    })
+                };
+
+            var expectedVB =
+                new[]
+                {
+                    Expected.WithLocation(8, 36)
+                };
+
+            var config = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            await VerifyCSharpDiagnostic(cSharpTest, expectedCSharp, options: config).ConfigureAwait(false);
 
         }
 

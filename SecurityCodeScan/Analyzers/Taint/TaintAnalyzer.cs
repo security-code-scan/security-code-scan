@@ -558,15 +558,10 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                                 }
 
                                                                 var messageArgs = new object[4];
-                                                                messageArgs[0] = sourceSink.Sink.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+                                                                messageArgs[0] = sourceSink.Sink.Symbol.Name; // sourceSink.Sink.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
                                                                 messageArgs[1] = sourceSink.Sink.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
                                                                 messageArgs[2] = sourceOrigin.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
                                                                 messageArgs[3] = sourceOrigin.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-
-                                                                // sourceSink.Sink.Symbol.Name,
-                                                                // sourceSink.Sink.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
-                                                                // sourceOrigin.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
-                                                                // sourceOrigin.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)
 
                                                                 Diagnostic diagnostic = Diagnostic.Create(
                                                                     TaintedDataEnteringSinkDescriptor,

@@ -253,7 +253,7 @@ Diagnostics:
                 {
                     VerifyDiagnosticLocation(documentsWithLineNumbers,
                                              actual.Location,
-                                             expected.Locations.First(),
+                                             expected.Location,
                                              language,
                                              diagnosticsOutput);
                 }

@@ -20,7 +20,7 @@ namespace SecurityCodeScan.Test.Taint
         }
 
         private static readonly PortableExecutableReference[] References =
-        {            
+        {
             MetadataReference.CreateFromFile(typeof(System.Web.UI.WebControls.SqlDataSource).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(System.Data.Entity.DbContext).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.Practices.EnterpriseLibrary.Data.Sql.SqlDatabase).Assembly.Location),
@@ -50,38 +50,102 @@ namespace SecurityCodeScan.Test.Taint
         [TestMethod]
         public async Task TaintedVizSimpleTest()
         {
+            var testConfig = @"
+TaintFlowVisualizationEnabled: true";
+
             var cSharpTest = $@"
-#pragma warning disable 8019
-    using System;
-    using System.Data.SqlClient;
-    using System.Data.Common;
-    using System.Data;
-    using System.Web.UI.WebControls;
-    using System.Data.Entity;
-    using System.Threading;
-    using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
-    using System.Data.SQLite;
-    using System.Web.Mvc;
-#pragma warning restore 8019
+using System.Data.Common;
+using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
+using System.Web.Mvc;
 
 namespace sample
 {{
     public class MyFooController : Controller
     {{
-        public void Run(string input, params object[] parameters)
+        public MyFooController()
+        {{
+            m_db = new SqlDatabase("""");
+        }}
+
+        private SqlDatabase m_db;
+
+        private SqlDatabase GetDataBase() {{ return m_db; }}
+
+        public void Run(string input)
         {{
             DoStuff(input);
         }}
 
         private void DoStuff(string stuffInput)
         {{
-            new SQLiteCommand(stuffInput);
+            var db = GetDataBase();
+            DbCommand cmd = db.GetSqlStringCommand(""SELECT * FROM Users WHERE username = '"" + stuffInput + ""' and role='user'"");
+            db.ExecuteDataSet(cmd);
         }}
     }}
 }}
 ";
-            await VerifyCSharpDiagnostic(cSharpTest, Expected).ConfigureAwait(false);
 
+            var visualBasicTest = @"
+Imports System.Data.Common
+Imports Microsoft.Practices.EnterpriseLibrary.Data.Sql
+Imports System.Web.Mvc
+
+Namespace sample
+    Public Class MyFooController
+        Inherits Controller
+
+        Public Sub New()
+            m_db = New SqlDatabase("""")
+        End Sub
+
+        Private m_db As SqlDatabase
+
+        Private Function GetDataBase() As SqlDatabase
+            Return m_db
+        End Function
+
+        Public Sub Run(input As System.String)
+            DoStuff(input)
+        End Sub
+
+         Private Sub DoStuff(stuffInput As System.String)
+            Dim db = GetDataBase()
+            Dim cmd As DbCommand = db.GetSqlStringCommand(""SELECT * FROM Users WHERE username = '"" + stuffInput + ""' and role='user'"")
+            db.ExecuteDataSet(cmd)
+         End Sub
+    End Class
+End Namespace
+";
+            var expectedCSharp =
+                new[]
+                {
+                    Expected.WithLocation(27,52)
+                        .WithAdditionalLocations(new List<ResultAdditionalLocation>()
+                        {
+                            new ResultAdditionalLocation(19, 25),
+                            new ResultAdditionalLocation(21, 13),
+                            new ResultAdditionalLocation(27, 23),
+                            new ResultAdditionalLocation(28, 13),
+                        })
+                };
+
+            var expectedVB =
+                new[]
+                {
+                    Expected.WithLocation(26, 59)
+                        .WithAdditionalLocations(new List<ResultAdditionalLocation>()
+                        {
+                            new ResultAdditionalLocation(20, 24),
+                            new ResultAdditionalLocation(21, 13),
+                            new ResultAdditionalLocation(26, 17),
+                            new ResultAdditionalLocation(27, 13),
+                        })
+                };
+
+            var config = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
+            //await VerifyCSharpDiagnostic(cSharpTest, expectedCSharp, options: config).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expectedVB, options: config).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -91,23 +155,23 @@ namespace sample
 TaintFlowVisualizationEnabled: true";
 
             var cSharpTest = $@"
-#pragma warning disable 8019
-    using System;
-    using System.Data.SqlClient;
-    using System.Data.Common;
-    using System.Data;
-    using System.Web.UI.WebControls;
-    using System.Data.Entity;
-    using System.Threading;
-    using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
-    using System.Data.SQLite;
-    using System.Web.Mvc;
-#pragma warning restore 8019
+using System.Data.Common;
+using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
+using System.Web.Mvc;
 
 namespace sample
 {{
     public class MyFooController : Controller
     {{
+        public MyFooController()
+        {{
+            m_db = new SqlDatabase("""");
+        }}
+
+        private SqlDatabase m_db;
+
+        private SqlDatabase GetDataBase() {{ return m_db; }}
+
         public void Run(string input)
         {{
             var doNotStuff = input + ""tainted"";
@@ -117,103 +181,86 @@ namespace sample
 
         private void DoStuff(string stuffInput)
         {{
-            new SQLiteCommand(stuffInput);
+            var db = GetDataBase();
+            DbCommand cmd = db.GetSqlStringCommand(""SELECT * FROM Users WHERE username = '"" + stuffInput + ""' and role='user'"");
+            db.ExecuteDataSet(cmd);
         }}
 
         private void DoNotStuff(string stuffNotInput)
         {{
             return;
         }}
-
-
     }}
 }}
 ";
 
-            //await VerifyCSharpDiagnostic(cSharpTest, expected).ConfigureAwait(false);
+            var visualBasicTest = @"
+Imports System.Data.Common
+Imports Microsoft.Practices.EnterpriseLibrary.Data.Sql
+Imports System.Web.Mvc
 
+Namespace sample
+    Public Class MyFooController
+        Inherits Controller
+
+        Public Sub New()
+            m_db = New SqlDatabase("""")
+        End Sub
+
+        Private m_db As SqlDatabase
+
+        Private Function GetDataBase() As SqlDatabase
+            Return m_db
+        End Function
+
+        Public Sub Run(input As System.String)
+            Dim doNotStuff = input & ""tainted""
+            DontStuff(doNotStuff)
+            DoStuff(input)
+        End Sub
+
+         Private Sub DoStuff(stuffInput As System.String)
+            Dim db = GetDataBase()
+            Dim cmd As DbCommand = db.GetSqlStringCommand(""SELECT * FROM Users WHERE username = '"" + stuffInput + ""' and role='user'"")
+            db.ExecuteDataSet(cmd)
+         End Sub
+ 
+         Private Sub DontStuff(stuffNotInput As System.String)
+         End Sub
+
+    End Class
+End Namespace
+";
             var expectedCSharp =
                 new[]
                 {
-                    Expected.WithLocation(28,31).WithAdditionalLocations(new List<ResultLocation>()
-                    {
-                        new ResultLocation(19, 25),
-                        new ResultLocation(23, 13),
-                        new ResultLocation(28, 13),
-                    })
+                    Expected.WithLocation(29,52)
+                        .WithAdditionalLocations(new List<ResultAdditionalLocation>()
+                        {
+                            new ResultAdditionalLocation(19, 25),
+                            new ResultAdditionalLocation(23, 13),
+                            new ResultAdditionalLocation(29, 23),
+                            new ResultAdditionalLocation(30, 13),
+                        })
                 };
 
             var expectedVB =
                 new[]
                 {
-                    Expected.WithLocation(8, 36)
+                    Expected.WithLocation(28, 59)
+                        .WithAdditionalLocations(new List<ResultAdditionalLocation>()
+                        {
+                            new ResultAdditionalLocation(20, 24),
+                            new ResultAdditionalLocation(23, 13),
+                            new ResultAdditionalLocation(28, 17),
+                            new ResultAdditionalLocation(29, 13),
+                        })
                 };
 
             var config = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
             await VerifyCSharpDiagnostic(cSharpTest, expectedCSharp, options: config).ConfigureAwait(false);
+            await VerifyVisualBasicDiagnostic(visualBasicTest, expectedVB, options: config).ConfigureAwait(false);
 
-        }
-
-
-        [DataRow("var sql = new NpgsqlCommand(\"SELECT * FROM users WHERE username = '\" + username + \"';\");",                  true)]
-        [DataTestMethod]
-        public async Task NpgsqlInjection(string sink, bool warn)
-        {
-            var testConfig = @"
-TaintEntryPoints:
-  sample.MyFoo:
-    Method:
-      Name: Execute
-";
-
-            var optionsWithProjectConfig = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
-
-            var cSharpTest = $@"
-using Npgsql;
-
-namespace sample
-{{
-    public class MyFoo
-    {{
-        public void Execute(string username)
-        {{
-            {sink}
-        }}
-    }}
-}}
-";
-
-            sink = sink.Replace("var ", "Dim ");
-            sink = sink.Replace(";", "\r\n");
-            sink = sink.Replace("null", "Nothing");
-
-            var visualBasicTest = $@"
-Imports Npgsql
-
-Namespace sample
-    Public Class MyFoo
-        Public Sub Execute(ByVal username As String)
-            {sink}
-        End Sub
-    End Class
-End Namespace
-";
-            var expected = new DiagnosticResult
-            {
-                Id       = "SCS0002",
-                Severity = DiagnosticSeverity.Warning,
-            };
-
-            if (warn)
-            {
-                await VerifyCSharpDiagnostic(cSharpTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(visualBasicTest, expected, optionsWithProjectConfig).ConfigureAwait(false);
-            }
-            else
-            {
-                await VerifyCSharpDiagnostic(cSharpTest, options: optionsWithProjectConfig).ConfigureAwait(false);
-                await VerifyVisualBasicDiagnostic(visualBasicTest, options: optionsWithProjectConfig).ConfigureAwait(false);
-            }
-        }
+        }        
     }
 }

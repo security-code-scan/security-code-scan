@@ -10,6 +10,13 @@ namespace SecurityCodeScan.Test.Helpers
     /// </summary>
     public struct DiagnosticResultLocation
     {
+        public DiagnosticResultLocation()
+        {
+            Line = -1;
+            Column = -1;
+            Path = $"{DiagnosticVerifier.DefaultFilePathPrefix}0";
+        }
+
         public DiagnosticResultLocation(string path, int line, int column)
         {
             if (line < -1)
@@ -37,9 +44,15 @@ namespace SecurityCodeScan.Test.Helpers
     /// </summary>
     public struct DiagnosticResult
     {
-        private List<DiagnosticResultLocation> LocationsField;
+        public DiagnosticResult()
+        {
+        }
 
-        public IReadOnlyList<DiagnosticResultLocation> Locations => LocationsField;
+        public DiagnosticResultLocation Location { get; private set; } = new DiagnosticResultLocation();
+
+        private List<DiagnosticResultLocation> AdditionalLocationsField;
+
+        public IReadOnlyList<DiagnosticResultLocation> AdditionalLocations => AdditionalLocationsField;
 
         public DiagnosticSeverity? Severity { get; set; }
 
@@ -47,9 +60,9 @@ namespace SecurityCodeScan.Test.Helpers
 
         public string Message { get; set; }
 
-        public int Line => LocationsField != null ? Locations[0].Line : -1;
+        public int Line => Location.Line;
 
-        public int Column => LocationsField != null ? Locations[0].Column : -1;
+        public int Column => Location.Column;
 
         public DiagnosticResult WithMessage(string message)
         {
@@ -71,30 +84,28 @@ namespace SecurityCodeScan.Test.Helpers
         private DiagnosticResult WithLocation(string path, int line, int column)
         {
             DiagnosticResult result = this;
-            if (result.LocationsField == null)
-                result.LocationsField = new List<DiagnosticResultLocation>(1);
+            result.Location = new DiagnosticResultLocation(path, line, column);
 
-            result.LocationsField.Add(new DiagnosticResultLocation(path, line, column));
             return result;
         }
 
-        public DiagnosticResult WithAdditionalLocations(List<ResultLocation> resultLocations)
+        public DiagnosticResult WithAdditionalLocations(List<ResultAdditionalLocation> resultLocations)
         {
             DiagnosticResult result = this;
             var path = $"{DiagnosticVerifier.DefaultFilePathPrefix}0";
-            if (result.LocationsField == null)
-                result.LocationsField = new List<DiagnosticResultLocation>();
+            if (result.AdditionalLocationsField == null)
+                result.AdditionalLocationsField = new List<DiagnosticResultLocation>();
 
-            result.LocationsField.AddRange(resultLocations.Select(l => new DiagnosticResultLocation(path, l.Line, l.Column)));
+            result.AdditionalLocationsField.AddRange(resultLocations.Select(l => new DiagnosticResultLocation(path, l.Line, l.Column)));
             
             return result;
         }
 
     }
 
-    public struct ResultLocation
+    public struct ResultAdditionalLocation
     {
-        public ResultLocation(int line, int column)
+        public ResultAdditionalLocation(int line, int column)
         {
             Line = line;
             Column = column;

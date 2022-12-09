@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
@@ -498,21 +499,100 @@ namespace SecurityCodeScan.Analyzers.Taint
                                                             continue;
                                                         }
 
-                                                        foreach (SymbolAccess sourceOrigin in sourceSink.SourceOrigins)
+                                                        if (config.TaintFlowVisualizationEnabled)
                                                         {
-                                                        // Something like:
-                                                        // CA3001: Potential SQL injection vulnerability was found where '{0}' in method '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'.
-                                                        Diagnostic diagnostic = Diagnostic.Create(
-                                                            this.TaintedDataEnteringSinkDescriptor,
-                                                            sourceSink.Sink.Location,
-                                                            additionalLocations: new Location[] { sourceOrigin.Location },
-                                                            messageArgs: new object[] {
-                                                                sourceSink.Sink.Symbol.Name,
-                                                                sourceSink.Sink.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
-                                                                sourceOrigin.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
-                                                                sourceOrigin.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)});
-                                                            operationBlockAnalysisContext.ReportDiagnostic(diagnostic);
+                                                            // Want to learn more: https://github.com/dotnet/roslyn-analyzers/blob/main/docs/Writing%20dataflow%20analysis%20based%20analyzers.md
+                                                            foreach (SymbolAccess sourceOrigin in sourceSink.SourceOrigins)
+                                                            {
+                                                                var initialTaintedOperations = taintedDataAnalysisResult.GetTaintedOperations(sourceOrigin);
+                                                                List<IOperation> taintedOperations = new();
+                                                                AddCurrentLevelResults(initialTaintedOperations, taintedDataAnalysisResult, sourceSink);
+
+                                                                void AddCurrentLevelResults(List<IOperation> operations, DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> taintedResult, TaintedDataSourceSink sourceSink)
+                                                                {
+                                                                    var ops = operations.OrderBy(o => o.Syntax.GetLocation().SourceSpan.Start).ToArray();
+                                                                    taintedOperations.AddRange(ops.Where(i => i.Parent == null));
+                                                                    if (taintedResult.InterproceduralResultCount() == 0)
+                                                                    {
+                                                                        return;
+                                                                    }
+
+                                                                    DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>? interoprocResults = null;
+                                                                    TaintedDataAnalysisResult taintedInteroprocResults = null;
+
+                                                                    for (int i = 0; i < taintedResult.InterproceduralResultCount(); i++)
+                                                                    {
+                                                                        interoprocResults = taintedResult.GetInterproceduralResultByIndex(i);
+
+                                                                        if ((interoprocResults as TaintedDataAnalysisResult).TaintedDataSourceSinks.Length > 0)
+                                                                        {
+                                                                            taintedInteroprocResults = (TaintedDataAnalysisResult)interoprocResults;
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            // remove from taintedOperations
+                                                                            var notLeadToSinkOps = interoprocResults.GetTaintedOperations(sourceOrigin);
+                                                                            foreach (var notLeadToSinkOp in notLeadToSinkOps)
+                                                                            {
+                                                                                // we should have a value from ArgumentOperation that is tainted but a part of InvocationOperation that doesn't lead to the specific sink
+                                                                                var whatToExclude = notLeadToSinkOp.Syntax.ToString();
+                                                                                // this is the initial solution, we might need to improve it because of extra filtering related to working with Syntax model
+                                                                                taintedOperations = taintedOperations.Where(op => !op.Syntax.ToFullString().Contains(whatToExclude)).ToList();
+                                                                            }
+
+                                                                        }
+                                                                    }
+
+                                                                    if (taintedInteroprocResults != null)
+                                                                    {
+                                                                        var taintedOps = taintedInteroprocResults.GetTaintedOperations(sourceOrigin);
+
+                                                                        AddCurrentLevelResults(taintedOps, taintedInteroprocResults, sourceSink);
+                                                                    }
+                                                                }
+
+                                                                // prepare a list of additional locations starting from the source
+                                                                var additionalLocations = new Location[taintedOperations.Count + 1];
+                                                                additionalLocations[0] = sourceOrigin.Location;
+                                                                
+                                                                for (int i = 0; i < taintedOperations.Count; i++)
+                                                                {
+                                                                    additionalLocations[i + 1] = taintedOperations[i].Syntax.GetLocation();
+                                                                    // taintedOperations[i].Syntax.ToFullString());
+                                                                }
+
+                                                                var messageArgs = new object[4];
+                                                                messageArgs[0] = sourceSink.Sink.Symbol.Name; // sourceSink.Sink.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+                                                                messageArgs[1] = sourceSink.Sink.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+                                                                messageArgs[2] = sourceOrigin.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+                                                                messageArgs[3] = sourceOrigin.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+
+                                                                Diagnostic diagnostic = Diagnostic.Create(
+                                                                    TaintedDataEnteringSinkDescriptor,
+                                                                    sourceSink.Sink.Location,
+                                                                    additionalLocations: additionalLocations,
+                                                                    messageArgs: messageArgs);
+                                                                    operationBlockAnalysisContext.ReportDiagnostic(diagnostic);
+                                                            }
                                                         }
+                                                        else
+                                                        {
+                                                            foreach (SymbolAccess sourceOrigin in sourceSink.SourceOrigins)
+                                                            {
+                                                                // Something like:
+                                                                // CA3001: Potential SQL injection vulnerability was found where '{0}' in method '{1}' may be tainted by user-controlled data from '{2}' in method '{3}'.
+                                                                Diagnostic diagnostic = Diagnostic.Create(
+                                                                    this.TaintedDataEnteringSinkDescriptor,
+                                                                    sourceSink.Sink.Location,
+                                                                    additionalLocations: new Location[] { sourceOrigin.Location },
+                                                                    messageArgs: new object[] {
+                                                                        sourceSink.Sink.Symbol.Name,
+                                                                        sourceSink.Sink.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
+                                                                        sourceOrigin.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
+                                                                        sourceOrigin.AccessingMethod.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)});
+                                                                        operationBlockAnalysisContext.ReportDiagnostic(diagnostic);
+                                                            }
+                                                        }                                                        
                                                     }
                                                 }
                                             }

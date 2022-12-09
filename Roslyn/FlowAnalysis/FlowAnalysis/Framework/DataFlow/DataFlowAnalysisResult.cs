@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             List<IOperation> list = new();
             foreach (var kvp in _operationStateMap)
             {
-                if (((kvp.Value as TaintedDataAbstractValue).Kind == TaintedDataAbstractValueKind.Tainted || kvp.Key.Kind == OperationKind.Invocation) && (kvp.Value as TaintedDataAbstractValue).SourceOrigins.Contains(sourceOrigin))
+                if ((kvp.Value as TaintedDataAbstractValue).Kind == TaintedDataAbstractValueKind.Tainted && (kvp.Value as TaintedDataAbstractValue).SourceOrigins.Contains(sourceOrigin))
                 {
                     list.Add(kvp.Key);
                 }

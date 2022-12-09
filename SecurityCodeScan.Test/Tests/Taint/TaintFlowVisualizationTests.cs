@@ -144,7 +144,7 @@ End Namespace
                 };
 
             var config = ConfigurationTest.CreateAnalyzersOptionsWithConfig(testConfig);
-            //await VerifyCSharpDiagnostic(cSharpTest, expectedCSharp, options: config).ConfigureAwait(false);
+            await VerifyCSharpDiagnostic(cSharpTest, expectedCSharp, options: config).ConfigureAwait(false);
             await VerifyVisualBasicDiagnostic(visualBasicTest, expectedVB, options: config).ConfigureAwait(false);
         }
 

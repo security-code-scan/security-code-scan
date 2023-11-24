@@ -27,21 +27,22 @@ jobs:
     steps:
 
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         persist-credentials: false
 
     - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: |
           3.1.x
           5.0.x
           6.0.x
-        include-prerelease: false
+          7.0.x
+          8.0.x
 
     - name: Setup MSBuild.exe
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v1.3.1
 
     - name: Setup VSTest
       uses: darenm/Setup-VSTest@ee4202680b63bd7b2f0deb71ab55104b71917843
